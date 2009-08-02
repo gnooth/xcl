@@ -25,6 +25,7 @@ gmp/demos/calc/calc-config.h
 gmp/demos/expr/Makefile
 gmp/demos/pexpr-config.h
 gmp/doc/Makefile
+gmp/doc/gmp.info*
 gmp/fib_table.h
 gmp/gen-bases
 gmp/gen-fac_ui
