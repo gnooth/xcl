@@ -340,12 +340,22 @@
            `((defun ,accessor (instance) (elt instance ,slot-index))))
           ((or (eq *dd-type* 'vector)
                (and (consp *dd-type*) (eq (car *dd-type*) 'vector)))
-           `((defun ,accessor (instance)
-               (vector-ref (the vector instance) ,slot-index))
-             (define-source-transform ,accessor (instance)
-               (list 'vector-ref
-                     (list 'the 'vector instance)
-                     ,slot-index))))
+           (let* ((element-type (if (consp *dd-type*) (cadr *dd-type*) t))
+                  (upgraded-type (upgraded-array-element-type element-type)))
+             (cond ((eq upgraded-type t)
+                    `((defun ,accessor (instance)
+                        (vector-ref (the simple-vector instance) ,slot-index))
+                      (define-source-transform ,accessor (instance)
+                        (list 'vector-ref
+                              (list 'the 'simple-vector instance)
+                              ,slot-index))))
+                   (t
+                    `((defun ,accessor (instance)
+                        (vector-ref (the vector instance) ,slot-index))
+                      (define-source-transform ,accessor (instance)
+                        (list 'vector-ref
+                              (list 'the 'vector instance)
+                              ,slot-index)))))))
           (t
            (let ((dd-name *dd-name*)
                  (slot-type (slot-type slot)))
@@ -364,8 +374,24 @@
                (setf (elt instance ,slot-index) value))))
           ((or (eq *dd-type* 'vector)
                (and (consp *dd-type*) (eq (car *dd-type*) 'vector)))
-           `((defun (setf ,accessor) (value instance)
-               (vector-set (the vector instance) ,slot-index value))))
+           (let* ((element-type (if (consp *dd-type*) (cadr *dd-type*) t))
+                  (upgraded-type (upgraded-array-element-type element-type)))
+             (cond ((eq upgraded-type t)
+                    `((defun (setf ,accessor) (value instance)
+                        (vector-set (the simple-vector instance) ,slot-index value))
+                      (define-source-transform (setf ,accessor) (value instance)
+                        (list 'vector-set
+                              (list 'the 'simple-vector instance)
+                              ,slot-index
+                              value))))
+                   (t
+                    `((defun (setf ,accessor) (value instance)
+                        (vector-set (the vector instance) ,slot-index value))
+                      (define-source-transform (setf ,accessor) (value instance)
+                        (list 'vector-set
+                              (list 'the 'vector instance)
+                              ,slot-index
+                              value)))))))
           (t
            (let ((dd-name *dd-name*))
              `((defun (setf ,accessor) (value instance)
