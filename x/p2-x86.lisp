@@ -3229,12 +3229,13 @@
 
 (defun p2-two-arg-- (form target)
   (let ((args (cdr form)))
-    (when (eql (length args) 2)
+    (when (length-eql args 2)
       (let* ((arg1 (%car args))
              (arg2 (%cadr args))
              (type1 (derive-type arg1))
              (type2 (derive-type arg2))
              (result-type (derive-type form))
+             (OVERFLOW (make-label))
              (FULL-CALL (make-label))
              (EXIT (make-label)))
         (cond ((and (fixnum-type-p type1)
@@ -3244,8 +3245,7 @@
                (emit-byte #x2d) ; subtract immediate dword from eax
                (emit-dword arg2) ; arg2 is a fixnum literal
                (clear-register-contents :eax)
-               (move-result-to-target target)
-               t)
+               (move-result-to-target target))
               ((and (fixnum-type-p type1)
                     (fixnum-type-p type2))
                (process-2-args args '(:eax :edx) t)
@@ -3261,8 +3261,7 @@
                  (inst :push :ecx)
                  (emit-call-2 'two-arg-- :eax)
                  (label EXIT))
-               (move-result-to-target target)
-               t)
+               (move-result-to-target target))
               ((fixnump arg2)
                (process-1-arg arg1 :eax t)
                (inst :mov :eax :edx)
@@ -3281,8 +3280,45 @@
                (inst :push :edx)
                (emit-call-2 'two-arg-- :eax)
                (label EXIT)
-               (move-result-to-target target)
-               t))))))
+               (move-result-to-target target))
+              ((or (float-type-p type1)
+                   (float-type-p type2))
+               ;; full call
+               (format t "p2-two-arg-- float case~%")
+               (process-2-args args :stack t)
+               (emit-call-2 'two-arg-- target))
+              (t
+               (format t "p2-two-arg-- default case~%")
+               (process-2-args args '(:eax :edx) t)
+               ;; arg1 in eax, arg2 in edx
+               (unless (fixnum-type-p type1)
+                 (inst :test +fixnum-tag-mask+ :al)
+                 (emit-jmp-short :nz FULL-CALL))
+               (unless (fixnum-type-p type2)
+                 (inst :test +fixnum-tag-mask+ :dl)
+                 (emit-jmp-short :nz FULL-CALL))
+               ;; falling through, both args are fixnums
+               (inst :mov :eax :ecx) ; we're about to trash eax
+               (clear-register-contents :ecx)
+               (emit-bytes #x29 #xd0) ; sub %edx,%eax
+               (clear-register-contents :eax)
+               (case target
+                 (:return
+                  (emit-jmp-short :o OVERFLOW)
+                  ;; falling through: no overflow, we're done
+                  (emit-exit)
+                  (label OVERFLOW))
+                 (t
+                  ;; if no overflow, we're done
+                  (emit-jmp-short :no EXIT)))
+               (inst :mov :ecx :eax)
+               (label FULL-CALL)
+               (inst :push :edx)
+               (inst :push :eax)
+               (emit-call-2 'two-arg-- :eax)
+               (label EXIT)
+               (move-result-to-target target))))
+      t)))
 
 (defun p2-two-arg-+ (form target)
   (let ((args (cdr form)))
