@@ -1513,7 +1513,8 @@ for special variables."
                 ((eq type 'WARNING)
                  ;; pass through (warn.18)
                  )
-                ((eql *safety* 3)
+                ((or (eql *safety* 3)
+                     *force-type-checks*)
                  ;; pass through
                  )
                 (t
