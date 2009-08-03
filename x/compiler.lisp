@@ -1869,10 +1869,15 @@ for special variables."
       (setq *code* (delete-if #'instruction-dead-p *code*)))
     changed))
 
+(defconstant +assemble-instruction-output+
+  (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
+
 (defun assemble-instruction (instruction)
-  (let ((asm:*output* (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0)))
+;;   (let ((asm:*output* (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0)))
+  (let ((asm:*output* +assemble-instruction-output+))
+    (setf (fill-pointer +assemble-instruction-output+) 0)
     (asm::assemble-instruction instruction)
-    (make-instruction :bytes (length asm:*output*) (coerce asm:*output* 'list))))
+    (make-instruction :bytes (length asm:*output*) (coerce-vector-to-list asm:*output*))))
 
 ;; (defun preoptimize-1 ()
 ;;   (format t "preoptimize-1 called~%")
