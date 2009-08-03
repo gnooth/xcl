@@ -1,6 +1,6 @@
 ;;; p2.lisp
 ;;;
-;;; Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -448,6 +448,27 @@
                 (eq (derive-type (%caddr form)) 'CHARACTER))
            (p2-neq form target)
            t))))
+
+(defun p2-coerce (form target)
+  (when (length-eql form 3)
+    (let* ((args (%cdr form))
+           (arg1 (%car args))
+           (arg2 (%cadr args)))
+      (when (quoted-form-p arg2)
+        (let ((type1 (derive-type arg1)))
+          (format t "p2-coerce type1 = ~S arg2 = ~S~%" type1 arg2)
+          (cond ((and (quoted-form-p arg2)
+                      (eq (cadr arg2) 'LIST)
+                      (subtypep type1 'VECTOR))
+                 (format t "p2-coerce coerce-vector-to-list case~%")
+                 (p2 (list 'COERCE-VECTOR-TO-LIST arg1) target)
+                 t)
+                ((and (quoted-form-p arg2)
+                      (memq (cadr arg2) '(VECTOR SIMPLE-VECTOR))
+                      (subtypep type1 'LIST))
+                 (format t "p2-coerce coerce-list-to-vector case~%")
+                 (p2 (list 'COERCE-LIST-TO-VECTOR arg1) target)
+                 t)))))))
 
 ;; REVIEW
 (defun p2-declare (form target)
