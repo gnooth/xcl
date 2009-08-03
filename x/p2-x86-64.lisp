@@ -3656,6 +3656,13 @@
                  (inst :mov (fixnumize arg2) :rsi)
                  (emit-call 'two-arg-+)
                  (emit-jmp-short t EXIT))))
+            ((or (float-type-p type1)
+                 (float-type-p type2))
+             ;; full call
+             (format t "p2-two-arg-+ float case~%")
+             (process-2-args args '(:rdi :rsi) t)
+             (emit-call 'two-arg-+)
+             (move-result-to-target target))
             (t
 ;;              (format t "p2-two-arg-+ case 3~%")
              (let ((FULL-CALL (make-label))
