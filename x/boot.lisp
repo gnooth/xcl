@@ -426,7 +426,8 @@
 (load-system-file "restart")
 (load-system-file "top-level")
 
-(autoload '(coerce coerce-list-to-vector) "coerce")
+(export '(coerce-list-to-vector coerce-vector-to-list))
+(autoload '(coerce coerce-list-to-vector coerce-vector-to-list) "coerce")
 (autoload 'delete-package)
 (autoload-macro 'defpackage)
 (autoload-macro 'do-external-symbols)

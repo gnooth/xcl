@@ -1,6 +1,6 @@
 ;;; coerce.lisp
 ;;;
-;;; Copyright (C) 2004-2006 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -20,13 +20,26 @@
 
 (defun coerce-list-to-vector (list)
   (let* ((length (length list))
-         (result (make-array length)))
+         (result (make-simple-vector length)))
     (dotimes (i length)
       (declare (type index i))
-      (declare (optimize (safety 0)))
+      (declare (optimize speed (safety 0)))
       (setf (aref result i) (%car list))
       (setq list (%cdr list)))
     result))
+
+(defun coerce-vector-to-list (vector)
+  (declare (type vector vector))
+  (let* ((len (length vector))
+         (i len)
+         (result nil))
+    (declare (optimize speed (safety 0)))
+    (declare (type sys:index i))
+    (loop
+      (when (zerop i)
+        (return-from coerce-vector-to-list result))
+      (decf i)
+      (push (aref vector i) result))))
 
 (defun coerce-error (object result-type)
   (error 'type-error
@@ -39,8 +52,11 @@
   (cond ((typep object result-type)
          object)
         ((and (listp object)
-              (memq result-type '(vector simple-vector)))
+              (memq result-type '(VECTOR SIMPLE-VECTOR)))
          (coerce-list-to-vector object))
+        ((and (vectorp object)
+              (eq result-type 'LIST))
+         (coerce-vector-to-list object))
         ((and (stringp object) ; a string, but not a simple-string
               (eq result-type 'simple-string))
          (copy-string object))
