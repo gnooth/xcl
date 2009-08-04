@@ -1,6 +1,6 @@
 ;;; tree-equal.lisp
 ;;;
-;;; Copyright (C) 2003-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@
 
 (defun tree-equal (x y &key (test #'eql testp) (test-not nil notp))
   (when (and testp notp)
-    (error ":TEST and :TEST-NOT both supplied."))
+    (error ":TEST and :TEST-NOT were both supplied."))
   (if test-not
       (tree-equal-test-not x y test-not)
       (tree-equal-test x y test)))
