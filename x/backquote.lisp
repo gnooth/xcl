@@ -1,6 +1,6 @@
 ;;; backquote.lisp
 ;;;
-;;; Copyright (C) 2004-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -215,7 +215,8 @@
 (defun backq-list*  (&rest args) (apply #'list*  args))
 (defun backq-append (&rest args) (apply #'append args))
 (defun backq-nconc  (&rest args) (apply #'nconc  args))
-(defun backq-cons   (&rest args) (apply #'cons   args))
+
+(defun backq-cons (x y) (cons x y))
 
 (defun backq-vector (list)
   (declare (list list))
