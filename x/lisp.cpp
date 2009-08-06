@@ -1247,3 +1247,10 @@ Value SYS_truly_the(Value args, Environment * env, Thread * thread)
     return wrong_number_of_arguments(S_truly_the, numargs, 2, 2);
   return eval(CL_cadr(args), env, thread);
 }
+
+// ### int3
+Value SYS_int3()
+{
+  asm("int3");
+  return NIL;
+}

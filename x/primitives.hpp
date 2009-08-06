@@ -1,6 +1,6 @@
 // Primitives.hpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -560,6 +560,7 @@ extern Value SYS_heap_used();
 extern Value SYS_in_package_internal(Value arg);
 extern Value SYS_incq(Value args, Environment * env, Thread * thread);
 extern Value SYS_init_fasl(Value arg);
+extern Value SYS_int3();
 extern Value SYS_interactive_eval(Value form);
 extern Value SYS_interrupt_lisp();
 extern Value SYS_intersection_eql(Value list1, Value list2);
