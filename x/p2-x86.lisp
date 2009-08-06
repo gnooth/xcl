@@ -3283,10 +3283,16 @@
                (move-result-to-target target))
               ((or (float-type-p type1)
                    (float-type-p type2))
-               ;; full call
-               (format t "p2-two-arg-- float case~%")
-               (process-2-args args :stack t)
-               (emit-call-2 'two-arg-- target))
+               (cond ((and (subtypep type1 'DOUBLE-FLOAT)
+                           (subtypep type2 'DOUBLE-FLOAT))
+                      (format t "p2-two-arg-- double-float case~%")
+                      (process-2-args args :stack t)
+                      (emit-call-2 '%double-float-- target))
+                     (t
+                      ;; full call
+                      (format t "p2-two-arg-- float case~%")
+                      (process-2-args args :stack t)
+                      (emit-call-2 'two-arg-- target))))
               (t
                (format t "p2-two-arg-- default case~%")
                (process-2-args args '(:eax :edx) t)
@@ -3384,10 +3390,16 @@
                )
               ((or (float-type-p type1)
                    (float-type-p type2))
-               ;; full call
-               (format t "p2-two-arg-+ float case~%")
-               (process-2-args args :stack t)
-               (emit-call-2 'two-arg-+ target))
+               (cond ((and (subtypep type1 'DOUBLE-FLOAT)
+                           (subtypep type2 'DOUBLE-FLOAT))
+                      (format t "p2-two-arg-+ double-float case~%")
+                      (process-2-args args :stack t)
+                      (emit-call-2 '%double-float-+ target))
+                     (t
+                      ;; full call
+                      (format t "p2-two-arg-+ float case~%")
+                      (process-2-args args :stack t)
+                      (emit-call-2 'two-arg-+ target))))
               (t
                (process-2-args args '(:eax :edx) t)
                ;; arg1 in eax, arg2 in edx
@@ -4803,7 +4815,11 @@
              (emit-jmp-short :ne REQUIRE-SIMPLE-VECTOR-ERROR)
              (when target
                (inst :mov :edx :eax)
-               (move-result-to-target target))))))
+               (move-result-to-target target))
+             (when (var-ref-p arg)
+               (debug-log "p2-require-simple-vector adding type constraint for ~S~%"
+                          (var-name (var-ref-var arg)))
+               (add-type-constraint (var-ref-var arg) 'SIMPLE-VECTOR))))))
   t)
 
 (defun p2-%type-error (form target)
