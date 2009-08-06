@@ -48,16 +48,6 @@
                            #+x86    "X86"
                            #+x86-64 "X86-64"))))
 
-(defvar *compiler-debug* t)
-
-(export '*compiler-debug*)
-
-(defun debug-log (control-string &rest format-arguments)
-  (when *compiler-debug*
-    (apply #'format t control-string format-arguments)))
-
-(export 'debug-log)
-
 (load-system-file "derive-type")
 
 (load-system-file "p2")

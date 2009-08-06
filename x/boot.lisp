@@ -402,6 +402,12 @@
 (autoload-macro 'with-hash-table-iterator)
 (autoload 'hash-table-iterator-function "with-hash-table-iterator")
 
+(defvar *compiler-debug* t)
+(export '*compiler-debug*)
+
+(export 'debug-log)
+(autoload 'debug-log "debug-log")
+
 (autoload 'compile "load-compiler")
 
 ;; FIXME
