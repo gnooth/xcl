@@ -223,3 +223,15 @@ Value SYS_double_float_p(Value arg)
 {
   return double_float_p(arg) ? T : NIL;
 }
+
+// ### %double-float-+
+Value SYS_double_float_add_internal(Value arg1, Value arg2)
+{
+  return the_double_float(arg1)->add(the_double_float(arg2));
+}
+
+// ### %double-float--
+Value SYS_double_float_subtract_internal(Value arg1, Value arg2)
+{
+  return the_double_float(arg1)->subtract(the_double_float(arg2));
+}

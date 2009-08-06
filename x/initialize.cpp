@@ -512,9 +512,11 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_designator_output_stream, SYS_designator_output_stream, 1, 1);
   ADD_PRIMITIVE(S_divide_2, SYS_divide_2, 2, 2);
   ADD_PRIMITIVE(S_documentation_internal, SYS_documentation_internal, 2, 2);
+  ADD_PRIMITIVE(S_double_float_add_internal, SYS_double_float_add_internal, 2, 2);
   ADD_PRIMITIVE(S_double_float_high_bits, SYS_double_float_high_bits, 1, 1);
   ADD_PRIMITIVE(S_double_float_low_bits, SYS_double_float_low_bits, 1, 1);
   ADD_PRIMITIVE(S_double_float_p, SYS_double_float_p, 1, 1);
+  ADD_PRIMITIVE(S_double_float_subtract_internal, SYS_double_float_subtract_internal, 2, 2);
   ADD_PRIMITIVE(S_environment_add_function_definition, SYS_environment_add_function_definition, 3, 3);
   ADD_PRIMITIVE(S_environment_add_macro_definition, SYS_environment_add_macro_definition, 3, 3);
   ADD_PRIMITIVE(S_environment_empty_p, SYS_environment_empty_p, 1, 1);

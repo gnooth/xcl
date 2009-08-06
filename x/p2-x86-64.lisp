@@ -3551,11 +3551,18 @@
                  (emit-jmp-short t EXIT))))
             ((or (float-type-p type1)
                  (float-type-p type2))
-             ;; full call
-             (format t "p2-two-arg-- float case~%")
-             (process-2-args args '(:rdi :rsi) t)
-             (emit-call 'two-arg--)
-             (move-result-to-target target))
+             (cond ((and (subtypep type1 'DOUBLE-FLOAT)
+                         (subtypep type2 'DOUBLE-FLOAT))
+                    (format t "p2-two-arg-- double-float case~%")
+                    (process-2-args args '(:rdi :rsi) t)
+                    (emit-call '%double-float--)
+                    (move-result-to-target target))
+                   (t
+                    ;; full call
+                    (format t "p2-two-arg-- float case~%")
+                    (process-2-args args '(:rdi :rsi) t)
+                    (emit-call 'two-arg--)
+                    (move-result-to-target target))))
             (t
              (let ((FULL-CALL (make-label))
                    (EXIT (make-label)))
@@ -3665,11 +3672,18 @@
                  (emit-jmp-short t EXIT))))
             ((or (float-type-p type1)
                  (float-type-p type2))
-             ;; full call
-             (format t "p2-two-arg-+ float case~%")
-             (process-2-args args '(:rdi :rsi) t)
-             (emit-call 'two-arg-+)
-             (move-result-to-target target))
+             (cond ((and (subtypep type1 'DOUBLE-FLOAT)
+                         (subtypep type2 'DOUBLE-FLOAT))
+                    (format t "p2-two-arg-+ double-float case~%")
+                    (process-2-args args '(:rdi :rsi) t)
+                    (emit-call '%double-float-+)
+                    (move-result-to-target target))
+                   (t
+                    ;; full call
+                    (format t "p2-two-arg-+ float case~%")
+                    (process-2-args args '(:rdi :rsi) t)
+                    (emit-call 'two-arg-+)
+                    (move-result-to-target target))))
             (t
 ;;              (format t "p2-two-arg-+ case 3~%")
              (let ((FULL-CALL (make-label))
