@@ -156,7 +156,7 @@ const long WIDETAG_SINGLE_FLOAT                 =  10;
 const long WIDETAG_DOUBLE_FLOAT                 =  11;
 const long WIDETAG_COMPLEX                      =  12;
 
-const long WIDETAG_FUNCTION                     =  13;
+// const long WIDETAG_FUNCTION                     =  13;
 const long WIDETAG_PACKAGE                      =  14;
 const long WIDETAG_HASH_TABLE                   =  15;
 const long WIDETAG_STREAM                       =  16;
@@ -165,11 +165,11 @@ const long WIDETAG_THREAD                       =  18;
 // const long WIDETAG_CONDITION                  =  19;
 const long WIDETAG_ENVIRONMENT                  =  20;
 const long WIDETAG_STRUCTURE_OBJECT             =  21;
-const long WIDETAG_CLOSURE                      =  22;
-const long WIDETAG_AUTOLOAD                     =  23;
-const long WIDETAG_MACRO                        =  24;
+// const long WIDETAG_CLOSURE                      =  22;
+// const long WIDETAG_AUTOLOAD                     =  23;
+// const long WIDETAG_MACRO                        =  24;
 const long WIDETAG_RANDOM_STATE                 =  25;
-const long WIDETAG_PRIMITIVE                    =  26;
+// const long WIDETAG_PRIMITIVE                    =  26;
 const long WIDETAG_PATHNAME                     =  27;
 const long WIDETAG_STRING_INPUT_STREAM          =  28;
 const long WIDETAG_STRING_OUTPUT_STREAM         =  29;
@@ -181,7 +181,7 @@ const long WIDETAG_STRUCTURE_SLOT_DEFINITION    =  34;
 const long WIDETAG_FILE_STREAM                  =  35;
 // const long WIDETAG_STANDARD_GENERIC_FUNCTION  =  36;
 const long WIDETAG_STANDARD_METHOD              =  37;
-const long WIDETAG_COMPILED_CLOSURE             =  38;
+// const long WIDETAG_COMPILED_CLOSURE             =  38;
 const long WIDETAG_LAYOUT                       =  39;
 // const long WIDETAG_STANDARD_OBJECT            =  40;
 const long WIDETAG_UNBOUND_MARKER               =  41;
@@ -194,7 +194,7 @@ const long WIDETAG_ECHO_STREAM                  =  47;
 const long WIDETAG_SYNONYM_STREAM               =  48;
 const long WIDETAG_RESTART                      =  49;
 const long WIDETAG_READTABLE                    =  50;
-const long WIDETAG_COMPILED_FUNCTION            =  51;
+// const long WIDETAG_COMPILED_FUNCTION            =  51;
 const long WIDETAG_MUTEX                        =  52;
 const long WIDETAG_CONDITION_VARIABLE           =  53;
 const long WIDETAG_LOGICAL_PATHNAME             =  54;
@@ -204,6 +204,7 @@ const long WIDETAG_SIMPLE_ARRAY_BIT             =  128;
 const long WIDETAG_VECTOR_BIT                   =  256;
 const long WIDETAG_INSTANCE_BIT                 =  512;
 const long WIDETAG_CLASS_BIT                    = 1024;
+const long WIDETAG_FUNCTION_BIT                 = 2048;
 
 const long WIDETAG_VECTOR                       = WIDETAG_ARRAY_BIT + WIDETAG_VECTOR_BIT;
 
@@ -227,13 +228,23 @@ const long WIDETAG_NIL_VECTOR                   = WIDETAG_VECTOR + WIDETAG_SIMPL
 
 const long WIDETAG_STANDARD_OBJECT              = WIDETAG_INSTANCE_BIT + 1;
 const long WIDETAG_CONDITION                    = WIDETAG_INSTANCE_BIT + 2;
-const long WIDETAG_FUNCALLABLE_STANDARD_OBJECT  = WIDETAG_INSTANCE_BIT + 3;
-const long WIDETAG_STANDARD_GENERIC_FUNCTION    = WIDETAG_INSTANCE_BIT + 4;
+// const long WIDETAG_FUNCALLABLE_STANDARD_OBJECT  = WIDETAG_INSTANCE_BIT + 3;
+// const long WIDETAG_STANDARD_GENERIC_FUNCTION    = WIDETAG_INSTANCE_BIT + 4;
 
 const long WIDETAG_BUILT_IN_CLASS               = WIDETAG_INSTANCE_BIT + WIDETAG_CLASS_BIT + 1;
 const long WIDETAG_STRUCTURE_CLASS              = WIDETAG_INSTANCE_BIT + WIDETAG_CLASS_BIT + 2;
 const long WIDETAG_STANDARD_CLASS               = WIDETAG_INSTANCE_BIT + WIDETAG_CLASS_BIT + 3;
 const long WIDETAG_FUNCALLABLE_STANDARD_CLASS   = WIDETAG_INSTANCE_BIT + WIDETAG_CLASS_BIT + 4;
+
+const long WIDETAG_FUNCTION                     = WIDETAG_FUNCTION_BIT + 1;
+const long WIDETAG_PRIMITIVE                    = WIDETAG_FUNCTION_BIT + 2;
+const long WIDETAG_CLOSURE                      = WIDETAG_FUNCTION_BIT + 3;
+const long WIDETAG_AUTOLOAD                     = WIDETAG_FUNCTION_BIT + 4;
+const long WIDETAG_MACRO                        = WIDETAG_FUNCTION_BIT + 5;
+const long WIDETAG_FUNCALLABLE_STANDARD_OBJECT  = WIDETAG_FUNCTION_BIT + WIDETAG_INSTANCE_BIT + 6;
+const long WIDETAG_STANDARD_GENERIC_FUNCTION    = WIDETAG_FUNCTION_BIT + WIDETAG_FUNCTION_BIT + 7;
+const long WIDETAG_COMPILED_CLOSURE             = WIDETAG_FUNCTION_BIT + 8;
+const long WIDETAG_COMPILED_FUNCTION            = WIDETAG_FUNCTION_BIT + 9;
 
 typedef long TYPECODE;
 

@@ -1,6 +1,6 @@
 // Function.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -96,22 +96,8 @@ inline bool functionp(Value value)
 {
   if (typed_object_p(value))
     {
-      switch (the_typed_object(value)->widetag())
-        {
-        case WIDETAG_FUNCTION:
-        case WIDETAG_PRIMITIVE:
-        case WIDETAG_CLOSURE:
-        case WIDETAG_AUTOLOAD:
-        case WIDETAG_MACRO:
-        case WIDETAG_FUNCALLABLE_STANDARD_OBJECT:
-        case WIDETAG_STANDARD_GENERIC_FUNCTION:
-        case WIDETAG_COMPILED_CLOSURE:
-        case WIDETAG_COMPILED_FUNCTION:
-          return true;
-        default:
-          ;
-          // Fall through...
-        }
+      if (the_typed_object(value)->widetag() & WIDETAG_FUNCTION_BIT)
+        return true;
     }
   return false;
 }
@@ -127,7 +113,7 @@ inline Function * check_function(Value value)
   if (functionp(value))
     return the_function(value);
   signal_type_error(value, S_function);
-  // Not reached.
+  // not reached
   return NULL;
 }
 
