@@ -3,6 +3,8 @@
 *.d
 *.lo
 *.la
+*.exe
+*.log
 
 gc/base_lib
 gc/c++
