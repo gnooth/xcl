@@ -5246,11 +5246,11 @@
                 (subtypep type 'SIMPLE-VECTOR))
            (p2 arg target))
           (t
-           (format t "p2-require-simple-vector~%")
+           (debug-log "p2-require-simple-vector~%")
            (let* ((common-labels (compiland-common-labels *current-compiland*))
                   (REQUIRE-SIMPLE-VECTOR-ERROR (gethash :require-simple-vector-error common-labels)))
              (when REQUIRE-SIMPLE-VECTOR-ERROR
-               (format t "p2-require-simple-vector re-using label~%"))
+               (debug-log "p2-require-simple-vector re-using label~%"))
              (unless REQUIRE-SIMPLE-VECTOR-ERROR
                (setq REQUIRE-SIMPLE-VECTOR-ERROR (make-label))
                (let ((*current-segment* :elsewhere))
@@ -5274,7 +5274,11 @@
              (emit-jmp-short :ne REQUIRE-SIMPLE-VECTOR-ERROR)
              (when target
                (inst :mov :rdi :rax)
-               (move-result-to-target target))))))
+               (move-result-to-target target))
+             (when (var-ref-p arg)
+               (debug-log "p2-require-simple-vector adding type constraint for ~S~%"
+                          (var-name (var-ref-var arg)))
+               (add-type-constraint (var-ref-var arg) 'SIMPLE-VECTOR))))))
   t)
 
 (defun p2-%type-error (form target)
