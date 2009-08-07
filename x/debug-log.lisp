@@ -20,4 +20,4 @@
 
 (defun debug-log (control-string &rest format-arguments)
   (when *compiler-debug*
-    (apply #'format t control-string format-arguments)))
+    (apply #'format *debug-io* control-string format-arguments)))
