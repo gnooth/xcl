@@ -438,9 +438,6 @@
 (define-assembler :test
   (cond ((and (reg64-p operand1)
               (reg64-p operand2))
-;;          (let ((modrm-byte (make-modrm-byte #b11
-;;                                             (register-number operand1)
-;;                                             (register-number operand2))))
          (let* ((mod #b11)
                 (reg (register-number operand1))
                 (rm  (register-number operand2))

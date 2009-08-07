@@ -8,6 +8,7 @@
     ((:mov :eax :edx)           #(#x89 #xc2))
     ((:test 3 :al)              #(#xa8 #x03))
     ((:test 3 :dl)              #(#xf6 #xc2 #x03))
+    ((:test :al :al)            #(#x84 #xc0))
     ((:add :edx :eax)           #(#x01 #xd0))
     ((:add 8 :esp)              #(#x83 #xc4 #x08))
     ((:add 127 :edx)            #(#x83 #xc2 #x7f))

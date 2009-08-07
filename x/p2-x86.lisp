@@ -832,7 +832,7 @@
              (inst :push :eax)
              (emit-call-1 "RT_frame_jmp" :stack)
              (emit-call-1 "setjmp" :eax)
-             (inst :test :eax :eax)
+             (inst :test :al :al)
              (let ((LABEL1 (make-label)))
                (emit-jmp-short :nz LABEL1)
                (p2-progn-body (block-body block) :stack) ; save result
@@ -921,7 +921,7 @@
     (inst :push :eax)
     (emit-call-1 "RT_frame_jmp" :stack)
     (emit-call-1 "setjmp" :eax)
-    (emit-bytes #x84 #xc0) ; test %al,%al
+    (inst :test :al :al)
     (let ((LABEL1 (gensym))
           (EXIT (gensym)))
       (emit-jmp-short :nz LABEL1)
@@ -1041,13 +1041,11 @@
     (let* ((op (%car test-form))
            (runtime-name (gethash op *runtime-predicates*))
            (arg (%cadr test-form)))
-;;       (format t "p2-test-runtime-predicate ~S ~S~%" op runtime-name)
       (when runtime-name
         (p2 arg :stack)
         (maybe-emit-clear-values arg)
         (emit-call-1 runtime-name :eax)
-;;         (emit-bytes #x85 #xc0)  ; test %eax,%eax
-        (emit-bytes #x84 #xc0) ; test %al,%al
+        (inst :test :al :al)
         (emit-jmp-short :z label)
         t))))
 
@@ -1173,8 +1171,7 @@
             (t
              (process-2-args args :stack t)
              (emit-call-2 "RT_equals" :eax)
-;;              (emit-bytes #x85 #xc0) ; test %eax,%eax
-             (emit-bytes #x84 #xc0) ; test %al,%al
+             (inst :test :al :al)
              (when label-if-true
                (emit-jmp-short :nz label-if-true))
              (when label-if-false
@@ -1362,8 +1359,7 @@
                       (%p2-test-two-arg-= subform LABEL1 nil))
                      ((gethash op *runtime-predicates*)
                       (p2-runtime-predicate subform :eax)
-;;                       (emit-bytes #x85 #xc0)  ; test %eax,%eax
-                      (emit-bytes #x84 #xc0) ; test %al,%al
+                      (inst :test :al :al)
                       (emit-jmp-short :nz LABEL1))
                      (t
                       (if op
@@ -3480,6 +3476,7 @@
                (emit-call-2 'two-arg-* target)
                t)
               (t
+               (debug-log "p2-two-arg-* type1 = ~S type2 = ~S~%" type1 type2)
                (process-2-args args '(:eax :edx) t)
                ;; arg1 in eax, arg2 in edx
                (unless (fixnum-type-p type1)
