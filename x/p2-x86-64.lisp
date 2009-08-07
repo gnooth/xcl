@@ -3716,7 +3716,15 @@
            (EXIT (gensym)))
       (cond ((and (numberp arg1)
                   (numberp arg2))
+             (debug-log "p2-two-arg-* numberp case~%")
              (p2-constant (two-arg-* arg1 arg2) target))
+            ((and (integer-constant-value type1)
+                  (integer-constant-value type2)
+                  (flushable arg1)
+                  (flushable arg2))
+             (debug-log "p2-two-arg-* integer-constant-value case~%")
+             (p2-constant (two-arg-* (integer-constant-value type1) (integer-constant-value type2))
+                          target))
             ((or (float-type-p type1)
                  (float-type-p type2))
              ;; full call
@@ -3725,6 +3733,7 @@
              (emit-call 'two-arg-*)
              (move-result-to-target target))
             (t
+             (debug-log "p2-two-arg-* type1 = ~S type2 = ~S~%" type1 type2)
              (process-2-args args '(:rax :rdx) t)
              ;; arg1 in rax, arg2 in rdx
              (unless (fixnum-type-p type1)
