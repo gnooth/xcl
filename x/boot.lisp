@@ -589,12 +589,13 @@
 (autoload 'run-random-tests)
 (autoload 'run-other-tests)
 
-(defun run-ansi-tests (&optional (compile-tests t))
+(defun run-ansi-tests (&key (compile-tests t) (debug nil))
   (declaim (optimize speed))
   (let* ((ansi-tests-directory
           (pathname (directory-namestring (merge-pathnames "ansi-tests/" #.*load-pathname*))))
          (*default-pathname-defaults* ansi-tests-directory)
-         (*print-structure* t))
+         (*print-structure* t)
+         (sys:*compiler-debug* debug))
     (cond (compile-tests
            (load "compileit.lsp"))
           (t
