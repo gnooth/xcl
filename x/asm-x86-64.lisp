@@ -1,6 +1,6 @@
 ;;; asm-x86-64.lisp
 ;;;
-;;; Copyright (C) 2007-2008 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -438,10 +438,21 @@
 (define-assembler :test
   (cond ((and (reg64-p operand1)
               (reg64-p operand2))
-         (let ((modrm-byte (make-modrm-byte #b11
-                                            (register-number operand1)
-                                            (register-number operand2))))
+;;          (let ((modrm-byte (make-modrm-byte #b11
+;;                                             (register-number operand1)
+;;                                             (register-number operand2))))
+         (let* ((mod #b11)
+                (reg (register-number operand1))
+                (rm  (register-number operand2))
+                (modrm-byte (make-modrm-byte mod reg rm)))
            (emit-bytes #x48 #x85 modrm-byte)))
+        ((and (reg8-p operand1)
+              (reg8-p operand2))
+         (let* ((mod #b11)
+                (reg (register-number operand1))
+                (rm  (register-number operand2))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x84 modrm-byte)))
         ((and (typep operand1 '(unsigned-byte 8))
               (eq operand2 :al))
          (emit-bytes #xa8 operand1))

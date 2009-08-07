@@ -106,6 +106,7 @@
     ((:test 3 :bl)              #(#xf6 #xc3 #x03))
     ((:test 3 :sil)             #(#x40 #xf6 #xc6 #x03))
     ((:test 3 :dil)             #(#x40 #xf6 #xc7 #x03))
+    ((:test :al :al)            #(#x84 #xc0))
     ((:test :rax :rax)          #(#x48 #x85 #xc0))
     ((:mov (7 :rax) :rax)       #(#x48 #x8b #x40 #x07))
     ((:mov (7 :r11) :rax)	#(#x49 #x8b #x43 #x07))

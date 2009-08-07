@@ -679,8 +679,7 @@
              (emit-call "RT_frame_jmp")
              (inst :mov :rax :rdi)
              (emit-call "setjmp")
-;;              (emit-bytes #x85 #xc0) ; test %eax,%eax
-             (emit-bytes #x84 #xc0) ; test %al,%al
+             (inst :test :al :al)
              (let ((LABEL1 (gensym)))
                (emit-jmp-short :nz LABEL1)
                (p2-progn-body (block-body block) :rax)
@@ -775,9 +774,9 @@
     (emit-call "RT_frame_jmp")
     (emit-move :rax :rdi)
     (emit-call "setjmp")
-    (emit-bytes #x84 #xc0) ; test %al,%al
-    (let ((LABEL1 (gensym))
-          (EXIT (gensym)))
+    (inst :test :al :al)
+    (let ((LABEL1 (make-label))
+          (EXIT (make-label)))
       (emit-jmp-short :nz LABEL1)
       (let ((*visible-blocks* (cons block *visible-blocks*)))
         (p2-progn-body (block-body block) :rax))
@@ -898,7 +897,7 @@
       (when runtime-name
         (process-1-arg arg :rdi t)
         (emit-call runtime-name)
-        (emit-bytes #x84 #xc0) ; test %al,%al
+        (inst :test :al :al)
         (when label-if-true
           (emit-jmp-short :nz label-if-true))
         (when label-if-false
@@ -1020,8 +1019,7 @@
   (when (check-arg-count test-form 2)
     (process-2-args (%cdr test-form) '(:rdi :rsi) t)
     (emit-call "RT_equal")
-;;     (emit-bytes #x85 #xc0) ; test %eax,%eax
-    (emit-bytes #x84 #xc0) ; test %al,%al
+    (inst :test :al :al)
     (when label-if-true
       (emit-jmp-short :nz label-if-true))
     (when label-if-false
@@ -1051,8 +1049,7 @@
             (t
              (process-2-args args '(:rdi :rsi) t)
              (emit-call "RT_equals")
-;;              (emit-bytes #x85 #xc0) ; test %eax,%eax
-             (emit-bytes #x84 #xc0) ; test %al,%al
+             (inst :test :al :al)
              (when label-if-true
                (emit-jmp-short :nz label-if-true))
              (when label-if-false
@@ -1081,8 +1078,7 @@
             (t
              (process-2-args args '(:rdi :rsi) t)
              (emit-call "RT_eql")
-;;              (emit-bytes #x85 #xc0) ; test %eax,%eax
-             (emit-bytes #x84 #xc0) ; test %al,%al
+             (inst :test :al :al)
              (when label-if-true
                (emit-jmp-short :nz label-if-true))
              (when label-if-false
@@ -1278,8 +1274,7 @@
                     (%p2-test-zerop subform nil LABEL1))
                    ((gethash op *runtime-predicates*)
                     (p2-runtime-predicate subform :rax)
-;;                     (emit-bytes #x85 #xc0) ; test %eax,%eax
-                    (emit-bytes #x84 #xc0) ; test %al,%al
+                    (inst :test :al :al)
                     (emit-jmp-short :z LABEL1))
                    (t
                     (when op
@@ -1373,8 +1368,7 @@
                     (%p2-test-zerop subform LABEL1 nil))
                    ((gethash op *runtime-predicates*)
                     (p2-runtime-predicate subform :rax)
-;;                     (emit-bytes #x85 #xc0) ; test %eax,%eax
-                    (emit-bytes #x84 #xc0) ; test %al,%al
+                    (inst :test :al :al)
                     (emit-jmp-short :nz LABEL1))
                    (t
                     (when op
@@ -1696,10 +1690,9 @@
              (emit-call "RT_frame_jmp")
              (inst :mov :rax :rdi)
              (emit-call "setjmp")
-;;              (emit-bytes #x85 #xc0) ; test %eax,%eax
-             (emit-bytes #x84 #xc0) ; test %al,%al
-             (let ((LABEL1 (gensym))
-                   (LABEL2 (gensym)))
+             (inst :test :al :al)
+             (let ((LABEL1 (make-label))
+                   (LABEL2 (make-label)))
                (emit-jmp-short :nz LABEL1)
                (p2-tagbody-1 body)
                (emit-jmp-short t LABEL2)
