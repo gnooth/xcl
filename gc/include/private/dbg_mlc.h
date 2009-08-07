@@ -38,7 +38,7 @@
   /* get them anyway.							*/
     typedef GC_word GC_hidden_pointer;
 #   define HIDE_POINTER(p) (~(GC_hidden_pointer)(p))
-#   define REVEAL_POINTER(p) ((GC_PTR)(HIDE_POINTER(p)))
+#   define REVEAL_POINTER(p) ((void *)(HIDE_POINTER(p)))
 #endif /* HIDE_POINTER */
 
 # define START_FLAG ((word)0xfedcedcb)
@@ -52,10 +52,10 @@
     /* Used in oh_back_ptr fields and as "source"	*/
     /* argument to some marking functions.		*/
 #	define NOT_MARKED (ptr_t)(0)
-#	define MARKED_FOR_FINALIZATION (ptr_t)(2)
+#	define MARKED_FOR_FINALIZATION ((ptr_t)(word)2)
 	    /* Object was marked because it is finalizable.	*/
-#	define MARKED_FROM_REGISTER (ptr_t)(4)
-	    /* Object was marked from a rgister.  Hence the	*/
+#	define MARKED_FROM_REGISTER ((ptr_t)(word)4)
+	    /* Object was marked from a register.  Hence the	*/
 	    /* source of the reference doesn't have an address.	*/
 # endif /* KEEP_BACK_PTRS || PRINT_BLACK_LIST */
 
@@ -95,12 +95,12 @@ typedef struct {
 #	ifdef MAKE_BACK_GRAPH
 	  GC_hidden_pointer oh_bg_ptr;
 #	endif
-#	if defined(ALIGN_DOUBLE) && \
-	    (defined(KEEP_BACK_PTRS) != defined(MAKE_BACK_GRAPH))
+#	if defined(KEEP_BACK_PTRS) != defined(MAKE_BACK_GRAPH)
+	  /* Keep double-pointer-sized alignment.	*/
 	  word oh_dummy;
 #	endif
 #   endif
-    GC_CONST char * oh_string;	/* object descriptor string	*/
+    const char * oh_string;	/* object descriptor string	*/
     word oh_int;		/* object descriptor integers	*/
 #   ifdef NEED_CALLINFO
       struct callinfo oh_ci[NFRAMES];
@@ -110,7 +110,7 @@ typedef struct {
       word oh_sf;			/* start flag */
 #   endif /* SHORT_DBG_HDRS */
 } oh;
-/* The size of the above structure is assumed not to dealign things,	*/
+/* The size of the above structure is assumed not to de-align things,	*/
 /* and to be a multiple of the word length.				*/
 
 #ifdef SHORT_DBG_HDRS
@@ -132,17 +132,20 @@ typedef struct {
 /* lock.							*/
 /* PRINT_CALL_CHAIN prints the call chain stored in an object	*/
 /* to stderr.  It requires that we do not hold the lock.	*/
-#ifdef SAVE_CALL_CHAIN
+#if defined(SAVE_CALL_CHAIN)
+    struct callinfo;
+    void GC_save_callers(struct callinfo info[NFRAMES]);
+    void GC_print_callers(struct callinfo info[NFRAMES]);
 #   define ADD_CALL_CHAIN(base, ra) GC_save_callers(((oh *)(base)) -> oh_ci)
 #   define PRINT_CALL_CHAIN(base) GC_print_callers(((oh *)(base)) -> oh_ci)
-#else
-# ifdef GC_ADD_CALLER
+#elif defined(GC_ADD_CALLER)
+    struct callinfo;
+    void GC_print_callers(struct callinfo info[NFRAMES]);
 #   define ADD_CALL_CHAIN(base, ra) ((oh *)(base)) -> oh_ci[0].ci_pc = (ra)
 #   define PRINT_CALL_CHAIN(base) GC_print_callers(((oh *)(base)) -> oh_ci)
-# else
+#else
 #   define ADD_CALL_CHAIN(base, ra)
 #   define PRINT_CALL_CHAIN(base)
-# endif
 #endif
 
 # ifdef GC_ADD_CALLER
@@ -158,7 +161,7 @@ typedef struct {
 #ifdef SHORT_DBG_HDRS
 # define GC_has_other_debug_info(p) TRUE
 #else
-  GC_bool GC_has_other_debug_info(/* p */);
+  GC_bool GC_has_other_debug_info(ptr_t p);
 #endif
 
 #if defined(KEEP_BACK_PTRS) || defined(MAKE_BACK_GRAPH)
@@ -170,6 +173,6 @@ typedef struct {
 
 /* Store debugging info into p.  Return displaced pointer. */
 /* Assumes we don't hold allocation lock.		   */
-ptr_t GC_store_debug_info(/* p, sz, string, integer */);
+ptr_t GC_store_debug_info(ptr_t p, word sz, const char *str, word integer);
 
 #endif /* _DBG_MLC_H */

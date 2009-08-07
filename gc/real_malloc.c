@@ -23,14 +23,16 @@
 # define PCR_NO_RENAME
 # include <stdlib.h>
 
-# ifdef __STDC__
-    char * real_malloc(size_t size)
-# else 
-    char * real_malloc()
-    int size;
-# endif
+void * real_malloc(size_t size)
 {
-    return((char *)malloc(size));
+    return(malloc(size));
 }
+
+# else
+
+extern int GC_quiet;
+	/* ANSI C doesn't allow translation units to be empty.	*/
+	/* So we guarantee this one is nonempty.		*/
+
 #endif /* PCR */
 

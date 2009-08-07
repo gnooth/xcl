@@ -25,7 +25,7 @@
 
 #include "private/gc_priv.h"
 
-# if (defined(GC_PTHREADS) && !defined(GC_DARWIN_THREADS)) \
+# if (defined(GC_PTHREADS) && !defined(GC_DARWIN_THREADS)) && !defined(GC_WIN32_PTHREADS)\
       || defined(GC_SOLARIS_THREADS)
 
 # if defined(dlopen) && !defined(GC_USE_LD_WRAP)
@@ -37,6 +37,8 @@
 #   undef dlopen
 # endif
 
+  GC_bool GC_collection_in_progress(void);
+
   /* Make sure we're not in the middle of a collection, and make	*/
   /* sure we don't start any.	Returns previous value of GC_dont_gc.	*/
   /* This is invoked prior to a dlopen call to avoid synchronization	*/
@@ -46,7 +48,7 @@
   /* calls in either a multithreaded environment, or if the library	*/
   /* initialization code allocates substantial amounts of GC'ed memory.	*/
   /* But I don't know of a better solution.				*/
-  static void disable_gc_for_dlopen()
+  static void disable_gc_for_dlopen(void)
   {
     LOCK();
     while (GC_incremental && GC_collection_in_progress()) {
@@ -65,9 +67,7 @@
 #ifdef GC_USE_LD_WRAP
   void * __wrap_dlopen(const char *path, int mode)
 #else
-  void * GC_dlopen(path, mode)
-  GC_CONST char * path;
-  int mode;
+  void * GC_dlopen(const char *path, int mode)
 #endif
 {
     void * result;

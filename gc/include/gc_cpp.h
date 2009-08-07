@@ -48,6 +48,12 @@ using the NoGC placement:
     class A: public gc {...};
     A* a = new (NoGC) A;   // a is uncollectable.
 
+The new(PointerFreeGC) syntax allows the allocation of collectable
+objects that are not scanned by the collector.  This useful if you
+are allocating compressed data, bitmaps, or network packets.  (In
+the latter case, it may remove danger of unfriendly network packets
+intentionally containing values that cause spurious memory retention.)
+
 Both uncollectable and collectable objects can be explicitly deleted
 with "delete", which invokes an object's destructors and frees its
 storage immediately.
@@ -80,7 +86,8 @@ objects.  In practice, it finds almost all of them.
 
 Cautions:
 
-1. Be sure the collector has been augmented with "make c++".
+1. Be sure the collector has been augmented with "make c++" or
+"--enable-cplusplus".
 
 2.  If your compiler supports the new "operator new[]" syntax, then
 add -DGC_OPERATOR_NEW_ARRAY to the Makefile.
@@ -111,7 +118,7 @@ clean-up function:
 that preserves the correct exception semantics requires a language
 extension, e.g. the "gc" keyword.)
 
-4. Compiler bugs:
+4. Compiler bugs (now hopefully history):
 
 * Solaris 2's CC (SC3.0) doesn't implement t->~T() correctly, so the
 destructors of classes derived from gc_cleanup won't be invoked.
@@ -134,7 +141,7 @@ by UseGC.  GC is an alias for UseGC, unless GC_NAME_CONFLICT is defined.
 #include "gc.h"
 
 #ifndef THINK_CPLUS
-#  define GC_cdecl
+#  define GC_cdecl GC_CALLBACK
 #else
 #  define GC_cdecl _cdecl
 #endif
@@ -153,7 +160,8 @@ by UseGC.  GC is an alias for UseGC, unless GC_NAME_CONFLICT is defined.
 #endif
 
 #if    ! defined ( __BORLANDC__ )  /* Confuses the Borland compiler. */ \
-    && ! defined ( __sgi )
+    && ! defined ( __sgi ) && ! defined( __WATCOMC__ ) \
+    && (!defined(_MSC_VER) || _MSC_VER > 1020)
 #  define GC_PLACEMENT_DELETE
 #endif
 
@@ -170,7 +178,9 @@ class gc {public:
     	/* Must be redefined here, since the other overloadings	*/
     	/* hide the global definition.				*/
     inline void operator delete( void* obj );
-#   ifdef GC_PLACEMENT_DELETE  
+#   ifdef GC_PLACEMENT_DELETE
+      inline void operator delete( void*, GCPlacement );
+      	/* called if construction fails.	*/
       inline void operator delete( void*, void* );
 #   endif
 
@@ -180,6 +190,7 @@ class gc {public:
     inline void* operator new[]( size_t size, void *p );
     inline void operator delete[]( void* obj );
 #   ifdef GC_PLACEMENT_DELETE
+      inline void operator delete[]( void*, GCPlacement );
       inline void operator delete[]( void*, void* );
 #   endif
 #endif /* GC_OPERATOR_NEW_ARRAY */
@@ -201,7 +212,9 @@ private:
     member derived from "gc_cleanup", its destructors will be
     invoked. */
 
-extern "C" {typedef void (*GCCleanUpFunc)( void* obj, void* clientData );}
+extern "C" {
+    typedef void (GC_CALLBACK * GCCleanUpFunc)( void* obj, void* clientData );
+}
 
 #ifdef _MSC_VER
   // Disable warning that "no matching operator delete found; memory will
@@ -228,17 +241,22 @@ inline void* operator new(
     classes derived from "gc_cleanup" or containing members derived
     from "gc_cleanup". */
 
+#   ifdef GC_PLACEMENT_DELETE
+      inline void operator delete( void*, GCPlacement, GCCleanUpFunc, void * );
+#   endif
 
 #ifdef _MSC_VER
  /** This ensures that the system default operator new[] doesn't get
   *  undefined, which is what seems to happen on VC++ 6 for some reason
   *  if we define a multi-argument operator new[].
-  *  There seems to be really redirect new in this environment without
+  *  There seems to be no way to redirect new in this environment without
   *  including this everywhere. 
   */
+#if _MSC_VER > 1020
  void *operator new[]( size_t size );
  
  void operator delete[](void* obj);
+#endif
 
  void* operator new( size_t size);
 
@@ -289,6 +307,10 @@ inline void gc::operator delete( void* obj ) {
     
 #ifdef GC_PLACEMENT_DELETE
   inline void gc::operator delete( void*, void* ) {}
+
+  inline void gc::operator delete( void* p, GCPlacement gcp ) {
+    GC_FREE(p);
+  }
 #endif
 
 #ifdef GC_OPERATOR_NEW_ARRAY
@@ -307,6 +329,10 @@ inline void gc::operator delete[]( void* obj ) {
 
 #ifdef GC_PLACEMENT_DELETE
   inline void gc::operator delete[]( void*, void* ) {}
+
+  inline void gc::operator delete[]( void* p, GCPlacement gcp ) {
+    gc::operator delete(p); }
+
 #endif
     
 #endif /* GC_OPERATOR_NEW_ARRAY */
@@ -315,7 +341,7 @@ inline void gc::operator delete[]( void* obj ) {
 inline gc_cleanup::~gc_cleanup() {
     GC_register_finalizer_ignore_self( GC_base(this), 0, 0, 0, 0 );}
 
-inline void gc_cleanup::cleanup( void* obj, void* displ ) {
+inline void GC_CALLBACK gc_cleanup::cleanup( void* obj, void* displ ) {
     ((gc_cleanup*) ((char*) obj + (ptrdiff_t) displ))->~gc_cleanup();}
 
 inline gc_cleanup::gc_cleanup() {
@@ -349,6 +375,16 @@ inline void* operator new(
         obj = GC_MALLOC_UNCOLLECTABLE( size );};
     return obj;}
         
+# ifdef GC_PLACEMENT_DELETE
+inline void operator delete ( 
+    void *p, 
+    GCPlacement gcp,
+    GCCleanUpFunc cleanup,
+    void* clientData )
+{
+    GC_FREE(p);
+}
+# endif
 
 #ifdef GC_OPERATOR_NEW_ARRAY
 

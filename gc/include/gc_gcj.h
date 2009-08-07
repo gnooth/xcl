@@ -14,8 +14,7 @@
  * modified is included with the above copyright notice.
  */
 
-/* This file assumes the collector has been compiled with GC_GCJ_SUPPORT */
-/* and that an ANSI C compiler is available.				 */
+/* This file assumes the collector has been compiled with GC_GCJ_SUPPORT. */
 
 /*
  * We allocate objects whose first word contains a pointer to a struct
@@ -28,9 +27,6 @@
 
 #define GC_GCJ_H
 
-#ifndef MARK_DESCR_OFFSET
-#  define MARK_DESCR_OFFSET	sizeof(word)
-#endif
 	/* Gcj keeps GC descriptor as second word of vtable.	This	*/
 	/* probably needs to be adjusted for other clients.		*/
 	/* We currently assume that this offset is such that:		*/
@@ -43,6 +39,10 @@
 #ifndef _GC_H
 #   include "gc.h"
 #endif
+
+# ifdef __cplusplus
+    extern "C" {
+# endif
 
 /* The following allocators signal an out of memory condition with	*/
 /* return GC_oom_fn(bytes);						*/
@@ -59,55 +59,42 @@
 /* detect the presence or absence of the debug header.			*/
 /* Mp is really of type mark_proc, as defined in gc_mark.h.  We don't 	*/
 /* want to include that here for namespace pollution reasons.		*/
-extern void GC_init_gcj_malloc(int mp_index, void * /* really mark_proc */mp);
+GC_API void GC_CALL GC_init_gcj_malloc(int mp_index,
+				void * /* really mark_proc */mp);
 
 /* Allocate an object, clear it, and store the pointer to the	*/
 /* type structure (vtable in gcj).				*/
 /* This adds a byte at the end of the object if GC_malloc would.*/
-extern void * GC_gcj_malloc(size_t lb, void * ptr_to_struct_containing_descr);
+GC_API void * GC_CALL GC_gcj_malloc(size_t lb,
+				void * ptr_to_struct_containing_descr);
 /* The debug versions allocate such that the specified mark_proc	*/
 /* is always invoked.							*/
-extern void * GC_debug_gcj_malloc(size_t lb,
+GC_API void * GC_CALL GC_debug_gcj_malloc(size_t lb,
 				  void * ptr_to_struct_containing_descr,
 				  GC_EXTRA_PARAMS);
 
-/* Similar to the above, but the size is in words, and we don't	*/
-/* adjust it.  The size is assumed to be such that it can be 	*/
-/* allocated as a small object.					*/
-/* Unless it is known that the collector is not configured 	*/
-/* with USE_MARK_BYTES and unless it is known that the object	*/
-/* has weak alignment requirements, lw must be even.		*/
-extern void * GC_gcj_fast_malloc(size_t lw,
-				 void * ptr_to_struct_containing_descr);
-extern void * GC_debug_gcj_fast_malloc(size_t lw,
-				 void * ptr_to_struct_containing_descr,
-				 GC_EXTRA_PARAMS);
-
 /* Similar to GC_gcj_malloc, but assumes that a pointer to near the	*/
 /* beginning of the resulting object is always maintained.		*/
-extern void * GC_gcj_malloc_ignore_off_page(size_t lb,
+GC_API void  * GC_CALL GC_gcj_malloc_ignore_off_page(size_t lb,
 				void * ptr_to_struct_containing_descr);
 
 /* The kind numbers of normal and debug gcj objects.		*/
 /* Useful only for debug support, we hope.			*/
-extern int GC_gcj_kind;
+GC_API int GC_gcj_kind;
 
-extern int GC_gcj_debug_kind;
-
-# if defined(GC_LOCAL_ALLOC_H) && defined(GC_REDIRECT_TO_LOCAL)
-    --> gc_local_alloc.h should be included after this.  Otherwise
-    --> we undo the redirection.
-# endif
+GC_API int GC_gcj_debug_kind;
 
 # ifdef GC_DEBUG
 #   define GC_GCJ_MALLOC(s,d) GC_debug_gcj_malloc(s,d,GC_EXTRAS)
-#   define GC_GCJ_FAST_MALLOC(s,d) GC_debug_gcj_fast_malloc(s,d,GC_EXTRAS)
 #   define GC_GCJ_MALLOC_IGNORE_OFF_PAGE(s,d) GC_debug_gcj_malloc(s,d,GC_EXTRAS)
 # else
 #   define GC_GCJ_MALLOC(s,d) GC_gcj_malloc(s,d)
-#   define GC_GCJ_FAST_MALLOC(s,d) GC_gcj_fast_malloc(s,d)
 #   define GC_GCJ_MALLOC_IGNORE_OFF_PAGE(s,d) \
 	GC_gcj_malloc_ignore_off_page(s,d)
+# endif
+
+# ifdef __cplusplus
+    }  /* end of extern "C" */
 # endif
 
 #endif /* GC_GCJ_H */
