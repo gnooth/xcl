@@ -5,6 +5,7 @@
 *.la
 *.exe
 *.log
+*.tar.gz
 
 gc/base_lib
 gc/c++
