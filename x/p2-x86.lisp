@@ -78,7 +78,7 @@
                      nil
                      (designator-list preserve)))
   (when (memq :return preserve)
-    (format t "emit-clear-values: found :RETURN on preserve list~%")
+    (debug-log "emit-clear-values: found :RETURN on preserve list~%")
     (setq preserve (substitute :return :eax preserve)))
   (let ((thread-var (compiland-thread-var *current-compiland*)))
     (cond (thread-var
@@ -315,7 +315,7 @@
                (inst :push :eax)
                (emit-call-3 "RT_restify" :eax)
                (cond ((var-closure-index restvar)
-                      (format t "P2-CHILD-FUNCTION-PROLOG (var-closure-index restvar) case~%")
+                      (debug-log "P2-CHILD-FUNCTION-PROLOG (var-closure-index restvar) case~%")
                       (inst :push :ebx)
                       (emit-move-local-to-register closure-data-index :ebx)
                       (emit-move-register-to-relative :eax :ebx (var-closure-index restvar))
@@ -495,7 +495,7 @@
                (inst :push :eax)
                (emit-call-3 "RT_restify" :eax)
                (cond ((var-closure-index restvar)
-                      (format t "p2-function-prolog (var-closure-index restvar) case~%")
+                      (debug-log "p2-function-prolog (var-closure-index restvar) case~%")
                       (inst :push :ebx)
                       (aver (fixnump (compiland-closure-data-index compiland)))
                       (emit-move-local-to-register (compiland-closure-data-index compiland) :ebx)
@@ -795,7 +795,7 @@
                                (type-of form)))))
 
 (defun p2-load-time-value (form target)
-  (format t "p2-load-time-value~%")
+  (debug-log "p2-load-time-value~%")
   (cond ((compile-file-p)
          (let* ((name (gensym)))
            (dump-top-level-form `(defvar ,name ,(cadr form)) *compile-file-output-stream*)
@@ -821,7 +821,7 @@
     (setf (block-exit block) BLOCK-EXIT)
     (setf (block-target block) target)
     (cond ((block-non-local-return-p block)
-           (format t "p2-block non-local return case~%")
+           (debug-log "p2-block non-local return case~%")
            (let ((block-var (block-block-var block)))
              (aver block-var)
              (aver thread-var)
@@ -907,7 +907,7 @@
              (emit-call "RT_return_from")))))) ; doesn't return
 
 (defun p2-catch (form target)
-  (format t "p2-catch~%")
+  (debug-log "p2-catch~%")
   (let* ((block (cadr form))
          (block-var (block-block-var block))
          (thread-var (compiland-thread-var *current-compiland*)))
@@ -942,7 +942,7 @@
     (move-result-to-target target)))
 
 (defun p2-throw (form target)
-  (format t "p2-throw~%")
+  (debug-log "p2-throw~%")
   (aver (length-eql form 3))
   (let* ((args (%cdr form))
          (tag-form (%car args))
@@ -995,7 +995,7 @@
                   t)))
           ((or (float-type-p type1) (float-type-p type2))
            ;; full call
-           (format t "p2-test-numeric-comparison float case~%")
+           (debug-log "p2-test-numeric-comparison float case~%")
            (process-2-args args :stack t)
            (emit-call-2 op :eax)
            (emit-byte #x3d)             ; compare immediate dword to eax
@@ -1363,8 +1363,8 @@
                       (emit-jmp-short :nz LABEL1))
                      (t
                       (if op
-                          (format t "p2-if-or default op = ~S~%" op)
-                          (format t "p2-if-or default~%"))
+                          (debug-log "p2-if-or default op = ~S~%" op)
+                          (debug-log "p2-if-or default~%"))
                       (p2 subform :eax)
                       (unless (single-valued-p subform)
                         (emit-clear-values :preserve :eax))
@@ -1766,7 +1766,7 @@
                     (aver (block-cleanup-label enclosing-block))
                     (emit-call (block-cleanup-label enclosing-block)))
                    ((equal (block-name enclosing-block) '(CATCH))
-                    (format t "p2-go found enclosing CATCH~%")
+                    (debug-log "p2-go found enclosing CATCH~%")
                     (aver (block-block-var enclosing-block))
                     (aver (compiland-thread-var compiland))
                     (inst :push (block-block-var enclosing-block))
@@ -1842,7 +1842,7 @@
       (setq var (local-function-var local-function))
       (p2-flet-process-compiland local-function)
       (cond ((local-function-ctf local-function)
-             (format t "p2-flet case 1~%")
+             (debug-log "p2-flet case 1~%")
              (aver var)
 ;;              (aver (var-closure-index (local-function-var local-function)))
              (cond ((var-closure-index var)
@@ -1875,7 +1875,7 @@
                       )
                     )))
             ((local-function-ctf-name local-function)
-             (format t "p2-flet case 2~%")
+             (debug-log "p2-flet case 2~%")
              (aver var)
 ;;              (aver (var-closure-index (local-function-var local-function)))
              (cond ((var-closure-index var)
@@ -1904,7 +1904,7 @@
                       (inst :mov :eax var)
                       (set-register-contents :eax var)))))
             ((local-function-function local-function)
-             (format t "p2-flet case 3~%")
+             (debug-log "p2-flet case 3~%")
              (aver (local-function-var local-function))
              (cond ((var-closure-index var)
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
@@ -1919,7 +1919,7 @@
                     ;; nothing to do
                     )))
             (t
-             (format t "p2-flet case 4~%")
+             (debug-log "p2-flet case 4~%")
              (aver (local-function-callable-name local-function))
              (aver (local-function-var local-function))
              (cond ((var-closure-index var)
@@ -1933,7 +1933,7 @@
                       (clear-register-contents) ; FIXME
                       ))
                     (t
-                     (format t "p2-flet case 4b~%")
+                     (debug-log "p2-flet case 4b~%")
                      ;; nothing to do
                      )))))
     (dolist (local-function local-functions)
@@ -1955,7 +1955,7 @@
       (declare (type local-function local-function))
       (p2-labels-process-compiland local-function)
       (cond ((local-function-ctf local-function)
-             (format t "p2-labels local-function-ctf case~%")
+             (debug-log "p2-labels local-function-ctf case~%")
              (aver (local-function-var local-function))
              (aver (var-closure-index (local-function-var local-function)))
              (let* ((compiland *current-compiland*)
@@ -2127,7 +2127,7 @@
     (cond ((symbolp arg) ; #'foo
            (cond ((setq local-function (find-local-function arg))
 ;;                   (compiler-unsupported "P2-FUNCTION: local functions are not supported yet")
-                  (format t "p2-function local function case~%")
+                  (debug-log "p2-function local function case~%")
                   (cond #+nil
                         ((local-function-function local-function)
                          (p2-constant local-function-function local-function))
@@ -2204,7 +2204,7 @@
            (arg2 (%cadr args))
            type1)
       (cond ((zerop *safety*)
-             (format t "p2-schar safety is zero~%")
+             (debug-log "p2-schar safety is zero~%")
              (clear-register-contents)
              (process-2-args args '(:eax :edx) t) ; string in eax, offset in edx
              (emit-add-immediate-to-register (- +simple-string-data-offset+ +typed-object-lowtag+) :eax)
@@ -2216,10 +2216,10 @@
              (move-result-to-target target))
             ((and (neq (setq type1 (derive-type arg1)) :unknown)
                   (subtypep (derive-type arg1) 'SIMPLE-STRING))
-             (format t "p2-schar derived type is subtypep simple-string~%")
+             (debug-log "p2-schar derived type is subtypep simple-string~%")
              (p2-function-call (list '%SCHAR arg1 arg2) target))
             (t
-             (format t "p2-schar no optimization~%")
+             (debug-log "p2-schar no optimization~%")
              (p2-function-call form target))))
     t))
 
@@ -2265,7 +2265,7 @@
                            (inst :mov '(:eax) :eax)
                            (move-result-to-target target))))))
             ((subtypep type1 'simple-vector)
-             (format t "p2-svref %svref case~%")
+             (debug-log "p2-svref %svref case~%")
              (process-2-args args '(:eax :edx) t) ; vector in eax, tagged index in edx
              (unless (fixnum-type-p type2)
                (let* ((common-labels (compiland-common-labels *current-compiland*))
@@ -2307,7 +2307,7 @@
                (inst :mov '(:eax) :eax)
                (move-result-to-target target)))
             (t
-             (format t "p2-svref full call~%")
+             (debug-log "p2-svref full call~%")
              (p2-function-call form target)
              (when (var-ref-p arg1)
                (add-type-constraint (var-ref-var arg1) 'SIMPLE-VECTOR)))))
@@ -2927,7 +2927,7 @@
          (use-fast-call-p (use-fast-call-p)))
     (declare (type compiland compiland))
     (declare (type local-function local-function))
-    (format t "p2-local-function-call called compiland = ~S~%" (compiland-name compiland))
+    (debug-log "p2-local-function-call called compiland = ~S~%" (compiland-name compiland))
     (aver local-function)
     (aver thread-var)
     (unless (<= 0 numargs 6)
@@ -2938,7 +2938,7 @@
     (when (and use-fast-call-p
                (eq (local-function-compiland local-function) compiland)
                (eql numargs (compiland-arity compiland)))
-      (format t "p2-local-function-call optimized recursive call~%")
+      (debug-log "p2-local-function-call optimized recursive call~%")
       (emit-move-local-to-register closure-data-index :eax)
       (inst :push :eax)
       (emit-recurse)
@@ -2947,17 +2947,17 @@
       (return-from p2-local-function-call))
 
     (cond ((local-function-callable-name local-function)
-           (format t "p2-local-function-call local-function-callable-name case~%")
+           (debug-log "p2-local-function-call local-function-callable-name case~%")
            (emit-move-function-to-register (local-function-callable-name local-function) :eax)
            (clear-register-contents :eax)
            (inst :push :eax))
           ((local-function-function local-function)
-           (format t "p2-local-function-call local-function-function case~%")
+           (debug-log "p2-local-function-call local-function-function case~%")
            (emit-move-immediate (local-function-function local-function) :eax)
            (clear-register-contents :eax)
            (inst :push :eax))
           ((local-function-var local-function)
-           (format t "p2-local-function-call var ref case~%")
+           (debug-log "p2-local-function-call var ref case~%")
            (aver (local-function-var local-function))
            (p2-var-ref (make-var-ref (local-function-var local-function)) :stack)
            )
@@ -3281,16 +3281,16 @@
                    (float-type-p type2))
                (cond ((and (subtypep type1 'DOUBLE-FLOAT)
                            (subtypep type2 'DOUBLE-FLOAT))
-                      (format t "p2-two-arg-- double-float case~%")
+                      (debug-log "p2-two-arg-- double-float case~%")
                       (process-2-args args :stack t)
                       (emit-call-2 '%double-float-- target))
                      (t
                       ;; full call
-                      (format t "p2-two-arg-- float case~%")
+                      (debug-log "p2-two-arg-- float case~%")
                       (process-2-args args :stack t)
                       (emit-call-2 'two-arg-- target))))
               (t
-               (format t "p2-two-arg-- default case~%")
+               (debug-log "p2-two-arg-- default case~%")
                (process-2-args args '(:eax :edx) t)
                ;; arg1 in eax, arg2 in edx
                (unless (fixnum-type-p type1)
@@ -3333,7 +3333,7 @@
              (OVERFLOW (make-label))
              (FULL-CALL (make-label))
              (EXIT (make-label)))
-        ;;       (format t "type1 = ~S type2 = ~S result-type = ~S~%"
+        ;;       (debug-log "type1 = ~S type2 = ~S result-type = ~S~%"
         ;;               type1 type2 result-type)
         (cond ((and (integer-constant-value type1)
                     (integer-constant-value type2)
@@ -3388,12 +3388,12 @@
                    (float-type-p type2))
                (cond ((and (subtypep type1 'DOUBLE-FLOAT)
                            (subtypep type2 'DOUBLE-FLOAT))
-                      (format t "p2-two-arg-+ double-float case~%")
+                      (debug-log "p2-two-arg-+ double-float case~%")
                       (process-2-args args :stack t)
                       (emit-call-2 '%double-float-+ target))
                      (t
                       ;; full call
-                      (format t "p2-two-arg-+ float case~%")
+                      (debug-log "p2-two-arg-+ float case~%")
                       (process-2-args args :stack t)
                       (emit-call-2 'two-arg-+ target))))
               (t
@@ -3471,7 +3471,7 @@
               ((or (float-type-p type1)
                    (float-type-p type2))
                ;; full call
-               (format t "p2-two-arg-* float case~%")
+               (debug-log "p2-two-arg-* float case~%")
                (process-2-args args :stack t)
                (emit-call-2 'two-arg-* target)
                t)
@@ -3553,7 +3553,7 @@
          (type2 (derive-type arg2))
          (numargs (length args)))
     (cond ((eq type2 :unknown)
-           (format t "p2-gethash type2 is unknown~%")
+           (debug-log "p2-gethash type2 is unknown~%")
            nil)
           ((subtypep type2 'HASH-TABLE)
            (case numargs
@@ -3570,10 +3570,10 @@
               (emit-call-3 op target)
               t)
              (t
-              (format t "p2-gethash shouldn't happen~%")
+              (debug-log "p2-gethash shouldn't happen~%")
               nil)))
           (t
-           (format t "p2-gethash type2 is ~S~%" type2)
+           (debug-log "p2-gethash type2 is ~S~%" type2)
            nil))))
 
 (defun p2-ash (form target)
@@ -3632,7 +3632,7 @@
                              (process-1-arg arg1 :eax t)
                              (inst :sar (- shift) :eax))
                             (t
-                             (format t "p2-ash new optimized case 2~%")
+                             (debug-log "p2-ash new optimized case 2~%")
                              (process-2-args args '(:eax :ecx) t)
                              (unbox-fixnum :ecx)
                              (emit-bytes #xf7 #xd9) ; neg %ecx
@@ -3646,13 +3646,13 @@
                            (>= shift 0)
                            (< shift 32))
                       (cond ((flushable arg2)
-                             (format t "p2-ash new optimized case 3~%")
+                             (debug-log "p2-ash new optimized case 3~%")
                              (process-1-arg arg1 :eax t)
                              (unless (zerop shift)
                                (inst :shl shift :eax))
                              )
                             (t
-                             (format t "p2-ash new optimized case 4~%")
+                             (debug-log "p2-ash new optimized case 4~%")
                              (process-2-args args '(:eax :ecx) t)
                              (unbox-fixnum :ecx)
                              (emit-bytes #xd3 #xe0) ; shl %cl,%rax
@@ -3660,7 +3660,7 @@
                       (move-result-to-target target)
                       t)
                      ;;                    (t
-                     ;;                     (format t "p2-ash case 1, not optimized~%")
+                     ;;                     (debug-log "p2-ash case 1, not optimized~%")
                      ;;                     nil)
                      )))
             ((and (subtypep type1 '(unsigned-byte 32))
@@ -3671,17 +3671,17 @@
                           (< shift 0)
                           (> shift -32)
                           (flushable arg2))
-;;                       (format t "p2-ash unsigned-byte 32 case (optimized)~%")
+;;                       (debug-log "p2-ash unsigned-byte 32 case (optimized)~%")
                       (let ((LABEL1 (make-label))
                             (LABEL2 (make-label)))
                         (process-1-arg arg1 :eax t)
                         (inst :test +fixnum-tag-mask+ :al)
                         (emit-jmp-short :nz LABEL2)
                         (cond ((> (- shift +fixnum-shift+) -32)
-                               (format t "p2-ash unsigned-byte 32 case (optimized) a~%")
+                               (debug-log "p2-ash unsigned-byte 32 case (optimized) a~%")
                                (inst :shr (- (- shift +fixnum-shift+)) :eax))
                               (t
-                               (format t "p2-ash unsigned-byte 32 case (optimized) b~%")
+                               (debug-log "p2-ash unsigned-byte 32 case (optimized) b~%")
                                (unbox-fixnum :eax)
                                (inst :shr (- shift) :eax)))
                         (box-fixnum :eax)
@@ -3703,10 +3703,10 @@
 
                       t)
                      (t
-                      (format t "p2-ash unsigned-byte 32 case (not optimized)~%")
+                      (debug-log "p2-ash unsigned-byte 32 case (not optimized)~%")
                       nil))))
             (t
-             (format t "p2-ash not optimized type1 = ~S type2 = ~S~%" type1 (derive-type arg2))
+             (debug-log "p2-ash not optimized type1 = ~S type2 = ~S~%" type1 (derive-type arg2))
              nil
              )
             ))))
@@ -3729,10 +3729,10 @@
           (setq args (list arg1 arg2)))
         (setq type1 (derive-type arg1)
               type2 (derive-type arg2))
-;;         (format t "p2-logior/logxor type1 = ~S type2 = ~S~%" type1 type2)
+;;         (debug-log "p2-logior/logxor type1 = ~S type2 = ~S~%" type1 type2)
         (cond ((and (eql arg2 0)
                     (integer-type-p type1))
-;;                (format t "p2-logior/logxor arg2 is 0~%")
+;;                (debug-log "p2-logior/logxor arg2 is 0~%")
                (process-1-arg arg1 :eax t)
                (move-result-to-target target))
               ((and (eql (integer-constant-value type1) 0)
@@ -4115,7 +4115,7 @@
                   (subtypep type 'BOOLEAN))
              (p2 arg target))
             (t
-             (format t "p2-require-boolean target = ~S~%" target)
+             (debug-log "p2-require-boolean target = ~S~%" target)
              (process-1-arg arg :eax t)
              (let* ((EXIT (make-label))
                     (common-labels (compiland-common-labels *current-compiland*))
@@ -4220,7 +4220,7 @@
             ((eq (setq type (derive-type arg)) 'SYMBOL)
              (p2 arg target))
             (t
-             (format t "p2-require-symbol target = ~S~%" target)
+             (debug-log "p2-require-symbol target = ~S~%" target)
              (process-1-arg arg :eax t)
              (let* ((EXIT (make-label))
                     (common-labels (compiland-common-labels *current-compiland*))
@@ -4460,7 +4460,7 @@
                   (eq (%car operator-form) 'QUOTE)
                   (eql (length operator-form) 2)
                   (symbolp (%cadr operator-form)))
-             (format t "p2-funcall optimization 1~%")
+             (debug-log "p2-funcall optimization 1~%")
              (p2-function-call (list* (%cadr operator-form) args) target)
              t)
             ((and (consp operator-form)
@@ -4492,13 +4492,13 @@
                                 (inst :push thread-var)
                                 (emit-call-3 "RT_thread_call_function_1" target))))
                         (t
-                         (format t "p2-funcall optimization 2 needs work! numargs = ~D~%" numargs)
+                         (debug-log "p2-funcall optimization 2 needs work! numargs = ~D~%" numargs)
                          (p2-function-call (list* name args) target))))
                      (t
                       (p2-function-call (list* name args) target))))
              t)
             ((eq (setq operator-derived-type (derive-type operator-form)) 'SYMBOL)
-             (format t "p2-funcall optimization 3 numargs = ~D~%" numargs)
+             (debug-log "p2-funcall optimization 3 numargs = ~D~%" numargs)
              (case numargs
                (1
                 (cond (use-fast-call-p
@@ -4511,7 +4511,7 @@
                        (emit-call-3 "RT_thread_call_symbol_1" target)
                        t)
                       (t
-                       (format t "p2-funcall not optimized 1a~%")
+                       (debug-log "p2-funcall not optimized 1a~%")
                        nil)))
                (4
                 (cond (use-fast-call-p
@@ -4524,10 +4524,10 @@
                        (emit-call-6 "RT_thread_call_symbol_4" target)
                        t)
                       (t
-                       (format t "p2-funcall not optimized 1b~%")
+                       (debug-log "p2-funcall not optimized 1b~%")
                        nil)))
                (t
-                (format t "p2-funcall not optimized 2~%")
+                (debug-log "p2-funcall not optimized 2~%")
                 nil)))
             ((eq operator-derived-type 'FUNCTION)
              (when (<= 0 numargs 4)
@@ -4543,7 +4543,7 @@
                                     target (+ 2 numargs))
                        t)
                       (t
-                       (format t "p2-funcall not optimized 3b~%")
+                       (debug-log "p2-funcall not optimized 3b~%")
                        nil))))
             (t
              (when (<= 0 numargs 4)
@@ -4559,7 +4559,7 @@
                                    target (+ 2 numargs))
                       t)
                      (t
-                      (format t "p2-funcall not optimized 7~%")
+                      (debug-log "p2-funcall not optimized 7~%")
                       nil)))))
       )))
 
@@ -4731,7 +4731,7 @@
                  (emit-exit) ; FIXME
                  )))
             (t
-             (format t "p2-check-fixnum-bounds full call~%")
+             (debug-log "p2-check-fixnum-bounds full call~%")
              (process-3-args args :default t)
              (emit-call-3 'check-fixnum-bounds target))))
     t))
@@ -4747,7 +4747,7 @@
                 (subtypep type 'VECTOR))
            (p2 arg target))
           (t
-           (format t "p2-require-vector~%")
+           (debug-log "p2-require-vector~%")
            (let ((FAIL (gensym)))
              (process-1-arg arg :eax t)
              (inst :mov :eax :edx)
@@ -4783,11 +4783,11 @@
                 (subtypep type 'SIMPLE-VECTOR))
            (p2 arg target))
           (t
-           (format t "p2-require-simple-vector~%")
+           (debug-log "p2-require-simple-vector~%")
            (let* ((common-labels (compiland-common-labels *current-compiland*))
                   (REQUIRE-SIMPLE-VECTOR-ERROR (gethash :require-simple-vector-error common-labels)))
              (when REQUIRE-SIMPLE-VECTOR-ERROR
-               (format t "p2-require-simple-vector re-using label~%"))
+               (debug-log "p2-require-simple-vector re-using label~%"))
              (unless REQUIRE-SIMPLE-VECTOR-ERROR
                (setq REQUIRE-SIMPLE-VECTOR-ERROR (make-label))
                (let ((*current-segment* :elsewhere))
@@ -5089,7 +5089,7 @@
 ;;                               ((and (listp operand2) (memq :r12 operand2))
 ;;                                (return t))))))))
 ;;           (unless r12-used-p
-;;             (format t "~S r12-used-p = ~S~%" (compiland-name compiland) r12-used-p))
+;;             (debug-log "~S r12-used-p = ~S~%" (compiland-name compiland) r12-used-p))
 ;;           (setf (compiland-needs-thread-var-p *current-compiland*) r12-used-p)))
 
       (let ((*code* nil)
@@ -5121,7 +5121,7 @@
                                (setf (second instruction)
                                      (list (index-displacement (var-index operand1)) :ebp)))
                               (t
-                               (format t "p3 :mov no var-index for var ~S~%" (var-name operand1))
+                               (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand1))
                                (unsupported))))
                        ((var-p operand2)
                         ;; setq
@@ -5130,7 +5130,7 @@
                                (setf (third instruction)
                                      (list (index-displacement (var-index operand2)) :ebp)))
                               (t
-                               (format t "p3 :mov no var-index for var ~S~%" (var-name operand2))
+                               (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand2))
                                (unsupported))))
                        (t
                         ;; nothing to do
@@ -5141,7 +5141,7 @@
                                (setf (second instruction)
                                      (list (index-displacement (var-index operand1)) :ebp)))
                               (t
-                               (format t "p3 :push no var-index for var ~S~%" (var-name operand1))
+                               (debug-log "p3 :push no var-index for var ~S~%" (var-name operand1))
                                (unsupported))))
                        (t
                         ;; nothing to do
@@ -5167,5 +5167,5 @@
               (let ((assembled-instruction (assemble-instruction instruction)))
                 (setf (svref code i) assembled-instruction))))))
       (when leaf-p
-        (format t "~S leaf-p = ~S var-ref-count = ~S~%" (compiland-name compiland) leaf-p var-ref-count))
+        (debug-log "~S leaf-p = ~S var-ref-count = ~S~%" (compiland-name compiland) leaf-p var-ref-count))
       )))
