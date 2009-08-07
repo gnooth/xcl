@@ -589,7 +589,7 @@
 (autoload 'run-random-tests)
 (autoload 'run-other-tests)
 
-(defun run-ansi-tests (&key (compile-tests t) (debug nil))
+(defun run-ansi-tests (&key (compile-tests t) (debug t))
   (declaim (optimize speed))
   (let* ((ansi-tests-directory
           (pathname (directory-namestring (merge-pathnames "ansi-tests/" #.*load-pathname*))))
