@@ -65,7 +65,8 @@
 
 (defknown note-top-level-form (t) t)
 (defun note-top-level-form (form)
-  (when (or t *compile-print*) ;; FIXME
+;;   (when (or t *compile-print*) ;; FIXME
+  (when *compile-print*
     (when *last-error-context*
       (terpri)
       (setq *last-error-context* nil))

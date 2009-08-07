@@ -343,13 +343,13 @@
            (let* ((element-type (if (consp *dd-type*) (cadr *dd-type*) t))
                   (upgraded-type (upgraded-array-element-type element-type)))
              (cond ((eq upgraded-type t)
-                    (format t "define-reader simple-vector case~%")
+                    (debug-log "define-reader simple-vector case~%")
                     `((defun ,accessor (instance)
                         (vector-ref (the simple-vector instance) ,slot-index))
                       (define-source-transform ,accessor (instance)
                         `(truly-the ,',element-type (vector-ref (the simple-vector ,instance) ,,slot-index)))))
                    (t
-                    (format t "define-reader specialized vector case~%")
+                    (debug-log "define-reader specialized vector case~%")
                     `((defun ,accessor (instance)
                         (vector-ref (the vector instance) ,slot-index))
                       (define-source-transform ,accessor (instance)
@@ -375,13 +375,13 @@
            (let* ((element-type (if (consp *dd-type*) (cadr *dd-type*) t))
                   (upgraded-type (upgraded-array-element-type element-type)))
              (cond ((eq upgraded-type t)
-                    (format t "define-writer simple-vector case~%")
+                    (debug-log "define-writer simple-vector case~%")
                     `((defun (setf ,accessor) (value instance)
                         (vector-set (the simple-vector instance) ,slot-index (the ,element-type value)))
                       (define-source-transform (setf ,accessor) (value instance)
                         `(vector-set (the simple-vector ,instance) ,,slot-index (the ,',element-type ,value)))))
                    (t
-                    (format t "define-writer specialized vector case~%")
+                    (debug-log "define-writer specialized vector case~%")
                     `((defun (setf ,accessor) (value instance)
                         (vector-set (the vector instance) ,slot-index (the ,element-type value)))
                       (define-source-transform (setf ,accessor) (value instance)
@@ -404,10 +404,10 @@
             entry)
         (cond ((setq entry (assoc accessor *inherited-accessors-alist*))
 
-               (format t "define-access-functions ~S not redefining ~S~%" *dd-name* accessor)
+               (debug-log "define-access-functions ~S not redefining ~S~%" *dd-name* accessor)
                (unless (eql (cdr entry) (slot-index slot))
-                 (format t "define-access-functions ~S index mismatch new = ~S old = ~S~%"
-                         *dd-name* (cdr entry) (slot-index slot)))
+                 (debug-log "define-access-functions ~S index mismatch new = ~S old = ~S~%"
+                            *dd-name* (cdr entry) (slot-index slot)))
                )
               (t
                (setf result (nconc result (define-reader slot accessor)))

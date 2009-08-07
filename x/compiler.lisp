@@ -166,7 +166,7 @@
 
 (defknown clear-register-contents (*) t)
 (defun clear-register-contents (&rest registers)
-;;   (format t "clear-register-contents ~S~%" registers)
+;;   (debug-log "clear-register-contents ~S~%" registers)
   (cond ((null *register-contents*)
          (setq *register-contents* (make-hash-table :test 'eq)))
         (registers
@@ -177,7 +177,7 @@
 
 (defknown clear-var-registers (var) t)
 (defun clear-var-registers (var)
-;;   (format t "clear-var-registers var = ~S~%" (var-name var))
+;;   (debug-log "clear-var-registers var = ~S~%" (var-name var))
   (maphash (lambda (k v)
              (cond ((eq var v)
                     (remhash k *register-contents*))
@@ -188,12 +188,12 @@
 
 (defknown set-register-contents (t t) t)
 (defun set-register-contents (register var)
-;;   (format t "set-register-contents register = ~S var = ~S~%" register (var-name var))
+;;   (debug-log "set-register-contents register = ~S var = ~S~%" register (var-name var))
   (setf (gethash register *register-contents*) var))
 
 (defknown find-register-containing-var (var) t)
 (defun find-register-containing-var (var)
-;;   (format t "find-register-containing-var var = ~S~%" (var-name var))
+;;   (debug-log "find-register-containing-var var = ~S~%" (var-name var))
   (when (var-p var)
     (maphash (lambda (k v)
                (when (or (eq var v)
@@ -211,12 +211,12 @@
     ht))
 
 (defun dump-register-contents ()
-  (format t "register contents:~%")
+  (debug-log "register contents:~%")
   (when (hash-table-p *register-contents*)
     (maphash (lambda (k v)
-               (format t "key = ~S value = ~S~%" k v))
+               (debug-log "key = ~S value = ~S~%" k v))
              *register-contents*))
-  (format t "end register contents~%"))
+  (debug-log "end register contents~%"))
 
 (defstruct (cblock (:conc-name block-) (:constructor make-block) (:predicate block-p))
   name
@@ -445,18 +445,18 @@
                   (compiland *current-compiland*))
              (declare (type compiland compiland))
              (when local-function
-               (format t "local function ~S called~%" (local-function-name local-function))
+               (debug-log "local function ~S called~%" (local-function-name local-function))
                (when (inline-p name)
                  (let ((expansion (local-function-inline-expansion local-function)))
                    (when expansion
-                     (format t "inlining call to local function ~S~%" name)
+                     (debug-log "inlining call to local function ~S~%" name)
                      (return-from p1-function-call (p1 (expand-inline form expansion))))))
                (incf (local-function-call-count local-function))
                (let ((var (local-function-var local-function)))
                  (when var
                    (unless (eq (compiland-id compiland)
                                (var-compiland-id var))
-                     (format t "p1-function-call var ~S is used non-locally~%" (var-name var))
+                     (debug-log "p1-function-call var ~S is used non-locally~%" (var-name var))
                      (setf (var-used-non-locally-p var) t)))))
              (when (symbolp name)
                (pushnew name (compiland-called-names compiland))
@@ -526,7 +526,7 @@
                         (push ref (var-refs var))
                         (incf (var-reads var))
                         (cond ((eq (var-compiland-id var) (compiland-id *current-compiland*))
-;;                                (format t "p1: read ~S~%" form)
+;;                                (debug-log "p1: read ~S~%" form)
                                )
                               (t
                                (setf (var-used-non-locally-p var) t)
@@ -539,9 +539,9 @@
                handler)
            (cond ((symbolp op)
                   (when (compiler-macro-function op)
-                    (format t "found compiler macro for ~S~%" op)
+                    (debug-log "found compiler macro for ~S~%" op)
                     (unless (notinline-p op)
-                      (format t "expanding compiler macro for ~S~%" op)
+                      (debug-log "expanding compiler macro for ~S~%" op)
                       (multiple-value-bind (expansion expanded-p)
                           (compiler-macroexpand form)
                         (when expanded-p
@@ -605,16 +605,16 @@
                  (integer (%caddr args)))
              (setq form
                    (cond ((and (integerp size) (integerp position))
-                          ;;                      (format t "p1-dpb case 1~%")
+                          ;;                      (debug-log "p1-dpb case 1~%")
                           (let ((mask (1- (ash 1 size)))
                                 (sym (gensym)))
                             `(let ((,sym ,newbyte))
                                (logior (logand ,integer (lognot (ash ,mask ,position)))
                                        (ash (logand ,sym ,mask) ,position)))))
                          (t
-                          ;;                      (format t "p1-dpb case 2~%")
+                          ;;                      (debug-log "p1-dpb case 2~%")
                           `(%dpb ,newbyte ,size ,position ,integer)))))
-           ;;     (format t "new form = ~S~%" form)
+           ;;     (debug-log "new form = ~S~%" form)
            (p1 form))
           (t
            (p1-function-call form)))))
@@ -644,17 +644,17 @@
     (when (and (consp function-form)
                (eq (%car function-form) 'FUNCTION))
       (let ((name (%cadr function-form)))
-;;         (format t "name = ~S~%" name)
+;;         (debug-log "name = ~S~%" name)
         (let ((source-transform (source-transform name)))
           (when source-transform
-;;             (format t "found source transform for ~S~%" name)
-;;             (format t "old form = ~S~%" form)
+;;             (debug-log "found source transform for ~S~%" name)
+;;             (debug-log "old form = ~S~%" form)
             ;;             (let ((new-form (expand-source-transform form)))
             ;;               (when (neq new-form form)
-            ;;                 (format t "new form = ~S~%" new-form)
+            ;;                 (debug-log "new form = ~S~%" new-form)
             ;;                 (return-from p1-funcall (p1 new-form))))
             (let ((new-form (expand-source-transform (list* name (cddr form)))))
-;;               (format t "new form = ~S~%" new-form)
+;;               (debug-log "new form = ~S~%" new-form)
               (return-from p1-funcall (p1 new-form)))
             ))
         )))
@@ -662,8 +662,8 @@
   (p1-function-call form))
 
 (defun p1-function (form)
-;;   (format t "p1-function form = ~S~%" form)
-;;   (format t "p1-function *visible-variables* = ~S~%" *visible-variables*)
+;;   (debug-log "p1-function form = ~S~%" form)
+;;   (debug-log "p1-function *visible-variables* = ~S~%" *visible-variables*)
   (unless (length-eql form 2)
     (error 'simple-error
            :format-control "Wrong number of arguments for special operator ~A (expected 1, but received ~D)."
@@ -677,7 +677,7 @@
                  (when var
                    (unless (eq (compiland-id *current-compiland*)
                                (var-compiland-id var))
-                     (format t "p1-function-call var ~S is used non-locally~%" (var-name var))
+                     (debug-log "p1-function-call var ~S is used non-locally~%" (var-name var))
                      (setf (var-used-non-locally-p var) t))))))
            form)
           ((setf-function-name-p arg)
@@ -691,7 +691,7 @@
                  (when var
                    (unless (eq (compiland-id *current-compiland*)
                                (var-compiland-id var))
-                     (format t "p1-function-call var ~S is used non-locally~%" (var-name var))
+                     (debug-log "p1-function-call var ~S is used non-locally~%" (var-name var))
                      (setf (var-used-non-locally-p var) t))))))
            form) ; REVIEW
           ((and (consp arg) (eq (%car arg) 'LAMBDA))
@@ -757,7 +757,7 @@
 ;;            (setf (block-non-local-return-p block) t)))
     (unless (eq (block-compiland block) *current-compiland*)
 ;;       (compiler-unsupported "P1-RETURN-FROM non-local return")
-      (format t "p1-return-from block ~S has a non-local return~%" (block-name block))
+      (debug-log "p1-return-from block ~S has a non-local return~%" (block-name block))
       (setf (block-non-local-return-p block) t)
       (setf (compiland-needs-thread-var-p (block-compiland block)) t)
       (setf (compiland-needs-thread-var-p *current-compiland*) t)
@@ -887,13 +887,13 @@
         (process-optimization-declarations decls)
         (let ((p1-body (p1-body body)))
           (dolist (local-function local-functions)
-            (format t "local function ~S: ~D call(s), needs-function-object-p = ~S~%"
-                    (local-function-name local-function)
-                    (local-function-call-count local-function)
-                    (local-function-needs-function-object-p local-function))
+            (debug-log "local function ~S: ~D call(s), needs-function-object-p = ~S~%"
+                       (local-function-name local-function)
+                       (local-function-call-count local-function)
+                       (local-function-needs-function-object-p local-function))
             (let ((var (local-function-var local-function)))
-              (format t "var = ~S var-used-non-locally-p = ~S~%"
-                      (var-name var) (var-used-non-locally-p var))
+              (debug-log "var = ~S var-used-non-locally-p = ~S~%"
+                         (var-name var) (var-used-non-locally-p var))
               (cond ((var-used-non-locally-p var)
                      (push var *closure-vars*))
                     (t
@@ -1025,12 +1025,12 @@
 (defknown propagate-vars (cblock) t)
 (defun propagate-vars (block)
   (declare (type cblock block))
-;;   (format t "propagate-vars called~%")
+;;   (debug-log "propagate-vars called~%")
 ;;   (return-from propagate-vars nil)
 ;;   (dolist (var1 (block-vars block))
 ;;     (let ((initform (var-initform var1)))
 ;;       (when (var-ref-p initform)
-;;         (format t "var1 = ~S initform = ~S (var-ref-var initform) = ~S~%"
+;;         (debug-log "var1 = ~S initform = ~S (var-ref-var initform) = ~S~%"
 ;;                 (var-name var1)
 ;;                 initform
 ;;                 (var-name (var-ref-var initform))))))
@@ -1050,12 +1050,12 @@
                                  (var-used-non-locally-p source-var))
                        (when (zerop (var-writes source-var))
                          ;; we can eliminate the variable
-;;                          (format t "propagate-vars eliminating ~S source-var = ~S~%"
+;;                          (debug-log "propagate-vars eliminating ~S source-var = ~S~%"
 ;;                                  (var-name var) (var-name source-var))
                          (aver (eql (var-reads var) (length (var-refs var))))
                          (dolist (ref (var-refs var))
                            (aver (eq (var-ref-var ref) var))
-;;                            (format t "fixing ~S to use ~S~%" ref (var-name source-var))
+;;                            (debug-log "fixing ~S to use ~S~%" ref (var-name source-var))
                            (setf (var-ref-var ref) source-var)
                            (aver (not (memq ref (var-refs source-var))))
                            (push ref (var-refs source-var))
@@ -1065,7 +1065,7 @@
 ;;                          (dolist (var1 (block-vars block))
 ;;                            (let ((initform (var-initform var1)))
 ;;                              (when (var-ref-p initform)
-;;                                (format t "var1 = ~S initform = ~S (var-ref-var initform) = ~S~%"
+;;                                (debug-log "var1 = ~S initform = ~S (var-ref-var initform) = ~S~%"
 ;;                                        (var-name var1)
 ;;                                        initform
 ;;                                        (var-ref-var initform)))))
@@ -1088,7 +1088,7 @@
          (op (car form))
          (varlist (cadr form)))
     (aver (memq op '(LET LET*)))
-;;     (format t "varlist = ~S~%" varlist)
+;;     (debug-log "varlist = ~S~%" varlist)
     (when (eq op 'LET)
       ;; Convert to LET* if possible.
       (if (null (cdr varlist))
@@ -1414,12 +1414,12 @@ for special variables."
           ((eq type t)
            (p1 expr))
           ((zerop *safety*)
-;;            (format t "p1-the *safety* is 0~%")
+;;            (debug-log "p1-the *safety* is 0~%")
            (list 'TRULY-THE type (p1 expr)))
           (t
            (let ((new-form `(truly-the ,type (require-type ,expr ',type))))
-;;              (format t "p1-the form = ~S~%" form)
-;;              (format t "p1-the new-form = ~S~%" new-form)
+;;              (debug-log "p1-the form = ~S~%" form)
+;;              (debug-log "p1-the new-form = ~S~%" new-form)
              (p1 new-form))))))
 
 (defun p1-truly-the (form)
@@ -1462,9 +1462,9 @@ for special variables."
                 ((and (consp type)
                       (memq (%car type) '(AND OR MEMBER SATISFIES)))
                  ;; FIXME
-;;                  (format t "p1-require-type 1 not doing type check for ~S~%" type)
+;;                  (debug-log "p1-require-type 1 not doing type check for ~S~%" type)
                  (unless (eql *safety* 3)
-                   (format t "p1-require-type 1 not doing type check for ~S~%" type)
+                   (debug-log "p1-require-type 1 not doing type check for ~S~%" type)
                    (setq new-form `(progn ,arg1))))
                 ((subtypep type 'fixnum)
                  (let ((canonical-type (canonicalize-type type)))
@@ -1499,10 +1499,10 @@ for special variables."
                 ((subtypep type 'STRUCTURE-OBJECT)
                  (cond ((and (symbolp type)
                              (null (deftype-expander type)))
-;;                         (format t "p1-require-type structure-object case 1~%")
+;;                         (debug-log "p1-require-type structure-object case 1~%")
                         (setq new-form `(require-structure-type ,arg1 ',type)))
                        (t
-;;                         (format t "p1-require-type structure-object case 2~%")
+;;                         (debug-log "p1-require-type structure-object case 2~%")
                         (let ((sym (gensym)))
                           (setq new-form
                                 `(truly-the ,type
@@ -1520,9 +1520,9 @@ for special variables."
                 (t
                  (unless (eq type t)
                    (let ((*print-structure* nil))
-                     (format t "p1-require-type 2 not doing type check for ~S~%" type)))
+                     (debug-log "p1-require-type 2 not doing type check for ~S~%" type)))
                  (setq new-form `(progn ,arg1))
-;;                  (format t "p1-require-type new-form = ~S~%" new-form)
+;;                  (debug-log "p1-require-type new-form = ~S~%" new-form)
                  )
                 )))
       (if new-form
@@ -1618,10 +1618,10 @@ for special variables."
   (let ((i 0))
     (dolist (instruction (coerce *code* 'list))
       (fresh-line)
-      (format t "~4,D: " (incf i))
+      (debug-log "~4,D: " (incf i))
 ;;       (if (vectorp instruction)
 ;;           (print-instruction instruction)
-          (format t "~S~%" instruction))))
+      (debug-log "~S~%" instruction))))
 
 (declaim (inline deadify))
 (defknown deadify (t) t)
@@ -1762,7 +1762,7 @@ for special variables."
                    (setf (car (instruction-data instruction-2)) negated-test)
                    (setq changed t))
                   (t
-                   (format t "optimize-1c unsupported test ~S~%" test)
+                   (debug-log "optimize-1c unsupported test ~S~%" test)
                    nil))))))
     (when changed
       (setq *code* (delete-if #'instruction-dead-p code)))))
@@ -1880,7 +1880,7 @@ for special variables."
     (make-instruction :bytes (length asm:*output*) (coerce-vector-to-list asm:*output*))))
 
 ;; (defun preoptimize-1 ()
-;;   (format t "preoptimize-1 called~%")
+;;   (debug-log "preoptimize-1 called~%")
 ;;   (let ((code *code*)
 ;;         (changed nil))
 ;;     (loop
@@ -1901,7 +1901,7 @@ for special variables."
 
 ;; (defun p3 (code)
 ;;   (declare (type simple-vector code))
-;; ;;   (format t "p3 called~%")
+;; ;;   (debug-log "p3 called~%")
 ;;   (dotimes (i (length code))
 ;;     (let ((instruction (svref code i)))
 ;;       (when (listp instruction)
@@ -2127,7 +2127,7 @@ for special variables."
     (p2-check-argument-types compiland)
     (p2 (compiland-p1-body compiland) :return)
 ;;   (setq *code* (nreverse *code*))
-;;     (format t "p2-compiland *main* = ~S~%" *main*)
+;;     (debug-log "p2-compiland *main* = ~S~%" *main*)
     (setq *code* (copy-list (append (nreverse *main*) (nreverse *elsewhere*))))
 ;;     (dump-code)
     (setq *code* (coerce *code* 'simple-vector))
@@ -2189,11 +2189,10 @@ for special variables."
 
 (defun %compile (name &optional definition)
   (if name
-      (format t "~&; Compiling ~S~%" name)
+      (debug-log "~&; Compiling ~S~%" name)
 ;;       (let ((*print-readably* nil))
-;;         (format t "~&; Compiling ~S~%" definition))
-      (format t "~&; Compiling top-level form~%")
-      )
+;;         (debug-log "~&; Compiling ~S~%" definition))
+      (debug-log "~&; Compiling top-level form~%"))
   (unless definition
     (when (autoloadp name)
       (resolve name))
@@ -2203,7 +2202,7 @@ for special variables."
 
   ;; FIXME
   (when (typep definition 'generic-function)
-    (format t "not compiling generic function ~S~%" name)
+    (debug-log "not compiling generic function ~S~%" name)
     (return-from %compile (values name nil nil)))
 
 ;;   (let ((lambda-expression (cond ((functionp definition)
@@ -2221,7 +2220,7 @@ for special variables."
       (error "Can't find a definition for ~S." name))
 
     (unless (or (null environment) (environment-empty-p environment))
-      (format t "; Unable to compile LAMBDA form defined in non-null lexical environment.")
+      (debug-log "; Unable to compile LAMBDA form defined in non-null lexical environment.")
       ;; REVIEW
       (values (or name definition) nil nil))
 
@@ -2234,14 +2233,14 @@ for special variables."
                 (handler-case
                     (compile-defun name lambda-expression)
                   (compiler-unsupported-feature-error (condition)
-                    (format t "~&; ~A~%" condition)))
+                    (debug-log "~&; ~A~%" condition)))
                 (compile-defun name lambda-expression))))
       (cond ((null compiled-function)
              (fresh-line)
              (if name
-                 (format t "; Unable to compile ~S~%" name)
+                 (debug-log "; Unable to compile ~S~%" name)
                  (let ((*print-readably* nil))
-                   (format t "; Unable to compile ~S~%" definition)))
+                   (debug-log "; Unable to compile ~S~%" definition)))
              (precompile name lambda-expression))
             (name
              ;; Preserve existing source information (if any).
