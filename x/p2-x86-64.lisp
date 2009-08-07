@@ -554,7 +554,7 @@
 
 (defknown emit-compare-rax-to-nil () t)
 (defun emit-compare-rax-to-nil ()
-  (emit-bytes #x3d) ; compare immediate dword to eax
+  (emit-bytes #x48 #x3d) ; compare immediate dword to rax
   (emit-constant-32 nil))
 
 (defknown p2-constant (t t) t)
@@ -938,8 +938,7 @@
             (emit-call '%type-error)
             (emit-exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
-        (emit-bytes #x3d) ; cmp imm32,%eax
-        (emit-constant-32 nil)
+        (emit-compare-rax-to-nil)
         (emit-jmp-short :e EXIT)
         (inst :push :rax)
         (inst :and +lowtag-mask+ :al)
@@ -3845,8 +3844,7 @@
         (LIST
          (let ((EXIT (gensym)))
            (process-1-arg arg :rax t)
-           (emit-bytes #x48 #x3d) ; cmp imm32,%rax
-           (emit-constant-32 nil)
+           (emit-compare-rax-to-nil)
            (emit-jmp-short :e EXIT)
            ;; it's a cons
            (inst :mov '(-1 :rax) :rax)
@@ -3868,8 +3866,7 @@
                (emit-call '%type-error)
                (emit-exit) ; FIXME
                (setf (gethash :error-not-list common-labels) ERROR)))
-           (emit-bytes #x3d) ; cmp imm32,%eax
-           (emit-constant-32 nil)
+           (emit-compare-rax-to-nil)
            (emit-jmp-short :e EXIT)
            (inst :push :rax)
            (inst :and +lowtag-mask+ :al)
@@ -3919,8 +3916,7 @@
         (LIST
          (let ((EXIT (make-label)))
            (process-1-arg arg :rax t)
-           (emit-bytes #x48 #x3d) ; cmp imm32,%rax
-           (emit-constant-32 nil)
+           (emit-compare-rax-to-nil)
            (emit-jmp-short :e EXIT)
            ;; it's a cons
            (inst :mov '(7 :rax) :rax)
@@ -3942,8 +3938,7 @@
                 (emit-call '%type-error)
                 (emit-exit) ; FIXME
                 (setf (gethash :error-not-list common-labels) ERROR)))
-            (emit-bytes #x48 #x3d) ; cmp imm32,%rax
-            (emit-constant-32 nil)
+            (emit-compare-rax-to-nil)
             (emit-jmp-short :e EXIT)
             (inst :push :rax)
             (inst :and +lowtag-mask+ :al)
@@ -3983,8 +3978,7 @@
                    (emit-call '%type-error)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-boolean common-labels) ERROR)))
-               (emit-bytes #x48 #x3d) ; cmp imm32,%rax
-               (emit-constant-32 nil)
+               (emit-compare-rax-to-nil)
                (emit-jmp-short :e EXIT)
                (emit-bytes #x48 #x3d) ; cmp imm32,%rax
                (emit-constant-32 t)
@@ -4004,7 +3998,6 @@
                   (subtypep type 'LIST))
              (p2 arg target))
             (t
-             (debug-log "p2-require-list target = ~S~%" target)
              (process-1-arg arg :rax t)
              (let* ((EXIT (make-label))
                     (common-labels (compiland-common-labels *current-compiland*))
@@ -4019,8 +4012,7 @@
                    (emit-call '%type-error)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-list common-labels) ERROR)))
-               (emit-bytes #x48 #x3d) ; cmp imm32,%rax
-               (emit-constant-32 nil)
+               (emit-compare-rax-to-nil)
                (emit-jmp-short :e EXIT)
                (inst :push :rax)
                (inst :and +lowtag-mask+ :al)
@@ -4120,8 +4112,7 @@
             (emit-call '%type-error)
             (emit-exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
-        (emit-bytes #x3d) ; cmp imm32,%eax
-        (emit-constant-32 nil)
+        (emit-compare-rax-to-nil)
         (emit-jmp-short :e LABEL1)
         (inst :push :rax)
         (inst :and +lowtag-mask+ :al)
