@@ -67,10 +67,11 @@ clean:
 
 dist:
 	-rm -f xcl.tar.gz && \
+	rm -rf tmp && \
 	mkdir tmp && \
 	cd tmp && \
-	darcs get -q --set-scripts-executable .. && \
-	tar -c -z --exclude=_darcs -f xcl.tar.gz xcl && \
+	git clone .. xcl && \
+	tar -c -z --exclude=.git -f xcl.tar.gz xcl && \
 	mv xcl.tar.gz .. && \
 	cd .. && \
 	rm -rf tmp
