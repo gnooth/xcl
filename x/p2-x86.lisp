@@ -3432,82 +3432,88 @@
   (let ((args (cdr form)))
     (when (length-eql args 2)
       (let* ((arg1 (%car args))
-             (arg2 (%cadr args))
-             (type1 (derive-type arg1))
-             (type2 (derive-type arg2))
-             (OVERFLOW (make-label))
-             (FULL-CALL (make-label))
-             (EXIT (make-label)))
-        (cond #+nil
-              ((fixnump arg2)
-               ;; as in (+ n 2), for example
-               (p2 arg1 :eax)
-               (unless (single-valued-p arg1)
-                 (emit-clear-values :preserve :eax))
-               (emit-move :eax :edx)
-               (unless (fixnum-type-p type1)
-                 (emit-bytes #xa8 #x03)               ; test $0x3,%al
-                 (emit-jmp-short :nz FULL-CALL))
-               ;; falling through, arg1 is a fixnum
-               (emit-byte #x05)                     ; add immediate dword from eax
-               (emit-dword arg2)                    ; arg2 is a fixnum literal
-               (case target
-                 (:return
-                  (emit-jmp-short :o FULL-CALL)
-                  ;; falling through: no overflow, we're done
-                  (emit-exit))
-                 (t
-                  (emit-jmp-short :no EXIT)))       ; no overflow, we're done
-               (label FULL-CALL)
-               ;; push arg2 first
-               (emit-push-immediate arg2)           ; arg2 is a fixnum literal
-               ;; arg1 is already in edx
-               (inst :push :edx)
-               (emit-call 'two-arg-+)
-               (emit-adjust-stack-after-call 2)
-               (label EXIT)
-               (move-result-to-target target)
-               t)
-              ((or (float-type-p type1)
-                   (float-type-p type2))
-               ;; full call
-               (debug-log "p2-two-arg-* float case~%")
-               (process-2-args args :stack t)
-               (emit-call-2 'two-arg-* target)
-               t)
-              (t
-               (debug-log "p2-two-arg-* type1 = ~S type2 = ~S~%" type1 type2)
-               (process-2-args args '(:eax :edx) t)
-               ;; arg1 in eax, arg2 in edx
-               (unless (fixnum-type-p type1)
-                 (emit-bytes #xa8 #x03)               ; test $0x3,%al
-                 (emit-jmp-short :nz FULL-CALL))
-               (unless (fixnum-type-p type2)
-                 (emit-bytes #xf6 #xc2 #x03)          ; test $0x3,%dl
-                 (emit-jmp-short :nz FULL-CALL))
-               ;; falling through, both args are fixnums
-               (emit-move :eax :ecx) ; we're about to trash :eax
-               ;;              (emit-bytes #x01 #xd0) ; add %edx,%eax
-               (emit-bytes #xc1 #xf8 #x02) ; sar $0x2,%eax
-               (emit-bytes #x0f #xaf #xc2) ; imul %edx,%eax
-               (case target
-                 (:return
-                  (emit-jmp-short :o OVERFLOW)
-                  ;; falling through: no overflow, we're done
-                  (emit-exit)
-                  (label OVERFLOW))
-                 (t
-                  ;; if no overflow, we're done
-                  (emit-jmp-short :no EXIT)))
-               (emit-move :ecx :eax)
-               (label FULL-CALL)
-               (inst :push :edx)
-               (inst :push :eax)
-               (emit-call 'two-arg-*)
-               (emit-adjust-stack-after-call 2)
-               (label EXIT)
-               (move-result-to-target target)
-               t))))))
+             (arg2 (%cadr args)))
+        (when (and (numberp arg1)
+                   (numberp arg2))
+          (debug-log "p2-two-arg-* numberp case~%")
+          (p2-constant (two-arg-* arg1 arg2) target)
+          (return-from p2-two-arg-* t))
+        (let* ((type1 (derive-type arg1))
+               (type2 (derive-type arg2))
+               (OVERFLOW (make-label))
+               (FULL-CALL (make-label))
+               (EXIT (make-label)))
+          (cond #+nil
+                ((fixnump arg2)
+                 ;; as in (+ n 2), for example
+                 (p2 arg1 :eax)
+                 (unless (single-valued-p arg1)
+                   (emit-clear-values :preserve :eax))
+                 (emit-move :eax :edx)
+                 (unless (fixnum-type-p type1)
+                   (emit-bytes #xa8 #x03)               ; test $0x3,%al
+                   (emit-jmp-short :nz FULL-CALL))
+                 ;; falling through, arg1 is a fixnum
+                 (emit-byte #x05)                     ; add immediate dword from eax
+                 (emit-dword arg2)                    ; arg2 is a fixnum literal
+                 (case target
+                   (:return
+                    (emit-jmp-short :o FULL-CALL)
+                    ;; falling through: no overflow, we're done
+                    (emit-exit))
+                   (t
+                    (emit-jmp-short :no EXIT)))       ; no overflow, we're done
+                 (label FULL-CALL)
+                 ;; push arg2 first
+                 (emit-push-immediate arg2)           ; arg2 is a fixnum literal
+                 ;; arg1 is already in edx
+                 (inst :push :edx)
+                 (emit-call 'two-arg-+)
+                 (emit-adjust-stack-after-call 2)
+                 (label EXIT)
+                 (move-result-to-target target)
+                 t)
+                ((or (float-type-p type1)
+                     (float-type-p type2))
+                 ;; full call
+                 (debug-log "p2-two-arg-* float case~%")
+                 (process-2-args args :stack t)
+                 (emit-call-2 'two-arg-* target)
+                 t)
+                (t
+                 (debug-log "p2-two-arg-* type1 = ~S type2 = ~S~%" type1 type2)
+                 (process-2-args args '(:eax :edx) t)
+                 ;; arg1 in eax, arg2 in edx
+                 (unless (fixnum-type-p type1)
+                   (emit-bytes #xa8 #x03)               ; test $0x3,%al
+                   (emit-jmp-short :nz FULL-CALL))
+                 (unless (fixnum-type-p type2)
+                   (emit-bytes #xf6 #xc2 #x03)          ; test $0x3,%dl
+                   (emit-jmp-short :nz FULL-CALL))
+                 ;; falling through, both args are fixnums
+                 (emit-move :eax :ecx) ; we're about to trash :eax
+                 ;;              (emit-bytes #x01 #xd0) ; add %edx,%eax
+                 (emit-bytes #xc1 #xf8 #x02) ; sar $0x2,%eax
+                 (emit-bytes #x0f #xaf #xc2) ; imul %edx,%eax
+                 (case target
+                   (:return
+                    (emit-jmp-short :o OVERFLOW)
+                    ;; falling through: no overflow, we're done
+                    (emit-exit)
+                    (label OVERFLOW))
+                   (t
+                    ;; if no overflow, we're done
+                    (emit-jmp-short :no EXIT)))
+                 (emit-move :ecx :eax)
+                 (label FULL-CALL)
+                 (inst :push :edx)
+                 (inst :push :eax)
+                 (emit-call 'two-arg-*)
+                 (emit-adjust-stack-after-call 2)
+                 (label EXIT)
+                 (move-result-to-target target)
+                 t)
+                ))))))
 
 (defun p2-min/max (form target)
   (let* ((op (car form))
