@@ -570,7 +570,8 @@
               (clear-register-contents target))
              (:return
               (if (eql form 0)
-                  (emit-bytes #x31 #xc0)  ; xor %eax,%eax
+;;                   (emit-bytes #x31 #xc0)  ; xor %eax,%eax
+                  (inst :xor :eax :eax)
                   (emit-move-immediate form :rax))
               (clear-register-contents :rax)
               (emit-exit))
@@ -3713,6 +3714,11 @@
                  (numberp arg2))
         (p2-constant (two-arg-* arg1 arg2) target)
         (return-from p2-two-arg-* t))
+      (when (numberp arg1)
+        (let ((temp arg1))
+          (setq arg1 arg2
+                arg2 temp
+                args (list arg1 arg2))))
       (let* ((type1 (derive-type arg1))
              (type2 (derive-type arg2)))
         (cond ((and (integer-constant-value type1)
@@ -3738,17 +3744,37 @@
                       (fixnum-type-p type2)
                       (fixnum-type-p result-type))
                  (debug-log "p2-two-arg-* fixnum case~%")
-                 (let ((*print-structure* nil))
-                   (when (and (integer-constant-value type1) (flushable arg1))
-                     (debug-log "arg1 = ~S integer-constant-value = ~S~%" arg1 (integer-constant-value type1)))
-                   (when (and (integer-constant-value type2) (flushable arg2))
-                     (debug-log "arg2 = ~S integer-constant-value = ~S~%" arg2 (integer-constant-value type2))))
-                 (process-2-args args '(:rax :rdx) t)
-                 ;; arg1 in rax, arg2 in rdx
-                 (unbox-fixnum :rax)
-                 ;; note that we need to unbox only one of the args, so the result will end up boxed
-                 (emit-bytes #x48 #x0f #xaf #xc2) ; imul %rdx,%rax
-                 (move-result-to-target target))
+                 (cond ((and (fixnump arg2)
+                             (memql arg2 '(0 1 2 4 8 16 32 64 128 256)))
+                        (debug-log "p2-two-arg-* special case arg2 = ~S~%" arg2)
+                        (unless (and (eql arg2 0) (flushable arg1))
+                          (process-1-arg arg1 :rax t))
+                        (case arg2
+                          (0
+                           (inst :xor :eax :eax))
+                          (1
+                           ;; nothing to do
+                           )
+                          (2
+                           (inst :shl :rax))
+                          (t
+                           (let ((shift (cdr (assoc arg2 '((  4 . 2)
+                                                           (  8 . 3)
+                                                           ( 16 . 4)
+                                                           ( 32 . 5)
+                                                           ( 64 . 6)
+                                                           (128 . 7)
+                                                           (256 . 8))))))
+                             (debug-log "shift = ~S~%" shift)
+                             (inst :shl shift :rax))))
+                        (move-result-to-target target))
+                       (t
+                        (process-2-args args '(:rax :rdx) t)
+                        ;; arg1 in rax, arg2 in rdx
+                        (unbox-fixnum :rax)
+                        ;; note that we need to unbox only one of the args, so the result will end up boxed
+                        (emit-bytes #x48 #x0f #xaf #xc2) ; imul %rdx,%rax
+                        (move-result-to-target target))))
                 (t
                  (debug-log "p2-two-arg-* default case~%")
                  (let ((OVERFLOW (make-label))
@@ -5855,11 +5881,11 @@
                    (cond ((var-used-non-locally-p var)
                           (aver (fixnump (var-arg-index var)))
                           (aver (fixnump (var-closure-index var)))
-                          (emit-push :rbx)
+                          (inst :push :rbx)
                           (emit-move-local-to-register (compiland-closure-data-index compiland) :rbx)
                           (emit-move-relative-to-register :rcx (var-arg-index var) :rax)
                           (emit-move-register-to-relative :rax :rbx (var-closure-index var))
-                          (emit-pop :rbx)
+                          (inst :pop :rbx)
                           )
                          (t
                           (aver (var-arg-index var))
