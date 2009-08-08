@@ -15,6 +15,24 @@ gc/if_not_there
 gc/test_cpp
 gc/threadlibs
 
+# gc 7.2alpha2
+gc/gctest
+gc/libatomic_ops-1.2/Makefile
+gc/libatomic_ops-1.2/config.status
+gc/libatomic_ops-1.2/doc/Makefile
+gc/libatomic_ops-1.2/src/.deps/
+gc/libatomic_ops-1.2/src/Makefile
+gc/libatomic_ops-1.2/src/atomic_ops/Makefile
+gc/libatomic_ops-1.2/src/atomic_ops/sysdeps/Makefile
+gc/libatomic_ops-1.2/src/config.h
+gc/libatomic_ops-1.2/src/libatomic_ops.a
+gc/libatomic_ops-1.2/src/libatomic_ops_gpl.a
+gc/libatomic_ops-1.2/src/stamp-h1
+gc/libatomic_ops-1.2/tests/.deps/
+gc/libatomic_ops-1.2/tests/Makefile
+gc/libatomic_ops-1.2/tests/list_atomic.i
+gc/libatomic_ops-install/
+
 gmp/.libs/
 gmp/Makefile
 gmp/config.h
