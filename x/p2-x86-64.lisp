@@ -3708,62 +3708,84 @@
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
            (arg1 (%car args))
-           (arg2 (%cadr args))
-           (type1 (derive-type arg1))
-           (type2 (derive-type arg2))
-           (OVERFLOW (gensym))
-           (FULL-CALL (gensym))
-           (EXIT (gensym)))
-      (cond ((and (numberp arg1)
-                  (numberp arg2))
-             (debug-log "p2-two-arg-* numberp case~%")
-             (p2-constant (two-arg-* arg1 arg2) target))
-            ((and (integer-constant-value type1)
-                  (integer-constant-value type2)
-                  (flushable arg1)
-                  (flushable arg2))
-             (debug-log "p2-two-arg-* integer-constant-value case~%")
-             (p2-constant (two-arg-* (integer-constant-value type1) (integer-constant-value type2))
-                          target))
-            ((or (float-type-p type1)
-                 (float-type-p type2))
-             ;; full call
-             (debug-log "p2-two-arg-* float case~%")
-             (process-2-args args '(:rdi :rsi) t)
-             (emit-call 'two-arg-*)
-             (move-result-to-target target))
-            (t
-             (debug-log "p2-two-arg-* type1 = ~S type2 = ~S~%" type1 type2)
-             (process-2-args args '(:rax :rdx) t)
-             ;; arg1 in rax, arg2 in rdx
-             (unless (fixnum-type-p type1)
-               (emit-bytes #xa8 #x03)               ; test $0x3,%al
-               (emit-jmp-short :nz FULL-CALL))
-             (unless (fixnum-type-p type2)
-               (emit-bytes #xf6 #xc2 #x03)          ; test $0x3,%dl
-               (emit-jmp-short :nz FULL-CALL))
-             ;; falling through, both args are fixnums
-             (emit-move :rax :rcx) ; we're about to trash rax
-;;              (emit-bytes #x48 #xc1 #xf8 #x02) ; sar $0x2,%rax
-             (unbox-fixnum :rax)
-             ;; note that we need to unbox only one of the args, so the result will end up boxed
-             (emit-bytes #x48 #x0f #xaf #xc2) ; imul %rdx,%rax
-             (case target
-               (:return
-                (emit-jmp-short :o OVERFLOW)
-                ;; falling through: no overflow, we're done
-                (emit-exit)
-                (label OVERFLOW))
-               (t
-                ;; if no overflow, we're done
-                (emit-jmp-short :no EXIT)))
-             (emit-move :rcx :rax)
-             (label FULL-CALL)
-             (emit-move :rdx :rsi)
-             (emit-move :rax :rdi)
-             (emit-call 'two-arg-*)
-             (label EXIT)
-             (move-result-to-target target))))
+           (arg2 (%cadr args)))
+      (when (and (numberp arg1)
+                 (numberp arg2))
+        (p2-constant (two-arg-* arg1 arg2) target)
+        (return-from p2-two-arg-* t))
+      (let* ((type1 (derive-type arg1))
+             (type2 (derive-type arg2)))
+        (cond ((and (integer-constant-value type1)
+                    (integer-constant-value type2)
+                    (flushable arg1)
+                    (flushable arg2))
+               (debug-log "p2-two-arg-* integer-constant-value case~%")
+               (p2-constant (two-arg-* (integer-constant-value type1) (integer-constant-value type2))
+                            target)
+               (return-from p2-two-arg-* t))
+              ((or (float-type-p type1)
+                   (float-type-p type2))
+               ;; full call
+               (debug-log "p2-two-arg-* float case~%")
+               (process-2-args args '(:rdi :rsi) t)
+               (emit-call 'two-arg-*)
+               (move-result-to-target target)
+               (return-from p2-two-arg-* t)))
+        (let* ((result-type (derive-type form)))
+          (debug-log "p2-two-arg-* type1 = ~S type2 = ~S~%" type1 type2)
+          (debug-log "p2-two-arg-* result-type = ~S~%" result-type)
+          (cond ((and (fixnum-type-p type1)
+                      (fixnum-type-p type2)
+                      (fixnum-type-p result-type))
+                 (debug-log "p2-two-arg-* fixnum case~%")
+                 (let ((*print-structure* nil))
+                   (when (and (integer-constant-value type1) (flushable arg1))
+                     (debug-log "arg1 = ~S integer-constant-value = ~S~%" arg1 (integer-constant-value type1)))
+                   (when (and (integer-constant-value type2) (flushable arg2))
+                     (debug-log "arg2 = ~S integer-constant-value = ~S~%" arg2 (integer-constant-value type2))))
+                 (process-2-args args '(:rax :rdx) t)
+                 ;; arg1 in rax, arg2 in rdx
+                 (unbox-fixnum :rax)
+                 ;; note that we need to unbox only one of the args, so the result will end up boxed
+                 (emit-bytes #x48 #x0f #xaf #xc2) ; imul %rdx,%rax
+                 (move-result-to-target target))
+                (t
+                 (debug-log "p2-two-arg-* default case~%")
+                 (let ((OVERFLOW (make-label))
+                       (FULL-CALL (make-label))
+                       (EXIT (make-label)))
+                   (process-2-args args '(:rax :rdx) t)
+                   ;; arg1 in rax, arg2 in rdx
+                   (unless (fixnum-type-p type1)
+                     (inst :test +fixnum-tag-mask+ :al)
+                     (emit-jmp-short :nz FULL-CALL))
+                   (unless (fixnum-type-p type2)
+                     (inst :test +fixnum-tag-mask+ :dl)
+                     (emit-jmp-short :nz FULL-CALL))
+                   ;; falling through, both args are fixnums
+                   ;; save arg1 in rcx in case overflow occurs and we need to do a full call
+                   ;; FIXME if the result is known to be not a fixnum, we should just do a full call right away
+                   (inst :mov :rax :rcx)
+                   (unbox-fixnum :rax)
+                   ;; note that we need to unbox only one of the args, so the result will end up boxed
+                   (emit-bytes #x48 #x0f #xaf #xc2) ; imul %rdx,%rax
+                   (unless (fixnum-type-p result-type)
+                     (case target
+                       (:return
+                        (emit-jmp-short :o OVERFLOW)
+                        ;; falling through: no overflow, we're done
+                        (emit-exit)
+                        (label OVERFLOW))
+                       (t
+                        ;; if no overflow, we're done
+                        (emit-jmp-short :no EXIT)))
+                     (inst :mov :rcx :rax)
+                     (label FULL-CALL)
+                     (inst :mov :rdx :rsi)
+                     (inst :mov :rax :rdi)
+                     (emit-call 'two-arg-*)
+                     (label EXIT))
+                   (move-result-to-target target)))))))
     t))
 
 (defknown p2-two-arg-/ (t t) t)
