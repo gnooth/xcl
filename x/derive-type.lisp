@@ -483,7 +483,26 @@
                      (setq result-type 'FLOAT))
                     ((and (integer-type-p type1)
                           (integer-type-p type2))
-                     (setq result-type '(INTEGER * *)))))))))
+                     ;; both integer types
+                     (setq result-type '(INTEGER * *))
+                     ;; can we do better?
+                     (let* ((low1  (integer-type-low  type1))
+                            (high1 (integer-type-high type1))
+                            (low2  (integer-type-low  type2))
+                            (high2 (integer-type-high type2)))
+                       (cond ((and (integerp low1)
+                                   (integerp high1)
+                                   (integerp low2)
+                                   (integerp high2))
+                              (cond ((and (>= low1 0)
+                                          (>= low2 0))
+                                     ; all >= 0
+                                     (setq result-type (list 'INTEGER
+                                                             (* low1 low2)
+                                                             (* high1 high2))))
+                                    (t
+                                     ;; FIXME other cases
+                                     ))))))))))))
     result-type))
 
 (defun derive-type-function (form)
