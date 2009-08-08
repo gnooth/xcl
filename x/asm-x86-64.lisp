@@ -461,3 +461,13 @@
            (emit-bytes #xf6 modrm-byte operand1)))
         (t
          (unsupported))))
+
+(define-assembler :xor
+  (cond ((and (reg32-p operand1)
+              (reg32-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11
+                                            (register-number operand1)
+                                            (register-number operand2))))
+           (emit-bytes #x31 modrm-byte)))
+        (t
+         (unsupported))))
