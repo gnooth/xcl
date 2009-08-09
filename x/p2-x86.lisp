@@ -3460,43 +3460,79 @@
                  (process-2-args args :stack t)
                  (emit-call-2 'two-arg-* target)
                  (return-from p2-two-arg-* t)))
-          (let* ((OVERFLOW (make-label))
-                 (FULL-CALL (make-label))
-                 (EXIT (make-label)))
-            (cond (t
+          (let* ((result-type (derive-type form)))
+            (debug-log "p2-two-arg-* type1 = ~S type2 = ~S~%" type1 type2)
+            (debug-log "p2-two-arg-* result-type = ~S~%" result-type)
+            (cond ((and (fixnum-type-p type1)
+                        (fixnum-type-p type2)
+                        (fixnum-type-p result-type))
+                   (debug-log "p2-two-arg-* fixnum case~%")
+                   (cond ((and (fixnump arg2)
+                               (memql arg2 '(0 1 2 4 8 16 32 64 128 256)))
+                          (debug-log "p2-two-arg-* special case arg2 = ~S~%" arg2)
+                          (unless (and (eql arg2 0) (flushable arg1))
+                            (process-1-arg arg1 :eax t))
+                          (case arg2
+                            (0
+                             (inst :xor :eax :eax))
+                            (1
+                             ;; nothing to do
+                             )
+                            (2
+                             (inst :shl :eax))
+                            (t
+                             (let ((shift (cdr (assoc arg2 '((  4 . 2)
+                                                             (  8 . 3)
+                                                             ( 16 . 4)
+                                                             ( 32 . 5)
+                                                             ( 64 . 6)
+                                                             (128 . 7)
+                                                             (256 . 8))))))
+                               (debug-log "shift = ~S~%" shift)
+                               (inst :shl shift :eax))))
+                          (move-result-to-target target))
+                         (t
+                          (process-2-args args '(:eax :edx) t)
+                          ;; arg1 in eax, arg2 in edx
+                          (unbox-fixnum :eax)
+                          ;; note that we need to unbox only one of the args, so the result will end up boxed
+                          (emit-bytes #x0f #xaf #xc2) ; imul %edx,%eax
+                          (move-result-to-target target))))
+                  (t
                    (debug-log "p2-two-arg-* default case type1 = ~S type2 = ~S~%" type1 type2)
-                   (process-2-args args '(:eax :edx) t)
-                   ;; arg1 in eax, arg2 in edx
-                   (unless (fixnum-type-p type1)
-                     (emit-bytes #xa8 #x03)               ; test $0x3,%al
-                     (emit-jmp-short :nz FULL-CALL))
-                   (unless (fixnum-type-p type2)
-                     (emit-bytes #xf6 #xc2 #x03)          ; test $0x3,%dl
-                     (emit-jmp-short :nz FULL-CALL))
-                   ;; falling through, both args are fixnums
-                   (emit-move :eax :ecx) ; we're about to trash :eax
-                   ;;              (emit-bytes #x01 #xd0) ; add %edx,%eax
-                   (emit-bytes #xc1 #xf8 #x02) ; sar $0x2,%eax
-                   (emit-bytes #x0f #xaf #xc2) ; imul %edx,%eax
-                   (case target
-                     (:return
-                      (emit-jmp-short :o OVERFLOW)
-                      ;; falling through: no overflow, we're done
-                      (emit-exit)
-                      (label OVERFLOW))
-                     (t
-                      ;; if no overflow, we're done
-                      (emit-jmp-short :no EXIT)))
-                   (emit-move :ecx :eax)
-                   (label FULL-CALL)
-                   (inst :push :edx)
-                   (inst :push :eax)
-                   (emit-call 'two-arg-*)
-                   (emit-adjust-stack-after-call 2)
-                   (label EXIT)
-                   (move-result-to-target target)
-                   t)
-                  )))))))
+                   (let* ((OVERFLOW (make-label))
+                          (FULL-CALL (make-label))
+                          (EXIT (make-label)))
+                     (process-2-args args '(:eax :edx) t)
+                     ;; arg1 in eax, arg2 in edx
+                     (unless (fixnum-type-p type1)
+                       (inst :test +fixnum-tag-mask+ :al)
+                       (emit-jmp-short :nz FULL-CALL))
+                     (unless (fixnum-type-p type2)
+                       (inst :test +fixnum-tag-mask+ :dl)
+                       (emit-jmp-short :nz FULL-CALL))
+                     ;; falling through, both args are fixnums
+                     (inst :mov :eax :ecx) ; we're about to trash :eax
+                     (unbox-fixnum :eax)
+                     (emit-bytes #x0f #xaf #xc2) ; imul %edx,%eax
+                     (case target
+                       (:return
+                        (emit-jmp-short :o OVERFLOW)
+                        ;; falling through: no overflow, we're done
+                        (emit-exit)
+                        (label OVERFLOW))
+                       (t
+                        ;; if no overflow, we're done
+                        (emit-jmp-short :no EXIT)))
+                     (inst :mov :ecx :eax)
+                     (label FULL-CALL)
+                     (inst :push :edx)
+                     (inst :push :eax)
+                     (emit-call 'two-arg-*)
+                     (emit-adjust-stack-after-call 2)
+                     (label EXIT)
+                     (move-result-to-target target)))))))
+      t)))
 
 (defun p2-min/max (form target)
   (let* ((op (car form))

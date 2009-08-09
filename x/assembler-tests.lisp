@@ -28,6 +28,8 @@
     ((:mov (:eax) :eax)         #(#x8b #x00))
     ((:mov (:eax) :edx)         #(#x8b #x10))
     ((:mov (:edx) :eax)         #(#x8b #x02))
+    ((:shl :eax)                #(#xd1 #xe0))
+    ((:shl :edx)                #(#xd1 #xe2))
     ((:shl 4 :eax)              #(#xc1 #xe0 #x04))
     ((:sar 4 :eax)              #(#xc1 #xf8 #x04))
     ((:shr 8 :eax)              #(#xc1 #xe8 #x08))

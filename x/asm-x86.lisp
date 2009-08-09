@@ -281,6 +281,10 @@
               (reg32-p operand2))
          (let ((modrm-byte (make-modrm-byte #b11 4 (register-number operand2))))
            (emit-bytes #xc1 modrm-byte operand1)))
+        ((and (reg32-p operand1)
+              (null operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 4 (register-number operand1))))
+           (emit-bytes #xd1 modrm-byte)))
         (t
          (unsupported))))
 
