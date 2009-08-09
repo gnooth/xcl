@@ -1,6 +1,6 @@
 // String.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,6 +32,8 @@ private:
   INDEX _offset;
 
   void ensure_capacity(INDEX n);
+
+  Value _push(Value new_element);
 
 public:
   String();
@@ -107,6 +109,7 @@ public:
 
   virtual Value push(Value new_element);
   virtual Value push_extend(Value new_element, INDEX extension);
+  virtual Value push_extend(Value new_element);
 
   virtual Value pop();
 

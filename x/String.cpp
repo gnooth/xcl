@@ -543,30 +543,8 @@ Value String::elt(INDEX i) const
   return make_character(fast_char_at(i));
 }
 
-Value String::push(Value new_element)
+inline Value String::_push(Value new_element)
 {
-  check_fill_pointer();
-  if (_fill_pointer < _capacity)
-    {
-      INDEX old_length = _fill_pointer;
-      BASE_CHAR c = char_value(new_element);
-      if (_chars)
-        _chars[_fill_pointer] = c;
-      else
-        // displaced
-        set_char_at(_fill_pointer, c);
-      ++_fill_pointer;
-      return make_fixnum(old_length);
-    }
-  else
-    return NIL;
-}
-
-Value String::push_extend(Value new_element, INDEX extension)
-{
-  check_fill_pointer();
-  if (_fill_pointer >= _capacity)
-    ensure_capacity(_fill_pointer + extension);
   assert(_fill_pointer < _capacity);
   INDEX old_length = _fill_pointer;
   BASE_CHAR c = char_value(new_element);
@@ -577,6 +555,36 @@ Value String::push_extend(Value new_element, INDEX extension)
     set_char_at(_fill_pointer, c);
   ++_fill_pointer;
   return make_fixnum(old_length);
+}
+
+Value String::push(Value new_element)
+{
+  check_fill_pointer();
+  if (_fill_pointer < _capacity)
+    return _push(new_element);
+  else
+    return NIL;
+}
+
+Value String::push_extend(Value new_element, INDEX extension)
+{
+  check_fill_pointer();
+  if (_fill_pointer >= _capacity)
+    ensure_capacity(_fill_pointer + extension);
+  return _push(new_element);
+}
+
+Value String::push_extend(Value new_element)
+{
+  check_fill_pointer();
+  if (_fill_pointer >= _capacity)
+    {
+      INDEX extension = _capacity;
+      if (extension < 64)
+        extension = 64;
+      ensure_capacity(_fill_pointer + extension);
+    }
+  return _push(new_element);
 }
 
 Value String::pop()

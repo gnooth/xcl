@@ -1,6 +1,6 @@
 // Vector_T.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -232,29 +232,8 @@ Value Vector_T::elt(INDEX i) const
     return _array->aref(i + _offset);
 }
 
-Value Vector_T::push(Value new_element)
+inline Value Vector_T::_push(Value new_element)
 {
-  check_fill_pointer();
-  if (_fill_pointer < _capacity)
-    {
-      unsigned long old_fill_pointer = _fill_pointer;
-      if (_data)
-        _data[_fill_pointer] = new_element;
-      else
-        // displaced
-        _array->aset(_fill_pointer + _offset, new_element);
-      ++_fill_pointer;
-      return make_fixnum(old_fill_pointer);
-    }
-  else
-    return NIL;
-}
-
-Value Vector_T::push_extend(Value new_element, INDEX extension)
-{
-  check_fill_pointer();
-  if (_fill_pointer >= _capacity)
-    ensure_capacity(_fill_pointer + extension);
   assert(_fill_pointer < _capacity);
   INDEX old_fill_pointer = _fill_pointer;
   if (_data)
@@ -264,6 +243,36 @@ Value Vector_T::push_extend(Value new_element, INDEX extension)
     _array->aset(_fill_pointer + _offset, new_element);
   ++_fill_pointer;
   return make_fixnum(old_fill_pointer);
+}
+
+Value Vector_T::push(Value new_element)
+{
+  check_fill_pointer();
+  if (_fill_pointer < _capacity)
+    return _push(new_element);
+  else
+    return NIL;
+}
+
+Value Vector_T::push_extend(Value new_element, INDEX extension)
+{
+  check_fill_pointer();
+  if (_fill_pointer >= _capacity)
+    ensure_capacity(_fill_pointer + extension);
+  return _push(new_element);
+}
+
+Value Vector_T::push_extend(Value new_element)
+{
+  check_fill_pointer();
+  if (_fill_pointer >= _capacity)
+    {
+      INDEX extension = _capacity;
+      if (extension < 16)
+        extension = 16;
+      ensure_capacity(_fill_pointer + extension);
+    }
+  return _push(new_element);
 }
 
 Value Vector_T::pop()

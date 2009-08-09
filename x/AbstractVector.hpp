@@ -1,6 +1,6 @@
 // AbstractVector.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -84,6 +84,13 @@ public:
   virtual Value push(Value new_element) = 0;
   virtual Value push_extend(Value new_element, INDEX extension) = 0;
 
+  // FIXME this should be pure
+  virtual Value push_extend(Value new_element)
+  {
+    // REVIEW array-dimension-limit
+    return push_extend(new_element, length() + 1);
+  }
+
   virtual Value pop() = 0;
 
   virtual Value reverse() const = 0;
@@ -96,7 +103,7 @@ public:
                                          Value initial_contents)
   {
     signal_lisp_error("Not implemented.");
-    // Not reached.
+    // not reached
     return NULL;
   }
 
@@ -105,7 +112,7 @@ public:
                                            INDEX offset)
   {
     signal_lisp_error("Not implemented.");
-    // Not reached.
+    // not reached
     return NULL;
   }
 
@@ -133,7 +140,7 @@ inline AbstractVector * check_vector(Value value)
   if (vectorp(value))
     return the_vector(value);
   signal_type_error(value, S_vector);
-  // Not reached.
+  // not reached
   return NULL;
 }
 

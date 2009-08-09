@@ -1315,7 +1315,7 @@ Value CL_vector_push(Value new_element, Value vector)
 // ### vector-push-extend-2
 Value SYS_vector_push_extend_2(Value arg1, Value arg2)
 {
-  return check_vector(arg2)->push_extend(arg1, 1);
+  return check_vector(arg2)->push_extend(arg1);
 }
 
 // ### vector-push-extend-3
