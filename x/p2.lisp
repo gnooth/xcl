@@ -123,9 +123,17 @@
 (defun emit (thing)
   (ecase *current-segment*
     (:main
-     (push thing *main*))
+;;      (if (listp *main*)
+;;          (push thing *main*)
+     (vector-push-extend thing *main*)
+;;          )
+     )
     (:elsewhere
-     (push thing *elsewhere*))))
+;;      (if (listp *elsewhere*)
+;;          (push thing *elsewhere*)
+     (vector-push-extend thing *elsewhere*)
+;;          )
+     )))
 
 (defknown inst (*) t)
 (defun inst (&rest args)
