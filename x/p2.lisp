@@ -123,17 +123,19 @@
 (defun emit (thing)
   (ecase *current-segment*
     (:main
-;;      (if (listp *main*)
-;;          (push thing *main*)
-     (vector-push-extend thing *main*)
-;;          )
-     )
+     (let ((main *main*))
+       (when main
+         ;; fast path
+         (return-from emit (vector-push-extend thing main))))
+     (setq *main* (make-array 64 :fill-pointer 0))
+     (vector-push-extend thing *main*))
     (:elsewhere
-;;      (if (listp *elsewhere*)
-;;          (push thing *elsewhere*)
-     (vector-push-extend thing *elsewhere*)
-;;          )
-     )))
+     (let ((elsewhere *elsewhere*))
+       (when elsewhere
+         ;; fast path
+         (return-from emit (vector-push-extend thing elsewhere))))
+     (setq *elsewhere* (make-array 64 :fill-pointer 0))
+     (vector-push-extend thing *elsewhere*))))
 
 (defknown inst (*) t)
 (defun inst (&rest args)
