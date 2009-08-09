@@ -121,17 +121,11 @@
 
 (defknown emit (t) t)
 (defun emit (thing)
-;;   (push thing *code*)
   (ecase *current-segment*
     (:main
-     (push thing *main*)
-;;      (debug-log "emit *main* = ~S~%" *main*)
-     )
+     (push thing *main*))
     (:elsewhere
-     (push thing *elsewhere*)
-;;      (debug-log "emit *elsewhere* = ~S~%" *elsewhere*)
-     ))
-  )
+     (push thing *elsewhere*))))
 
 (defknown inst (*) t)
 (defun inst (&rest args)
