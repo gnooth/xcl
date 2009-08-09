@@ -5085,7 +5085,10 @@
             (*main* nil)
             (*elsewhere* nil))
         (p2-trivial-function-prolog compiland)
-        (setq prolog (copy-list (append (nreverse *main*) (nreverse *elsewhere*)))))
+;;         (setq prolog (copy-list (append (nreverse *main*) (nreverse *elsewhere*)))))
+        (if *elsewhere*
+            (setq prolog (concatenate 'simple-vector *main* *elsewhere*))
+            (setq prolog (concatenate 'simple-vector *main*))))
       (setq *code* (concatenate 'simple-vector prolog *code*))
       )
 
