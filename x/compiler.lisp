@@ -1606,14 +1606,6 @@ for special variables."
 (install-p1-handler 'require-type               'p1-require-type)
 (install-p1-handler 'two-arg--                  'p1-minus)
 
-;; (defvar *code* nil) ; a sequence of instructions
-
-;; (defvar *main* nil)
-
-;; (defvar *elsewhere* nil)
-
-;; (defvar *current-segment* :main)
-
 (defun dump-code ()
   (let ((i 0))
     (dolist (instruction (coerce *code* 'list))
@@ -2126,8 +2118,6 @@ for special variables."
     (p2-function-prolog compiland)
     (p2-check-argument-types compiland)
     (p2 (compiland-p1-body compiland) :return)
-;;   (setq *code* (nreverse *code*))
-;;     (debug-log "p2-compiland *main* = ~S~%" *main*)
     (setq *code* (copy-list (append (nreverse *main*) (nreverse *elsewhere*))))
 ;;     (dump-code)
     (setq *code* (coerce *code* 'simple-vector))
