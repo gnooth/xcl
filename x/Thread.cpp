@@ -47,6 +47,8 @@ Thread * primordial_thread;
 
 static Mutex * all_threads_mutex;
 
+Mutex * binding_index_mutex;
+
 #ifdef WIN32
 DWORD tls_index;
 #else
@@ -55,12 +57,18 @@ pthread_key_t tls_key;
 
 #define USE_STACK_FRAME
 
-#define INITIAL_BINDING_STACK_SIZE      16
+#define MAX_THREAD_LOCAL_VALUES         4096
+
+#define INITIAL_BINDING_STACK_SIZE      4096 // should be 16
 
 Thread::Thread(Function * function, Value name)
   : TypedObject(WIDETAG_THREAD), _function(function), _id(0), _name(name)
 {
   _stack = 0;
+
+  _thread_local_values = (Value *) GC_malloc(MAX_THREAD_LOCAL_VALUES * sizeof(Value));
+  for (unsigned long i = 0; i < MAX_THREAD_LOCAL_VALUES; i++)
+    _thread_local_values[i] = NO_THREAD_LOCAL_VALUE;
 
   unsigned long size = INITIAL_BINDING_STACK_SIZE * sizeof(Value);
   _binding_stack_base = (Value *) GC_malloc(size);
@@ -83,6 +91,14 @@ Thread::~Thread()
 Value Thread::set_symbol_value(Value name, Value value)
 {
   assert(symbolp(name));
+#ifdef EXPERIMENTAL
+  INDEX i = the_symbol(name)->binding_index();
+  if (i != 0 && _thread_local_values[i] != NO_THREAD_LOCAL_VALUE)
+    set_symbol_thread_local_value(the_symbol(name), value);
+  else
+    the_symbol(name)->set_value(value);
+  return value;
+#else
   int index = _binding_stack_index;
   while (index > 0)
     {
@@ -96,18 +112,19 @@ Value Thread::set_symbol_value(Value name, Value value)
     }
   the_symbol(name)->set_value(value);
   return value;
+#endif
 }
 
 void Thread::slow_bind_special(Value name, Value value)
 {
   if (_binding_stack_index >= _binding_stack_capacity)
     {
-      int new_capacity = _binding_stack_capacity * 2;
-      unsigned long old_size = _binding_stack_capacity * sizeof(Value);
-      unsigned long new_size = new_capacity * sizeof(Value);
-//       printf("\nresizing binding stack from %lu entries to %lu entries...\n",
-//              old_size / sizeof(Value), new_size / sizeof(Value));
-//       fflush(stdout);
+      INDEX new_capacity = _binding_stack_capacity * 2;
+      INDEX old_size = _binding_stack_capacity * sizeof(Value);
+      INDEX new_size = new_capacity * sizeof(Value);
+      printf("\nresizing binding stack from %lu entries to %lu entries...\n",
+             old_size / sizeof(Value), new_size / sizeof(Value));
+      fflush(stdout);
       Value * new_base = (Value *) GC_malloc(new_size);
       memset(new_base, 0, new_size);
       memcpy(new_base, _binding_stack_base, old_size);
@@ -116,9 +133,16 @@ void Thread::slow_bind_special(Value name, Value value)
 
       _binding_stack_capacity = new_capacity;
 
+      printf("resizing binding stack completed _binding_stack_capacity = %lu\n", _binding_stack_capacity);
     }
+#ifdef EXPERIMENTAL
+  _binding_stack_base[_binding_stack_index++] = symbol_thread_local_value(the_symbol(name));
+  _binding_stack_base[_binding_stack_index++] = name;
+  set_symbol_thread_local_value(the_symbol(name), value);
+#else
   _binding_stack_base[_binding_stack_index++] = value;
   _binding_stack_base[_binding_stack_index++] = name;
+#endif
 
 //   _num_bindings = _binding_stack_index / 2;
 //   if (_num_bindings > _max_bindings)
@@ -134,6 +158,12 @@ void Thread::slow_bind_special(Value name, Value value)
 
 Value Thread::lookup_special(Value name)
 {
+#ifdef EXPERIMENTAL
+  Value value = symbol_thread_local_value(the_symbol(name));
+  if (value != NO_THREAD_LOCAL_VALUE)
+    return value;
+  return NULL_VALUE;
+#else
   int index = _binding_stack_index;
   while (index > 0)
     {
@@ -143,10 +173,41 @@ Value Thread::lookup_special(Value name)
         --index;
     }
   return NULL_VALUE;
+#endif
+}
+
+void Thread::unbind_to(INDEX n)
+{
+//   printf("entering unbind_to\n");
+//   assert(n > 0);
+  if (n >= _binding_stack_capacity)
+    {
+      printf("unbind_to n = %lu _binding_stack_capacity = %lu\n", n, _binding_stack_capacity);
+      fflush(stdout);
+      assert(n < _binding_stack_capacity);
+    }
+  INDEX index = _binding_stack_index;
+  while (index > n)
+    {
+      Value name = _binding_stack_base[--index];
+      _binding_stack_base[index] = 0;
+      Value value = _binding_stack_base[--index];
+      _binding_stack_base[index] = 0;
+      set_symbol_thread_local_value(the_symbol(name), value);
+    }
+  assert(index == n);
+  _binding_stack_index = n;
+//   printf("leaving unbind_to\n");
 }
 
 void Thread::bind_special_to_current_value(Value name)
 {
+#ifdef EXPERIMENTAL
+//   printf("Thread::bind_special_to_current_value called\n");
+//   fflush(stdout);
+  Value value = symbol_value(name);
+  bind_special(name, value);
+#else
   int index = _binding_stack_index;
   while (index > 0)
     {
@@ -159,6 +220,7 @@ void Thread::bind_special_to_current_value(Value name)
         --index;
     }
   bind_special(name, the_symbol(name)->value());
+#endif
 }
 
 Value * Thread::get_values(Value primary_value, int required)
@@ -257,6 +319,9 @@ Frame * Thread::find_catch_frame(Value tag)
 
 static void handle_stack_overflow()
 {
+  printf("stack overflow!\n");
+  fflush(stdout);
+  asm("int3");
   if (call_depth_limit == DEFAULT_CALL_DEPTH_LIMIT)
     {
       call_depth_limit += 100;
@@ -759,6 +824,8 @@ void initialize_threads()
 #endif
 
   all_threads_mutex = new Mutex();
+
+  binding_index_mutex = new Mutex();
 
   primordial_thread = new Thread(0, make_simple_string("primordial thread"));
 #ifdef WIN32
