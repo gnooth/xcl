@@ -1,6 +1,6 @@
 // Symbol.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -47,6 +47,7 @@ private:
   Value _value;
   TypedObject * _function;
   Value _plist;
+  INDEX _binding_index;
 
 public:
   Symbol(const char * name);
@@ -54,7 +55,10 @@ public:
   Symbol(const char * name, Package * package);
   Symbol(AbstractString * name, Package * package);
 
-  SimpleString * name() { return _name; }
+  SimpleString * name()
+  {
+    return _name;
+  }
 
   Value package()
   {
@@ -108,7 +112,10 @@ public:
     _flags |= FLAG_SPECIAL_VARIABLE;
   }
 
-  TypedObject * function() { return _function; }
+  TypedObject * function()
+  {
+    return _function;
+  }
 
 //   void set_function(class Function * function)
   void set_function(TypedObject * function)
@@ -187,6 +194,13 @@ public:
   }
 
   void set_plist(Value plist) { _plist = plist; }
+
+  INDEX binding_index() const
+  {
+    return _binding_index;
+  }
+
+  INDEX assign_binding_index();
 
   Value get(Value indicator) const;
 

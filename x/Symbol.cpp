@@ -20,6 +20,7 @@
 #include "lisp.hpp"
 #include "primitives.hpp"
 #include "Macro.hpp"
+#include "Mutex.hpp"
 #include "Package.hpp"
 #include "Readtable.hpp"
 #include "SpecialOperator.hpp"
@@ -28,22 +29,26 @@
 #include "keywordp.hpp"
 
 Symbol::Symbol(const char * name)
-  : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(NIL), _value(NULL_VALUE), _plist(NULL_VALUE)
+  : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(NIL),
+    _value(NULL_VALUE), _plist(NULL_VALUE), _binding_index(0)
 {
 }
 
 Symbol::Symbol(AbstractString * name)
-  : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(NIL), _value(NULL_VALUE), _plist(NULL_VALUE)
+  : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(NIL),
+    _value(NULL_VALUE), _plist(NULL_VALUE), _binding_index(0)
 {
 }
 
 Symbol::Symbol(const char * name, Package * package)
-  : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(make_value(package)), _value(NULL_VALUE), _plist(NULL_VALUE)
+  : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(make_value(package)),
+    _value(NULL_VALUE), _plist(NULL_VALUE), _binding_index(0)
 {
 }
 
 Symbol::Symbol(AbstractString * name, Package * package)
-  : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(make_value(package)), _value(NULL_VALUE), _plist(NULL_VALUE)
+  : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(make_value(package)),
+    _value(NULL_VALUE), _plist(NULL_VALUE), _binding_index(0)
 {
 }
 
@@ -74,6 +79,21 @@ void Symbol::set_macro_function(Function * function)
   _flags &= ~FLAG_AUTOLOAD;
 }
 
+extern Mutex * binding_index_mutex;
+
+static volatile INDEX next_binding_index = 1;
+
+INDEX Symbol::assign_binding_index()
+{
+  if (binding_index_mutex->lock())
+    {
+      if (_binding_index == 0)
+        _binding_index = next_binding_index++;
+      binding_index_mutex->unlock();
+    }
+  return _binding_index;
+}
+
 Value Symbol::get(Value indicator) const
 {
   if (_plist != NULL_VALUE)
@@ -98,13 +118,13 @@ void Symbol::put(Value indicator, Value value)
     {
       if (car(list) == indicator)
         {
-          // Found it!
+          // found it
           check_cons(xcdr(list))->setcar(value);
           return;
         }
       list = cdr(xcdr(list));
     }
-  // Not found.
+  // not found
   _plist = make_cons(indicator, make_cons(value, _plist));
 }
 
@@ -125,7 +145,7 @@ Value Symbol::remprop(Value indicator)
         }
       if (xcar(list) == indicator)
         {
-          // Found it!
+          // found it
           if (prev != NULL_VALUE)
             setcdr(prev, CL_cddr(list));
           else
@@ -135,7 +155,7 @@ Value Symbol::remprop(Value indicator)
       prev = cdr(list);
       list = CL_cddr(list);
     }
-  // Not found.
+  // not found
   return NIL;
 }
 
