@@ -62,7 +62,6 @@ Thread::Thread(Function * function, Value name)
 {
   _stack = 0;
 
-#ifdef EXPERIMENTAL
   unsigned long size = INITIAL_BINDING_STACK_SIZE * sizeof(Value);
   _binding_stack_base = (Value *) GC_malloc(size);
   memset(_binding_stack_base, 0, size);
@@ -70,13 +69,6 @@ Thread::Thread(Function * function, Value name)
 
   _binding_stack_index = 0;
   _binding_stack_capacity = INITIAL_BINDING_STACK_SIZE;
-#else
-  unsigned long size = INITIAL_BINDING_STACK_SIZE * sizeof(Value);
-  _binding_stack_base = (Value *) GC_malloc(size);
-  memset(_binding_stack_base, 0, size);
-  _last_special_binding = _binding_stack_base;
-  _binding_stack_end = (Value *)(((char *)_binding_stack_base) + size);
-#endif
 
   _num_bindings = _max_bindings = 0;
 
@@ -91,7 +83,6 @@ Thread::~Thread()
 Value Thread::set_symbol_value(Value name, Value value)
 {
   assert(symbolp(name));
-#ifdef EXPERIMENTAL
   int index = _binding_stack_index;
   while (index > 0)
     {
@@ -105,35 +96,17 @@ Value Thread::set_symbol_value(Value name, Value value)
     }
   the_symbol(name)->set_value(value);
   return value;
-#else
-  Value * p = _last_special_binding;
-  while (p > _binding_stack_base)
-    {
-      if (*(--p) == name)
-        {
-          *(--p) = value;
-          return value;
-        }
-      else
-        --p;
-    }
-  the_symbol(name)->set_value(value);
-  return value;
-#endif
 }
 
 void Thread::slow_bind_special(Value name, Value value)
 {
-#ifdef EXPERIMENTAL
-//   printf("slow_bind_special() needs code!\n");
-//   fflush(stdout);
-//   EXT_quit();
   if (_binding_stack_index >= _binding_stack_capacity)
     {
       int new_capacity = _binding_stack_capacity * 2;
       unsigned long old_size = _binding_stack_capacity * sizeof(Value);
       unsigned long new_size = new_capacity * sizeof(Value);
-//       printf("resizing binding stack from %lu bytes to %lu bytes...\n", old_size, new_size);
+//       printf("\nresizing binding stack from %lu entries to %lu entries...\n",
+//              old_size / sizeof(Value), new_size / sizeof(Value));
 //       fflush(stdout);
       Value * new_base = (Value *) GC_malloc(new_size);
       memset(new_base, 0, new_size);
@@ -157,45 +130,10 @@ void Thread::slow_bind_special(Value name, Value value)
 //           fflush(stdout);
 //         }
 //     }
-#else
-  if (_last_special_binding >= _binding_stack_end)
-    {
-      // we need to make the binding stack bigger
-//       unsigned long old_size =
-//         ((unsigned long)(char *)_binding_stack_end) - ((unsigned long)(char *)_binding_stack_base);
-//       unsigned long new_size = old_size * 2;
-//       printf("resizing binding stack from %lu bytes to %lu bytes ...\n", old_size, new_size);
-//       fflush(stdout);
-//       Value * new_base = (Value *) GC_malloc(new_size);
-//       memset(new_base, 0, new_size);
-//       memcpy(new_base, _binding_stack_base, old_size);
-//       _binding_stack_base = new_base;
-//       _binding_stack_end = (Value *) (((char *)_binding_stack_base) + new_size);
-//       _last_special_binding = (Value *) (((char *)_binding_stack_base) + old_size);
-      printf("\nbinding stack overflow\n");
-      fflush(stdout);
-      EXT_quit();
-    }
-
-  *(_last_special_binding++) = value;
-  *(_last_special_binding++) = name;
-//   _num_bindings =
-//     ((unsigned long)_last_special_binding - (unsigned long)_binding_stack_base) / (2 * (sizeof(Value)));
-//   if (_num_bindings > _max_bindings)
-//     {
-//       _max_bindings = _num_bindings;
-//       if (this == primordial_thread)
-//         {
-//           printf("_max_bindings = %d\n", _max_bindings);
-//           fflush(stdout);
-//         }
-//     }
-#endif
 }
 
 Value Thread::lookup_special(Value name)
 {
-#ifdef EXPERIMENTAL
   int index = _binding_stack_index;
   while (index > 0)
     {
@@ -205,22 +143,10 @@ Value Thread::lookup_special(Value name)
         --index;
     }
   return NULL_VALUE;
-#else
-  Value * p = _last_special_binding;
-  while (p > _binding_stack_base)
-    {
-      if (*(--p) == name)
-        return *(--p);
-      else
-        --p;
-    }
-  return NULL_VALUE;
-#endif
 }
 
 void Thread::bind_special_to_current_value(Value name)
 {
-#ifdef EXPERIMENTAL
   int index = _binding_stack_index;
   while (index > 0)
     {
@@ -233,20 +159,6 @@ void Thread::bind_special_to_current_value(Value name)
         --index;
     }
   bind_special(name, the_symbol(name)->value());
-#else
-  Value * p = _last_special_binding;
-  while (p > _binding_stack_base)
-    {
-      if (*(--p) == name)
-        {
-          bind_special(name, *(--p));
-          return;
-        }
-      else
-        --p;
-    }
-  bind_special(name, the_symbol(name)->value());
-#endif
 }
 
 Value * Thread::get_values(Value primary_value, int required)
@@ -805,11 +717,7 @@ long Thread::values_offset()
 
 long Thread::last_special_binding_offset()
 {
-#ifdef EXPERIMENTAL
   return ((long)(&(this->_binding_stack_index))) - ((long)this);
-#else
-  return ((long)(&(this->_last_special_binding))) - ((long)this);
-#endif
 }
 
 // ### interrupt-lisp
@@ -821,7 +729,6 @@ Value SYS_interrupt_lisp()
 
 Value Thread::special_bindings()
 {
-#ifdef EXPERIMENTAL
   Value result = NIL;
   int index = _binding_stack_index;
   while (index > 0)
@@ -831,17 +738,6 @@ Value Thread::special_bindings()
       result = make_cons(make_cons(name, value), result);
     }
   return result;
-#else
-  Value result = NIL;
-  Value * p = _last_special_binding;
-  while (p > _binding_stack_base)
-    {
-      Value name  = *(--p);
-      Value value = *(--p);
-      result = make_cons(make_cons(name, value), result);
-    }
-  return result;
-#endif
 }
 
 // ### bindings

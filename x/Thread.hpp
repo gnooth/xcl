@@ -25,8 +25,6 @@ typedef DWORD ThreadId;
 typedef pthread_t ThreadId;
 #endif
 
-#define EXPERIMENTAL
-
 class Frame;
 class Block;
 class Catch;
@@ -68,14 +66,8 @@ private:
   ThreadId _id;
   Value _name;
 
-#ifndef EXPERIMENTAL
-  Value * _last_special_binding;
-#endif
-
-#ifdef EXPERIMENTAL
   int _binding_stack_index;
   int _binding_stack_capacity;
-#endif
 
   int _num_bindings;
   int _max_bindings;
@@ -130,20 +122,12 @@ public:
 
   void * last_special_binding()
   {
-#ifdef EXPERIMENTAL
     return (void *) _binding_stack_index;
-#else
-    return _last_special_binding;
-#endif
   }
 
   void set_last_special_binding(void * p)
   {
-#ifdef EXPERIMENTAL
     _binding_stack_index = (int) (long) p;
-#else
-    _last_special_binding = (Value *) p;
-#endif
   }
 
   Frame * last_control_frame() const
@@ -191,7 +175,6 @@ public:
 
   Value symbol_value(Value name)
   {
-#ifdef EXPERIMENTAL
     int index = _binding_stack_index;
     while (index > 0)
       {
@@ -201,24 +184,12 @@ public:
           --index;
       }
     return the_symbol(name)->value();
-#else
-    Value * p = _last_special_binding;
-    while (p > _binding_stack_base)
-      {
-        if (*(--p) == name)
-          return *(--p);
-        else
-          --p;
-      }
-    return the_symbol(name)->value();
-#endif
   }
 
   Value set_symbol_value(Value name, Value value);
 
   void bind_special(Value name, Value value)
   {
-#ifdef EXPERIMENTAL
     // the stack grows up from the base
     if (_binding_stack_index < _binding_stack_capacity)
       {
@@ -227,15 +198,6 @@ public:
       }
     else
       slow_bind_special(name, value);
-#else
-    if (_last_special_binding < _binding_stack_end)
-      {
-        *(_last_special_binding++) = value;
-        *(_last_special_binding++) = name;
-      }
-    else
-      slow_bind_special(name, value);
-#endif
   }
 
   void slow_bind_special(Value name, Value value);
@@ -437,7 +399,7 @@ inline Thread * check_thread(Value value)
   if (threadp(value))
     return the_thread(value);
   signal_type_error(value, S_thread);
-  // Not reached.
+  // not reached
   return NULL;
 }
 
