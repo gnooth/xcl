@@ -42,7 +42,8 @@ else
   CFLAGS := $(CFLAGS) -march=i686 -m32
 endif
 
-LIBOBJS = lisp.o peek-char.o documentation.o LogicalPathname.o parse-namestring.o merge-pathnames.o \
+LIBOBJS = lisp.o Thread.o Symbol.o \
+	peek-char.o documentation.o LogicalPathname.o parse-namestring.o merge-pathnames.o \
 	FaslReadtable.o \
 	progv.o subsetp.o position.o catch.o mapcar.o mapc.o require-type.o sxhash.o \
 	SimpleArray_UB32_1.o Vector_UB32.o \
@@ -84,13 +85,13 @@ LIBOBJS = lisp.o peek-char.o documentation.o LogicalPathname.o parse-namestring.
 	Pathname.o \
 	characters.o uptime.o load.o print.o profiler.o \
 	SingleFloat.o DivisionByZero.o RandomState.o \
-	Autoload.o Ratio.o Symbol.o \
+	Autoload.o Ratio.o \
 	Environment.o \
 	Closure.o Primitive.o UndefinedFunction.o eval.o \
 	HashTable.o \
 	EqHashTable.o EqlHashTable.o EqualHashTable.o EqualpHashTable.o \
 	SymbolHashTable.o \
-	Package.o Thread.o Bignum.o \
+	Package.o Bignum.o \
 	primitives.o Cons.o multiple-value-bind.o \
 	StackFrame.o initialize.o format.o \
 	TypedObject.o cxr.o Function.o \
