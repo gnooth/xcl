@@ -1519,10 +1519,13 @@
     (when (block-last-special-binding-var block)
       (let ((thread-var (compiland-thread-var compiland)))
         (cond (thread-var
-               (inst :mov thread-var :eax)
-               (emit-bytes #x8b #x40)
-               (emit-byte +last-special-binding-offset+) ; mov 0x10(%eax),%eax
-               (clear-register-contents :eax))
+;;                (inst :mov thread-var :eax)
+;;                (emit-bytes #x8b #x40)
+;;                (emit-byte +last-special-binding-offset+) ; mov 0x10(%eax),%eax
+               (inst :push thread-var)
+               (emit-call-1 "RT_thread_last_special_binding" :eax)
+;;                (clear-register-contents :eax)
+               )
               (t
                (note "P2-LET/LET*: emitting call to RT_current_thread_last_special_binding~%")
                (emit-call "RT_current_thread_last_special_binding"))))
@@ -1545,10 +1548,14 @@
              (p2-progn-body body :stack)
              ;; restore last special binding
              (cond ((compiland-thread-var compiland)
-                    (inst :mov (block-last-special-binding-var block) :edx)
-                    (inst :mov (compiland-thread-var compiland) :eax)
-                    (inst :mov :edx `(,+last-special-binding-offset+ :eax))
-                    (clear-register-contents :eax :edx))
+;;                     (inst :mov (block-last-special-binding-var block) :edx)
+;;                     (inst :mov (compiland-thread-var compiland) :eax)
+;;                     (inst :mov :edx `(,+last-special-binding-offset+ :eax))
+                    (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
+                    (inst :push (compiland-thread-var compiland))
+                    (emit-call-2 "RT_thread_set_last_special_binding" nil)
+;;                     (clear-register-contents :eax :edx)
+                    )
                    (t
                     (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
                     (emit-call-1 "RT_current_thread_set_last_special_binding" nil)))
