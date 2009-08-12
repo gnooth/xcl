@@ -1,6 +1,6 @@
 ;;; disasm-x86-64.lisp
 ;;;
-;;; Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -206,6 +206,57 @@
               ))
            (t
             (error "unhandled byte sequence #x~2,'0x #x~2,'0x" #x6b byte2)))))
+
+(define-handler #xff
+  (with-modrm-byte (mref-8 start 1)
+    (cond ((eql modrm-byte #xd0) ; call *%eax
+           ;;           (setq length 2
+           ;;                 mnemonic :call
+           ;;                 operand1 (make-register-operand :eax))
+           (make-instruction :start start
+                             :length 2
+                             :mnemonic :call
+                             :operand1 (make-register-operand :eax))
+           )
+          ((eql modrm-byte #xe0) ; jmp *%eax
+           ;;           (setq length 2
+           ;;                 mnemonic :jmp
+           ;;                 operand1 (make-register-operand :eax))
+           (make-instruction :start start
+                             :length 2
+                             :mnemonic :jmp
+                             :operand1 (make-register-operand :eax))
+           )
+          ((eql reg 1)
+           ;;           (setq length 2
+           ;;                 mnemonic :dec
+           ;;                 operand1 (make-register-operand (register rm)))
+           (make-instruction :start start
+                             :length 2
+                             :mnemonic :dec
+                             :operand1 (make-register-operand (register rm)))
+           )
+          ((eql reg 6)
+           (case mod
+             (#b01
+              (make-instruction :start start
+                                :length 3
+                                :mnemonic :push
+                                :operand1 (make-operand :kind :relative
+                                                        :register (register rm)
+                                                        :data (mref-8-signed start 2))))
+             (#b10
+              (make-instruction :start start
+                                :length 6
+                                :mnemonic :push
+                                :operand1 (make-operand :kind :relative
+                                                        :register (register rm)
+                                                        :data (mref-32-signed start 2))))
+             (t
+              (unsupported))))
+          (t
+           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)
+           ))))
 
 (defun process-block (block)
   (let ((block-start (block-start-address block))
