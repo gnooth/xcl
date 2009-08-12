@@ -1262,7 +1262,7 @@ for special variables."
 
 (defun p1-tagbody (form)
   (let* ((*visible-tags* *visible-tags*)
-         (block (make-block :name '(TAGBODY)))
+         (block (make-block :name (list 'TAGBODY (gensym))))
          (*visible-blocks* (cons block *visible-blocks*))
          (body (cdr form))
          (compiland *current-compiland*))
@@ -1290,14 +1290,14 @@ for special variables."
                  (setq live nil))
                (push (p1 subform) new-body))))
       (setf (block-body block) (nreverse new-body)))
-    (when (and (block-non-local-go-p block)
-               ;; REVIEW we really want to do this only if some code in (or under) the
-               ;; current block binds a special, so this is safe but overkill...
-               (some 'var-special-p *all-variables*))
-      (let ((var (make-var :name (gensym "LAST-SPECIAL-BINDING-") :kind :local)))
-        (push var *local-variables*)
-        (setf (block-last-special-binding-var block) var)
-        (setf (compiland-needs-thread-var-p compiland) t)))
+;;     (when (and (block-non-local-go-p block)
+;;                ;; REVIEW we really want to do this only if some code in (or under) the
+;;                ;; current block binds a special, so this is safe but overkill...
+;;                (some 'var-special-p *all-variables*))
+;;       (let ((var (make-var :name (gensym "LAST-SPECIAL-BINDING-") :kind :local)))
+;;         (push var *local-variables*)
+;;         (setf (block-last-special-binding-var block) var)
+;;         (setf (compiland-needs-thread-var-p compiland) t)))
     (when (block-non-local-go-p block)
       (let ((var (make-var :name (gensym "TAGBODY-") :kind :local)))
         (push var *local-variables*)

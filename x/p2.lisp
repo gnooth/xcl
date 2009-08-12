@@ -224,7 +224,8 @@
       (cond ((or (symbolp subform) (integerp subform))
              (let ((tag (find-visible-tag subform)))
                (unless tag
-                 (error "P2-TAGBODY: tag not found: ~S~%" subform))
+                 (error "p2-tagbody-1 tag ~S not found~%" subform))
+;;                (debug-log "p2-tagbody-1 tag ~S~%" subform)
                (label (tag-label tag)))
              ;; register contents can't be trusted after a label
              (clear-register-contents)

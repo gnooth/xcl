@@ -650,7 +650,7 @@
   (let* ((block (cadr form))
          (last-special-binding-var (block-last-special-binding-var block))
          (*visible-blocks* (cons block *visible-blocks*))
-         (BLOCK-EXIT (gensym))
+         (BLOCK-EXIT (make-label))
          (compiland *current-compiland*)
          (thread-register (compiland-thread-register compiland)))
     (declare (type cblock block))
@@ -659,6 +659,8 @@
       (aver thread-register)
       (cond (thread-register
              (inst :mov thread-register :rdi)
+;;              (debug-log "p2 block ~S emitting call to RT_thread_last_special_binding~%"
+;;                         (block-name block))
              (emit-call "RT_thread_last_special_binding"))
             (t
              (emit-call "RT_current_thread_last_special_binding")))
@@ -668,7 +670,7 @@
     (setf (block-exit block) BLOCK-EXIT)
     (setf (block-target block) target)
     (cond ((block-non-local-return-p block)
-           (debug-log "p2-block non-local return case~%")
+;;            (debug-log "p2-block ~S non-local return case~%" (block-name block))
            (let ((block-var (block-block-var block)))
              (aver block-var)
              (aver thread-register)
@@ -696,6 +698,7 @@
                (emit-call "RT_block_non_local_return")
                (label BLOCK-EXIT))))
           (t
+;;            (debug-log "p2-block ~S default case, proceeding to progn body~%" (block-name block))
            (p2-progn-body (block-body block) :rax)
            (label BLOCK-EXIT)))
     (when last-special-binding-var
@@ -707,6 +710,8 @@
       (cond (thread-register
              (p2-var-ref (make-var-ref last-special-binding-var) :rsi)
              (inst :mov thread-register :rdi)
+;;              (debug-log "p2 block ~S emitting call to RT_thread_set_last_special_binding~%"
+;;                         (block-name block))
              (emit-call "RT_thread_set_last_special_binding"))
             (t
              (p2-var-ref (make-var-ref last-special-binding-var) :rdi)
@@ -727,10 +732,12 @@
     (declare (type compiland compiland))
 ;;     (unless block
 ;;       (error "No block named ~S is currently visible." name))
+;;     (debug-log "p2-return-from block ~S~%" name)
     (aver (not (null (block-exit block))))
     (emit-clear-values) ; REVIEW
     (p2 result-form :rax)
     (cond ((eq (block-compiland block) compiland)
+;;            (debug-log "p2-return-from block ~S local return case~%" name)
            (dolist (enclosing-block *visible-blocks*)
              (declare (type cblock enclosing-block))
              (when (eq enclosing-block block)
@@ -752,6 +759,7 @@
            (emit-jmp-short t (block-exit block)))
           (t
            ;; non-local return
+;;            (debug-log "p2-return-from block ~S non-local return case~%" name)
            (let ((thread-register (compiland-thread-register compiland)))
              (aver thread-register)
              (inst :push :rax) ; result
@@ -1663,12 +1671,15 @@
          (*visible-tags* *visible-tags*)
          (body (block-body block)))
     (declare (type cblock block))
+;;     (debug-log "p2-tagbody ~S entering tagbody~%" (block-name block))
     (cond ((block-non-local-go-p block)
+;;            (debug-log "p2-tagbody ~S non-local go case~%" (block-name block))
            (let ((thread-register (compiland-thread-register *current-compiland*))
                  (tagbody-var (block-tagbody-var block)))
              (aver thread-register)
              (aver tagbody-var)
              (inst :mov thread-register :rdi) ; thread
+;;              (debug-log "p2-tagbody ~S emitting call to RT_add_tagbody~%" (block-name block))
              (emit-call "RT_add_tagbody")
              (inst :mov :rax tagbody-var)
              ;; process tags
@@ -1677,19 +1688,23 @@
                  (declare (type tag tag))
                  (push tag *visible-tags*)
                  (when (tag-non-local-go-p tag)
-                   (when (eq (tag-name tag) nil)
-                     ;; this shouldn't normally happen
-                     (debug-log "calling RT_add_tag for tag ~S~%" (tag-name tag)))
+;;                    (when (eq (tag-name tag) nil)
+;;                      ;; this shouldn't normally happen
+;;                      (debug-log "p2-tagbody emitting call to RT_add_tag for tag ~S~%" (tag-name tag)))
                    (setf (tag-index tag) index)
                    (p2-constant (tag-name tag) :rsi)
                    (emit-move-immediate-dword-to-register index :rcx)
                    (inst :mov tagbody-var :rdx)
                    (inst :mov thread-register :rdi)
+;;                    (debug-log "p2-tagbody ~S emitting call to RT_add_tag for tag ~S~%"
+;;                               (block-name block) (tag-name tag))
                    (emit-call "RT_add_tag")
                    (incf index))))
              (inst :mov tagbody-var :rdi)
+;;              (debug-log "p2-tagbody ~S emitting call to RT_frame_jmp~%" (block-name block))
              (emit-call "RT_frame_jmp")
              (inst :mov :rax :rdi)
+;;              (debug-log "p2-tagbody ~S emitting call to setjmp~%" (block-name block))
              (emit-call "setjmp")
              (inst :test :al :al)
              (let ((LABEL1 (make-label))
@@ -1716,12 +1731,15 @@
              (inst :mov thread-register :rdi) ; thread
              (emit-call "RT_leave_tagbody")))
           (t
+;;            (debug-log "p2-tagbody ~S default case~%" (block-name block))
            ;; make tags visible
            (dolist (tag (block-tags block))
              (push tag *visible-tags*))
            (p2-tagbody-1 body)))
     ;; TAGBODY returns NIL
-    (p2 nil target)))
+    (p2 nil target)
+;;     (debug-log "p2-tagbody leaving tagbody~%")
+    ))
 
 (defun p2-go (form target)
   (declare (ignore target))
@@ -1731,7 +1749,8 @@
          (compiland *current-compiland*))
     (declare (type compiland compiland))
     (unless tag
-      (error "p2-go: tag not found: ~S" name))
+      (error "p2-go tag ~S not found" name))
+;;     (debug-log "p2-go tag ~S found in ~S~%" name (block-name tag-block))
     (cond ((eq (tag-compiland tag) compiland)
            (dolist (enclosing-block *visible-blocks*)
              (declare (type cblock enclosing-block))
@@ -1746,16 +1765,24 @@
                     (inst :mov (compiland-thread-register compiland) :rdi) ; thread
                     (emit-move-var-to-register (block-block-var enclosing-block) :rsi) ; catch-frame
                     (emit-call "RT_leave_catch"))
+                   ((and (consp (block-name enclosing-block))
+                         (eq (%car (block-name enclosing-block)) 'TAGBODY))
+                    ;; nothing to do
+                    )
                    ((block-last-special-binding-var enclosing-block)
                     (aver (compiland-thread-register compiland))
                     (p2-var-ref (make-var-ref (block-last-special-binding-var enclosing-block)) :rsi)
                     (inst :mov :r12 :rdi)
+;;                     (debug-log "p2-go emitting call to RT_thread_set_last_special_binding for enclosing block ~S~%"
+;;                                (block-name enclosing-block))
                     (emit-call "RT_thread_set_last_special_binding"))))
+;;            (debug-log "p2-go emitting jump to ~S~%" name)
            (emit-jmp-short t (tag-label tag)))
           (t
            (p2-constant name :rsi)
            (aver (compiland-thread-register compiland))
            (inst :mov :r12 :rdi)
+;;            (debug-log "p2-go emitting call to RT_non_local_go~%")
            (emit-call "RT_non_local_go")))))
 
 (defun p2-unwind-protect (form target)
