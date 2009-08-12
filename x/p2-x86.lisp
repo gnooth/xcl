@@ -1779,6 +1779,10 @@
                     (inst :push (block-block-var enclosing-block))
                     (inst :push (compiland-thread-var compiland))
                     (emit-call-2 "RT_leave_catch" nil))
+                   ((and (consp (block-name enclosing-block))
+                         (eq (%car (block-name enclosing-block)) 'TAGBODY))
+                    ;; nothing to do
+                    )
                    ((block-last-special-binding-var enclosing-block)
                     (aver (compiland-thread-var compiland))
                     (p2-var-ref (make-var-ref (block-last-special-binding-var enclosing-block)) :stack)
