@@ -319,9 +319,9 @@ Frame * Thread::find_catch_frame(Value tag)
 
 static void handle_stack_overflow()
 {
-  printf("stack overflow!\n");
-  fflush(stdout);
-  asm("int3");
+//   printf("stack overflow!\n");
+//   fflush(stdout);
+//   asm("int3");
   if (call_depth_limit == DEFAULT_CALL_DEPTH_LIMIT)
     {
       call_depth_limit += 100;
