@@ -22,7 +22,6 @@
 #include "Primitive.hpp"
 #include "SimpleArray_UB8_1.hpp"
 
-// class ClosureTemplateFunction : public Primitive // REVIEW Closure?
 class ClosureTemplateFunction : public CompiledFunction
 {
 public:
@@ -162,7 +161,6 @@ public:
   {
     assert(ctf->widetag() == WIDETAG_COMPILED_FUNCTION);
     assert(ctf->arity() >= -1);
-    assert(ctf->arity() <= 6);
     _arity = ctf->arity();
     assert(ctf->minargs() >= 0);
     assert(ctf->minargs() < CALL_ARGUMENTS_LIMIT);
