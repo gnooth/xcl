@@ -789,11 +789,11 @@
       (emit-jmp-short :nz LABEL1)
       (let ((*visible-blocks* (cons block *visible-blocks*)))
         (p2-progn-body (block-body block) :rax))
-      (emit-push :rax) ; save result
+      (inst :push :rax) ; save result
       (inst :mov thread-register :rdi) ; thread
       (emit-move-var-to-register block-var :rsi) ; catch-frame
       (emit-call "RT_leave_catch")
-      (emit-pop :rax) ; restore result
+      (inst :pop :rax) ; restore result
       (emit-jmp-short t EXIT)
       (label LABEL1)
       ;; caught THROW
