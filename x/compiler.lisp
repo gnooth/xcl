@@ -808,9 +808,11 @@
 (defknown p1-throw (t) t)
 (defun p1-throw (form)
   (aver (length-eql form 3)) ; FIXME compiler error
-;;   (let ((new-form (rewrite-throw form)))
-;;     (unless (eq new-form form)
-;;       (return-from p1-throw (p1 new-form))))
+  (let ((new-form (rewrite-throw form)))
+    (let ((*print-structure* nil))
+      (debug-log "p1-throw form = ~S new-form = ~S~%" form new-form))
+    (when (neq new-form form)
+      (return-from p1-throw (p1 new-form))))
   (setf (compiland-needs-thread-var-p *current-compiland*) t)
   (list* 'THROW (mapcar #'p1 (cdr form))))
 
