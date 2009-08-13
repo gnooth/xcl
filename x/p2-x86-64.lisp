@@ -1792,8 +1792,8 @@
          (cleanup-forms (cddr (block-form block)))
          (thread-register (compiland-thread-register *current-compiland*))
          (uwp-var (block-uwp-var block))
-         (CLEANUP (gensym))
-         (START (gensym)))
+         (CLEANUP (make-label))
+         (START (make-label)))
     (declare (type cblock block))
     (setf (block-cleanup-label block) CLEANUP)
     (emit-bytes #xe8 #x00 #x00 #x00 #x00) ; call next instruction (leave return address on stack)
@@ -1822,8 +1822,8 @@
     (clear-constraints)
     (inst :mov thread-register :rdi)
     (inst :pop :rsi) ; return address left by call above
-    (emit-add-immediate-to-register 5 :rsi) ; code
-    (emit-move :rbp :rdx) ; rbp
+    (inst :add 5 :rsi) ; code
+    (inst :mov :rbp :rdx) ; rbp
     (emit-call "RT_enter_unwind_protect") ; returns uwp
     (emit-move-register-to-var :rax uwp-var)
     (emit-clear-values)
