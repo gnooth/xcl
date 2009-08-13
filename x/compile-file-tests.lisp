@@ -168,6 +168,14 @@
      5)))
 (aver (equal (multiple-value-list (test70)) '(2)))
 
+(defun-compile-file test71 (a b c d)
+  (declare (type (integer -2000121727 19660) c))
+  (declare (ignorable a b c d))
+  (unwind-protect
+      (if (oddp (the integer (shiftf c -1721526753))) 0 0)
+    b))
+(aver (equal (multiple-value-list (test71 502599338405798365 6157215579643 -1423245011 8)) '(0)))
+
 (defun-compile-file fact (n)
   (labels
     ((fact1 (n m)
