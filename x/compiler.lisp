@@ -796,12 +796,15 @@
             (if (constantp arg)
                 (push arg syms)
                 (let ((sym (gensym)))
-                  (cond ((single-valued-p arg)
-                         (push sym syms)
-                         (push (list sym arg) lets))
-                        (t
+                  ;; single-valued-p expects p2 nodification, so we can't use it here
+;;                   (cond ((single-valued-p arg)
+;;                          (push sym syms)
+;;                          (push (list sym arg) lets))
+;;                         (t
                          (push (list 'VALUES-LIST sym) syms)
-                         (push (list sym (list 'MULTIPLE-VALUE-LIST arg)) lets))))))
+                         (push (list sym (list 'MULTIPLE-VALUE-LIST arg)) lets)
+;;                          ))
+                  )))
           (list 'LET* (nreverse lets) (list* 'THROW (nreverse syms))))
         form)))
 
