@@ -364,6 +364,11 @@ public:
   Value set_values(Values * v)
   {
     _values_length = v->values_length();
+    if (_values_length == 1)
+      {
+        clear_values();
+        return v->values()[0];
+      }
     Value * values = v->values();
     for (int i = MULTIPLE_VALUES_LIMIT; i-- > 0;)
       _values[i] = values[i];
