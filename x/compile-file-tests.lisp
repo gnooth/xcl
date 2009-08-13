@@ -159,6 +159,15 @@
         -4))))
 (aver (equal (multiple-value-list (test68 1 2 3 4)) '(-27566969)))
 
+(defun-compile-file test70 ()
+  (unwind-protect
+      2
+    (tagbody
+     (catch 'ct2
+       (throw 'ct2 (go 5)))
+     5)))
+(aver (equal (multiple-value-list (test70)) '(2)))
+
 (defun-compile-file fact (n)
   (labels
     ((fact1 (n m)

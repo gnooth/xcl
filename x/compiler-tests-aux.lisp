@@ -438,6 +438,15 @@
 (aver (equal (multiple-value-list (test69 3176506326374 1696064078696799 48 153095689011423641))
              '(1696064078696799)))
 
+(defun-compile test70 ()
+  (unwind-protect
+      2
+    (tagbody
+     (catch 'ct2
+       (throw 'ct2 (go 5)))
+     5)))
+(aver (equal (multiple-value-list (test70)) '(2)))
+
 (defun-compile fact (n)
   (labels
     ((fact1 (n m)
