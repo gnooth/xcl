@@ -984,3 +984,12 @@
   (list x y))
 (aver (equal (test15 3) '(3 42)))
 (fmakunbound 'test15)
+
+(defun test16 ()
+  (block b4
+    (unwind-protect
+        (complex (return-from b4 0) 0)
+      (block foo
+        (+ 3 4)
+        (return-from foo 3)))))
+(aver (eql (test16) 0))
