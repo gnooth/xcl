@@ -178,13 +178,12 @@ Value Thread::lookup_special(Value name)
 
 void Thread::unbind_to(INDEX n)
 {
-//   printf("entering unbind_to\n");
-//   assert(n > 0);
   if (n >= _binding_stack_capacity)
     {
       printf("unbind_to n = %lu _binding_stack_capacity = %lu\n", n, _binding_stack_capacity);
       fflush(stdout);
       assert(n < _binding_stack_capacity);
+      EXT_quit();
     }
   INDEX index = _binding_stack_index;
   while (index > n)
@@ -192,12 +191,17 @@ void Thread::unbind_to(INDEX n)
       Value name = _binding_stack_base[--index];
       _binding_stack_base[index] = 0;
       Value value = _binding_stack_base[--index];
-      _binding_stack_base[index] = 0;
+
+      // this is the line that causes all the trouble
+//       _binding_stack_base[index] = 0;
+
       set_symbol_thread_local_value(the_symbol(name), value);
+
+      // it doesn't work if we move it here, either
+//       _binding_stack_base[index] = 0;
     }
   assert(index == n);
   _binding_stack_index = n;
-//   printf("leaving unbind_to\n");
 }
 
 void Thread::bind_special_to_current_value(Value name)
@@ -319,9 +323,10 @@ Frame * Thread::find_catch_frame(Value tag)
 
 static void handle_stack_overflow()
 {
-//   printf("stack overflow!\n");
-//   fflush(stdout);
-//   asm("int3");
+  // FIXME when things settle down
+  printf("stack overflow!\n");
+  fflush(stdout);
+  asm("int3");
   if (call_depth_limit == DEFAULT_CALL_DEPTH_LIMIT)
     {
       call_depth_limit += 100;
