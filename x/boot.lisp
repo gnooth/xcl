@@ -618,4 +618,5 @@
                  (load arg))))))))
 
 ;; REVIEW
-(make-thread #'sys:grovel-cpp-definitions)
+(when (probe-file "featurep.xcl")
+  (make-thread #'sys:grovel-cpp-definitions))
