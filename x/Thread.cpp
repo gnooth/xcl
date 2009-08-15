@@ -35,6 +35,7 @@
 #include "StackFrame.hpp"
 #include "StackFramePool.hpp"
 #include "StorageCondition.hpp"
+#include "UnboundVariable.hpp"
 #include "profiler.hpp"
 
 #include "../mpfr/mpfr.h"
@@ -207,10 +208,31 @@ void Thread::unbind_to(INDEX n)
 void Thread::bind_special_to_current_value(Value name)
 {
 #ifdef EXPERIMENTAL
-//   printf("Thread::bind_special_to_current_value called\n");
-//   fflush(stdout);
-  Value value = symbol_value(name);
-  bind_special(name, value);
+  Symbol * sym = the_symbol(name);
+  Value value;
+  INDEX i = sym->binding_index();
+  if (i > 0)
+    {
+      value = _thread_local_values[i];
+      if (value == NO_THREAD_LOCAL_VALUE)
+        value = sym->value();
+    }
+  else
+    {
+      i = sym->assign_binding_index();
+      value = sym->value();
+    }
+  if (value == NULL_VALUE)
+    signal_lisp_error(new UnboundVariable(name));
+  // the stack grows up from the base
+  if (_binding_stack_index < _binding_stack_capacity)
+    {
+      _binding_stack_base[_binding_stack_index++] = value;
+      _binding_stack_base[_binding_stack_index++] = name;
+      _thread_local_values[i] = value;
+    }
+  else
+    slow_bind_special(name, value);
 #else
   int index = _binding_stack_index;
   while (index > 0)
