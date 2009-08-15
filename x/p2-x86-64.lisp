@@ -500,7 +500,7 @@
 ;;   (emit-byte #x68)
 ;;   (emit-qword arg)
   (emit-move-immediate arg :rax)
-  (emit-push :rax)
+  (inst :push :rax)
   (clear-register-contents :rax)
   )
 
@@ -615,7 +615,7 @@
              (:stack
               (emit-byte #xb8) ; move 32-bit constant into eax
               (emit-constant-32 form)
-              (emit-push :rax)
+              (inst :push :rax)
               (clear-register-contents :rax))
              ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)
               (emit-byte (+ #xb8 (register-number target)))
@@ -683,14 +683,16 @@
              (inst :mov :rax :rdi)
              (emit-call "setjmp")
              (inst :test :al :al)
-             (let ((LABEL1 (gensym)))
+             (let ((LABEL1 (make-label)))
                (emit-jmp-short :nz LABEL1)
                (p2-progn-body (block-body block) :rax)
                (inst :push :rax) ; save result
                (inst :mov thread-register :rdi) ; thread
                (emit-move-var-to-register block-var :rsi) ; block
+               (inst :sub +bytes-per-word+ :rsp) ; align stack
                (emit-call "RT_leave_block")
-               (emit-pop :rax) ; restore result
+               (inst :add +bytes-per-word+ :rsp)
+               (inst :pop :rax) ; restore result
                (emit-jmp-short t BLOCK-EXIT)
                (label LABEL1)
                (inst :mov thread-register :rdi) ; thread
@@ -705,7 +707,7 @@
       ;; save rax
       (inst :push :rax)
       ;; fix stack alignment
-      (inst :sub 8 :rsp)
+      (inst :sub +bytes-per-word+ :rsp)
       ;; restore last special binding
       (cond (thread-register
              (p2-var-ref (make-var-ref last-special-binding-var) :rsi)
@@ -717,7 +719,7 @@
              (p2-var-ref (make-var-ref last-special-binding-var) :rdi)
              (emit-call "RT_current_thread_set_last_special_binding")))
       ;; restore rax
-      (inst :add 8 :rsp)
+      (inst :add +bytes-per-word+ :rsp)
       (inst :pop :rax)
       )
     (move-result-to-target target)))
@@ -747,9 +749,9 @@
                (emit-move-var-to-register (block-tagbody-var enclosing-block) :rsi)
                (inst :mov :r12 :rdi) ; thread
                (inst :push :rax) ; save result
-;;                (inst :push :rax) ; stack alignment
+               (inst :push :rax) ; stack alignment
                (emit-call "RT_leave_tagbody")
-;;                (inst :pop :rax) ; stack alignment
+               (inst :pop :rax) ; stack alignment
                (inst :pop :rax)) ; restore result
              (when (equal (block-name enclosing-block) '(UNWIND-PROTECT))
                (aver (block-cleanup-label enclosing-block))
@@ -792,7 +794,9 @@
       (inst :push :rax) ; save result
       (inst :mov thread-register :rdi) ; thread
       (emit-move-var-to-register block-var :rsi) ; catch-frame
+      (inst :sub +bytes-per-word+ :rsp) ; align stack
       (emit-call "RT_leave_catch")
+      (inst :add +bytes-per-word+ :rsp)
       (inst :pop :rax) ; restore result
       (emit-jmp-short t EXIT)
       (label LABEL1)
@@ -1487,15 +1491,15 @@
     (dolist (var specials)
       (declare (ignore var))
       (cond ((compiland-thread-register *current-compiland*)
-             (emit-pop :rsi) ; name
-             (emit-pop :rdx) ; value
+             (inst :pop :rsi) ; name
+             (inst :pop :rdx) ; value
 ;;              (emit-move (compiland-thread-register *current-compiland*) :rdi)
              (inst :mov :r12 :rdi)
              (emit-call "RT_thread_bind_special"))
             (t
              (note "P2-LET-VARS: emitting call to RT_current_thread_bind_special~%")
-             (emit-pop :rdi) ; name
-             (emit-pop :rsi) ; value
+             (inst :pop :rdi) ; name
+             (inst :pop :rsi) ; value
              (emit-call "RT_current_thread_bind_special"))))
     (dolist (var vars)
       (push var *visible-variables*))
@@ -1552,7 +1556,9 @@
           )
       (process-optimization-declarations (cddr (block-form block)))
       (cond ((block-last-special-binding-var block)
-             (p2-progn-body body :stack) ; FIXME stack alignment
+             (p2-progn-body body :stack)
+             ;; fix stack alignment
+             (inst :sub +bytes-per-word+ :rsp)
              ;; restore last special binding`
              (cond (thread-register
                     (inst :mov thread-register :rdi)
@@ -1562,7 +1568,8 @@
                     (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :rdi)
                     (note "P2-LET/LET*: emitting call to RT_current_thread_set_last_special_binding~%")
                     (emit-call "RT_current_thread_set_last_special_binding")))
-             (emit-pop :rax)
+             (inst :add +bytes-per-word+ :rsp)
+             (inst :pop :rax)
              (move-result-to-target target))
             (t
              (p2-progn-body body target))))))
@@ -1623,10 +1630,13 @@
     (emit-clear-values)
     (cond (last-special-binding-var
            (p2-progn-body body :stack)
+           ;; fix stack alignment
+           (inst :sub +bytes-per-word+ :rsp)
            (emit-move-var-to-register last-special-binding-var :rsi)
            (inst :mov thread-reg :rdi)
            (emit-call "RT_thread_set_last_special_binding")
-           (emit-pop :rax)
+           (inst :add +bytes-per-word+ :rsp)
+           (inst :pop :rax)
            (move-result-to-target target))
           (t
            (p2-progn-body body target)))))
@@ -1652,7 +1662,10 @@
     (p2-progn-body body :stack)
     (inst :mov (block-last-special-binding-var block) :rsi)
     (inst :mov :r12 :rdi)
+    ;; fix stack alignment
+    (inst :sub +bytes-per-word+ :rsp)
     (emit-call "RT_thread_set_last_special_binding")
+    (inst :add +bytes-per-word+ :rsp)
     (inst :pop :rax) ; result
     (move-result-to-target target)))
 
@@ -1832,7 +1845,9 @@
     (inst :mov thread-register :rdi)
     (emit-call-2 "RT_thread_copy_values" :rax) ; REVIEW stack alignment
     (inst :push :rax) ; save values
+    (inst :sub +bytes-per-word+ :rsp) ; align stack
     (emit-call CLEANUP)
+    (inst :add +bytes-per-word+ :rsp)
     (inst :pop :rsi) ; values
     (inst :mov thread-register :rdi) ; thread
     (emit-call-2 "RT_thread_set_values" target)))
@@ -1973,10 +1988,10 @@
 ;;                (emit-move-immediate (local-function-ctf local-function) :rdi)
 ;;                (emit-move-local-to-register closure-data-index :rsi)
 ;;                (emit-call "RT_make_compiled_closure")
-;;                (emit-push :rax)
+;;                (inst :push :rax)
 ;;                (aver (not (null (local-function-callable-name local-function))))
 ;;                (p2-constant (local-function-callable-name local-function) :rdi)
-;;                (emit-pop :rsi)
+;;                (inst :pop :rsi)
 ;;                (emit-call 'set-fdefinition)))
 ;;             ((local-function-ctf-name local-function)
 ;;              (let* ((compiland *current-compiland*)
@@ -1986,10 +2001,10 @@
 ;;                (emit-move-function-to-register (local-function-ctf-name local-function) :rdi)
 ;;                (emit-move-local-to-register closure-data-index :rsi)
 ;;                (emit-call "RT_make_compiled_closure")
-;;                (emit-push :rax)
+;;                (inst :push :rax)
 ;;                (aver (not (null (local-function-callable-name local-function))))
 ;;                (p2-constant (local-function-callable-name local-function) :rdi)
-;;                (emit-pop :rsi)
+;;                (inst :pop :rsi)
 ;;                (emit-call 'set-fdefinition))))
       (cond ((local-function-ctf local-function)
              (debug-log "p2-labels local-function-ctf case~%")
@@ -2174,7 +2189,7 @@
                     (:stack
                      (emit-byte #xb8) ; mov imm32,%eax
                      (emit-function arg)
-                     (emit-push :rax)
+                     (inst :push :rax)
                      (clear-register-contents :rax))
                     ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)
                      (emit-byte (+ #xb8 (register-number target))) ; mov imm32,reg
@@ -2590,7 +2605,7 @@
            (p2 arg2 reg2)
            (inst :pop reg1)
            (clear-register-contents reg1) ; we've trashed reg1
-           (inst :add 8 :rsp)
+           (inst :add +bytes-per-word+ :rsp)
            )
           (t
            (inst :sub #x10 :rsp)
@@ -2632,7 +2647,7 @@
            (inst :pop reg2)
            (inst :pop reg1)
            (clear-register-contents reg1 reg2 reg3)
-           (inst :add 8 :rsp)))))
+           (inst :add +bytes-per-word+ :rsp)))))
 
 (defknown process-4-args (t t t) t)
 (defun process-4-args (args regs clear-values-p)
@@ -2664,10 +2679,10 @@
                (unless (single-valued-p arg)
                  (emit-clear-values)
                  (return))))
-           (emit-pop reg4)
-           (emit-pop reg3)
-           (emit-pop reg2)
-           (emit-pop reg1)
+           (inst :pop reg4)
+           (inst :pop reg3)
+           (inst :pop reg2)
+           (inst :pop reg1)
            (clear-register-contents reg1 reg2 reg3 reg4)))))
 
 (defknown process-5-args (t t t) t)
@@ -3069,61 +3084,62 @@
                 (function-code (symbol-function op)))
            (inst :mov :rax :r9)
            (inst :add +bytes-per-word+ :rsp)
-           (emit-pop :r8)
-           (emit-pop :rcx)
-           (emit-pop :rdx)
-           (emit-pop :rsi)
-           (emit-pop :rdi)
+           (inst :pop :r8)
+           (inst :pop :rcx)
+           (inst :pop :rdx)
+           (inst :pop :rsi)
+           (inst :pop :rdi)
            (emit-call op))
           (use-fast-call-p
            (inst :add +bytes-per-word+ :rsp)
-           (emit-pop :r9)
-           (emit-pop :r8)
-           (emit-pop :rcx)
-           (emit-pop :rdx)
-           (emit-pop :rsi)
-           (inst :push :rax)
+           (inst :pop :r9)
+           (inst :pop :r8)
+           (inst :pop :rcx)
+           (inst :pop :rdx)
+           (inst :pop :rsi)
+           (inst :push :rax) ; arg6 is passed on the stack
            (cond (kernel-function-p
                   (emit-move-function-to-register op :rdi)
-                  (emit-call "RT_fast_call_function_6"))
+                  (inst :call "RT_fast_call_function_6"))
                  (t
                   (p2-symbol op :rdi)
-                  (emit-call "RT_fast_call_symbol_6")))
-           (emit-drop :rdx))
+                  (inst :call "RT_fast_call_symbol_6")))
+           (inst :add +bytes-per-word+ :rsp))
           ;; not use-fast-call-p
           ((setq thread-register (compiland-thread-register *current-compiland*))
            (inst :add +bytes-per-word+ :rsp)
-           (inst :pop :r11) ; temporary
-           (emit-pop :r9)
-           (emit-pop :r8)
-           (emit-pop :rcx)
-           (emit-pop :rdx)
-           (inst :push :rax)
-           (inst :push :r11)
+           (inst :pop :r11) ; temporary for arg5
+           (inst :pop :r9)
+           (inst :pop :r8)
+           (inst :pop :rcx)
+           (inst :pop :rdx)
+           (inst :push :rax) ; arg6 is passed on the stack
+           (inst :push :r11) ; arg5 is passed on the stack
            (cond (kernel-function-p
                   (emit-move-function-to-register op :rsi)
                   (inst :mov thread-register :rdi)
-                  (emit-call "RT_thread_call_function_6"))
+                  (inst :call "RT_thread_call_function_6"))
                  (t
                   (p2-symbol op :rsi)
                   (inst :mov thread-register :rdi)
-                  (emit-call "RT_thread_call_symbol_6")))
+                  (inst :call "RT_thread_call_symbol_6")))
            (inst :add (* +bytes-per-word+ 2) :rsp))
           (t
            (inst :add +bytes-per-word+ :rsp)
-           (emit-pop :r9)
-           (emit-pop :r8)
-           (emit-pop :rcx)
-           (emit-pop :rdx)
-           (emit-pop :rsi)
-           (inst :push :rax)
+           (inst :pop :r9)
+           (inst :pop :r8)
+           (inst :pop :rcx)
+           (inst :pop :rdx)
+           (inst :pop :rsi)
+           (inst :push :rax) ; arg6 is passed on the stack
            (cond (kernel-function-p
                   (emit-move-function-to-register op :rdi)
-                  (emit-call "RT_current_thread_call_function_6"))
+                  (inst :call "RT_current_thread_call_function_6"))
                  (t
                   (p2-symbol op :rdi)
-                  (emit-call "RT_current_thread_call_symbol_6")))
-           (emit-drop :rdx)))
+                  (inst :call "RT_current_thread_call_symbol_6")))
+           (inst :add +bytes-per-word+ :rsp)))
+    (clear-register-contents)
     (move-result-to-target target)))
 
 (defknown p2-function-call-n (t t t t) t)
@@ -3161,7 +3177,7 @@
           (unless (single-valued-p arg)
             (emit-clear-values)
             (return))))
-      (emit-move :rsp args-register)
+      (inst :mov :rsp args-register)
       (emit-move-immediate-dword-to-register numargs numargs-register)
       (cond (kernel-function-p
              (emit-move-function-to-register op op-register)
@@ -3245,9 +3261,9 @@
                  ;;           ((local-function-callable-name local-function)
                  ;;            (p2-constant (local-function-callable-name local-function) :rdi)
                  ;;            (emit-call 'symbol-function)
-                 ;;            (emit-push :rax)
+                 ;;            (inst :push :rax)
                  ;;            (process-args args arg-registers use-fast-call-p)
-                 ;;            (emit-pop op-register))
+                 ;;            (inst :pop op-register))
                  ((compile-file-p)
                   (cond ((local-function-ctf-name local-function)
                          (emit-move-function-to-register (local-function-ctf-name local-function) :rdi)
@@ -3269,9 +3285,9 @@
                  ;;            (emit-move-local-to-register closure-data-index :rsi)
                  ;;            (emit-call "RT_make_compiled_closure")
                  ;;            (cond (args
-                 ;;                   (emit-push :rax)
+                 ;;                   (inst :push :rax)
                  ;;                   (process-args args arg-registers use-fast-call-p)
-                 ;;                   (emit-pop op-register))
+                 ;;                   (inst :pop op-register))
                  ;;                  (t
                  ;;                   (emit-move :rax op-register))))
                  (t
@@ -5598,21 +5614,16 @@
     (when (and arity (< arity 6))
       (setq regs (subseq regs 0 arity)))
     (dolist (reg regs)
-      (emit-push reg)
+      (inst :push reg)
       (incf stack-used))
     (emit-move-immediate-dword-to-register (* numvars +bytes-per-word+) :rdi)
-;;     (when (oddp (length regs))
     (when (oddp stack-used)
-      (emit-bytes #x48 #x83 #xec #x08)) ; sub $0x8,%rsp
-;;       (emit-push :rdx)) ; sub $0x8,%rsp
+      (inst :sub +bytes-per-word+ :rsp))
     (emit-call "RT_malloc")
-;;     (when (oddp (length regs))
     (when (oddp stack-used)
-      (emit-bytes #x48 #x83 #xc4 #x08)) ; add $0x8,%rsp
-;;       (emit-pop :rdx)) ; add $0x8,%rsp
+      (inst :add +bytes-per-word+ :rsp))
     (dolist (reg (reverse regs))
-      (emit-pop reg))
-  ))
+      (inst :pop reg))))
 
 (defknown p2-child-function-prolog (compiland) t)
 (defun p2-child-function-prolog (compiland)
@@ -5635,7 +5646,7 @@
       (aver (and *closure-vars* (compiland-child-p compiland)))
       (setf (compiland-closure-data-index compiland) index)
       (incf index)
-      (emit-push :rdi)
+      (inst :push :rdi)
       (incf stack-used)
       (dolist (var (compiland-arg-vars compiland))
         (declare (type var var))
@@ -5692,7 +5703,7 @@
                       (numbytes (* n +bytes-per-word+)))
                  (cond ((<= n 4)
                         (dotimes (i n)
-                          (emit-push :rax)))
+                          (inst :push :rax)))
                        ((< numbytes 128)
                         (emit-bytes #x48 #x83 #xec) ; sub imm8,%rsp
                         (emit-byte numbytes))
@@ -5701,7 +5712,10 @@
                         (emit-raw-dword numbytes)))
                  (emit-move :rsp :rcx)
                  ;; REVIEW do we need to make sure the stack is aligned for this call?
+                 ;; fix stack alignment
+                 (inst :sub +bytes-per-word+ :rsp)
                  (emit-call "RT_process_args")
+                 (inst :add +bytes-per-word+ :rsp)
                  (incf index n))
 
                ;; address of args array is now in rax
@@ -5714,11 +5728,11 @@
                    (when (var-index var)
                      (aver (not 2)))
                    (cond ((var-closure-index var)
-                          (emit-push :rbx)
+                          (inst :push :rbx)
                           (emit-move-local-to-register (compiland-closure-data-index compiland) :rbx)
                           (emit-move-relative-to-register :rcx (var-arg-index var) :rax)
                           (emit-move-register-to-relative :rax :rbx (var-closure-index var))
-                          (emit-pop :rbx))
+                          (inst :pop :rbx))
                          (t
                           (setf (var-index var) (- base (var-arg-index var))))))))
               ((null (compiland-arity compiland))
@@ -5729,7 +5743,7 @@
                  (cond ((var-register var)
                         (setf (var-index var) index)
                         (incf index)
-                        (emit-push (var-register var))
+                        (inst :push (var-register var))
                         (incf stack-used)
                         (setf (var-register var) nil))
                        ((eq (var-kind var) :required)
@@ -5740,14 +5754,14 @@
 
                         (setf (var-index var) index)
                         (incf index)
-                        (emit-push :rax)
+                        (inst :push :rax)
                         (incf stack-used)
                         (setf (var-arg-index var) nil))
                        ((eq (var-kind var) :rest)
                         (aver (not (null (var-arg-index var))))
                         (aver (null (var-index var)))
                         ;; reserve space for rest var
-                        (emit-push :rax)
+                        (inst :push :rax)
                         (incf stack-used)
                         (setf (var-index var) index)
                         (incf index))
@@ -5781,7 +5795,7 @@
                  (cond ((var-register var)
                         (setf (var-index var) index)
                         (incf index)
-                        (emit-push (var-register var))
+                        (inst :push (var-register var))
                         (incf stack-used)
                         (set-register-contents (var-register var) var)
                         (setf (var-register var) nil)
@@ -5796,7 +5810,7 @@
                             (emit-byte n))
                           (setf (var-index var) index)
                           (incf index)
-                          (emit-push :rax)
+                          (inst :push :rax)
                           (incf stack-used)
                           (setf (var-arg-index var) nil)))
                        ((eq (var-kind var) :rest)
@@ -5811,7 +5825,7 @@
 
       (when (oddp stack-used)
         ;;       (emit-bytes #x48 #x83 #xec #x08) ; sub $0x8,%rsp
-        (emit-push :rax)
+        (inst :push :rax)
         )
 
       (when (compiland-thread-register compiland)
@@ -5856,7 +5870,7 @@
     (let ((index 0))
       (when (and *closure-vars* (null (compiland-parent compiland))) ; top-level compiland
         (allocate-closure-data-vector compiland (length *closure-vars*) stack-used) ; leaves address in rax
-        (emit-push :rax) ; address returned by RT_malloc
+        (inst :push :rax) ; address returned by RT_malloc
         (incf stack-used)
         (setf (compiland-closure-data-index compiland) index)
         (incf index)
@@ -5892,11 +5906,18 @@
                       (numbytes (* n +bytes-per-word+)))
                  (cond ((<= n 4)
                         (dotimes (i n)
-                          (inst :push :rax)))
+                          (inst :push :rax)
+                          (incf stack-used)))
                        (t
-                        (inst :sub numbytes :rsp)))
+                        (inst :sub numbytes :rsp)
+                        (incf stack-used n)))
                  (inst :mov :rsp :rcx)
+                 ;; fix stack alignment if necessary
+                 (when (oddp stack-used)
+                   (inst :sub +bytes-per-word+ :rsp))
                  (emit-call "RT_process_args")
+                 (when (oddp stack-used)
+                   (inst :add +bytes-per-word+ :rsp))
                  (incf index n))
 
                ;; address of args array is now in rax
@@ -5928,7 +5949,7 @@
                  (cond ((var-register var)
                         (setf (var-index var) index)
                         (incf index)
-                        (emit-push (var-register var))
+                        (inst :push (var-register var))
                         (incf stack-used)
                         (setf (var-register var) nil))
                        ((eq (var-kind var) :required)
@@ -5939,14 +5960,14 @@
                           (emit-bytes #x48 #x8b #x46) ; mov n(%rsi),%rax
                           (emit-byte n))
                         (cond ((var-closure-index var)
-                               (emit-push :rbx)
+                               (inst :push :rbx)
                                (emit-move-local-to-register (compiland-closure-data-index compiland) :rbx)
                                (emit-move-register-to-relative :rax :rbx (var-closure-index var))
-                               (emit-pop :rbx))
+                               (inst :pop :rbx))
                               (t
                                (setf (var-index var) index)
                                (incf index)
-                               (emit-push :rax)
+                               (inst :push :rax)
                                (incf stack-used)))
                         (setf (var-arg-index var) nil))
                        ((eq (var-kind var) :rest)
@@ -5958,7 +5979,7 @@
                                )
                               (t
                                ;; reserve space for rest var
-                               (emit-push :rax)
+                               (inst :push :rax)
                                (incf stack-used)
                                (setf (var-index var) index)
                                (incf index))))
@@ -5982,12 +6003,16 @@
                  (emit-move :rsi :rdi)
                  (emit-move-immediate-dword-to-register start :rsi)
                  ;; REVIEW do we need to make sure the stack is aligned for this call?
+                 (when (oddp stack-used)
+                   (inst :sub +bytes-per-word+ :rsp))
                  (emit-call "RT_restify")
+                 (when (oddp stack-used)
+                   (inst :add +bytes-per-word+ :rsp))
                  (cond ((var-closure-index restvar)
-                        (emit-push :rbx)
+                        (inst :push :rbx)
                         (emit-move-local-to-register (compiland-closure-data-index compiland) :rbx)
                         (emit-move-register-to-relative :rax :rbx (var-closure-index restvar))
-                        (emit-pop :rbx))
+                        (inst :pop :rbx))
                        (t
                         (emit-move-register-to-local :rax (var-index restvar))))
                  ))
@@ -5998,7 +6023,7 @@
                  (cond ((var-register var)
                         (setf (var-index var) index)
                         (incf index)
-                        (emit-push (var-register var))
+                        (inst :push (var-register var))
                         (incf stack-used)
                         (set-register-contents (var-register var) var)
                         (setf (var-register var) nil)
@@ -6013,7 +6038,7 @@
                             (emit-byte n))
                           (setf (var-index var) index)
                           (incf index)
-                          (emit-push :rax)
+                          (inst :push :rax)
                           (incf stack-used)
                           (setf (var-arg-index var) nil)))
                        ((eq (var-kind var) :rest)

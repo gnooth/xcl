@@ -161,6 +161,20 @@
 (defknown emit-call (t) t)
 (defun emit-call (address)
   (aver (or (stringp address) (symbolp address)))
+;;   #+x86-64
+;;   (let ((LABEL1 (make-label))
+;;         (LABEL2 (make-label)))
+;;     (inst :test 15 :esp)
+;;     (emit-jmp-short :z LABEL1)
+;; ;;     (emit-byte #xcc) ; int3
+;;     (inst :sub 8 :rsp)
+;;     (inst :call address)
+;;     (inst :add 8 :rsp)
+;;     (emit-jmp-short t LABEL2)
+;;     (label LABEL1)
+;;     (inst :call address)
+;;     (label LABEL2))
+;;   #+x86
   (inst :call address)
   (clear-register-contents))
 
