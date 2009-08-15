@@ -66,6 +66,9 @@ Value CL_unwind_protect(Value args, Environment * env, Thread * thread)
   // restore values
   RT_thread_set_values(thread, values);
 
+  if (thread->values_length() == 1)
+    thread->clear_values();
+
   return result;
 }
 
