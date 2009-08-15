@@ -459,6 +459,16 @@
            (when (memq operand2 '(:spl :bpl :sil :dil))
              (emit-byte #x40))
            (emit-bytes #xf6 modrm-byte operand1)))
+        ((and (typep operand1 '(unsigned-byte 32))
+              (reg64-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 0 (register-number operand2))))
+           (emit-bytes #x48 #xf7 modrm-byte))
+         (emit-raw operand1))
+        ((and (typep operand1 '(unsigned-byte 32))
+              (reg32-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 0 (register-number operand2))))
+           (emit-bytes #xf7 modrm-byte))
+         (emit-raw operand1))
         (t
          (unsupported))))
 
