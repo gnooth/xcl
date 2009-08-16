@@ -5105,70 +5105,84 @@
 
     ;;     (dump-code)
 
-    (let ((code *code*)
-          (leaf-p t)
-          (var-ref-count 0))
+    (let* ((code *code*)
+           (initial-size (+ (length code) 32))
+           (new-code (make-array initial-size :fill-pointer 0)) ; REVIEW
+           (leaf-p t)
+           (var-ref-count 0))
       (declare (type simple-vector code))
       (dotimes (i (length code))
         (let ((instruction (svref code i)))
-          (when (consp instruction)
-            (let ((mnemonic (first instruction))
-                  (operand1 (second instruction))
-                  (operand2 (third  instruction)))
-              (case mnemonic
-                (:mov
-                 (cond ((var-p operand1)
-                        ;; var ref
-                        (incf var-ref-count)
-                        (cond ((var-index operand1)
-                               (setf (second instruction)
-                                     (list (index-displacement (var-index operand1)) :ebp)))
-                              (t
-                               (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand1))
-                               (unsupported))))
-                       ((var-p operand2)
-                        ;; setq
-                        (incf var-ref-count)
-                        (cond ((var-index operand2)
-                               (setf (third instruction)
-                                     (list (index-displacement (var-index operand2)) :ebp)))
-                              (t
-                               (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand2))
-                               (unsupported))))
-                       (t
-                        ;; nothing to do
-                        )))
-                (:push
-                 (cond ((var-p operand1)
-                        (cond ((var-index operand1)
-                               (setf (second instruction)
-                                     (list (index-displacement (var-index operand1)) :ebp)))
-                              (t
-                               (debug-log "p3 :push no var-index for var ~S~%" (var-name operand1))
-                               (unsupported))))
-                       (t
-                        ;; nothing to do
-                        )))
-                (:exit
-                 (let ((instructions nil))
-                   (unless (compiland-omit-frame-pointer compiland)
-                     (push '(:leave) instructions))
-;;                    (when (compiland-needs-thread-var-p compiland)
-;;                      (push '(:pop :r12) instructions))
-                   (push '(:ret) instructions)
-                   (setq instructions (nreverse instructions))
-                   (let ((bytes (assemble instructions)))
-                     (setq instruction
-                           (make-instruction :exit (length bytes) (coerce bytes 'list)))
-                     (setf (svref code i) instruction))))
-                (:call
-                 (setq leaf-p nil)
-                 (setq instruction (make-instruction :call 5 operand1))
-                 (setf (svref code i) instruction)
-                 )))
-            (when (consp instruction)
-              (let ((assembled-instruction (assemble-instruction instruction)))
-                (setf (svref code i) assembled-instruction))))))
-      (when leaf-p
-        (debug-log "~S leaf-p = ~S var-ref-count = ~S~%" (compiland-name compiland) leaf-p var-ref-count))
+          (if (consp instruction)
+              (let ((mnemonic (first instruction))
+                    (operand1 (second instruction))
+                    (operand2 (third  instruction)))
+                (case mnemonic
+                  (:mov
+                   (cond ((var-p operand1)
+                          ;; var ref
+                          (incf var-ref-count)
+                          (cond ((var-index operand1)
+                                 (setf (second instruction)
+                                       (list (index-displacement (var-index operand1)) :ebp)))
+                                (t
+                                 (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand1))
+                                 (unsupported))))
+                         ((var-p operand2)
+                          ;; setq
+                          (incf var-ref-count)
+                          (cond ((var-index operand2)
+                                 (setf (third instruction)
+                                       (list (index-displacement (var-index operand2)) :ebp)))
+                                (t
+                                 (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand2))
+                                 (unsupported))))
+                         (t
+                          ;; nothing to do
+                          ))
+                   (vector-push-extend (assemble-instruction instruction) new-code))
+                  (:push
+                   (cond ((var-p operand1)
+                          (cond ((var-index operand1)
+                                 (setf (second instruction)
+                                       (list (index-displacement (var-index operand1)) :ebp)))
+                                (t
+                                 (debug-log "p3 :push no var-index for var ~S~%" (var-name operand1))
+                                 (unsupported))))
+                         (t
+                          ;; nothing to do
+                          ))
+                   (vector-push-extend (assemble-instruction instruction) new-code))
+                  (:exit
+                   (let ((instructions nil))
+                     (unless (compiland-omit-frame-pointer compiland)
+                       (push '(:leave) instructions))
+                     ;;                    (when (compiland-needs-thread-var-p compiland)
+                     ;;                      (push '(:pop :r12) instructions))
+                     (push '(:ret) instructions)
+                     (setq instructions (nreverse instructions))
+                     (let ((bytes (assemble instructions)))
+                       (setq instruction
+                             (make-instruction :exit (length bytes) (coerce bytes 'list)))
+;;                        (setf (svref code i) instruction)
+                       ))
+                   (vector-push-extend instruction new-code))
+                  (:call
+                   (setq leaf-p nil)
+                   (setq instruction (make-instruction :call 5 operand1))
+;;                    (setf (svref code i) instruction)
+                   (vector-push-extend instruction new-code))
+                  (t
+                   (vector-push-extend (assemble-instruction instruction) new-code))))
+;;             (when (consp instruction)
+;;               (let ((assembled-instruction (assemble-instruction instruction)))
+;;                 (setf (svref code i) assembled-instruction)))
+              (vector-push-extend instruction new-code))))
+      (when (> (length new-code) initial-size)
+        (debug-log "p3 initial-size = ~D (length new-code) = ~D~%"
+                   initial-size
+                   (length new-code)))
+      (setq *code* (coerce new-code 'simple-vector))
+;;       (when leaf-p
+;;         (debug-log "~S leaf-p = ~S var-ref-count = ~S~%" (compiland-name compiland) leaf-p var-ref-count))
       )))
