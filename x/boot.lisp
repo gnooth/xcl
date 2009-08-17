@@ -527,8 +527,6 @@
 
 ;; (load-system-file "reader.lisp")
 
-(defun lisp-implementation-type () "XCL")
-
 (make-package "XP" :use '("CL"))
 
 ;; (autoload '(pprint
