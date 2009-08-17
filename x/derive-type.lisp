@@ -203,17 +203,24 @@
 (defun derive-type-make-array (form)
   (let* ((args (cdr form))
          (arg1 (car args))
-         (type1 (derive-type arg1))
+         type1
          (size '*)
          (element-type '*)
          result-type)
-;;     (let ((*print-structure* nil))
-;;       (format t "derive-type-make-array form = ~S~%" form))
-;;     (format t "type1 = ~S~%" type1)
-    (cond ((eq type1 :unknown))
+    (cond ((quoted-form-p arg1)
+           (let ((dims (%cadr arg1)))
+             (cond ((consp dims)
+                    (let ((ndims (length dims)))
+                      (if (and (eql ndims 1)
+                               (typep (car dims) 'INDEX))
+                          (setq size (list (car dims)))
+                          (setq size (make-list ndims :initial-element '*)))))
+                   ((and (fixnump dims)
+                         (typep dims 'INDEX))
+                    (setq size dims)))))
+          ((eq (setq type1 (derive-type arg1)) :unknown))
           ((subtypep type1 'NUMBER)
            (setq size (list (or (integer-constant-value type1) '*)))))
-;;     (format t "size = ~S~%" size)
     (let ((n (position :element-type args)))
       (cond (n
              (let ((arg (nth (1+ n) args)))
@@ -222,7 +229,6 @@
             (t
              ;; no element type specified
              (setq element-type t))))
-;;     (format t "element-type = ~S~%" element-type)
     (setq result-type
           (list (if (intersection '(:adjustable :fill-pointer :displaced-to) args)
                     'ARRAY
@@ -230,9 +236,7 @@
                 element-type
                 size))
     (setq result-type (canonicalize-type result-type))
-;;     (format t "derive-type-make-array result-type = ~S~%" result-type)
-    result-type
-    ))
+    result-type))
 
 (defun derive-type-make-simple-vector (form)
   (let ((result-type 'SIMPLE-VECTOR))
