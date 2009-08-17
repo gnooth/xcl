@@ -1,6 +1,6 @@
 ;;; ed.lisp
 ;;;
-;;; Copyright (C) 2004-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -58,7 +58,9 @@ the file system."
                   (write-string (namestring (user-homedir-pathname)) stream)
                   (terpri stream)
                   (write-string (format nil "~S~%" what) stream))
-                (run-shell-command (format nil "j ~S" what))))
+                ;; FIXME we don't have RUN-SHELL-COMMAND
+;;                 (run-shell-command (format nil "j ~S" what))
+                ))
            ((and what (symbolp what))
             (when (autoloadp what)
               (let ((*load-verbose* nil)
