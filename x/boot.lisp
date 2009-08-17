@@ -564,6 +564,8 @@
 
 (autoload 'float-precision)
 
+(autoload '(query-readline y-or-n-p yes-or-no-p) "query")
+
 ;; (in-package "EXTENSIONS")
 
 ;; (export 'maybe-compile)

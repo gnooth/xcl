@@ -205,6 +205,7 @@
                           "psetf"
                           "psetq"
                           "pushnew"
+                          "query"
                           "read-byte"
                           "read-conditional"
                           "read-from-string"
