@@ -1,6 +1,6 @@
 ;;; print.lisp
 ;;;
-;;; Copyright (C) 2004-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -19,6 +19,8 @@
 ;;; Adapted from SBCL.
 
 (in-package "SYSTEM")
+
+(export 'array-readably-printable-p) ; used in pprint.lisp
 
 ;;; Can this object contain other objects?
 (defun compound-object-p (x)

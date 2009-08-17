@@ -2365,7 +2365,7 @@
 
 (defun pretty-non-vector (xp array)
   (when (and *print-readably*
-             (not (array-readably-printable-p array)))
+             (not (sys:array-readably-printable-p array)))
     (error 'print-not-readable :object array))
   (let* ((bottom (1- (array-rank array)))
 	 (indices (make-list (1+ bottom) :initial-element 0))
