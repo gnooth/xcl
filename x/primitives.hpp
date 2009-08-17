@@ -315,6 +315,7 @@ extern Value CL_prin1_to_string(Value arg);
 extern Value CL_princ(unsigned int numargs, Value args[]);
 extern Value CL_princ_to_string(Value arg);
 extern Value CL_print(unsigned int numargs, Value args[]);
+extern Value CL_print_not_readable_object(Value arg);
 extern Value CL_probe_file(Value pathspec);
 extern Value CL_progn(Value args, Environment * env, Thread * thread);
 extern Value CL_progv(Value args, Environment * env, Thread * thread);

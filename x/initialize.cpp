@@ -363,6 +363,7 @@ void initialize_lisp()
   ADD_TEMPORARY(S_princ, CL_princ, 1, 2);
   ADD_TEMPORARY(S_princ_to_string, CL_princ_to_string, 1, 1);
   ADD_TEMPORARY(S_print, CL_print, 1, 2);
+  ADD_PRIMITIVE(S_print_not_readable_object, CL_print_not_readable_object, 1, 1);
   ADD_PRIMITIVE(S_probe_file, CL_probe_file, 1, 1);
   ADD_PRIMITIVE(S_random, CL_random, 1, 2);
   ADD_PRIMITIVE(S_random_state_p, CL_random_state_p, 1, 1);
