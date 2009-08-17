@@ -1,6 +1,6 @@
 ;;; format.lisp
 ;;;
-;;; Copyright (C) 2004-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -19,6 +19,13 @@
 ;;; Adapted from SBCL and CMUCL.
 
 (in-package "SYSTEM")
+
+;; FIXME
+(defun float-infinity-p (number)
+  (declare (ignore number)))
+;; FIXME
+(defun float-nan-p (number)
+  (declare (ignore number)))
 
 (export 'collect)
 
