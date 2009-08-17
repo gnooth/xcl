@@ -53,6 +53,8 @@
       (load (compile-file-if-needed "compile-file.lisp"))
       (load (compile-file-if-needed "backquote.lisp"))
       (load (compile-file-if-needed "find.lisp"))
+      (load (compile-file-if-needed "coerce.lisp"))
+      (load (compile-file-if-needed "delete.lisp"))
       (load (compile-file-if-needed "with-compilation-unit.lisp"))
       (load (compile-file-if-needed "format.lisp"))
       (dolist (filespec '("acos"
@@ -76,7 +78,6 @@
                           "ccase"
                           "check-type"
                           "clos"
-                          "coerce"
                           "compile-file-pathname"
                           "compiler-error"
                           "concatenate"
@@ -101,7 +102,6 @@
                           "defstruct"
                           "deftype"
                           "defvar"
-                          "delete"
                           "delete-duplicates"
                           "delete-package"
                           "deposit-field"
