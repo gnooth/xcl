@@ -231,9 +231,19 @@ public:
     // the stack grows up from the base
     if (_binding_stack_index < _binding_stack_capacity)
       {
-        _binding_stack_base[_binding_stack_index++] = symbol_thread_local_value(the_symbol(name));
+        Symbol * sym = the_symbol(name);
+        INDEX i = sym->binding_index();
+        Value old_value;
+        if (i == 0)
+          {
+            i = sym->assign_binding_index();
+            old_value = NO_THREAD_LOCAL_VALUE;
+          }
+        else
+          old_value = _thread_local_values[i];
+        _binding_stack_base[_binding_stack_index++] = old_value;
         _binding_stack_base[_binding_stack_index++] = name;
-        set_symbol_thread_local_value(the_symbol(name), value);
+        _thread_local_values[i] = value;
       }
     else
       slow_bind_special(name, value);
