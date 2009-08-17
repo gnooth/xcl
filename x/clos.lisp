@@ -2923,6 +2923,12 @@
   (let ((message (apply #'format nil format-control args)))
     (error "Method combination error in CLOS dispatch:~%    ~A" message)))
 
+;; FIXME
+(defgeneric no-next-method (generic-function method &rest args))
+
+;; FIXME
+(defgeneric function-keywords (method))
+
 (setq *mop-working-p* t)
 
 (provide "CLOS")
