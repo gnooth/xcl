@@ -62,7 +62,9 @@
 
 (provide "XP")
 
-(shadow '(print format princ-to-string
+(shadow '(print
+;;           format
+          princ-to-string
 ;; 	  prin1-to-string
 	  finish-output force-output clear-output))
 
@@ -2840,7 +2842,7 @@
 (set-pprint-dispatch+ '(cons (member with-open-file)) #'block-like '(0) *IPD*)
 (set-pprint-dispatch+ '(cons (member with-open-stream)) #'block-like '(0) *IPD*)
 (set-pprint-dispatch+ '(cons (member with-output-to-string)) #'block-like '(0) *IPD*)
-
+
 (defun pprint-dispatch-print (xp table)
   (let ((stuff (copy-list (others table))))
     (maphash #'(lambda (key val) (declare (ignore key))
