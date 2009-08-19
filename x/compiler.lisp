@@ -1945,11 +1945,21 @@ for special variables."
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
 
 (defun assemble-instruction (instruction)
-;;   (let ((asm:*output* (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0)))
-  (let ((asm:*output* +assemble-instruction-output+))
-    (setf (fill-pointer +assemble-instruction-output+) 0)
-    (asm::assemble-instruction instruction)
-    (make-instruction :bytes (length asm:*output*) (coerce-vector-to-list asm:*output*))))
+  (declare (type cons instruction))
+  (case (car instruction)
+    (:label
+     (make-instruction :label 0 (second instruction)))
+    (:jmp-short
+     (let ((test (second instruction))
+           (label (third instruction)))
+       (make-instruction :jmp-short 2 (list test label))))
+    (:function
+     (make-instruction :function 4 (second instruction)))
+    (t
+     (let ((asm:*output* +assemble-instruction-output+))
+       (setf (fill-pointer +assemble-instruction-output+) 0)
+       (asm::assemble-instruction instruction)
+       (make-instruction :bytes (length asm:*output*) (coerce-vector-to-list asm:*output*))))))
 
 ;; (defun preoptimize-1 ()
 ;;   (debug-log "preoptimize-1 called~%")
@@ -2191,6 +2201,7 @@ for special variables."
     (ir2-optimize)
 ;;     (dump-code)
     (p3)
+;;     (dump-code)
     (optimize-code)
     (setq *code* (coerce *code* 'list))))
 

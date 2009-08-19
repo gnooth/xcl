@@ -729,10 +729,10 @@
 (defun emit-constant (form)
   (emit (make-instruction :constant 4 form)))
 
-(defknown emit-function (t) t)
-(defun emit-function (form)
-  (declare (type symbol form))
-  (emit (make-instruction :function 4 form)))
+;; (defknown emit-function (t) t)
+;; (defun emit-function (form)
+;;   (declare (type symbol form))
+;;   (emit (make-instruction :function 4 form)))
 
 (defknown emit-move-function-to-register (t t) t)
 (defun emit-move-function-to-register (symbol register)
