@@ -189,12 +189,12 @@
                 (unsupported))))
         ((consp operand2)
          (cond ((and (length-eql operand2 2)
-                     (integerp (first operand2))
-                     (reg64-p (second operand2))
+                     (integerp (%car operand2))
+                     (reg64-p (%cadr operand2))
                      (reg64-p operand1))
                 (let ((reg1 operand1)
-                      (displacement (first operand2))
-                      (reg2 (second operand2))
+                      (displacement (%car operand2))
+                      (reg2 (%cadr operand2))
                       (prefix-byte #x48))
                   (when (extended-register-p reg1)
                     (setq prefix-byte (logior prefix-byte rex.r)))
@@ -220,10 +220,24 @@
                            (emit-bytes prefix-byte #x89 modrm-byte)
                            (emit-raw displacement))))))
                ((and (length-eql operand2 1)
-                     (eq (first operand2) :rsp)
+                     (eq (%car operand2) :rsp)
                      (eq operand1 :rax))
                 ;; mov %rax,(%rsp)
                 (emit-bytes #x48 #x89 #x04 #x24))
+               ((and (length-eql operand2 1)
+                     (reg64-p operand1)
+                     (reg64-p (%car operand2)))
+                (let* ((reg1 operand1)
+                       (reg2 (%car operand2))
+                       (modrm-byte (make-modrm-byte #xb00
+                                                    (register-number reg1)
+                                                    (register-number reg2)))
+                       (prefix-byte #x48))
+                  (when (extended-register-p reg1)
+                    (setq prefix-byte (logior prefix-byte rex.r)))
+                  (when (extended-register-p reg2)
+                    (setq prefix-byte (logior prefix-byte rex.b)))
+                  (emit-bytes prefix-byte #x89 modrm-byte)))
                (t
                 (unsupported))))
         ((and (integerp operand1)
@@ -384,6 +398,14 @@
 
 (define-assembler :ret
   (emit-byte #xc3))
+
+(define-assembler :sar
+  (cond ((and (typep operand1 '(unsigned-byte 8))
+              (reg64-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 7 (register-number operand2))))
+           (emit-bytes #x48 #xc1 modrm-byte operand1)))
+        (t
+         (unsupported))))
 
 (define-assembler :shl
   (cond ((and (typep operand1 '(unsigned-byte 8))

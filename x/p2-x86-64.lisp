@@ -20,7 +20,7 @@
 
 (defknown unbox-fixnum (t) t)
 (defun unbox-fixnum (register)
-  (emit-bytes #x48 #xc1 (make-modrm-byte #b11 7 (register-number register)) +fixnum-shift+)
+  (inst :sar +fixnum-shift+ register)
   (clear-register-contents register))
 
 (defknown emit-clear-values (*) t)
@@ -2485,20 +2485,19 @@
              (p2-svset form target))
             ((subtypep type1 '(simple-array (unsigned-byte 8) (*)))
              (cond ((zerop *safety*)
-;;                     (debug-log "p2-vector-set (simple-array (unsigned-byte 8) 1) case, safety is zero~%")
-;;                     (debug-log "target = ~S~%" target)
+                    ;; FIXME this trashes the first three argument registers, which breaks things
+                    ;; if this code ends up in a trivial leaf function...
                     (process-3-args args '(:rdi :rsi :rdx) t) ; vector in rdi, index in rsi, new element in rdx
+
                     (inst :mov :rdi :rax)
                     (clear-register-contents :rax)
-                    (emit-add-immediate-to-register
-                     (- +simple-vector-data-offset+ +typed-object-lowtag+)
-                     :rax)
+                    (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
 
                     ;; index is in rsi
                     ;; unbox it
                     (unbox-fixnum :rsi)
 
-                    (emit-bytes #x48 #x01 #xf0) ; add %rsi,%rax
+                    (inst :add :rsi :rax)
 
                     ;; new element is in rdx
                     (when target
@@ -2535,7 +2534,26 @@
            (arg2 (%cadr args))
            (arg3 (%caddr args))
            (type1 (derive-type arg1)))
-      (cond ((and (neq type1 :unknown)
+      (cond ((zerop *safety*)
+             (debug-log "p2-svset safety zero case~%")
+             (process-3-args args '(:rax :rdx :rcx) t) ; vector in rax, index in rsi, new element in rcx
+             (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
+             ;; index is in rdx
+             ;; unbox it
+             (unbox-fixnum :rdx)
+             (inst :shl 3 :rdx) ; multiply by 8 to get byte offset
+             (inst :add :rdx :rax)
+             ;; new element is in rcx
+             (when target
+               (inst :push :rcx)) ; save it for return value
+             ;; store it in the array
+             (inst :mov :rcx '(:rax))
+             ;; return value
+             (when target
+               (inst :pop :rax))
+             (move-result-to-target target)
+             t)
+            ((and (neq type1 :unknown)
                   (subtypep type1 'SIMPLE-VECTOR))
              (p2-function-call (list '%SVSET arg1 arg2 arg3) target)
              t)
@@ -6196,6 +6214,7 @@
 (install-p2-handler 'vector3                    'p2-vector3)
 (install-p2-handler 'zerop                      'p2-zerop)
 
+;; converts IR2 into bytes
 (defun p3 ()
   (let* ((compiland *current-compiland*)
          (arity (compiland-arity compiland))
