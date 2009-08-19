@@ -34,7 +34,7 @@
          (i len)
          (result nil))
     (declare (optimize speed (safety 0)))
-    (declare (type sys:index i))
+    (declare (type index i))
     (loop
       (when (zerop i)
         (return-from coerce-vector-to-list result))
