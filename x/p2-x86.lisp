@@ -696,8 +696,10 @@
          (clear-register-contents)
          )
         ((< n 32)
-         (emit-bytes #x83 #xc4)
-         (emit-byte (* n +bytes-per-word+)))
+;;          (emit-bytes #x83 #xc4)
+;;          (emit-byte (* n +bytes-per-word+))
+         (inst :add (* n +bytes-per-word+) :esp)
+         )
         (t
          (compiler-unsupported "EMIT-ADJUST-STACK-AFTER-CALL n = ~D" n))))
 
@@ -736,9 +738,11 @@
 
 (defknown emit-move-function-to-register (t t) t)
 (defun emit-move-function-to-register (symbol register)
-  (declare (type symbol form))
-  (emit-byte (+ #xb8 (register-number register))) ; mov imm32,reg
-  (emit-function symbol))
+;;   (declare (type symbol form))
+;;   (emit-byte (+ #xb8 (register-number register))) ; mov imm32,reg
+;;   (emit-function symbol)
+  (emit (list :mov-immediate (list :function symbol) register))
+  )
 
 (defknown p2-constant (t t) t)
 (defun p2-constant (form target)
@@ -5172,6 +5176,36 @@
                    (setq instruction (make-instruction :call 5 operand1))
 ;;                    (setf (svref code i) instruction)
                    (vector-push-extend instruction new-code))
+                  (:mov-immediate
+                   ;;                    (debug-log "p3 mov-immediate case~%")
+                   ;;   (emit-byte (+ #xb8 (register-number register))) ; mov imm32,reg
+                   ;;   (emit-function symbol)
+                   (cond ((and (consp operand1)
+                               (eq (%car operand1) :function))
+                          (aver (length-eql operand1 2))
+                          (let ((symbol (%cadr operand1))
+                                (register operand2))
+                            ;; mov imm32, reg
+                            (vector-push-extend
+                             (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                             new-code)
+                            (vector-push-extend
+                             (make-instruction :function 4 symbol)
+                             new-code)))
+;;                          ((and (consp operand1)
+;;                                (eq (%car operand1) :constant-32))
+;;                           (aver (length-eql operand1 2))
+;;                           (let ((form (%cadr operand1))
+;;                                 (register operand2))
+;;                             ;; mov imm32, reg
+;;                             (vector-push-extend
+;;                              (make-instruction :byte 1 (+ #xb8 (register-number register)))
+;;                              new-code)
+;;                             (vector-push-extend
+;;                              (make-instruction :constant-32 4 form)
+;;                              new-code)))
+                         (t
+                          (unsupported))))
                   (t
                    (vector-push-extend (assemble-instruction instruction) new-code))))
 ;;             (when (consp instruction)
