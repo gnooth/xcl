@@ -43,6 +43,10 @@
       (load (compile-file-if-needed "p2-x86.lisp"))
       #+x86-64
       (load (compile-file-if-needed "p2-x86-64.lisp"))
+      #+x86
+      (load (compile-file-if-needed "p3-x86.lisp"))
+      #+x86-64
+      (load (compile-file-if-needed "p3-x86-64.lisp"))
       (load (compile-file-if-needed "assembler.lisp"))
       #+x86
       (load (compile-file-if-needed "asm-x86.lisp"))
