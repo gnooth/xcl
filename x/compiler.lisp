@@ -1684,7 +1684,7 @@ for special variables."
             (incf j))))))
   )
 
-;; mark dead code
+;; get rid of unreachable code
 (defknown optimize-1 () t)
 (defun optimize-1 ()
   (let ((code *code*)
@@ -1982,7 +1982,7 @@ for special variables."
               (setf (svref code i) nil)
               (setq changed t)))))
     (when changed
-      (debug-log "optimize-ir2-1!~%")
+;;       (debug-log "optimize-ir2-1!~%")
       (setq *code* (delete nil code)))
     changed))
 
@@ -2043,6 +2043,67 @@ for special variables."
       )
     changed))
 
+(defknown optimize-ir2-1c () t)
+(defun optimize-ir2-1c ()
+  ;; change this:
+  ;;
+  ;;       jne     L1
+  ;;       jmp     L0
+  ;;   L1:
+  ;;
+  ;; to this:
+  ;;
+  ;;       je      L0
+  ;;   L1:
+  (let ((code *code*)
+        (changed nil))
+    (declare (type simple-vector code))
+    (dotimes (i (- (length code) 2))
+      (let ((instruction-1 (svref code i))
+            (instruction-2 (svref code (+ i 1)))
+            (instruction-3 (svref code (+ i 2))))
+        (when (and (consp instruction-1)
+                   (consp instruction-2)
+                   (consp instruction-3)
+                   (memq (%car instruction-1) '(:jmp-short :jmp))
+                   (memq (%car instruction-2) '(:jmp-short :jmp))
+                   (eq (%car instruction-3) :label)
+;;                    (neq (instruction-jump-test instruction-1) t)
+                   (neq (second instruction-1) t)
+;;                    (eq (instruction-data instruction-3) (instruction-jump-target instruction-1))
+                   (eq (second instruction-3) (third instruction-1))
+;;                    (eq (instruction-jump-test instruction-2) t)
+                   (eq (second instruction-2) t)
+                   )
+          (let* (;(test (instruction-jump-test instruction-1))
+                 (test (second instruction-1))
+                 (negated-test (case test
+                                 (:e  :ne)
+                                 (:z  :nz)
+                                 (:ne :e)
+                                 (:nz :z)
+                                 (:l  :nl)
+                                 (:nl :l)
+                                 (:ge :l)
+                                 (:g  :ng)
+                                 (:ng :g)
+                                 (t
+                                  nil))))
+            (cond (negated-test
+;;                    (deadify instruction-1)
+                   (setf (svref code i) nil)
+                   (setf (second instruction-2) negated-test)
+                   (setq changed t))
+                  (t
+                   (debug-log "optimize-ir2-1c unsupported test ~S~%" test)
+                   nil))))))
+    (when changed
+      ;;       (setq *code* (delete-if #'instruction-dead-p code))
+;;       (setq *code* (squash-code code))
+;;       (debug-log "optimize-ir2-1c!~%")
+      (setq *code* (delete nil code))
+      )))
+
 (defknown optimize-ir2-2 () t)
 (defun optimize-ir2-2 ()
   (let ((code *code*)
@@ -2073,6 +2134,7 @@ for special variables."
 (defun optimize-ir2 ()
   (optimize-ir2-1)
   (optimize-ir2-1b)
+  (optimize-ir2-1c)
   (optimize-ir2-2))
 
 (defconstant +assemble-instruction-output+
