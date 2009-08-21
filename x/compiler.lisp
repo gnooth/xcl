@@ -2150,6 +2150,43 @@ for special variables."
 (defknown optimize-ir2-3 () t)
 (defun optimize-ir2-3 ()
   (let ((code *code*)
+        (changed nil)
+        (label nil)
+        (ht (make-hash-table :test 'eq)))
+    (declare (type simple-vector code))
+    (dotimes (i (length code))
+      (let* ((instruction (svref code i))
+             (kind (car instruction)))
+        (cond (label
+               ;; the previous instruction was a label
+               ;; record this one if it's an unconditional jump
+               (when (and (memq kind '(:jmp :jmp-short))
+                          (eq (second instruction) t))
+                 (let ((target (third instruction)))
+                   (setf (gethash label ht) target)))
+               (setq label nil))
+              ((eq kind :label)
+               ;; this instruction is a label
+               (setq label (second instruction))))))
+    (unless (zerop (hash-table-count ht))
+      (dotimes (i (length code))
+        (let ((instruction (svref code i)))
+          (when (memq (car instruction) '(:jmp-short :jmp))
+            ;; this instruction is a conditional or unconditional jump
+            (let ((target (third instruction)))
+              (aver (not (null target)))
+              (aver (symbolp target))
+              (let ((referral (gethash2-1 target ht)))
+                (when (and referral (neq referral target))
+                  (setf (third instruction) referral)
+                  (setq changed t))))))))
+;;     (when changed
+;;       (setq *code* code))
+    changed))
+
+(defknown optimize-ir2-5 () t)
+(defun optimize-ir2-5 ()
+  (let ((code *code*)
         (changed nil))
     (declare (type simple-vector code))
     (dotimes (i (1- (length code)))
@@ -2178,7 +2215,8 @@ for special variables."
   (optimize-ir2-1b)
   (optimize-ir2-1c)
   (optimize-ir2-2)
-  (optimize-ir2-3))
+  (optimize-ir2-3)
+  (optimize-ir2-5))
 
 (defconstant +assemble-instruction-output+
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
