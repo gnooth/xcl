@@ -2186,6 +2186,36 @@ for special variables."
 ;;       (setq *code* code))
     changed))
 
+;; get rid of unconditional jumps to the next instruction
+(defknown optimize-ir2-4 () t)
+(defun optimize-ir2-4 ()
+  (let ((code *code*)
+        (changed nil))
+    (declare (type simple-vector code))
+    (dotimes (i (1- (length code)))
+      (let ((instruction-1 (svref code i))
+            (instruction-2 (svref code (1+ i)))
+            target)
+        (when (and (consp instruction-1)
+                   (memq (%car instruction-1) '(:jmp-short :jmp))
+                   (eq (second instruction-1) t))
+          ;; instruction-1 is an unconditional jump
+          (setq target (third instruction-1))
+          (when (and (consp instruction-2)
+                     (eq (%car instruction-2) :label))
+            ;; instruction-2 is a label
+            (when (eq target (second instruction-2))
+              ;; instruction-1 is an unconditional jump to instruction-2
+;;               (deadify instruction-1)
+              (setf (svref code i) nil)
+              (setq changed t))))))
+    (when changed
+      ;;       (setq *code* (delete-if #'instruction-dead-p *code*))
+;;       (setq *code* (squash-code *code*))
+      (setq *code* (delete nil code))
+      )
+    changed))
+
 (defknown optimize-ir2-5 () t)
 (defun optimize-ir2-5 ()
   (let ((code *code*)
@@ -2218,6 +2248,7 @@ for special variables."
   (optimize-ir2-1c)
   (optimize-ir2-2)
   (optimize-ir2-3)
+  (optimize-ir2-4)
   (optimize-ir2-5))
 
 (defconstant +assemble-instruction-output+
