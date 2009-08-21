@@ -2156,7 +2156,8 @@ for special variables."
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let* ((instruction (svref code i))
-             (kind (car instruction)))
+             (kind (and (consp instruction)
+                        (%car instruction))))
         (cond (label
                ;; the previous instruction was a label
                ;; record this one if it's an unconditional jump
@@ -2171,7 +2172,8 @@ for special variables."
     (unless (zerop (hash-table-count ht))
       (dotimes (i (length code))
         (let ((instruction (svref code i)))
-          (when (memq (car instruction) '(:jmp-short :jmp))
+          (when (and (consp instruction)
+                     (memq (%car instruction) '(:jmp-short :jmp)))
             ;; this instruction is a conditional or unconditional jump
             (let ((target (third instruction)))
               (aver (not (null target)))

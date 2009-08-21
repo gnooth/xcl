@@ -5118,6 +5118,8 @@
       (dotimes (i (length code))
         (let ((instruction (svref code i)))
 ;;           (debug-log "p3 instruction = ~S~%" instruction)
+;;           (unless (consp instruction)
+;;             (format t "p3 non-cons instruction = ~S~%" instruction))
           (if (consp instruction)
               (let ((mnemonic (first instruction))
                     (operand1 (second instruction))
