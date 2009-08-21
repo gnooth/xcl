@@ -203,7 +203,8 @@
 
 (defknown emit-recurse () t)
 (defun emit-recurse ()
-  (emit (make-instruction :recurse 5 nil))
+;;   (emit (make-instruction :recurse 5 nil))
+  (inst :recurse)
   (clear-register-contents))
 
 (defknown emit-function (t) t)

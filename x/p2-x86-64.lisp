@@ -160,9 +160,11 @@
                   (reg (register-number from))
                   (rm  (register-number :rbp))
                   (modrm-byte (make-modrm-byte mod reg rm)))
-             (emit (make-instruction :bytes
-                                     4
-                                     (list #x48 #x89 modrm-byte displacement-byte)))))
+;;              (emit (make-instruction :bytes
+;;                                      4
+;;                                      (list #x48 #x89 modrm-byte displacement-byte)))
+             (inst :bytes #x48 #x89 modrm-byte displacement-byte)
+             ))
           (t
            (let* ((mod #b10)
                   (reg (register-number from))
@@ -379,44 +381,44 @@
 (defun emit-int-3 ()
   (emit-byte #xcc))
 
-(defknown emit-push (t) t)
-(defun emit-push (reg)
-  (case reg
-    (:rax (emit-byte #x50))
-    (:rcx (emit-byte #x51))
-    (:rdx (emit-byte #x52))
-    (:rbx (emit-byte #x53))
-    (:rsp (emit-byte #x54))
-    (:rbp (emit-byte #x55))
-    (:rsi (emit-byte #x56))
-    (:rdi (emit-byte #x57))
-    (:r8  (emit-bytes #x41 #x50))
-    (:r9  (emit-bytes #x41 #x51))
-    (:r12 (emit-bytes #x41 #x54))
-    (:r13 (emit-bytes #x41 #x55))
-    (t
-     (unsupported))))
+;; (defknown emit-push (t) t)
+;; (defun emit-push (reg)
+;;   (case reg
+;;     (:rax (emit-byte #x50))
+;;     (:rcx (emit-byte #x51))
+;;     (:rdx (emit-byte #x52))
+;;     (:rbx (emit-byte #x53))
+;;     (:rsp (emit-byte #x54))
+;;     (:rbp (emit-byte #x55))
+;;     (:rsi (emit-byte #x56))
+;;     (:rdi (emit-byte #x57))
+;;     (:r8  (emit-bytes #x41 #x50))
+;;     (:r9  (emit-bytes #x41 #x51))
+;;     (:r12 (emit-bytes #x41 #x54))
+;;     (:r13 (emit-bytes #x41 #x55))
+;;     (t
+;;      (unsupported))))
 
-(defknown emit-pop (t) t)
-(defun emit-pop (reg)
-  (case reg
-    (:rax (emit-byte #x58))
-    (:rcx (emit-byte #x59))
-    (:rdx (emit-byte #x5a))
-    (:rbx (emit-byte #x5b))
-    (:rsp (emit-byte #x5c))
-    (:rbp (emit-byte #x5d))
-    (:rsi (emit-byte #x5e))
-    (:rdi (emit-byte #x5f))
-    (:r8  (emit-bytes #x41 #x58))
-    (:r9  (emit-bytes #x41 #x59))
-    (:r12 (emit-bytes #x41 #x5c))
-    (:r13 (emit-bytes #x41 #x5d))
-    (t
-     (unsupported))))
+;; (defknown emit-pop (t) t)
+;; (defun emit-pop (reg)
+;;   (case reg
+;;     (:rax (emit-byte #x58))
+;;     (:rcx (emit-byte #x59))
+;;     (:rdx (emit-byte #x5a))
+;;     (:rbx (emit-byte #x5b))
+;;     (:rsp (emit-byte #x5c))
+;;     (:rbp (emit-byte #x5d))
+;;     (:rsi (emit-byte #x5e))
+;;     (:rdi (emit-byte #x5f))
+;;     (:r8  (emit-bytes #x41 #x58))
+;;     (:r9  (emit-bytes #x41 #x59))
+;;     (:r12 (emit-bytes #x41 #x5c))
+;;     (:r13 (emit-bytes #x41 #x5d))
+;;     (t
+;;      (unsupported))))
 
-(defmacro emit-drop (reg)
-  `(emit-pop ,reg))
+;; (defmacro emit-drop (reg)
+;;   `(emit-pop ,reg))
 
 (defknown emit-push-immediate (t) t)
 (defun emit-push-immediate (arg)
@@ -462,13 +464,13 @@
         (t
          (unsupported))))
 
-(defknown emit-constant (t) t)
-(defun emit-constant (form)
-  (emit (make-instruction :constant 8 form)))
+;; (defknown emit-constant (t) t)
+;; (defun emit-constant (form)
+;;   (emit (make-instruction :constant 8 form)))
 
-(defknown emit-constant-32 (t) t)
-(defun emit-constant-32 (form)
-  (emit (make-instruction :constant-32 4 form)))
+;; (defknown emit-constant-32 (t) t)
+;; (defun emit-constant-32 (form)
+;;   (emit (make-instruction :constant-32 4 form)))
 
 ;; (defknown emit-function (t) t)
 ;; (defun emit-function (form)
@@ -4027,8 +4029,9 @@
                    (setf (gethash :error-not-boolean common-labels) ERROR)))
                (emit-compare-rax-to-nil)
                (emit-jmp-short :e EXIT)
-               (emit-bytes #x48 #x3d) ; cmp imm32,%rax
-               (emit-constant-32 t)
+;;                (emit-bytes #x48 #x3d) ; cmp imm32,%rax
+;;                (emit-constant-32 t)
+               (inst :cmp-immediate '(:constant-32 t) :rax)
                (emit-jmp-short :ne ERROR)
                (label EXIT)
                (when target
@@ -5649,8 +5652,10 @@
                  ;;                (push prototype (compiland-constants compiland))
                  ;;                (emit-move-immediate-dword-to-register (address-of prototype) :rdx)
                  ;;                (emit-byte #x48)
-                 (emit-byte (+ #xb8 (register-number :rdx)))
-                 (emit-constant-32 prototype))
+;;                  (emit-byte (+ #xb8 (register-number :rdx)))
+;;                  (emit-constant-32 prototype)
+                 (inst :mov-immediate (list :constant-32 prototype) :edx)
+                 )
 
                (let* ((names (lambda-list-names lambda-list))
                       (n (length names))
@@ -5852,8 +5857,10 @@
                  ;;                (push prototype (compiland-constants compiland))
                  ;;                (emit-move-immediate-dword-to-register (address-of prototype) :rdx)
                  ;;                (emit-byte #x48)
-                 (emit-byte (+ #xb8 (register-number :rdx)))
-                 (emit-constant-32 prototype))
+;;                  (emit-byte (+ #xb8 (register-number :rdx)))
+;;                  (emit-constant-32 prototype)
+                 (inst :mov-immediate (list :constant-32 prototype) :edx)
+                 )
 
                (let* ((names (lambda-list-names lambda-list))
                       (n (length names))
@@ -6235,7 +6242,7 @@
                                 ((var-register operand1)
                                  (setf (second instruction) (var-register operand1)))
                                 (t
-                                 (debug-log "no var-index for var ~S~%" (var-name operand1))
+                                 (debug-log "p3 no var-index for var ~S~%" (var-name operand1))
                                  (unsupported))))
                          ((var-p operand2)
                           ;; setq
@@ -6246,7 +6253,7 @@
                                 ((var-register operand2)
                                  (setf (third instruction) (var-register operand2)))
                                 (t
-                                 (debug-log "no var-index for var ~S~%" (var-name operand2))
+                                 (debug-log "p3 no var-index for var ~S~%" (var-name operand2))
                                  (unsupported))))
                          (t
                           ;; nothing to do
@@ -6258,6 +6265,7 @@
                                  (setf (second instruction)
                                        (list (index-displacement (var-index operand1)) :rbp)))
                                 (t
+                                 (debug-log "p3 :push unsupported case~%")
                                  (unsupported))))
                          (t
                           ;; nothing to do
@@ -6315,11 +6323,14 @@
                                                       (list #x49 #xc7 (+ #xc0 (register-number register))))
                                     new-code))
                                   (t
+                                   (debug-log "p3 :mov-immediate :constant-32 unsupported case register = ~S~%"
+                                              register)
                                    (unsupported)))
                             (vector-push-extend
                              (make-instruction :constant-32 4 form)
                              new-code)))
                          (t
+                          (debug-log "p3 :mov-immediate unsupported case~%")
                           (unsupported))))
                   (:cmp-immediate
 ;;                    (debug-log "p3 :cmp-immediate case~%")
@@ -6343,6 +6354,7 @@
                              (make-instruction :constant-32 4 form)
                              new-code)))
                          (t
+                          (debug-log "p3 :cmp-immediate unsupported case~%")
                           (unsupported))))
                   (:byte
                    (vector-push-extend (make-instruction :byte 1 operand1) new-code))
@@ -6350,6 +6362,8 @@
                    (let* ((bytes (cdr instruction))
                           (length (length bytes)))
                    (vector-push-extend (make-instruction :bytes length bytes) new-code)))
+                  (:recurse
+                   (vector-push-extend (make-instruction :recurse 5 nil) new-code))
                   (t
                    (vector-push-extend (assemble-instruction instruction) new-code))))
               (vector-push-extend instruction new-code))))

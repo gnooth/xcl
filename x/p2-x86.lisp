@@ -5213,6 +5213,8 @@
                    (let* ((bytes (cdr instruction))
                           (length (length bytes)))
                      (vector-push-extend (make-instruction :bytes length bytes) new-code)))
+                  (:recurse
+                   (vector-push-extend (make-instruction :recurse 5 nil) new-code))
                   (t
                    (vector-push-extend (assemble-instruction instruction) new-code))))
 ;;             (when (consp instruction)
