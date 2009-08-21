@@ -1943,7 +1943,8 @@ for special variables."
       (setq changed (or (optimize-3)  changed))
       (setq changed (or (optimize-4)  changed))
       (unless changed
-        (return))))
+        (return))
+      (debug-log "optimize-code did something~%")))
 ;;   (setq *code* (coerce *code* 'list))
   )
 
@@ -2243,13 +2244,17 @@ for special variables."
 
 (defknown optimize-ir2 () t)
 (defun optimize-ir2 ()
-  (optimize-ir2-1)
-  (optimize-ir2-1b)
-  (optimize-ir2-1c)
-  (optimize-ir2-2)
-  (optimize-ir2-3)
-  (optimize-ir2-4)
-  (optimize-ir2-5))
+  (loop
+    (let ((changed nil))
+      (setq changed (or (optimize-ir2-1)  changed))
+      (setq changed (or (optimize-ir2-1b) changed))
+      (setq changed (or (optimize-ir2-1c) changed))
+      (setq changed (or (optimize-ir2-2)  changed))
+      (setq changed (or (optimize-ir2-3)  changed))
+      (setq changed (or (optimize-ir2-4)  changed))
+      (setq changed (or (optimize-ir2-5)  changed))
+      (unless changed
+        (return)))))
 
 (defconstant +assemble-instruction-output+
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
@@ -2520,7 +2525,7 @@ for special variables."
     (dump-code)
     (p3)
     (dump-code)
-    (optimize-code)
+;;     (optimize-code)
     (setq *code* (coerce *code* 'list))))
 
 (defun compile-defun (name lambda-expression)
