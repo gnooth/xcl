@@ -2104,8 +2104,51 @@ for special variables."
       (setq *code* (delete nil code))
       )))
 
-(defknown optimize-ir2-2 () t)
+;; get rid of unused labels
+(defknown optimize-2 () t)
 (defun optimize-ir2-2 ()
+  (let ((code *code*)
+        (changed nil)
+        (used-labels (make-hash-table :test 'eq)))
+    (declare (type simple-vector code))
+    ;; first pass: populate used labels hash table
+    (dotimes (i (length code))
+      (let* ((instruction (svref code i))
+             (kind (and (consp instruction)
+                        (%car instruction))))
+        (case kind
+          ((:jmp-short :jmp)
+           (let ((target (third instruction)))
+             (aver (not (null target)))
+             (aver (symbolp target))
+             (setf (gethash target used-labels) t)))
+          (:call
+           (let ((target (second instruction)))
+             (when (labelp target)
+               (setf (gethash target used-labels) t)))))))
+    ;; second pass: deadify unused labels
+    (dotimes (i (length code))
+      (let* ((instruction (svref code i))
+             (kind (and (consp instruction)
+                        (%car instruction))))
+        (when (eq kind :label)
+          (let ((target (second instruction)))
+            (aver (not (null target)))
+            (aver (symbolp target))
+            (unless (gethash2-1 target used-labels)
+;;               (deadify instruction)
+              (setf (svref code i) nil)
+              (setq changed t))))))
+    (when changed
+;;       (debug-log "optimize-ir2-2!~%")
+      ;;       (setq *code* (delete-if #'instruction-dead-p *code*))
+;;       (setq *code* (squash-code *code*))
+      (setq *code* (delete nil code))
+      )
+    changed))
+
+(defknown optimize-ir2-3 () t)
+(defun optimize-ir2-3 ()
   (let ((code *code*)
         (changed nil))
     (declare (type simple-vector code))
@@ -2126,7 +2169,6 @@ for special variables."
                   (setf (svref code (1+ i)) (list :shl (- shift2 shift1) reg1))
                   (setq changed t))))))))
     (when changed
-;;       (debug-log "optimize-ir2-2!~%")
       (setq *code* (delete nil code)))
     changed))
 
@@ -2135,7 +2177,8 @@ for special variables."
   (optimize-ir2-1)
   (optimize-ir2-1b)
   (optimize-ir2-1c)
-  (optimize-ir2-2))
+  (optimize-ir2-2)
+  (optimize-ir2-3))
 
 (defconstant +assemble-instruction-output+
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
