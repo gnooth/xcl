@@ -367,28 +367,33 @@
 
 (defun emit-qword (n)
   (let ((x (value-to-ub64 n)))
-    (let ((code (list (ldb (byte 8 0) x)
-                      (ldb (byte 8 8) x)
+    (let ((code (list (ldb (byte 8  0) x)
+                      (ldb (byte 8  8) x)
                       (ldb (byte 8 16) x)
                       (ldb (byte 8 24) x)
                       (ldb (byte 8 32) x)
                       (ldb (byte 8 40) x)
                       (ldb (byte 8 48) x)
                       (ldb (byte 8 56) x))))
-      (emit (make-instruction :bytes 8 code)))))
+;;       (emit (make-instruction :bytes 8 code))
+      (emit (list* :bytes code))
+      )))
+
+(defknown emit-raw-dword (t) t)
+(defun emit-raw-dword (n)
+  (let ((code (list (ldb (byte 8  0) n)
+                    (ldb (byte 8  8) n)
+                    (ldb (byte 8 16) n)
+                    (ldb (byte 8 24) n))))
+;;     (emit (make-instruction :bytes 4 code))
+    (emit (list* :bytes code))
+    ))
 
 (defknown emit-dword (t) t)
 (defun emit-dword (n)
   (let ((x (value-to-ub64 n)))
     (aver (<= x #x7fffffff))
     (emit-raw-dword x)))
-
-(defun emit-raw-dword (n)
-  (let ((code (list (ldb (byte 8 0) n)
-                    (ldb (byte 8 8) n)
-                    (ldb (byte 8 16) n)
-                    (ldb (byte 8 24) n))))
-    (emit (make-instruction :bytes 4 code))))
 
 (defun emit-raw-qword (n)
   (let ((code (list (ldb (byte 8 0) n)
@@ -399,14 +404,18 @@
                     (ldb (byte 8 40) n)
                     (ldb (byte 8 48) n)
                     (ldb (byte 8 56) n))))
-    (emit (make-instruction :bytes 8 code))))
+;;     (emit (make-instruction :bytes 8 code))
+    (emit (list* :bytes code))
+    ))
 
 (defun emit-raw (x)
   (let ((code (list (ldb (byte 8 0) x)
                     (ldb (byte 8 8) x)
                     (ldb (byte 8 16) x)
                     (ldb (byte 8 24) x))))
-    (emit (make-instruction :bytes 4 code))))
+;;     (emit (make-instruction :bytes 4 code))
+    (emit (list* :bytes code))
+    ))
 
 (defknown emit-move-immediate (t t) t)
 (defun emit-move-immediate (n target)
@@ -559,8 +568,10 @@
 
 (defknown emit-compare-rax-to-nil () t)
 (defun emit-compare-rax-to-nil ()
-  (emit-bytes #x48 #x3d) ; compare immediate dword to rax
-  (emit-constant-32 nil))
+;;   (emit-bytes #x48 #x3d) ; compare immediate dword to rax
+;;   (emit-constant-32 nil)
+  (inst :cmp-immediate '(:constant-32 nil) :rax)
+  )
 
 (defknown p2-constant (t t) t)
 (defun p2-constant (form target)
@@ -629,9 +640,10 @@
               (inst :mov-immediate (list :constant-32 form) (reg32 target))
               (clear-register-contents target))
              ((:r8 :r9)
-              (emit-bytes #x49 #xc7)
-              (emit-byte (if (eq target :r8) #xc0 #xc1))
-              (emit-constant-32 form)
+;;               (emit-bytes #x49 #xc7)
+;;               (emit-byte (if (eq target :r8) #xc0 #xc1))
+;;               (emit-constant-32 form)
+              (inst :mov-immediate (list :constant-32 form) target)
               (clear-register-contents target))
              (:return
 ;;               (emit-byte #xb8) ; move 32-bit unsigned constant into eax
@@ -6375,15 +6387,51 @@
                           (aver (length-eql operand1 2))
                           (let ((form (%cadr operand1))
                                 (register operand2))
-                            ;; mov imm32, reg
-                            (vector-push-extend
-                             (make-instruction :byte 1 (+ #xb8 (register-number register)))
-                             new-code)
+                            (cond ((memq register '(:eax :ebx :ecx :edx :esi :edi))
+                                   (vector-push-extend
+                                    (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                                    new-code))
+                                  ((memq register '(:r8 :r9))
+                                   (vector-push-extend
+                                    (make-instruction :bytes 3
+                                                      (list #x49 #xc7 (+ #xc0 (register-number register))))
+                                    new-code))
+                                  (t
+                                   (unsupported)))
                             (vector-push-extend
                              (make-instruction :constant-32 4 form)
                              new-code)))
                          (t
                           (unsupported))))
+                  (:cmp-immediate
+;;                    (debug-log "p3 :cmp-immediate case~%")
+                   (cond ((and (consp operand1)
+                               (eq (%car operand1) :constant-32))
+                          (aver (length-eql operand1 2))
+                          (let ((form (%cadr operand1))
+                                (register operand2))
+                            (aver (reg64-p register))
+                            (aver (memq register '(:rax :rbx :rcx :rdx :rsi :rdi)))
+;;                             (debug-log "p3 :cmp-immediate register = ~S~%" register)
+                            (if (eq register :rax)
+                                (vector-push-extend
+                                 (make-instruction :bytes 2 (list #x48 #x3d))
+                                 new-code)
+                                (vector-push-extend
+                                 (make-instruction :bytes 3
+                                                   (list #x48 #x81 (+ #xf8 (register-number register))))
+                                 new-code))
+                            (vector-push-extend
+                             (make-instruction :constant-32 4 form)
+                             new-code)))
+                         (t
+                          (unsupported))))
+                  (:byte
+                   (vector-push-extend (make-instruction :byte 1 operand1) new-code))
+                  (:bytes
+                   (let* ((bytes (cdr instruction))
+                          (length (length bytes)))
+                   (vector-push-extend (make-instruction :bytes length bytes) new-code)))
                   (t
                    (vector-push-extend (assemble-instruction instruction) new-code))))
               (vector-push-extend instruction new-code))))
