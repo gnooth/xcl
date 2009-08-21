@@ -92,89 +92,6 @@
   (emit-call address)
   (move-result-to-target target))
 
-(defknown emit-move (t t) t)
-(defun emit-move (from to)
-  (cond ((memq to '(:r8 :r9 :r12 :r13))
-         (cond ((eq from :rax)
-                (emit-bytes #x49 #x89
-                            (case to
-                              (:r8     #xc0)
-                              (:r9     #xc1)
-                              (:r12    #xc4)
-                              (:r13    #xc5)
-                              )))
-               ((eq from :rcx)
-                (emit-bytes #x49 #x89
-                            (case to
-                              (:r8     #xc8)
-                              (:r9     #xc9)
-                              (:r12    #xcc)
-                              (:r13    #xcd))))
-               (t
-                (compiler-unsupported "EMIT-MOVE 1 from = ~S" from))))
-        ((eq from :r8)
-         (emit-bytes #x4c #x89
-                     (case to
-                       (:rax #xc0)
-                       (:rcx #xc1)
-                       (:rdx #xc2)
-                       (:rbx #xc3)
-                       (:rdi #xc7)
-                       (t
-                        (compiler-unsupported "EMIT-MOVE 2 to = ~S" to)))))
-        ((eq from :r9)
-         (emit-bytes #x4c #x89
-                     (case to
-                       (:rax #xc8)
-                       (:rcx #xc9)
-                       (:rdx #xca)
-                       (:rbx #xcb)
-                       (:rdi #xcf)
-                       (t
-                        (compiler-unsupported "EMIT-MOVE 3 to = ~S" to)))))
-        ((eq from :r12)
-         (emit-bytes #x4c #x89
-                     (case to
-                       (:rax #xe0)
-                       (:rcx #xe1)
-                       (:rdx #xe2)
-                       (:rbx #xe3)
-                       (:rsi #xe6)
-                       (:rdi #xe7)
-                       (t
-                        (compiler-unsupported "EMIT-MOVE 4 to = ~S" to)))))
-        ((eq from :r13)
-         (emit-bytes #x4c #x89
-                     (case to
-                       (:rax #xe8)
-                       (:rcx #xe9)
-                       (:rdx #xea)
-                       (:rbx #xeb)
-                       (:rsi #xee)
-                       (:rdi #xef)
-                       (t
-                        (compiler-unsupported "EMIT-MOVE 5 to = ~S" to)))))
-        ((and (eql (register-bit-size from) 64)
-              (eql (register-bit-size to) 64))
-         (let* ((mod #b11)
-                (reg (register-number from))
-                (rm  (register-number to))
-                (modrm-byte (make-modrm-byte mod reg rm)))
-           (emit (make-instruction :bytes
-                                   3
-                                   (list #x48 #x89 modrm-byte)))))
-        ((and (eql (register-bit-size from) 32)
-              (eql (register-bit-size to) 32))
-         (let* ((mod #b11)
-                (reg (register-number from))
-                (rm  (register-number to))
-                (modrm-byte (make-modrm-byte mod reg rm)))
-           (emit (make-instruction :bytes
-                                   2
-                                   (list #x89 modrm-byte)))))
-        (t
-         (compiler-unsupported "EMIT-MOVE 6 from = ~S to = ~S" from to))))
-
 ;; index-displacement index => displacement
 ;; 0 => -8
 ;; 1 => -16
@@ -801,9 +718,9 @@
     (inst :mov thread-register :rdi)
     (emit-call "RT_enter_catch")
     (emit-move-register-to-var :rax block-var) ; catch-frame
-    (emit-move :rax :rdi)
+    (inst :mov :rax :rdi)
     (emit-call "RT_frame_jmp")
-    (emit-move :rax :rdi)
+    (inst :mov :rax :rdi)
     (emit-call "setjmp")
     (inst :test :al :al)
     (let ((LABEL1 (make-label))
@@ -1235,15 +1152,15 @@
                  (emit-jmp-short :z label-if-true))
                (emit-jmp-short :z EXIT)
                (cond ((use-fast-call-p)
-                      (emit-move :rax :rdi)
+                      (inst :mov :rax :rdi)
                       (emit-call 'zerop))
                      ((setq thread-register (compiland-thread-register *current-compiland*))
-                      (emit-move :rax :rdx)
+                      (inst :mov :rax :rdx)
                       (emit-move-function-to-register 'zerop :rsi)
                       (inst :mov thread-register :rdi)
                       (emit-call "RT_thread_call_function_1"))
                      (t
-                      (emit-move :rax :rsi)
+                      (inst :mov :rax :rsi)
                       (emit-move-function-to-register 'zerop :rdi)
                       (emit-call "RT_current_thread_call_function_1")))
                (emit-compare-rax-to-nil)
@@ -1513,7 +1430,6 @@
       (cond ((compiland-thread-register *current-compiland*)
              (inst :pop :rsi) ; name
              (inst :pop :rdx) ; value
-;;              (emit-move (compiland-thread-register *current-compiland*) :rdi)
              (inst :mov :r12 :rdi)
              (emit-call "RT_thread_bind_special"))
             (t
@@ -3530,7 +3446,7 @@
            ;; arg2 is a fixnum literal
            (emit-move-immediate arg2 :rsi)
            ;; arg1 is already in rax
-           (emit-move :rax :rdi)
+           (inst :mov :rax :rdi)
            (emit-call 'two-arg-<)
            (label EXIT)
            (move-result-to-target target)
@@ -3550,8 +3466,8 @@
            (p2-symbol nil :rax)
            (emit-jmp-short t exit)
            (label FULL-CALL)
-           (emit-move :rdx :rsi)
-           (emit-move :rax :rdi)
+           (inst :mov :rdx :rsi)
+           (inst :mov :rax :rdi)
            (emit-call 'two-arg-<)
            (label EXIT)
            (move-result-to-target target)
@@ -3781,7 +3697,7 @@
                (move-result-to-target target)
                (let ((*current-segment* :elsewhere))
                  (label FULL-CALL)
-                 (emit-move :rdx :rsi)
+                 (inst :mov :rdx :rsi)
                  (emit-call 'two-arg-+)
                  (emit-jmp-short t EXIT))))))
     t))
@@ -4636,14 +4552,14 @@
                             ((min two-arg-min) :l)
                             ((max two-arg-max) :g))
                           EXIT)
-          (emit-move :rdx :rax)
+          (inst :mov :rdx :rax)
           (clear-register-contents :rax)
           (unless (and (fixnum-type-p type1)
                        (fixnum-type-p type2))
             (emit-jmp-short t EXIT)
             (label FULL-CALL)
-            (emit-move :rdx :rsi)
-            (emit-move :rax :rdi)
+            (inst :mov :rdx :rsi)
+            (inst :mov :rax :rdi)
             (emit-call op))
           (label EXIT)
           (move-result-to-target target)))
@@ -5727,8 +5643,8 @@
                    (memq '&key lambda-list)
                    (and (compiland-arity compiland)
                         (> (compiland-arity compiland) 6)))
-               (emit-move :rsi :rdi)
-               (emit-move :rdx :rsi)
+               (inst :mov :rsi :rdi)
+               (inst :mov :rdx :rsi)
                (let ((prototype (coerce-to-function (list 'LAMBDA lambda-list nil))))
                  ;;                (push prototype (compiland-constants compiland))
                  ;;                (emit-move-immediate-dword-to-register (address-of prototype) :rdx)
@@ -5748,7 +5664,7 @@
                        (t
                         (emit-bytes #x48 #x81 #xec) ; sub imm32,%rsp
                         (emit-raw-dword numbytes)))
-                 (emit-move :rsp :rcx)
+                 (inst :mov :rsp :rcx)
                  ;; REVIEW do we need to make sure the stack is aligned for this call?
                  ;; fix stack alignment
                  (inst :sub +bytes-per-word+ :rsp)
@@ -5758,7 +5674,7 @@
 
                ;; address of args array is now in rax
                (when (some #'var-used-non-locally-p (compiland-arg-vars compiland))
-                 (emit-move :rax :rcx)) ; address of args array in rcx
+                 (inst :mov :rax :rcx)) ; address of args array in rcx
                (let ((base (1- index)))
                  (dolist (var (compiland-arg-vars compiland))
                    (declare (type var var))
@@ -5820,8 +5736,8 @@
                  (when (> start 2)
                    (compiler-unsupported "P2-CHILD-FUNCTION-PROLOG too many required args"))
                  ;; closure data is in rdi, numargs is in rsi, arg vector is in rdx
-                 (emit-move :rdx :rdi) ; arg vector
-                 (emit-move :rsi :rdx) ; numargs
+                 (inst :mov :rdx :rdi) ; arg vector
+                 (inst :mov :rsi :rdx) ; numargs
                  (emit-move-immediate-dword-to-register start :rsi)
                  ;; REVIEW do we need to make sure the stack is aligned for this call?
                  (emit-call "RT_restify")
@@ -5868,7 +5784,7 @@
 
       (when (compiland-thread-register compiland)
         (emit-call "RT_current_thread")
-        (emit-move :rax (compiland-thread-register compiland)))
+        (inst :mov :rax (compiland-thread-register compiland)))
 
       ))
   t)
@@ -6037,8 +5953,8 @@
                       (aver (or (var-index restvar) (var-closure-index restvar)))
                       (return))))
                  ;; at this point numargs is in rdi, arg vector is in rsi
-                 (emit-move :rdi :rdx)
-                 (emit-move :rsi :rdi)
+                 (inst :mov :rdi :rdx)
+                 (inst :mov :rsi :rdi)
                  (emit-move-immediate-dword-to-register start :rsi)
                  ;; REVIEW do we need to make sure the stack is aligned for this call?
                  (when (oddp stack-used)
@@ -6302,6 +6218,8 @@
       (declare (type simple-vector code))
       (dotimes (i (length code))
         (let ((instruction (svref code i)))
+          (unless (consp instruction)
+            (format t "p3 non-cons instruction = ~S~%" instruction))
           (if (consp instruction)
               (let ((mnemonic (first instruction))
                     (operand1 (second instruction))
