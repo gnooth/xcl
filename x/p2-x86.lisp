@@ -5117,6 +5117,7 @@
       (declare (type simple-vector code))
       (dotimes (i (length code))
         (let ((instruction (svref code i)))
+;;           (debug-log "p3 instruction = ~S~%" instruction)
           (if (consp instruction)
               (let ((mnemonic (first instruction))
                     (operand1 (second instruction))
@@ -5206,6 +5207,12 @@
 ;;                              new-code)))
                          (t
                           (unsupported))))
+                  (:byte
+                   (vector-push-extend (make-instruction :byte 1 operand1) new-code))
+                  (:bytes
+                   (let* ((bytes (cdr instruction))
+                          (length (length bytes)))
+                     (vector-push-extend (make-instruction :bytes length bytes) new-code)))
                   (t
                    (vector-push-extend (assemble-instruction instruction) new-code))))
 ;;             (when (consp instruction)
