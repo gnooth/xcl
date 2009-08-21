@@ -1650,303 +1650,11 @@ for special variables."
                  (terpri *debug-io*))))
         ))))
 
-(declaim (inline deadify))
-(defknown deadify (t) t)
-(defun deadify (instruction)
-  (set-instruction-kind instruction :dead))
-
-(eval-when (:compile-toplevel)
-  (declaim (inline instruction-dead-p)))
-(defknown instruction-dead-p (t) t)
-(defun instruction-dead-p (instruction)
-  (eq (instruction-kind instruction) :dead))
-
-(defun squash-code (code)
-;;   (delete-if #'instruction-dead-p code)
-  (declare (type vector code))
-  (let ((len (length code))
-        (count 0))
-    (declare (optimize speed (safety 0)))
-    (declare (type index count))
-    (dotimes (i len)
-      (declare (type index i))
-      (let ((instruction (aref code i)))
-        (unless (instruction-dead-p instruction)
-          (incf count))))
-    (let ((new-code (make-array count))
-          (j 0))
-      (declare (type index j))
-      (dotimes (i len new-code)
-        (declare (type index i))
-        (let ((instruction (aref code i)))
-          (unless (instruction-dead-p instruction)
-            (setf (aref new-code j) instruction)
-            (incf j))))))
-  )
-
-;; get rid of unreachable code
-(defknown optimize-1 () t)
-(defun optimize-1 ()
-  (let ((code *code*)
-        (changed nil)
-        (dead nil))
-    (declare (type simple-vector code))
-    (dotimes (i (length code))
-      (let* ((instruction (svref code i))
-             (kind (instruction-kind instruction)))
-        (case kind
-;;           (:dead
-;;            ;; nothing to do
-;;            )
-          (:exit
-           (cond (dead
-                  (deadify instruction)
-                  (setq changed t))
-                 (t
-                  (setq dead t))))
-          ((:jmp-short :jmp)
-           (cond (dead
-                  (deadify instruction)
-                  (setq changed t))
-                 (t
-                  (let ((test (car (instruction-data instruction))))
-                    (when (eq test t)
-                      ;; unconditional jump
-                      (setq dead t))))))
-          (:label
-           (setq dead nil))
-          (t
-           (when dead
-             (deadify instruction)
-             (setq changed t))))))
-    (when changed
-;;       (setq *code* (delete-if #'instruction-dead-p code))
-      (setq *code* (squash-code code))
-      )
-    changed))
-
-(defknown optimize-1b () t)
-(defun optimize-1b ()
-  (let ((code *code*)
-        (changed nil)
-        (ht nil))
-    (declare (type simple-vector code))
-    (dotimes (i (1- (length code)))
-      (let (instruction-1
-            instruction-2)
-      (setq instruction-1 (svref code i))
-      (when (eq (instruction-kind instruction-1) :label)
-        (setq instruction-2 (svref code (1+ i)))
-        (when (eq (instruction-kind instruction-2) :label)
-          ;; two labels in a row
-          ;; kill the second one
-          (unless ht
-            (setq ht (make-hash-table :test 'eq)))
-          (let ((symbol-1 (instruction-data instruction-1))
-                (symbol-2 (instruction-data instruction-2)))
-            (aver (not (null symbol-1)))
-            (aver (symbolp symbol-1))
-            (aver (not (null symbol-2)))
-            (aver (symbolp symbol-2))
-            (setf (gethash symbol-2 ht) symbol-1)
-            (deadify instruction-2)
-            (setq changed t))))))
-    (when changed
-      (dotimes (i (length code))
-        (let ((instruction (svref code i)))
-          (case (instruction-kind instruction)
-            ((:jmp-short :jmp)
-             (let ((target (cadr (instruction-data instruction))))
-               (aver (not (null target)))
-               (aver (symbolp target))
-               (let ((referral (gethash2-1 target ht)))
-                 (when referral
-                   (setf (cadr (instruction-data instruction)) referral)))))
-            (:call
-             (let ((target (instruction-data instruction)))
-               (when (labelp target)
-                 (aver (not (null target)))
-                 (aver (symbolp target))
-                 (let ((referral (gethash2-1 target ht)))
-                   (when referral
-                     (set-instruction-data instruction referral)))))))))
-;;       (setq *code* (delete-if #'instruction-dead-p code))
-      (setq *code* (squash-code code))
-      )
-    changed))
-
-(defknown optimize-1c () t)
-(defun optimize-1c ()
-  ;; change this:
-  ;;
-  ;;       jne     L1
-  ;;       jmp     L0
-  ;;   L1:
-  ;;
-  ;; to this:
-  ;;
-  ;;       je      L0
-  ;;   L1:
-  (let ((code *code*)
-        (changed nil))
-    (declare (type simple-vector code))
-    (dotimes (i (- (length code) 2))
-      (let ((instruction-1 (svref code i))
-            (instruction-2 (svref code (+ i 1)))
-            (instruction-3 (svref code (+ i 2))))
-        (when (and (memq (instruction-kind instruction-1) '(:jmp-short :jmp))
-                   (memq (instruction-kind instruction-2) '(:jmp-short :jmp))
-                   (eq (instruction-kind instruction-3) :label)
-                   (neq (instruction-jump-test instruction-1) t)
-                   (eq (instruction-data instruction-3) (instruction-jump-target instruction-1))
-                   (eq (instruction-jump-test instruction-2) t))
-          (let* ((test (instruction-jump-test instruction-1))
-                 (negated-test (case test
-                                 (:e  :ne)
-                                 (:z  :nz)
-                                 (:ne :e)
-                                 (:nz :z)
-                                 (:l  :nl)
-                                 (:nl :l)
-                                 (:ge :l)
-                                 (:g  :ng)
-                                 (:ng :g)
-                                 (t
-                                  nil))))
-            (cond (negated-test
-                   (deadify instruction-1)
-                   (setf (car (instruction-data instruction-2)) negated-test)
-                   (setq changed t))
-                  (t
-                   (debug-log "optimize-1c unsupported test ~S~%" test)
-                   nil))))))
-    (when changed
-;;       (setq *code* (delete-if #'instruction-dead-p code))
-      (setq *code* (squash-code code))
-      )))
-
 (defknown labelp (t) t)
 (defun labelp (thing)
   ;; an uninterned symbol
   (and (symbolp thing)
        (null (symbol-package thing))))
-
-;; remove unused labels
-(defknown optimize-2 () t)
-(defun optimize-2 ()
-  (let ((code *code*)
-        (changed nil)
-        (used-labels (make-hash-table :test 'eq)))
-    (declare (type simple-vector code))
-    ;; first pass: populate used labels hash table
-    (dotimes (i (length code))
-      (let* ((instruction (svref code i))
-             (kind (instruction-kind instruction)))
-        (case kind
-          ((:jmp-short :jmp)
-           (let ((target (cadr (instruction-data instruction))))
-             (aver (not (null target)))
-             (aver (symbolp target))
-             (setf (gethash target used-labels) t)))
-          (:call
-           (let ((target (instruction-data instruction)))
-             (when (labelp target)
-               (setf (gethash target used-labels) t)))))))
-    ;; second pass: deadify unused labels
-    (dotimes (i (length code))
-      (let* ((instruction (svref code i))
-             (kind (instruction-kind instruction)))
-        (when (eq kind :label)
-          (let ((target (instruction-data instruction)))
-            (aver (not (null target)))
-            (aver (symbolp target))
-            (unless (gethash2-1 target used-labels)
-              (deadify instruction)
-              (setq changed t))))))
-    (when changed
-;;       (setq *code* (delete-if #'instruction-dead-p *code*))
-      (setq *code* (squash-code *code*))
-      )
-    changed))
-
-(defknown optimize-3 () t)
-(defun optimize-3 ()
-  (let ((code *code*)
-        (changed nil)
-        (label nil)
-        (labels (make-hash-table :test 'eq)))
-    (declare (type simple-vector code))
-    (dotimes (i (length code))
-      (let* ((instruction (svref code i))
-             (kind (instruction-kind instruction)))
-        (cond (label
-               ;; the previous instruction was a label
-               ;; record this one if it's an unconditional jump
-               (when (and (memq kind '(:jmp :jmp-short))
-                          (eq (car (instruction-data instruction)) t))
-                 (let ((target (cadr (instruction-data instruction))))
-                   (setf (gethash label labels) target)))
-               (setq label nil))
-              ((eq kind :label)
-               ;; this instruction is a label
-               (setq label (instruction-data instruction))))))
-    (unless (zerop (hash-table-count labels))
-      (dotimes (i (length code))
-        (let ((instruction (svref code i)))
-          (when (memq (instruction-kind instruction) '(:jmp-short :jmp))
-            ;; this instruction is a conditional or unconditional jump
-            (let ((target (cadr (instruction-data instruction))))
-              (aver (not (null target)))
-              (aver (symbolp target))
-              (let ((referral (gethash2-1 target labels)))
-                (when (and referral (neq referral target))
-                  (setf (cadr (instruction-data instruction)) referral)
-                  (setq changed t))))))))
-    (when changed
-      (setq *code* code))
-    changed))
-
-;; get rid of unconditional jumps to the next instruction
-(defknown optimize-4 () t)
-(defun optimize-4 ()
-  (let ((code *code*)
-        (changed nil))
-    (declare (type simple-vector code))
-    (dotimes (i (1- (length code)))
-      (let ((instruction-1 (svref code i))
-            (instruction-2 (svref code (1+ i)))
-            target)
-        (when (and (memq (instruction-kind instruction-1) '(:jmp-short :jmp))
-                   (eq (car (instruction-data instruction-1)) t))
-          ;; instruction-1 is an unconditional jump
-          (setq target (cadr (instruction-data instruction-1)))
-          (when (eq (instruction-kind instruction-2) :label)
-            ;; instruction-2 is a label
-            (when (eq target (instruction-data instruction-2))
-              ;; instruction-1 is an unconditional jump to instruction-2
-              (deadify instruction-1)
-              (setq changed t))))))
-    (when changed
-;;       (setq *code* (delete-if #'instruction-dead-p *code*))
-      (setq *code* (squash-code *code*))
-      )
-    changed))
-
-(defknown optimize-code () t)
-(defun optimize-code ()
-  (loop
-    (let ((changed nil))
-      (setq changed (or (optimize-1)  changed))
-      (setq changed (or (optimize-1b) changed))
-      (setq changed (or (optimize-1c) changed))
-      (setq changed (or (optimize-2)  changed))
-      (setq changed (or (optimize-3)  changed))
-      (setq changed (or (optimize-4)  changed))
-      (unless changed
-        (return))
-      (debug-log "optimize-code did something~%")))
-;;   (setq *code* (coerce *code* 'list))
-  )
 
 (defknown optimize-ir2-1 () t)
 (defun optimize-ir2-1 ()
@@ -1983,7 +1691,6 @@ for special variables."
               (setf (svref code i) nil)
               (setq changed t)))))
     (when changed
-;;       (debug-log "optimize-ir2-1!~%")
       (setq *code* (delete nil code)))
     changed))
 
@@ -2013,11 +1720,9 @@ for special variables."
               (aver (not (null symbol-2)))
               (aver (symbolp symbol-2))
               (setf (gethash symbol-2 ht) symbol-1)
-;;               (deadify instruction-2)
               (setf (svref code (1+ i)) nil)
               (setq changed t))))))
     (when changed
-;;       (debug-log "optimize-ir2-1b!~%")
       (dotimes (i (length code))
         (let ((instruction (svref code i)))
           (when (consp instruction)
@@ -2038,10 +1743,7 @@ for special variables."
                    (let ((referral (gethash2-1 target ht)))
                      (when referral
                        (setf (cadr instruction) referral))))))))))
-      ;;       (setq *code* (delete-if #'instruction-dead-p code))
-;;       (setq *code* (squash-code code))
-      (setq *code* (delete nil code))
-      )
+      (setq *code* (delete nil code)))
     changed))
 
 (defknown optimize-ir2-1c () t)
@@ -2091,7 +1793,6 @@ for special variables."
                                  (t
                                   nil))))
             (cond (negated-test
-;;                    (deadify instruction-1)
                    (setf (svref code i) nil)
                    (setf (second instruction-2) negated-test)
                    (setq changed t))
@@ -2099,11 +1800,7 @@ for special variables."
                    (debug-log "optimize-ir2-1c unsupported test ~S~%" test)
                    nil))))))
     (when changed
-      ;;       (setq *code* (delete-if #'instruction-dead-p code))
-;;       (setq *code* (squash-code code))
-;;       (debug-log "optimize-ir2-1c!~%")
-      (setq *code* (delete nil code))
-      )))
+      (setq *code* (delete nil code)))))
 
 ;; get rid of unused labels
 (defknown optimize-2 () t)
@@ -2127,7 +1824,7 @@ for special variables."
            (let ((target (second instruction)))
              (when (labelp target)
                (setf (gethash target used-labels) t)))))))
-    ;; second pass: deadify unused labels
+    ;; second pass: replace unused labels with nil
     (dotimes (i (length code))
       (let* ((instruction (svref code i))
              (kind (and (consp instruction)
@@ -2137,15 +1834,10 @@ for special variables."
             (aver (not (null target)))
             (aver (symbolp target))
             (unless (gethash2-1 target used-labels)
-;;               (deadify instruction)
               (setf (svref code i) nil)
               (setq changed t))))))
     (when changed
-;;       (debug-log "optimize-ir2-2!~%")
-      ;;       (setq *code* (delete-if #'instruction-dead-p *code*))
-;;       (setq *code* (squash-code *code*))
-      (setq *code* (delete nil code))
-      )
+      (setq *code* (delete nil code)))
     changed))
 
 (defknown optimize-ir2-3 () t)
@@ -2183,8 +1875,6 @@ for special variables."
                 (when (and referral (neq referral target))
                   (setf (third instruction) referral)
                   (setq changed t))))))))
-;;     (when changed
-;;       (setq *code* code))
     changed))
 
 ;; get rid of unconditional jumps to the next instruction
@@ -2207,14 +1897,10 @@ for special variables."
             ;; instruction-2 is a label
             (when (eq target (second instruction-2))
               ;; instruction-1 is an unconditional jump to instruction-2
-;;               (deadify instruction-1)
               (setf (svref code i) nil)
               (setq changed t))))))
     (when changed
-      ;;       (setq *code* (delete-if #'instruction-dead-p *code*))
-;;       (setq *code* (squash-code *code*))
-      (setq *code* (delete nil code))
-      )
+      (setq *code* (delete nil code)))
     changed))
 
 (defknown optimize-ir2-5 () t)
