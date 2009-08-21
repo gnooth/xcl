@@ -1209,7 +1209,7 @@
     (let* ((arg (cadr form))
            (type (derive-type arg)))
       (process-1-arg arg :rax t)
-      (emit-bytes #x48 #x85 #xc0)  ; test %rax,%rax
+      (inst :test :rax :rax)
       (cond ((and (neq type :unknown)
                   (subtypep type 'INTEGER))
              (when label-if-true
@@ -1736,7 +1736,8 @@
                (label LABEL1)
                ;; non-local GO
                ;; FIXME dec %rax
-               (emit-bytes #x48 #x83 #xe8 #x01) ; sub $0x1,%rax
+;;                (emit-bytes #x48 #x83 #xe8 #x01) ; sub $0x1,%rax
+               (inst :sub 1 :rax)
                ;; convert index in rax to byte offset
                (emit-bytes #x48 #x6b #xc0 #x05) ; imul $0x5,%rax,%rax
                (emit-bytes #xe8 #x00 #x00 #x00 #x00) ; call next instruction

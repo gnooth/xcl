@@ -182,10 +182,11 @@
 
 (defknown emit-jmp (t t) t)
 (defun emit-jmp (test label)
-  (emit (make-instruction :jmp
-                          (if (or (eq test t) (eq test :jump-table))
-                              5 6)
-                          (list test label)))
+;;   (emit (make-instruction :jmp
+;;                           (if (or (eq test t) (eq test :jump-table))
+;;                               5 6)
+;;                           (list test label)))
+  (inst :jmp test label)
   )
 
 (defknown emit-jmp-short (t t) t)

@@ -1932,7 +1932,7 @@ for special variables."
       )
     changed))
 
-(defknown optimize-code (t) t)
+(defknown optimize-code () t)
 (defun optimize-code ()
   (loop
     (let ((changed nil))
@@ -1947,7 +1947,104 @@ for special variables."
 ;;   (setq *code* (coerce *code* 'list))
   )
 
-(defun ir2-optimize ()
+(defknown optimize-ir2-1 () t)
+(defun optimize-ir2-1 ()
+  (let ((code *code*)
+        (changed nil)
+        (dead nil))
+    (declare (type simple-vector code))
+    (dotimes (i (length code))
+      (let* ((instruction (svref code i)))
+        (if (consp instruction)
+            (case (%car instruction)
+              (:exit
+               (cond (dead
+                      (setf (svref code i) nil)
+                      (setq changed t))
+                     (t
+                      (setq dead t))))
+              ((:jmp-short :jmp)
+               (cond (dead
+                      (setf (svref code i) nil)
+                      (setq changed t))
+                     (t
+                      (let ((test (cadr instruction)))
+                        (when (eq test t)
+                          ;; unconditional jump
+                          (setq dead t))))))
+              (:label
+               (setq dead nil))
+              (t
+               (when dead
+                 (setf (svref code i) nil)
+                 (setq changed t))))
+            (when dead
+              (setf (svref code i) nil)
+              (setq changed t)))))
+    (when changed
+      (debug-log "optimize-ir2-1!~%")
+      (setq *code* (delete nil code)))
+    changed))
+
+(defknown optimize-ir2-1b () t)
+(defun optimize-ir2-1b ()
+  (let ((code *code*)
+        (changed nil)
+        (ht nil))
+    (declare (type simple-vector code))
+    (dotimes (i (1- (length code)))
+      (let (instruction-1
+            instruction-2)
+        (setq instruction-1 (svref code i))
+        (when (and (consp instruction-1)
+                   (eq (%car instruction-1) :label))
+          (setq instruction-2 (svref code (1+ i)))
+          (when (and (consp instruction-2)
+                     (eq (%car instruction-2) :label))
+            ;; two labels in a row
+            ;; kill the second one
+            (unless ht
+              (setq ht (make-hash-table :test 'eq)))
+            (let ((symbol-1 (cadr instruction-1))
+                  (symbol-2 (cadr instruction-2)))
+              (aver (not (null symbol-1)))
+              (aver (symbolp symbol-1))
+              (aver (not (null symbol-2)))
+              (aver (symbolp symbol-2))
+              (setf (gethash symbol-2 ht) symbol-1)
+;;               (deadify instruction-2)
+              (setf (svref code (1+ i)) nil)
+              (setq changed t))))))
+    (when changed
+;;       (debug-log "optimize-ir2-1b!~%")
+      (dotimes (i (length code))
+        (let ((instruction (svref code i)))
+          (when (consp instruction)
+            (case (%car instruction)
+              ((:jmp-short :jmp)
+               (let ((target (third instruction)))
+                 (aver (not (null target)))
+                 (aver (symbolp target))
+                 (let ((referral (gethash2-1 target ht)))
+                   (when referral
+                     (setf (third instruction) referral)))))
+              (:call
+               (aver (length-eql instruction 2))
+               (let ((target (%cadr instruction)))
+                 (when (labelp target)
+                   (aver (not (null target)))
+                   (aver (symbolp target))
+                   (let ((referral (gethash2-1 target ht)))
+                     (when referral
+                       (setf (cadr instruction) referral))))))))))
+      ;;       (setq *code* (delete-if #'instruction-dead-p code))
+;;       (setq *code* (squash-code code))
+      (setq *code* (delete nil code))
+      )
+    changed))
+
+(defknown optimize-ir2-2 () t)
+(defun optimize-ir2-2 ()
   (let ((code *code*)
         (changed nil))
     (declare (type simple-vector code))
@@ -1968,8 +2065,15 @@ for special variables."
                   (setf (svref code (1+ i)) (list :shl (- shift2 shift1) reg1))
                   (setq changed t))))))))
     (when changed
-      (debug-log "ir2-optimize!~%")
-      (setq *code* (delete nil code)))))
+;;       (debug-log "optimize-ir2-2!~%")
+      (setq *code* (delete nil code)))
+    changed))
+
+(defknown optimize-ir2 () t)
+(defun optimize-ir2 ()
+  (optimize-ir2-1)
+  (optimize-ir2-1b)
+  (optimize-ir2-2))
 
 (defconstant +assemble-instruction-output+
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
@@ -1983,6 +2087,14 @@ for special variables."
      (let ((test (second instruction))
            (label (third instruction)))
        (make-instruction :jmp-short 2 (list test label))))
+    (:jmp
+     (let ((test (second instruction))
+           (label (third instruction)))
+       (make-instruction :jmp
+                          (if (memq test '(t :jump-table))
+                              5
+                              6)
+                          (list test label))))
     (:function
      (make-instruction :function 4 (second instruction)))
     (t
@@ -2228,7 +2340,7 @@ for special variables."
         (setq *code* (concatenate 'simple-vector *main* *elsewhere*))
         (setq *code* (concatenate 'simple-vector *main*)))
 ;;     (dump-code) ; IR2
-    (ir2-optimize)
+    (optimize-ir2)
     (dump-code)
     (p3)
     (dump-code)
