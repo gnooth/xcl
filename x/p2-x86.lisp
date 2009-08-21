@@ -774,26 +774,53 @@
              (functionp form) ; REVIEW
              )
 ;;          (push form (compiland-constants *current-compiland*))
-         (case target
-           ((nil)) ; nothing to do
-           (:stack
-            (emit-byte #x68)
-            (emit-constant form))
-           (:eax
-            (emit-byte #xb8)
-            (emit-constant form)
-            (clear-register-contents :eax))
-           (:edx
-            (emit-byte #xba)
-            (emit-constant form)
-            (clear-register-contents :edx))
-           ;; FIXME add support for other registers
-           (:return
-            (emit-byte #xb8)
-            (emit-constant form)
-            (emit-exit))
-           (t
-            (compiler-unsupported "P2-CONSTANT unsupported situation 2"))))
+;;          (case target
+;;            ((nil)) ; nothing to do
+;;            (:stack
+;;             (emit-byte #x68)
+;;             (emit-constant form))
+;;            (:eax
+;;             (emit-byte #xb8)
+;;             (emit-constant form)
+;;             (clear-register-contents :eax))
+;;            (:edx
+;;             (emit-byte #xba)
+;;             (emit-constant form)
+;;             (clear-register-contents :edx))
+;;            ;; FIXME add support for other registers
+;;            (:return
+;;             (emit-byte #xb8)
+;;             (emit-constant form)
+;;             (emit-exit))
+;;            (t
+;;             (compiler-unsupported "P2-CONSTANT unsupported situation 2")))
+         (cond ((null target)
+                ; nothing to do
+                )
+               ((eq target :stack)
+                (emit-byte #x68)
+                (emit-constant form))
+;;                ((eq target :eax)
+;;                 (emit-byte #xb8)
+;;                 (emit-constant form)
+;;                 (clear-register-contents :eax))
+;;                ((eq target :edx)
+;;                 (emit-byte #xba)
+;;                 (emit-constant form)
+;;                 (clear-register-contents :edx))
+               ((reg32-p target)
+                (inst :mov-immediate (list :constant form) target)
+                (clear-register-contents target))
+               ;; FIXME add support for other registers
+               ((eq target :return)
+;;                 (emit-byte #xb8)
+;;                 (emit-constant form)
+                (inst :mov-immediate (list :constant form) :eax)
+                (clear-register-contents :eax)
+                (emit-exit))
+               (t
+                (compiler-unsupported "P2-CONSTANT unsupported situation 2")))
+         )
         (t
          (compiler-unsupported "P2-CONSTANT unsupported situation 3 type-of form = ~S"
                                (type-of form)))))
@@ -5107,7 +5134,7 @@
       (setq *code* (concatenate 'simple-vector prolog *code*))
       )
 
-    ;;     (dump-code)
+    (dump-code)
 
     (let* ((code *code*)
            (initial-size (+ (length code) 32))
@@ -5131,7 +5158,9 @@
                           (incf var-ref-count)
                           (cond ((var-index operand1)
                                  (setf (second instruction)
-                                       (list (index-displacement (var-index operand1)) :ebp)))
+                                       (list (index-displacement (var-index operand1)) :ebp))
+;;                                  (debug-log "p3 :mov case instruction = ~S~%" instruction)
+                                 )
                                 (t
                                  (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand1))
                                  (unsupported))))
@@ -5207,7 +5236,24 @@
 ;;                             (vector-push-extend
 ;;                              (make-instruction :constant-32 4 form)
 ;;                              new-code)))
+                         ((and (consp operand1)
+                               (eq (%car operand1) :constant))
+                          (aver (length-eql operand1 2))
+                          (let ((form (%cadr operand1))
+                                (register operand2))
+                            (cond ((memq register '(:eax :ebx :ecx :edx :esi :edi))
+                                   (vector-push-extend
+                                    (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                                    new-code))
+                                  (t
+                                   (debug-log "p3 :mov-immediate :constant unsupported case register = ~S~%"
+                                              register)
+                                   (unsupported)))
+                            (vector-push-extend
+                             (make-instruction :constant 4 form)
+                             new-code)))
                          (t
+                          (debug-log "p3 :mov-immediate unsupported case~%")
                           (unsupported))))
                   (:byte
                    (vector-push-extend (make-instruction :byte 1 operand1) new-code))

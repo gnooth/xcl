@@ -2522,7 +2522,7 @@ for special variables."
         (setq *code* (concatenate 'simple-vector *main*)))
 ;;     (dump-code) ; IR2
     (optimize-ir2)
-    (dump-code)
+;;     (dump-code)
     (p3)
     (dump-code)
 ;;     (optimize-code)
