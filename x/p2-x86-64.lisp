@@ -2554,25 +2554,23 @@
            (p2 arg3 reg3)
            (p2 arg4 reg4))
           (t
-           (inst :sub (* +bytes-per-word+ 4) :rsp)
-           (p2 arg1 :rax)
-           (inst :mov :rax '(24 :rsp))
+           (p2 arg1 :stack) ; stack is misaligned after this
+           (inst :sub (* +bytes-per-word+ 3) :rsp) ; realign stack with room for two more values
            (p2 arg2 :rax)
            (inst :mov :rax '(16 :rsp))
            (p2 arg3 :rax)
            (inst :mov :rax '(8 :rsp))
-           (p2 arg4 :rax)
-           (inst :mov :rax '(:rsp))
+           (p2 arg4 reg4)
            (when clear-values-p
              (dolist (arg args)
                (unless (single-valued-p arg)
-                 (emit-clear-values)
+                 (emit-clear-values :preserve reg4)
                  (return))))
-           (inst :pop reg4)
+           (inst :pop reg3) ; unalign stack
            (inst :pop reg3)
            (inst :pop reg2)
            (inst :pop reg1)
-           (clear-register-contents reg1 reg2 reg3 reg4)))))
+           (clear-register-contents reg1 reg2 reg3)))))
 
 (defknown process-5-args (t t t) t)
 (defun process-5-args (args regs clear-values-p)
