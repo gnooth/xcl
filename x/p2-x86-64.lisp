@@ -2485,43 +2485,29 @@
            (p2 arg1 reg1)
            (p2 arg2 reg2))
           ((or (numberp arg1) (characterp arg1))
+           ;; order of evaluation doesn't matter
            (p2 arg2 reg2)
            (when clear-values-p
              (unless (single-valued-p arg2)
                (emit-clear-values :preserve reg2)))
            (p2 arg1 reg1))
-          ((or (numberp arg2) (characterp arg2))
-           (p2 arg1 reg1)
-           (when clear-values-p
-             (unless (single-valued-p arg1)
-               (emit-clear-values :preserve reg1)))
-           (p2 arg2 reg2))
           ((constant-or-local-var-ref-p arg2)
            (p2 arg1 reg1)
            (when clear-values-p
              (unless (single-valued-p arg1)
                (emit-clear-values :preserve reg1)))
            (p2 arg2 reg2))
-          ((and (single-valued-p arg1)
-                (single-valued-p arg2))
-           (inst :sub #x10 :rsp)
-           (p2 arg1 :rax)
-           (inst :mov :rax '(:rsp))
-           (p2 arg2 reg2)
-           (inst :pop reg1)
-           (clear-register-contents reg1) ; we've trashed reg1
-           (inst :add +bytes-per-word+ :rsp))
           (t
-           (inst :sub #x10 :rsp)
-           (p2 arg1 :rax)
-           (inst :mov :rax '(8 :rsp))
-           (p2 arg2 :rax)
-           (inst :mov :rax '(:rsp))
+           (p2 arg1 :stack)
+           (inst :push :rax) ; align stack
+           (p2 arg2 reg2)
            (when clear-values-p
-             (maybe-emit-clear-values arg1 arg2))
-           (inst :pop reg2)
-           (inst :pop reg1)
-           (clear-register-contents reg1 reg2)))))
+             (unless (and (single-valued-p arg1)
+                          (single-valued-p arg2))
+               (emit-clear-values :preserve reg2)))
+           (inst :pop reg1) ; unalign stack
+           (inst :pop reg1) ; this is the value we want in reg1
+           (clear-register-contents reg1)))))
 
 (defknown process-3-args (t t t) t)
 (defun process-3-args (args regs clear-values-p)
