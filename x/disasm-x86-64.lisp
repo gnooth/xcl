@@ -242,8 +242,12 @@
               (make-instruction :start start
                                 :length 3
                                 :mnemonic :push
+                                ;; "In 64-bit mode, the operand size of all
+                                ;; PUSH instructions defaults to 64 bits, and
+                                ;; there is no prefix available to encode a 32-
+                                ;; bit operand size."
                                 :operand1 (make-operand :kind :relative
-                                                        :register (register rm)
+                                                        :register (register rm #x48) ; force 64-bit reg
                                                         :data (mref-8-signed start 2))))
              (#b10
               (make-instruction :start start

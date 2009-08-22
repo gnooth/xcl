@@ -2538,17 +2538,19 @@
            (p2 arg2 reg2)
            (p2 arg3 reg3))
           (t
-           (inst :sub #x10 :rsp)
-           (p2 arg1 :rax)
-           (inst :mov :rax '(8 :rsp))
-           (p2 arg2 :rax)
-           (inst :mov :rax '(:rsp))
+           (p2 arg1 :stack) ; stack is misaligned after this
+           (cond ((constant-or-local-var-ref-p arg2)
+                  (p2 arg2 :stack))
+                 (t
+                  (inst :push :rax) ; realign stack before call
+                  (p2 arg2 :rax)
+                  (inst :mov :rax '(:rsp))))
            (p2 arg3 reg3)
            (when clear-values-p
              (maybe-emit-clear-values arg1 arg2 arg3))
            (inst :pop reg2)
            (inst :pop reg1)
-           (clear-register-contents reg1 reg2 reg3)))))
+           (clear-register-contents reg1 reg2)))))
 
 (defknown process-4-args (t t t) t)
 (defun process-4-args (args regs clear-values-p)

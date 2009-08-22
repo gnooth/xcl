@@ -138,6 +138,7 @@
     ((:mov (-8 :rsp) :r12)      #(#x4c #x8b #x64 #x24 #xf8))
     ((:push (-12 :rbp))         #(#xff #x75 #xf4))
     ((:push (8 :rbp))           #(#xff #x75 #x08))
+    ((:push (132 :rbp))         #(#xff #xb5 #x84 #x00 #x00 #x00))
     ((:push (-132 :rbp))        #(#xff #xb5 #x7c #xff #xff #xff))
     ((:cmp :rdx :rax)           #(#x48 #x39 #xd0))
     ((:cmp :rdx :rcx)           #(#x48 #x39 #xd1))
