@@ -18,12 +18,10 @@
 
 (in-package "COMPILER")
 
-;; converts IR2 into bytes
-(defun p3 ()
+(defun generate-function-prolog ()
   (let* ((compiland *current-compiland*)
          (arity (compiland-arity compiland))
          prolog)
-
     (when (and arity
                (<= arity 6)
                (null *closure-vars*)
@@ -73,10 +71,13 @@
         (if *elsewhere*
             (setq prolog (concatenate 'simple-vector *main* *elsewhere*))
             (setq prolog (concatenate 'simple-vector *main*))))
-      (setq *code* (concatenate 'simple-vector prolog *code*)))
+      (setq *code* (concatenate 'simple-vector prolog *code*))))
+  )
 
-    ;;     (dump-code)
-
+;; converts IR2 into bytes
+(defun p3 ()
+  (generate-function-prolog)
+  (let* ((compiland *current-compiland*))
     (let* ((code *code*)
            (initial-size (+ (length code) 32))
            (new-code (make-array initial-size :fill-pointer 0)) ; REVIEW
