@@ -25,7 +25,8 @@
     (when (and arity
                (<= arity 6)
                (null *closure-vars*)
-               (not (compiland-child-p compiland)))
+;;                (not (compiland-child-p compiland))
+               )
       (let ((*code* nil)
             (*main* nil)
             (*elsewhere* nil))

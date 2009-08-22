@@ -358,7 +358,8 @@
     (when (and arity
                (<= arity 6)
                (null *closure-vars*)
-               (not (compiland-child-p compiland)))
+;;                (not (compiland-child-p compiland))
+               )
 ;;       (return-from p2-function-prolog (p2-trivial-function-prolog compiland))
       (return-from p2-function-prolog t)
       ))
