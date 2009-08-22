@@ -79,10 +79,10 @@
   (generate-function-prolog)
   (let* ((compiland *current-compiland*))
     (let* ((code *code*)
-           (initial-size (+ (length code) 32))
-           (new-code (make-array initial-size :fill-pointer 0)) ; REVIEW
-           (leaf-p t)
-           (var-ref-count 0))
+           (len (length code))
+           ;; make initial size large enough to avoid having to resize the output vector
+           (initial-size (max (logand (+ len (ash len -1) 16) (lognot 15)) 64))
+           (new-code (make-array initial-size :fill-pointer 0)))
       (declare (type simple-vector code))
       (dotimes (i (length code))
         (let ((instruction (svref code i)))
@@ -96,7 +96,6 @@
                   (:mov
                    (cond ((var-p operand1)
                           ;; var ref
-                          (incf var-ref-count)
                           (cond ((var-index operand1)
                                  (setf (second instruction)
                                        (list (index-displacement (var-index operand1)) :rbp)))
@@ -107,7 +106,6 @@
                                  (unsupported))))
                          ((var-p operand2)
                           ;; setq
-                          (incf var-ref-count)
                           (cond ((var-index operand2)
                                  (setf (third instruction)
                                        (list (index-displacement (var-index operand2)) :rbp)))
@@ -149,7 +147,6 @@
                        ))
                    (vector-push-extend instruction new-code))
                   (:call
-                   (setq leaf-p nil)
                    (setq instruction (make-instruction :call 5 operand1))
                    ;;                    (setf (svref code i) instruction)
                    (vector-push-extend instruction new-code))
@@ -228,17 +225,4 @@
                   (t
                    (vector-push-extend (assemble-instruction instruction) new-code))))
               (vector-push-extend instruction new-code))))
-      ;;       (debug-log "p3 (length code) = ~S (length new-code) = ~S~%"
-      ;;                  (length code)
-      ;;                  (length new-code))
-      ;;       (debug-log "p3 delta = ~S factor = ~S~%"
-      ;;                  (- (length new-code) (length code))
-      ;;                  (float (/ (length new-code) (length code))))
-      (when (> (length new-code) initial-size)
-        (debug-log "p3 initial-size = ~D (length new-code) = ~D~%"
-                   initial-size
-                   (length new-code)))
-      (setq *code* (coerce new-code 'simple-vector))
-      ;;       (when leaf-p
-      ;;         (debug-log "~S leaf-p = ~S var-ref-count = ~S~%" (compiland-name compiland) leaf-p var-ref-count))
-      )))
+      (setq *code* (coerce new-code 'simple-vector)))))
