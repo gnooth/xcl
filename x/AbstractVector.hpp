@@ -23,6 +23,10 @@ class AbstractVector : public AbstractArray
 {
 protected:
   INDEX _capacity;
+#ifdef __x86_64__
+  // add padding so code vectors (in particular) will always be 16-byte aligned
+  long _padding;
+#endif
 
   AbstractVector(long widetag)
     : AbstractArray(widetag)
