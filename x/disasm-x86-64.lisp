@@ -975,7 +975,8 @@
                         (absolute-address (ldb (byte 32 0) (+ block-start offset 5 displacement))))
                    (setq length 5
                          mnemonic :jmpq
-                         operand1 (make-absolute-operand absolute-address))
+                         operand1 (make-absolute-operand absolute-address)
+                         annotation absolute-address)
                    (setf (block-end-address block) (+ block-start offset 5))
                    (push (make-disassembly-block :start-address absolute-address) *blocks*)
                    (push absolute-address *labels*)

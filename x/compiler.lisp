@@ -1928,6 +1928,29 @@ for special variables."
       (setq *code* (delete nil code)))
     changed))
 
+;; TCO
+(defknown optimize-ir2-6 () t)
+(defun optimize-ir2-6 ()
+  (let ((code *code*)
+        (changed nil))
+    (declare (type simple-vector code))
+    (dotimes (i (1- (length code)))
+      (let ((instruction-1 (svref code i))
+            (instruction-2 (svref code (1+ i))))
+        (when (and (consp instruction-1)
+                   (consp instruction-2)
+                   (eq (%car instruction-1) :call)
+                   (eq (%car instruction-2) :exit))
+          (when (and (symbolp (cadr instruction-1))
+                     (kernel-function-p (cadr instruction-1))
+                     (<= 0 (function-arity (cadr instruction-1)) 6))
+            (setf (svref code i) (list :tail-call (cadr instruction-1)))
+            (setf (svref code (1+ i)) nil)
+            (setf changed t)))))
+    (when changed
+      (setq *code* (delete nil code)))
+    changed))
+
 (defknown optimize-ir2 () t)
 (defun optimize-ir2 ()
   (loop
@@ -1940,7 +1963,9 @@ for special variables."
       (setq changed (or (optimize-ir2-4)  changed))
       (setq changed (or (optimize-ir2-5)  changed))
       (unless changed
-        (return)))))
+        (return))))
+  #+x86-64
+  (optimize-ir2-6))
 
 (defconstant +assemble-instruction-output+
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))

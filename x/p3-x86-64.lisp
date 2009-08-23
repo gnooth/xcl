@@ -24,15 +24,11 @@
          prolog)
     (when (and arity
                (<= arity 6)
-               (null *closure-vars*)
-               ;;                (not (compiland-child-p compiland))
-               )
-      ;;       (when (compiland-needs-thread-var-p compiland)
+               (null *closure-vars*))
       (let ((code *code*)
             (r12-used-p nil)
             (leaf-p t))
         (declare (type simple-vector code))
-        ;;           (setq r12-used-p
         (dotimes (i (length code) nil)
           (let ((instruction (svref code i)))
             (when (listp instruction)
@@ -46,9 +42,8 @@
                                (and (listp operand1) (memq :r12 operand1))
                                (and (listp operand2) (memq :r12 operand2)))
                        (setq r12-used-p t)))))
-                (:call
+                ((:call :tail-call)
                  (setq leaf-p nil))))))
-        ;;                 )
         (setf (compiland-needs-thread-var-p compiland) r12-used-p)
         (setf (compiland-leaf-p compiland) leaf-p)
         (when leaf-p
@@ -58,7 +53,6 @@
                      r12-used-p
                      (length (compiland-arg-vars compiland))
                      (length (compiland-local-vars compiland)))))
-      ;;       )
       (let ((*code* nil)
             (*main* nil)
             (*elsewhere* nil))
@@ -71,8 +65,7 @@
         (if *elsewhere*
             (setq prolog (concatenate 'simple-vector *main* *elsewhere*))
             (setq prolog (concatenate 'simple-vector *main*))))
-      (setq *code* (concatenate 'simple-vector prolog *code*))))
-  )
+      (setq *code* (concatenate 'simple-vector prolog *code*)))))
 
 ;; converts IR2 into bytes
 (defun p3 ()
@@ -142,18 +135,28 @@
                      (setq instructions (nreverse instructions))
                      (let ((bytes (assemble instructions)))
                        (setq instruction
-                             (make-instruction :exit (length bytes) (coerce bytes 'list)))
-                       ;;                        (setf (svref code i) instruction)
-                       ))
+                             (make-instruction :exit (length bytes) (coerce bytes 'list)))))
                    (vector-push-extend instruction new-code))
+                  (:tail-call
+                   (let ((target operand1)
+                         (instructions nil))
+                     (unless (compiland-omit-frame-pointer compiland)
+                       (push '(:leave) instructions))
+                     (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
+                       (push `(:pop ,reg) instructions))
+                     (when (compiland-needs-thread-var-p compiland)
+                       (push '(:pop :r12) instructions))
+                     (when instructions
+                       (setq instructions (nreverse instructions))
+                       (let ((bytes (assemble instructions)))
+                         (setq instruction
+                               (make-instruction :exit (length bytes) (coerce bytes 'list))))
+                       (vector-push-extend instruction new-code))
+                     (vector-push-extend (make-instruction :jmp 5 (list t target)) new-code)))
                   (:call
                    (setq instruction (make-instruction :call 5 operand1))
-                   ;;                    (setf (svref code i) instruction)
                    (vector-push-extend instruction new-code))
                   (:mov-immediate
-                   ;;                    (debug-log "p3 mov-immediate case~%")
-                   ;;   (emit-byte (+ #xb8 (register-number register))) ; mov imm32,reg
-                   ;;   (emit-function symbol)
                    (cond ((and (consp operand1)
                                (eq (%car operand1) :function))
                           (aver (length-eql operand1 2))

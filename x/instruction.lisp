@@ -1,6 +1,6 @@
 ;;; instruction.lisp
 ;;;
-;;; Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -356,9 +356,15 @@
                    (here (+ (vector-data code-vector) i))
                    (args (instruction-data instruction))
                    (test (car args))
-                   (label (cadr args))
+                   (target (cadr args))
+                   (address
+                    (cond ((symbol-package target)
+                           (function-code (symbol-function target)))
+                          ;; an uninterned symbol is a label
+                          (t
+                           (+ (vector-data code-vector) (symbol-global-value target)))))
                    (size (instruction-size instruction))
-                   (displacement (- (+ (vector-data code-vector) (symbol-global-value label)) (+ here size))))
+                   (displacement (- address (+ here size))))
 ;;               (aver (eql (length args) 2))
 ;;               (aver (or (keywordp test) (eq test t)))
               (when short
