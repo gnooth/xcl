@@ -98,6 +98,8 @@
     ((:sub -127 :rdx)           #(#x48 #x83 #xea #x81))
     ((:sub -128 :rdx)           #(#x48 #x83 #xea #x80))
     ((:sub -129 :rdx)           #(#x48 #x81 #xea #x7f #xff #xff #xff))
+    ((:sub -2147483648 :rsp)    #(#x48 #x81 #xec #x00 #x00 #x00 #x80))
+    ((:sub 2147483647 :rsp)     #(#x48 #x81 #xec #xff #xff #xff #x7f))
     ((:sub -2147483648 :r10)    #(#x49 #x81 #xea #x00 #x00 #x00 #x80))
     ((:sub 2147483647 :r10)     #(#x49 #x81 #xea #xff #xff #xff #x7f))
     ((:sub :rdx :rax)           #(#x48 #x29 #xd0))

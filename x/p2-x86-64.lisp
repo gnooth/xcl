@@ -5411,12 +5411,8 @@
         (cond ((<= numvars 4)
                (dotimes (i numvars)
                  (inst :push :rax)))
-              ((< numbytes 128)
-               (emit-bytes #x48 #x83 #xec) ; sub imm8,%rsp
-               (emit-byte numbytes))
               (t
-               (emit-bytes #x48 #x81 #xec) ; sub imm32,%rsp
-               (emit-raw-dword numbytes)))))
+               (inst :sub numbytes :rsp)))))
     stack-used))
 
 ;; 1. required arguments only, 6 or fewer: rdi, rsi, rdx, rcx, r8, r9
