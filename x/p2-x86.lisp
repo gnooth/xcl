@@ -1173,7 +1173,7 @@
             (t
              (process-2-args args :stack t)
              (emit-call-2 "RT_eql" :eax)
-             (inst :test :eax :eax)
+             (inst :test :al :al)
              (when label-if-true
                (emit-jmp-short :nz label-if-true))
              (when label-if-false
@@ -1752,7 +1752,7 @@
              (inst :push tagbody-var)
              (emit-call-1 "RT_frame_jmp" :stack)
              (emit-call-1 "setjmp" :eax)
-             (inst :test :eax :eax)
+             (inst :test :al :al)
              (let ((LABEL1 (make-label))
                    (LABEL2 (make-label)))
                (emit-jmp-short :nz LABEL1)
