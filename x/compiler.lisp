@@ -587,17 +587,21 @@
          bytespec)
     (when (and (length-eql args 2)
                (consp (setq bytespec (%car args)))
-               (eq (%car bytespec) 'byte)
+               (eq (%car bytespec) 'BYTE)
                (length-eql bytespec 3))
       (let ((size (%cadr bytespec))
             (position (%caddr bytespec))
             (integer (%cadr args)))
+;;         (setq form
+;;               (cond ((and (integerp size) (integerp position))
+;;                      `(logand (ash ,integer (- ,position))
+;;                               (1- (ash 1 ,size))))
+;;                     (t
+;;                      `(%ldb ,size ,position ,integer))))
         (setq form
-              (cond ((and (integerp size) (integerp position))
-                     `(logand (ash ,integer (- ,position))
-                              (1- (ash 1 ,size))))
-                    (t
-                     `(%ldb ,size ,position ,integer))))))
+              `(logand (ash ,integer (- 0 ,position))
+                       (1- (ash 1 ,size))))
+        ))
     (p1-function-call form)))
 
 (defun p1-dpb (form)
@@ -605,7 +609,7 @@
          bytespec)
     (cond ((and (length-eql args 3)
                 (consp (setq bytespec (%cadr args)))
-                (eq (%car bytespec) 'byte)
+                (eq (%car bytespec) 'BYTE)
                 (length-eql bytespec 3))
            (let ((newbyte (%car args))
                  (size (%cadr bytespec))
@@ -1556,6 +1560,9 @@ for special variables."
   (let ((new-form (maybe-rewrite-function-call form)))
     (cond ((neq new-form form)
            (p1 new-form))
+;;           ((length-eql form 2)
+;;            ;; unary minus
+;;            (p1 `(two-arg-- 0 ,(%cadr form))))
           (t
            (setq form (p1-default form))
            (let ((args (cdr form)))
