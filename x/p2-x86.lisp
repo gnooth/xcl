@@ -1698,6 +1698,7 @@
 (defun p2-m-v-l (form target)
   (aver (eql (length form) 2))
   (aver (eq (%car form) 'MULTIPLE-VALUE-LIST))
+  (emit-clear-values)
   (p2 (%cadr form) :stack)
   (emit-call "RT_multiple_value_list")
   (emit-adjust-stack-after-call 1)
