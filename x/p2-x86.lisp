@@ -757,12 +757,16 @@
             (cond ((eql form 0)
                    (inst :xor target target))
                   (t
-                   (emit-move-immediate form target)))
+                   (emit-move-immediate form target)
+;;                    (inst :mov form target)
+                   ))
             (clear-register-contents target))
            (:return
             (if (eql form 0)
                 (inst :xor :eax :eax)
-                (emit-move-immediate form :eax))
+                (emit-move-immediate form :eax)
+;;                 (inst :mov form :eax)
+                )
             (emit-exit))
            (t
             (compiler-unsupported "P2-CONSTANT unsupported situation 1"))))
