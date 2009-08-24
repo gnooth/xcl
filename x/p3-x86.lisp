@@ -40,8 +40,10 @@
   (generate-function-prolog)
   (let* ((compiland *current-compiland*)
          (code *code*)
-         (initial-size (+ (length code) 32))
-         (new-code (make-array initial-size :fill-pointer 0)) ; REVIEW
+         (len (length code))
+         ;; make initial size big enough to avoid having to resize the output vector
+         (initial-size (max (logand (+ len (ash len -1) 16) (lognot 15)) 64))
+         (new-code (make-array initial-size :fill-pointer 0))
          (leaf-p t)
          (var-ref-count 0))
     (declare (type simple-vector code))
@@ -84,14 +86,19 @@
                  (cond ((var-p operand1)
                         (cond ((var-index operand1)
                                (setf (second instruction)
-                                     (list (index-displacement (var-index operand1)) :ebp)))
+                                     (list (index-displacement (var-index operand1)) :ebp))
+                               (vector-push-extend (assemble-instruction instruction) new-code))
                               (t
                                (debug-log "p3 :push no var-index for var ~S~%" (var-name operand1))
                                (unsupported))))
+                       ((and (consp operand1)
+                             (length-eql operand1 2)
+                             (eq (%car operand1) :constant))
+                        (vector-push-extend (make-instruction :byte 1 #x68) new-code)
+                        (vector-push-extend (make-instruction :constant 4 (%cadr operand1)) new-code))
                        (t
                         ;; nothing to do
-                        ))
-                 (vector-push-extend (assemble-instruction instruction) new-code))
+                        (vector-push-extend (assemble-instruction instruction) new-code))))
                 (:exit
                  (let ((instructions nil))
                    (unless (compiland-omit-frame-pointer compiland)

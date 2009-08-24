@@ -73,7 +73,7 @@
   (let* ((compiland *current-compiland*))
     (let* ((code *code*)
            (len (length code))
-           ;; make initial size large enough to avoid having to resize the output vector
+           ;; make initial size big enough to avoid having to resize the output vector
            (initial-size (max (logand (+ len (ash len -1) 16) (lognot 15)) 64))
            (new-code (make-array initial-size :fill-pointer 0)))
       (declare (type simple-vector code))

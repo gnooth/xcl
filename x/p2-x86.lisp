@@ -774,48 +774,15 @@
              (hash-table-p form)
              (functionp form) ; REVIEW
              )
-;;          (push form (compiland-constants *current-compiland*))
-;;          (case target
-;;            ((nil)) ; nothing to do
-;;            (:stack
-;;             (emit-byte #x68)
-;;             (emit-constant form))
-;;            (:eax
-;;             (emit-byte #xb8)
-;;             (emit-constant form)
-;;             (clear-register-contents :eax))
-;;            (:edx
-;;             (emit-byte #xba)
-;;             (emit-constant form)
-;;             (clear-register-contents :edx))
-;;            ;; FIXME add support for other registers
-;;            (:return
-;;             (emit-byte #xb8)
-;;             (emit-constant form)
-;;             (emit-exit))
-;;            (t
-;;             (compiler-unsupported "P2-CONSTANT unsupported situation 2")))
          (cond ((null target)
                 ; nothing to do
                 )
                ((eq target :stack)
-                (emit-byte #x68)
-                (emit-constant form))
-;;                ((eq target :eax)
-;;                 (emit-byte #xb8)
-;;                 (emit-constant form)
-;;                 (clear-register-contents :eax))
-;;                ((eq target :edx)
-;;                 (emit-byte #xba)
-;;                 (emit-constant form)
-;;                 (clear-register-contents :edx))
+                (inst :push (list :constant form)))
                ((reg32-p target)
                 (inst :mov-immediate (list :constant form) target)
                 (clear-register-contents target))
-               ;; FIXME add support for other registers
                ((eq target :return)
-;;                 (emit-byte #xb8)
-;;                 (emit-constant form)
                 (inst :mov-immediate (list :constant form) :eax)
                 (clear-register-contents :eax)
                 (emit-exit))
@@ -2408,7 +2375,7 @@
   (cond ((compile-file-p)
          (p2-constant form target))
         ((eq target :stack)
-         (emit-push-immediate form))
+         (inst :push `(:constant ,form)))
         (t
          (emit-move-immediate form target))))
 
@@ -2690,8 +2657,8 @@
                   (inst :push :eax)
                   (inst :push thread-var)
                   (emit-call-3 "RT_thread_call_function_1" target))
-                 ;; no thread register
                  (t
+                  ;; no thread register
                   ;; RT_current_thread_call_function_1() calls thread->clear_values()
                   (process-1-arg arg :stack nil)
                   (emit-move-function-to-register op :eax)
