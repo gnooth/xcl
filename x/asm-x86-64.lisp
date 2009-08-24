@@ -19,12 +19,11 @@
 (in-package "ASSEMBLER")
 
 (defun emit-raw (x)
-  (let ((bytes (list (ldb (byte 8  0) x)
-                     (ldb (byte 8  8) x)
-                     (ldb (byte 8 16) x)
-                     (ldb (byte 8 24) x))))
-    (dolist (byte bytes)
-      (vector-push-extend byte *output*))))
+  (declare (optimize speed (safety 0)))
+  (declare (type (integer #x-8000000 #xffffffff) x)) ; (OR (SIGNED-BYTE 32) (UNSIGNED-BYTE 32))
+  (dotimes (i 4)
+    (declare (type (integer 0 4) i)) ; REVIEW this should not be necessary!
+    (vector-push-extend (ldb (byte 8 (* i 8)) x) *output*)))
 
 (define-assembler :add
   (cond ((and (reg64-p operand1) (not (extended-register-p operand1))
