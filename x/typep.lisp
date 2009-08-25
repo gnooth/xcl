@@ -119,7 +119,7 @@
              (error 'type-error
                     :datum predicate
                     :expected-type 'SYMBOL))
-           (and (funcall (coerce-to-function predicate) object) t)))
+           (and (funcall (symbol-function predicate) object) t)))
         (COMPLEX
          (case (length type-specifier)
            (1
