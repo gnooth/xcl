@@ -5369,35 +5369,6 @@
        (move-result-to-target target)
        t))))
 
-(defvar *available-registers* nil)
-
-(defun initialize-available-registers ()
-  (setq *available-registers* (list :rbx)))
-
-(defun get-available-register ()
-  (pop *available-registers*))
-
-(defun assign-registers-for-locals (compiland)
-  (when *available-registers*
-    (unless (compiland-unwind-protect-p compiland)
-      (let ((locals (reverse *local-variables*)))
-        (dolist (var locals)
-          (declare (type var var))
-          (unless (or (var-special-p var)
-                      (var-used-non-locally-p var))
-            (aver (eq (var-compiland-id var) (compiland-id compiland)))
-            (aver (null (var-index var)))
-            (aver (null (var-register var)))
-            (when (var-register-p var)
-              (let ((reg (get-available-register)))
-                (cond (reg
-                       (setf (var-register var) reg)
-;;                        (debug-log "assign-registers-for-locals var = ~S reg = ~S~%" (var-name var) reg)
-                       (push reg (compiland-registers-to-be-saved compiland)))
-                      (t
-                       ;; we've run out of available registers
-                       (return)))))))))))
-
 (defknown allocate-locals (t t) t)
 (defun allocate-locals (compiland index)
   (declare (type index index))

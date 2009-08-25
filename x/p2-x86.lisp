@@ -104,10 +104,6 @@
              (unless (eq reg :stack)
                (inst :pop reg)))))))
 
-(defknown initialize-available-registers () t)
-(defun initialize-available-registers ()
-  )
-
 (defknown allocate-locals (t t) t)
 (defun allocate-locals (compiland index)
   (declare (type compiland compiland))
