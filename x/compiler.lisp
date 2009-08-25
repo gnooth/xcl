@@ -2244,7 +2244,12 @@ for special variables."
       (when (and arity
                  (<= arity 6)
                  (null *closure-vars*))
-        (assign-registers-for-locals compiland)))
+        (assign-registers-for-locals compiland)
+        #+x86
+        (let ((delta (length (compiland-registers-to-be-saved compiland))))
+          (dolist (var (compiland-arg-vars compiland))
+            (when (eq (var-kind var) :required)
+              (setf (var-index var) (+ (var-index var) delta)))))))
     (p2-function-prolog compiland)
     (p2-check-argument-types compiland)
     (p2 (compiland-p1-body compiland) :return)

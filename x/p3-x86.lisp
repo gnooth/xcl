@@ -63,9 +63,9 @@
                         (incf var-ref-count)
                         (cond ((var-index operand1)
                                (setf (second instruction)
-                                     (list (index-displacement (var-index operand1)) :ebp))
-                               ;;                                  (debug-log "p3 :mov case instruction = ~S~%" instruction)
-                               )
+                                     (list (index-displacement (var-index operand1)) :ebp)))
+                              ((var-register operand1)
+                               (setf (second instruction) (var-register operand1)))
                               (t
                                (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand1))
                                (unsupported))))
@@ -75,6 +75,8 @@
                         (cond ((var-index operand2)
                                (setf (third instruction)
                                      (list (index-displacement (var-index operand2)) :ebp)))
+                              ((var-register operand2)
+                               (setf (third instruction) (var-register operand2)))
                               (t
                                (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand2))
                                (unsupported))))
@@ -87,6 +89,9 @@
                         (cond ((var-index operand1)
                                (setf (second instruction)
                                      (list (index-displacement (var-index operand1)) :ebp))
+                               (vector-push-extend (assemble-instruction instruction) new-code))
+                              ((var-register operand1)
+                               (setf (second instruction) (var-register operand1))
                                (vector-push-extend (assemble-instruction instruction) new-code))
                               (t
                                (debug-log "p3 :push no var-index for var ~S~%" (var-name operand1))
@@ -103,8 +108,8 @@
                  (let ((instructions nil))
                    (unless (compiland-omit-frame-pointer compiland)
                      (push '(:leave) instructions))
-                   ;;                    (when (compiland-needs-thread-var-p compiland)
-                   ;;                      (push '(:pop :r12) instructions))
+                   (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
+                     (push `(:pop ,reg) instructions))
                    (push '(:ret) instructions)
                    (setq instructions (nreverse instructions))
                    (let ((bytes (assemble instructions)))
@@ -116,12 +121,8 @@
                 (:call
                  (setq leaf-p nil)
                  (setq instruction (make-instruction :call 5 operand1))
-                 ;;                    (setf (svref code i) instruction)
                  (vector-push-extend instruction new-code))
                 (:mov-immediate
-                 ;;                    (debug-log "p3 mov-immediate case~%")
-                 ;;   (emit-byte (+ #xb8 (register-number register))) ; mov imm32,reg
-                 ;;   (emit-function symbol)
                  (cond ((and (consp operand1)
                              (eq (%car operand1) :function))
                         (aver (length-eql operand1 2))
