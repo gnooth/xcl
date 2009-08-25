@@ -62,6 +62,7 @@
   called-names
   needs-thread-var-p
   leaf-p
+  unwind-protect-p
 
   #-x86-64
   thread-var
@@ -101,6 +102,7 @@
   (compiland-id (compiland-id *current-compiland*))
   constant-p
   constant-value
+  register-p
   )
 
 (defknown make-var (*) t)
@@ -203,6 +205,8 @@
 (defun find-register-containing-var (var)
 ;;   (debug-log "find-register-containing-var var = ~S~%" (var-name var))
   (when (var-p var)
+;;     (when (var-register var)
+;;       (return-from find-register-containing-var (var-register var)))
     (maphash (lambda (k v)
                (when (or (eq var v)
                          (and (consp v)
@@ -1298,7 +1302,7 @@ for special variables."
                (push subform new-body)
                (setq live t))
               ((not live)
-               ;; Nothing to do.
+               ;; nothing to do
                )
               (t
                (when (and (consp subform)
@@ -1355,13 +1359,15 @@ for special variables."
          ;; no cleanup forms: (unwind-protect (...)) => (progn (...))
          (p1 `(progn ,(%cadr form))))
         (t
-         (let* ((block (make-block :name '(UNWIND-PROTECT)))
+         (let* ((compiland *current-compiland*)
+                (block (make-block :name '(UNWIND-PROTECT)))
                 (*visible-blocks* (cons block *visible-blocks*)))
            (setf (block-form block) (p1-default form))
            (let ((var (make-var :name (gensym "UWP-") :kind :local)))
              (push var *local-variables*)
              (setf (block-uwp-var block) var))
-           (setf (compiland-needs-thread-var-p *current-compiland*) t)
+           (setf (compiland-needs-thread-var-p compiland) t)
+           (setf (compiland-unwind-protect-p compiland) t)
            (list 'UNWIND-PROTECT block)))))
 
 (defun p1-multiple-value-prog1 (form)
@@ -1387,7 +1393,7 @@ for special variables."
                          (memq arg1 *undefined-variables*))
                (compiler-warn "Undefined variable: ~S" arg1)
                (push form *undefined-variables*))
-             (setf var (make-var :name form :kind :local :special-p t))
+             (setq var (make-var :name form :kind :local :special-p t))
              (push var *local-variables*)
              (push var *visible-variables*))
             (t
@@ -1402,6 +1408,15 @@ for special variables."
                    (t
                     (setf (var-used-non-locally-p var) t)
                     (pushnew var *closure-vars*)))))
+      ;; REVIEW
+      (when (consp arg2)
+        (let ((op (%car arg2)))
+          (cond ((and (eq op 'TWO-ARG-+)
+                      (eq (cadr arg2) arg1))
+                 (setf (var-register-p var) t))
+                ((and (memq op '(CDR %CDR))
+                      (eq (cadr arg2) arg1))
+                 (setf (var-register-p var) t)))))
       (unless (zerop *safety*)
         (let ((type (var-declared-type var)))
           (unless (eq type :none)
@@ -1634,28 +1649,22 @@ for special variables."
       (dolist (instruction (coerce *code* 'list))
         (fresh-line)
         (debug-log "~4,D: " (incf i))
-;; ;;       (if (vectorp instruction)
-;; ;;           (print-instruction instruction)
-;;         (debug-log "~S~%" instruction)
         (cond ((vectorp instruction)
                (debug-log "~S~%" instruction))
               ((consp instruction)
-               (let ((operator (first instruction))
-                     (operand1 (second instruction))
-                     (operand2 (third instruction)))
-                 (write-char #\( *debug-io*)
-                 (debug-log "~S " operator)
-                 (if (var-p operand1)
-                     (print-var operand1 *debug-io*)
-                     (debug-log "~S" operand1))
-                 (when (length-eql instruction 3)
-                   (write-char #\space *debug-io*)
-                   (if (var-p operand2)
-                       (print-var operand2 *debug-io*)
-                       (debug-log "~S" operand2)))
-                 (write-char #\) *debug-io*)
-                 (terpri *debug-io*))))
-        ))))
+               (let ((list instruction))
+                 (debug-log "(~S" (car list))
+                 (setq list (cdr list))
+                 (loop
+                   (when (null list)
+                     (return))
+                   (let ((thing (car list)))
+                     (write-char #\space *debug-io*)
+                     (if (var-p thing)
+                         (print-var thing *debug-io*)
+                         (debug-log "~S" thing)))
+                   (setq list (cdr list)))
+                 (write-char #\) *debug-io*))))))))
 
 (defknown labelp (t) t)
 (defun labelp (thing)
@@ -2231,6 +2240,11 @@ for special variables."
     (when (compiland-needs-thread-var-p compiland)
       (allocate-thread-var compiland))
     (clear-register-contents)
+    (let ((arity (compiland-arity compiland)))
+      (when (and arity
+                 (<= arity 6)
+                 (null *closure-vars*))
+        (assign-registers-for-locals compiland)))
     (p2-function-prolog compiland)
     (p2-check-argument-types compiland)
     (p2 (compiland-p1-body compiland) :return)

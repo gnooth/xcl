@@ -116,6 +116,8 @@
                           (cond ((var-index operand1)
                                  (setf (second instruction)
                                        (list (index-displacement (var-index operand1)) :rbp)))
+                                ((var-register operand1)
+                                 (setf (second instruction) (var-register operand1)))
                                 (t
                                  (debug-log "p3 :push unsupported case~%")
                                  (unsupported))))

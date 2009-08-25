@@ -448,7 +448,12 @@
            (case target
              (:stack
               (emit-push-immediate form))
-             ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi :r8 :r9)
+             ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)
+              (if (eql form 0)
+                  (inst :xor (reg32 target) (reg32 target))
+                  (emit-move-immediate form target))
+              (clear-register-contents target))
+             ((:r8 :r9)
               (emit-move-immediate form target)
               (clear-register-contents target))
              (:return
@@ -1350,7 +1355,13 @@
                          (setq reg (find-register-containing-var (var-ref-var initform))))
                     (inst :mov reg var)
                     (set-register-contents reg (list var (var-ref-var initform))))
+                   ((var-register var)
+;;                     (debug-log "bind-var ~S var-register case~%" (var-name var))
+                    (p2 initform (var-register var))
+                    (when (integerp initform)
+                      (add-type-constraint var `(INTEGER ,initform ,initform))))
                    (t
+;;                     (debug-log "bind-var ~S default case~%" (var-name var))
                     (p2 initform :rax)
                     (inst :mov :rax var)
                     (set-register-contents :rax var)
@@ -1430,7 +1441,7 @@
     (if (eq (car form) 'LET)
         (p2-let-vars  vars)
         (p2-let*-vars vars))
-    ;; Make free specials visible.
+    ;; make free specials visible
     (dolist (var (block-free-specials block))
       (push var *visible-variables*))
     (let ((*speed*  *speed*)
@@ -5361,29 +5372,31 @@
 (defvar *available-registers* nil)
 
 (defun initialize-available-registers ()
-  (setq *available-registers* (list :r13 :r14 :r15)))
+  (setq *available-registers* (list :rbx)))
 
 (defun get-available-register ()
   (pop *available-registers*))
 
 (defun assign-registers-for-locals (compiland)
   (when *available-registers*
-    (let ((locals (reverse *local-variables*)))
-      (dolist (var locals)
-        (declare (type var var))
-        (unless (or (var-special-p var)
-                    (var-used-non-locally-p var))
-          (aver (eq (var-compiland-id var) (compiland-id compiland)))
-          (aver (null (var-index var)))
-          (aver (null (var-register var)))
-          (let ((reg (get-available-register)))
-            (cond (reg
-                   (setf (var-register var) reg)
-                   (debug-log "var = ~S reg = ~S~%" (var-name var) reg)
-                   (push reg (compiland-registers-to-be-saved compiland)))
-                  (t
-                   ;; we've run out of available registers
-                   (return)))))))))
+    (unless (compiland-unwind-protect-p compiland)
+      (let ((locals (reverse *local-variables*)))
+        (dolist (var locals)
+          (declare (type var var))
+          (unless (or (var-special-p var)
+                      (var-used-non-locally-p var))
+            (aver (eq (var-compiland-id var) (compiland-id compiland)))
+            (aver (null (var-index var)))
+            (aver (null (var-register var)))
+            (when (var-register-p var)
+              (let ((reg (get-available-register)))
+                (cond (reg
+                       (setf (var-register var) reg)
+;;                        (debug-log "assign-registers-for-locals var = ~S reg = ~S~%" (var-name var) reg)
+                       (push reg (compiland-registers-to-be-saved compiland)))
+                      (t
+                       ;; we've run out of available registers
+                       (return)))))))))))
 
 (defknown allocate-locals (t t) t)
 (defun allocate-locals (compiland index)
@@ -5447,7 +5460,7 @@
 
 ;;   (assign-registers-for-locals compiland)
 ;;   (debug-log "p2-trivial-function-prolog compiland-registers-to-be-saved = ~S~%"
-;;           (compiland-registers-to-be-saved compiland))
+;;              (compiland-registers-to-be-saved compiland))
 
   ;; "The end of the input argument area shall be aligned on a 16 byte boundary.
   ;; In other words, the value (%rsp - 8) is always a multiple of 16 when control
