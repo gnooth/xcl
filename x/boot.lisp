@@ -240,9 +240,7 @@
 
 (autoload-macro 'defsetf)
 
-(export 'show-restarts)
-(autoload '(show-restarts invoke-debugger) "invoke-debugger")
-
+(load-system-file "invoke-debugger")
 (load-system-file "signal")
 (load-system-file "concatenate")
 (autoload '(make-array adjust-array))
