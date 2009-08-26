@@ -3343,6 +3343,18 @@
                     (p2-constant name :rdi)
                     (note "P2-SETQ: emitting call to RT_current_thread_set_symbol_value~%")
                     (emit-call "RT_current_thread_set_symbol_value")))))
+
+          ((var-register var)
+           (debug-log "p2-setq var-register case~%")
+           (aver (null (var-closure-index var)))
+           (setq derived-type (derive-type value-form))
+;;            (process-1-arg value-form (var-register var) t)
+           (process-1-arg value-form :rax t)
+           (inst :mov :rax var)
+
+           (clear-var-registers var)
+           )
+
           (t
            (cond ((var-closure-index var)
                   (process-1-arg value-form :rax t)
@@ -3878,14 +3890,34 @@
 
 (defknown p2-%cdr (t t) t)
 (defun p2-%cdr (form target)
+  (debug-log "p2-%cdr target = ~S~%" target)
   (when (check-arg-count form 1)
-    (process-1-arg (%cadr form) :rax t)
-    (cond ((reg64-p target)
-           (inst :mov '(7 :rax) target))
-          (t
-           (inst :mov '(7 :rax) :rax)
-           (move-result-to-target target)))
-    (clear-register-contents :rax)
+    (let ((arg (%cadr form)))
+      (cond ((and (var-ref-p arg)
+                  (reg64-p target))
+             (debug-log "p2-%cdr var-ref-p reg64-p case~%")
+             (debug-log "p2-%cdr var-register = ~S~%" (var-register (var-ref-var arg)))
+             (cond ((eq target (var-register (var-ref-var arg)))
+                    (debug-log "p2-%cdr new case 1~%")
+                    (inst :mov `(7 ,target) target)
+                    (clear-register-contents target))
+;;                    ((var-register (var-ref-var arg))
+;;                     (debug-log "p2-%cdr new case 2~%")
+;;                     (inst :mov `(7 ,(var-register (var-ref-var arg))) target)
+;;                     (clear-register-contents target))
+                   (t
+                    (debug-log "p2-%cdr new case 3~%")
+                    (process-1-arg arg target nil)
+                    (inst :mov `(7 ,target) target)
+                    (clear-register-contents target))))
+            (t
+             (process-1-arg arg :rax t)
+             (cond ((reg64-p target)
+                    (inst :mov '(7 :rax) target))
+                   (t
+                    (inst :mov '(7 :rax) :rax)
+                    (move-result-to-target target)))
+             (clear-register-contents :rax))))
     t))
 
 (defknown p2-rplacd (t t) t)
@@ -3902,6 +3934,7 @@
 
 (defknown p2-cdr (t t) t)
 (defun p2-cdr (form target)
+  (debug-log "p2-cdr target = ~S~%" target)
   (when (check-arg-count form 1)
     (let* ((arg (%cadr form))
            (type (derive-type arg)))

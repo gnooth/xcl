@@ -197,16 +197,23 @@
            *register-contents*))
 
 (defknown set-register-contents (t t) t)
-(defun set-register-contents (register var)
+(defun set-register-contents (register var-or-vars)
 ;;   (debug-log "set-register-contents register = ~S var = ~S~%" register (var-name var))
-  (setf (gethash register *register-contents*) var))
+;;   (unless (eq register (var-register var))
+  (cond ((consp var-or-vars)
+         (dolist (var var-or-vars)
+           (unless (eq register (var-register var))
+             (setf (gethash register *register-contents*) var))))
+        (t
+         (let ((var var-or-vars))
+           (unless (eq register (var-register var))
+             (setf (gethash register *register-contents*) var))))))
 
 (defknown find-register-containing-var (var) t)
+;; caller may trash the returned register!
 (defun find-register-containing-var (var)
 ;;   (debug-log "find-register-containing-var var = ~S~%" (var-name var))
   (when (var-p var)
-;;     (when (var-register var)
-;;       (return-from find-register-containing-var (var-register var)))
     (maphash (lambda (k v)
                (when (or (eq var v)
                          (and (consp v)
