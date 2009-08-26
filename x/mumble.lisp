@@ -1,4 +1,4 @@
-;;; debug-log.lisp
+;;; mumble.lisp
 ;;;
 ;;; Copyright (C) 2009 Peter Graves <peter@armedbear.org>
 ;;;
@@ -18,6 +18,6 @@
 
 (in-package "SYSTEM")
 
-(defun debug-log (control-string &rest format-arguments)
-  (when *compiler-debug*
+(defun mumble (control-string &rest format-arguments)
+  (when *mumble*
     (apply #'format *debug-io* control-string format-arguments)))

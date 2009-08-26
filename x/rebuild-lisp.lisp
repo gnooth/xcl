@@ -32,7 +32,7 @@
       (load (compile-file-if-needed "print.lisp"))
       (load (compile-file-if-needed "dpb.lisp"))
       (load (compile-file-if-needed "member.lisp"))
-      (load (compile-file-if-needed "debug-log.lisp"))
+      (load (compile-file-if-needed "mumble.lisp"))
       #+x86
       (load (compile-file-if-needed "x86.lisp"))
       #+x86-64

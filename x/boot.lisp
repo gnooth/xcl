@@ -400,11 +400,9 @@
 (autoload-macro 'with-hash-table-iterator)
 (autoload 'hash-table-iterator-function "with-hash-table-iterator")
 
-(defvar *compiler-debug* t)
-(export '*compiler-debug*)
-
-(export 'debug-log)
-(autoload 'debug-log "debug-log")
+(defvar *mumble* t)
+(export '(*mumble* mumble))
+(autoload 'mumble "mumble")
 
 (autoload 'compile "load-compiler")
 
@@ -587,13 +585,13 @@
 (autoload 'run-random-tests)
 (autoload 'run-other-tests)
 
-(defun run-ansi-tests (&key (compile-tests t) (debug t))
+(defun run-ansi-tests (&key (compile-tests t) (mumble t))
   (declaim (optimize speed))
   (let* ((ansi-tests-directory
           (pathname (directory-namestring (merge-pathnames "ansi-tests/" #.*load-pathname*))))
          (*default-pathname-defaults* ansi-tests-directory)
          (*print-structure* t)
-         (sys:*compiler-debug* debug))
+         (sys:*mumble* mumble))
     (cond (compile-tests
            (load "compileit.lsp"))
           (t

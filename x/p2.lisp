@@ -257,7 +257,7 @@
              (let ((tag (find-visible-tag subform)))
                (unless tag
                  (error "p2-tagbody-1 tag ~S not found~%" subform))
-;;                (debug-log "p2-tagbody-1 tag ~S~%" subform)
+;;                (mumble "p2-tagbody-1 tag ~S~%" subform)
                (label (tag-label tag)))
              ;; register contents can't be trusted after a label
              (clear-register-contents)
@@ -460,7 +460,7 @@
            (arg2 (%cadr args)))
       (when (and (neq type1 :unknown)
                  (subtypep type1 'SIMPLE-STRING))
-        (debug-log "p2-char derived type is subtypep simple-string~%")
+        (mumble "p2-char derived type is subtypep simple-string~%")
         (p2-function-call (list '%SCHAR arg1 arg2) target)
         t))))
 
@@ -494,26 +494,26 @@
       (when (quoted-form-p arg2)
         (let ((output-type (%cadr arg2))
               (type1 (derive-type arg1)))
-          (debug-log "p2-coerce type1 = ~S output-type = ~S~%" type1 output-type)
+          (mumble "p2-coerce type1 = ~S output-type = ~S~%" type1 output-type)
           (cond ((and (eq output-type 'LIST)
                       (subtypep type1 'VECTOR))
-                 (debug-log "p2-coerce coerce-vector-to-list case~%")
+                 (mumble "p2-coerce coerce-vector-to-list case~%")
                  (p2 (list 'COERCE-VECTOR-TO-LIST arg1) target)
                  t)
                 ((and (memq output-type '(VECTOR SIMPLE-VECTOR))
                       (subtypep type1 'LIST))
-                 (debug-log "p2-coerce coerce-list-to-vector case~%")
+                 (mumble "p2-coerce coerce-list-to-vector case~%")
                  (p2 (list 'COERCE-LIST-TO-VECTOR arg1) target)
                  t)
                 ((eq output-type 'FUNCTION)
-                 (debug-log "p2-coerce coerce-to-function case~%")
+                 (mumble "p2-coerce coerce-to-function case~%")
                  (p2 (list 'COERCE-TO-FUNCTION arg1) target)
                  t)))))))
 
 ;; REVIEW
 (defun p2-declare (form target)
   (declare (ignore form target))
-  (debug-log "~&P2-DECLARE~%")
+  (mumble "~&P2-DECLARE~%")
   t)
 
 (defknown p2-delete (t t) t)
@@ -533,22 +533,22 @@
                                    (eq type1 'CHARACTER)
                                    (eq type1 'SYMBOL)
                                    (subtypep type1 'structure-object)))
-                          (debug-log "p2-delete list-delete-eq~%")
+                          (mumble "p2-delete list-delete-eq~%")
                           (p2-function-call (list 'LIST-DELETE-EQ arg1 arg2) target)
                           t)
                          (t
-                          (debug-log "p2-delete list-delete-eql~%")
+                          (mumble "p2-delete list-delete-eql~%")
                           (p2-function-call (list 'LIST-DELETE-EQL arg1 arg2) target)
                           t))))
                 ((and (eql numargs 4)
                       (eq (third args) :test))
                  (case (fourth args)
                    (EQ
-                    (debug-log "p2-delete list-delete-eq~%")
+                    (mumble "p2-delete list-delete-eq~%")
                     (p2-function-call (list 'LIST-DELETE-EQ arg1 arg2) target)
                     t)
                    (EQL
-                    (debug-log "p2-delete list-delete-eql~%")
+                    (mumble "p2-delete list-delete-eql~%")
                     (p2-function-call (list 'LIST-DELETE-EQL arg1 arg2) target)
                     t)))))))))
 
@@ -565,17 +565,17 @@
                  (integer-constant-value type3)
                  (flushable arg2)
                  (flushable arg3))
-        (debug-log "p2-%dpb optimized case~%")
+        (mumble "p2-%dpb optimized case~%")
         (let* ((size (integer-constant-value type2))
                (position (integer-constant-value type3))
                (mask (1- (ash 1 size)))
                ;;                (*print-structure* nil)
                )
-          ;;           (debug-log "old form = ~S~%" form)
+          ;;           (mumble "old form = ~S~%" form)
           (setq form
                 `(logior (logand ,arg4 ,(lognot (ash mask position)))
                          (ash (logand ,arg1 ,mask) ,position)))
-          ;;           (debug-log "new form = ~S~%" form)
+          ;;           (mumble "new form = ~S~%" form)
           )
         (p2 form target)
         t))))
@@ -608,11 +608,11 @@
          (numargs (length args))
          (arg1 (car args))
          (type1 (derive-type arg1)))
-    (debug-log "p2-fill numargs = ~S derived type is ~S~%" numargs type1)
+    (mumble "p2-fill numargs = ~S derived type is ~S~%" numargs type1)
     (cond ((and (eql numargs 2)
                 (neq type1 :unknown)
                 (subtypep type1 'SIMPLE-BIT-VECTOR))
-           (debug-log "p2-fill simple-bit-vector-fill case~%")
+           (mumble "p2-fill simple-bit-vector-fill case~%")
            (p2-function-call (list* 'SIMPLE-BIT-VECTOR-FILL args) target))
           (t
            (p2-function-call form target))))
@@ -661,10 +661,10 @@
                       (p2-function-call `(string-find ,arg1 ,arg2) target)
                       t)
                      (t
-                      (debug-log "p2-find no optimization~%")
+                      (mumble "p2-find no optimization~%")
                       nil)))
               (t
-               (debug-log "p2-find no optimization~%")
+               (mumble "p2-find no optimization~%")
                nil))))))
 
 (defknown p2-position-eql (t t) t)
@@ -755,15 +755,15 @@
                       )
                      ((setq constraint (find-constraint var))
                       (setq type (canonicalize-type type))
-;;                       (debug-log "already have constraint for ~S: ~S~%"
+;;                       (mumble "already have constraint for ~S: ~S~%"
 ;;                               (var-name var) (constraint-type constraint))
-;;                       (debug-log "new constraint: ~S~%" type)
+;;                       (mumble "new constraint: ~S~%" type)
                       (when (subtypep type (constraint-type constraint))
-;;                         (debug-log "adding new constraint~%")
+;;                         (mumble "adding new constraint~%")
                         (push (make-constraint :var var :type type) *constraints*)))
                      (t
                       (setq type (canonicalize-type type))
-;;                       (debug-log "adding constraint var = ~S type = ~S~%" (var-name var) type)
+;;                       (mumble "adding constraint var = ~S type = ~S~%" (var-name var) type)
                       (push (make-constraint :var var :type type) *constraints*))))))))
 
 (defknown maybe-add-negative-constraint (t) t)
@@ -788,15 +788,15 @@
                  )
                 ((setq constraint (find-constraint var))
                  (setq type (canonicalize-type type))
-                 (debug-log "already have constraint for ~S: ~S~%"
-                            (var-name var) (constraint-type constraint))
-                 (debug-log "new constraint: ~S~%" type)
+                 (mumble "already have constraint for ~S: ~S~%"
+                         (var-name var) (constraint-type constraint))
+                 (mumble "new constraint: ~S~%" type)
                  (when (subtypep type (constraint-type constraint))
-                   (debug-log "adding new constraint~%")
+                   (mumble "adding new constraint~%")
                    (push (make-constraint :var var :type type) *constraints*)))
                 (t
                  (setq type (canonicalize-type type))
-                 (debug-log "adding negative constraint var = ~S type = ~S~%" (var-name var) type)
+                 (mumble "adding negative constraint var = ~S type = ~S~%" (var-name var) type)
                  (push (make-constraint :var var :type type) *constraints*))))))))
 
 (defun p2-if (form target)
@@ -1021,7 +1021,7 @@
                   (subtypep type required-type))
              (process-1-arg arg target t))
             (t
-             (debug-log "%p2-require-type full call to ~S~%" op)
+             (mumble "%p2-require-type full call to ~S~%" op)
              (process-1-arg arg :default t)
              (emit-call-1 op target)
              (when (var-ref-p arg)
@@ -1160,7 +1160,7 @@
                    new-form)
 ;;                (let ((*print-structure* nil)
 ;;                      (*print-array* nil))
-;;                  (debug-log "p2-typep arg2 = ~S type = ~S~%" (cadr arg2) type))
+;;                  (mumble "p2-typep arg2 = ~S type = ~S~%" (cadr arg2) type))
                (cond ((eq type 'structure-object)
                       (setq new-form `(structure-object-p ,arg1))
                       (p2 new-form target)
@@ -1183,7 +1183,7 @@
                       (setq new-form `(builtin-typep ,arg1 ',type))
 ;;                       (let ((*print-structure* nil)
 ;;                             (*print-array* nil))
-;;                         (debug-log "p2-typep new-form = ~S~%" new-form))
+;;                         (mumble "p2-typep new-form = ~S~%" new-form))
                       (p2-function-call new-form target)
                       t)
                      ((and (consp type)
@@ -1194,18 +1194,18 @@
                              (setq new-form `(if (MEMQL ,arg1 '(,@(cdr type))) t nil))))
 ;;                       (let ((*print-structure* nil)
 ;;                             (*print-array* nil))
-;;                         (debug-log "p2-typep form = ~S new-form = ~S~%" form new-form))
+;;                         (mumble "p2-typep form = ~S new-form = ~S~%" form new-form))
                       (p2 new-form target)
                       t)
                      (t
 ;;                       (let ((*print-structure* nil)
 ;;                             (*print-array* nil))
-;;                         (debug-log "p2-typep full call arg2 = ~S type = ~S~%" arg2 type))
+;;                         (mumble "p2-typep full call arg2 = ~S type = ~S~%" arg2 type))
                       nil))))
             (t
 ;;              (let ((*print-structure* nil)
 ;;                    (*print-array* nil))
-;;                (debug-log "p2-typep full call arg2 = ~S~%" arg2))
+;;                (mumble "p2-typep full call arg2 = ~S~%" arg2))
              nil)))))
 
 (defknown p2-vector2 (t t) t)
@@ -1237,7 +1237,7 @@
                  ((and handler (< *debug* 3))
                   (setq handled (funcall handler form target))
 ;;                   (unless (or (eq handled t) (eq handled nil))
-;;                     (debug-log "broken handler ~S~%" handler)
+;;                     (mumble "broken handler ~S~%" handler)
 ;;                     (break))
                   (unless handled
                     (p2-function-call form target))
@@ -1291,7 +1291,7 @@
               (let ((reg (get-available-register)))
                 (cond (reg
                        (setf (var-register var) reg)
-;;                        (debug-log "assign-registers-for-locals var = ~S reg = ~S~%" (var-name var) reg)
+;;                        (mumble "assign-registers-for-locals var = ~S reg = ~S~%" (var-name var) reg)
                        (push reg (compiland-registers-to-be-saved compiland)))
                       (t
                        ;; we've run out of available registers

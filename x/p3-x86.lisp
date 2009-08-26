@@ -1,4 +1,4 @@
-;;; p2-x86.lisp
+;;; p3-x86.lisp
 ;;;
 ;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 ;;;
@@ -49,7 +49,7 @@
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
-        ;;           (debug-log "p3 instruction = ~S~%" instruction)
+        ;;           (mumble "p3 instruction = ~S~%" instruction)
         ;;           (unless (consp instruction)
         ;;             (format t "p3 non-cons instruction = ~S~%" instruction))
         (if (consp instruction)
@@ -67,7 +67,7 @@
                               ((var-register operand1)
                                (setf (second instruction) (var-register operand1)))
                               (t
-                               (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand1))
+                               (mumble "p3 :mov no var-index for var ~S~%" (var-name operand1))
                                (unsupported))))
                        ((var-p operand2)
                         ;; setq
@@ -78,7 +78,7 @@
                               ((var-register operand2)
                                (setf (third instruction) (var-register operand2)))
                               (t
-                               (debug-log "p3 :mov no var-index for var ~S~%" (var-name operand2))
+                               (mumble "p3 :mov no var-index for var ~S~%" (var-name operand2))
                                (unsupported))))
                        (t
                         ;; nothing to do
@@ -94,7 +94,7 @@
                                (setf (second instruction) (var-register operand1))
                                (vector-push-extend (assemble-instruction instruction) new-code))
                               (t
-                               (debug-log "p3 :push no var-index for var ~S~%" (var-name operand1))
+                               (mumble "p3 :push no var-index for var ~S~%" (var-name operand1))
                                (unsupported))))
                        ((and (consp operand1)
                              (length-eql operand1 2)
@@ -157,14 +157,14 @@
                                   (make-instruction :byte 1 (+ #xb8 (register-number register)))
                                   new-code))
                                 (t
-                                 (debug-log "p3 :mov-immediate :constant unsupported case register = ~S~%"
-                                            register)
+                                 (mumble "p3 :mov-immediate :constant unsupported case register = ~S~%"
+                                         register)
                                  (unsupported)))
                           (vector-push-extend
                            (make-instruction :constant 4 form)
                            new-code)))
                        (t
-                        (debug-log "p3 :mov-immediate unsupported case~%")
+                        (mumble "p3 :mov-immediate unsupported case~%")
                         (unsupported))))
                 (:byte
                  (vector-push-extend (make-instruction :byte 1 operand1) new-code))
@@ -181,10 +181,10 @@
             ;;                 (setf (svref code i) assembled-instruction)))
             (vector-push-extend instruction new-code))))
     (when (> (length new-code) initial-size)
-      (debug-log "p3 initial-size = ~D (length new-code) = ~D~%"
-                 initial-size
-                 (length new-code)))
+      (mumble "p3 initial-size = ~D (length new-code) = ~D~%"
+              initial-size
+              (length new-code)))
     (setq *code* (coerce new-code 'simple-vector))
     ;;       (when leaf-p
-    ;;         (debug-log "~S leaf-p = ~S var-ref-count = ~S~%" (compiland-name compiland) leaf-p var-ref-count))
+    ;;         (mumble "~S leaf-p = ~S var-ref-count = ~S~%" (compiland-name compiland) leaf-p var-ref-count))
     ))

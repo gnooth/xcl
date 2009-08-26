@@ -531,7 +531,7 @@
            (compiler-unsupported "P2-CONSTANT: unsupported type ~S" (type-of form))))))
 
 (defun p2-load-time-value (form target)
-  (debug-log "p2-load-time-value~%")
+  (mumble "p2-load-time-value~%")
   (cond ((compile-file-p)
          (let* ((name (gensym)))
            (dump-top-level-form `(defvar ,name ,(cadr form)) *compile-file-output-stream*)
@@ -553,7 +553,7 @@
       (aver thread-register)
       (cond (thread-register
              (inst :mov thread-register :rdi)
-;;              (debug-log "p2 block ~S emitting call to RT_thread_last_special_binding~%"
+;;              (mumble "p2 block ~S emitting call to RT_thread_last_special_binding~%"
 ;;                         (block-name block))
              (emit-call "RT_thread_last_special_binding"))
             (t
@@ -564,7 +564,7 @@
     (setf (block-exit block) BLOCK-EXIT)
     (setf (block-target block) target)
     (cond ((block-non-local-return-p block)
-;;            (debug-log "p2-block ~S non-local return case~%" (block-name block))
+;;            (mumble "p2-block ~S non-local return case~%" (block-name block))
            (let ((block-var (block-block-var block)))
              (aver block-var)
              (aver thread-register)
@@ -594,7 +594,7 @@
                (emit-call "RT_block_non_local_return")
                (label BLOCK-EXIT))))
           (t
-;;            (debug-log "p2-block ~S default case, proceeding to progn body~%" (block-name block))
+;;            (mumble "p2-block ~S default case, proceeding to progn body~%" (block-name block))
            (p2-progn-body (block-body block) :rax)
            (label BLOCK-EXIT)))
     (when last-special-binding-var
@@ -606,7 +606,7 @@
       (cond (thread-register
              (p2-var-ref (make-var-ref last-special-binding-var) :rsi)
              (inst :mov thread-register :rdi)
-;;              (debug-log "p2 block ~S emitting call to RT_thread_set_last_special_binding~%"
+;;              (mumble "p2 block ~S emitting call to RT_thread_set_last_special_binding~%"
 ;;                         (block-name block))
              (emit-call "RT_thread_set_last_special_binding"))
             (t
@@ -628,12 +628,12 @@
     (declare (type compiland compiland))
 ;;     (unless block
 ;;       (error "No block named ~S is currently visible." name))
-;;     (debug-log "p2-return-from block ~S~%" name)
+;;     (mumble "p2-return-from block ~S~%" name)
     (aver (not (null (block-exit block))))
     (emit-clear-values) ; REVIEW
     (p2 result-form :rax)
     (cond ((eq (block-compiland block) compiland)
-;;            (debug-log "p2-return-from block ~S local return case~%" name)
+;;            (mumble "p2-return-from block ~S local return case~%" name)
            (dolist (enclosing-block *visible-blocks*)
              (declare (type cblock enclosing-block))
              (when (eq enclosing-block block)
@@ -655,7 +655,7 @@
            (emit-jmp-short t (block-exit block)))
           (t
            ;; non-local return
-;;            (debug-log "p2-return-from block ~S non-local return case~%" name)
+;;            (mumble "p2-return-from block ~S non-local return case~%" name)
            (let ((thread-register (compiland-thread-register compiland)))
              (aver thread-register)
              (inst :push :rax) ; result
@@ -725,12 +725,12 @@
          (arg2 (%cadr args))
          (type1 (derive-type arg1))
          (type2 (derive-type arg2)))
-    (debug-log "p2-test-numeric-comparison ~S type1 = ~S~A type2 = ~S~A~%"
-               op
-               type1
-               (if (fixnum-type-p type1) " (fixnum)" "")
-               type2
-               (if (fixnum-type-p type2) " (fixnum)" ""))
+    (mumble "p2-test-numeric-comparison ~S type1 = ~S~A type2 = ~S~A~%"
+            op
+            type1
+            (if (fixnum-type-p type1) " (fixnum)" "")
+            type2
+            (if (fixnum-type-p type2) " (fixnum)" ""))
     (cond ((and (fixnum-type-p type1)
                 (fixnum-type-p type2))
            (cond ((and (fixnump arg1)
@@ -756,7 +756,7 @@
                   t)))
           ((or (float-type-p type1) (float-type-p type2))
            ;; full call
-           (debug-log "p2-test-numeric-comparison float case~%")
+           (mumble "p2-test-numeric-comparison float case~%")
            (process-2-args args '(:rdi :rsi) t)
            (emit-call op)
            (emit-compare-rax-to-nil)
@@ -864,7 +864,7 @@
            (arg1 (%car args))
            (arg2 (%cadr args)))
       (when (or (characterp arg1) (fixnump arg1))
-        (debug-log "%p2-test-eq swapping args~%")
+        (mumble "%p2-test-eq swapping args~%")
         (let ((temp arg1))
           (setq arg1 arg2
                 arg2 temp))
@@ -896,7 +896,7 @@
            (arg1 (%car args))
            (arg2 (%cadr args)))
       (when (or (characterp arg1) (fixnump arg1))
-        (debug-log "%p2-test-neq swapping args~%")
+        (mumble "%p2-test-neq swapping args~%")
         (let ((temp arg1))
           (setq arg1 arg2
                 arg2 temp))
@@ -1145,7 +1145,7 @@
          (consequent (third form))
          (alternate (fourth form))
          (subforms (cdr test)))
-;;     (debug-log "p2-if-and called~%")
+;;     (mumble "p2-if-and called~%")
     (aver (and (consp test) (eq (car test) 'AND)))
     (case (length subforms)
       (0
@@ -1158,7 +1158,7 @@
          (dolist (subform subforms)
            (let ((op (and (consp subform) (%car subform))))
 ;;              (when op
-;;                (debug-log "p2-if-and op = ~S~%" op))
+;;                (mumble "p2-if-and op = ~S~%" op))
              (cond ((eq op 'EQ)
                     (%p2-test-eq subform nil LABEL1))
                    ((eq op 'NEQ)
@@ -1185,7 +1185,7 @@
                     (emit-jmp-short :z LABEL1))
                    (t
                     (when op
-                      (debug-log "p2-if-and default case op = ~S~%" op))
+                      (mumble "p2-if-and default case op = ~S~%" op))
                     (process-1-arg subform :rax t)
                     (emit-compare-rax-to-nil)
                     (emit-jmp-short :e LABEL1)))))
@@ -1279,7 +1279,7 @@
                     (emit-jmp-short :nz LABEL1))
                    (t
                     (when op
-                      (debug-log "p2-if-or default case op = ~S~%" op))
+                      (mumble "p2-if-or default case op = ~S~%" op))
                     (process-1-arg subform :rax t)
                     (emit-compare-rax-to-nil)
                     (emit-jmp-short :ne LABEL1)))))
@@ -1358,12 +1358,12 @@
                     (inst :mov reg var)
                     (set-register-contents reg (list var (var-ref-var initform))))
                    ((var-register var)
-;;                     (debug-log "bind-var ~S var-register case~%" (var-name var))
+;;                     (mumble "bind-var ~S var-register case~%" (var-name var))
                     (p2 initform (var-register var))
                     (when (integerp initform)
                       (add-type-constraint var `(INTEGER ,initform ,initform))))
                    (t
-;;                     (debug-log "bind-var ~S default case~%" (var-name var))
+;;                     (mumble "bind-var ~S default case~%" (var-name var))
                     (p2 initform :rax)
                     (inst :mov :rax var)
                     (set-register-contents :rax var)
@@ -1584,15 +1584,15 @@
          (*visible-tags* *visible-tags*)
          (body (block-body block)))
     (declare (type cblock block))
-;;     (debug-log "p2-tagbody ~S entering tagbody~%" (block-name block))
+;;     (mumble "p2-tagbody ~S entering tagbody~%" (block-name block))
     (cond ((block-non-local-go-p block)
-;;            (debug-log "p2-tagbody ~S non-local go case~%" (block-name block))
+;;            (mumble "p2-tagbody ~S non-local go case~%" (block-name block))
            (let ((thread-register (compiland-thread-register *current-compiland*))
                  (tagbody-var (block-tagbody-var block)))
              (aver thread-register)
              (aver tagbody-var)
              (inst :mov thread-register :rdi) ; thread
-;;              (debug-log "p2-tagbody ~S emitting call to RT_add_tagbody~%" (block-name block))
+;;              (mumble "p2-tagbody ~S emitting call to RT_add_tagbody~%" (block-name block))
              (emit-call "RT_add_tagbody")
              (inst :mov :rax tagbody-var)
              ;; process tags
@@ -1603,21 +1603,21 @@
                  (when (tag-non-local-go-p tag)
 ;;                    (when (eq (tag-name tag) nil)
 ;;                      ;; this shouldn't normally happen
-;;                      (debug-log "p2-tagbody emitting call to RT_add_tag for tag ~S~%" (tag-name tag)))
+;;                      (mumble "p2-tagbody emitting call to RT_add_tag for tag ~S~%" (tag-name tag)))
                    (setf (tag-index tag) index)
                    (p2-constant (tag-name tag) :rsi)
                    (emit-move-immediate-dword-to-register index :rcx)
                    (inst :mov tagbody-var :rdx)
                    (inst :mov thread-register :rdi)
-;;                    (debug-log "p2-tagbody ~S emitting call to RT_add_tag for tag ~S~%"
+;;                    (mumble "p2-tagbody ~S emitting call to RT_add_tag for tag ~S~%"
 ;;                               (block-name block) (tag-name tag))
                    (emit-call "RT_add_tag")
                    (incf index))))
              (inst :mov tagbody-var :rdi)
-;;              (debug-log "p2-tagbody ~S emitting call to RT_frame_jmp~%" (block-name block))
+;;              (mumble "p2-tagbody ~S emitting call to RT_frame_jmp~%" (block-name block))
              (emit-call "RT_frame_jmp")
              (inst :mov :rax :rdi)
-;;              (debug-log "p2-tagbody ~S emitting call to setjmp~%" (block-name block))
+;;              (mumble "p2-tagbody ~S emitting call to setjmp~%" (block-name block))
              (emit-call "setjmp")
              (inst :test :al :al)
              (let ((LABEL1 (make-label))
@@ -1645,14 +1645,14 @@
              (inst :mov thread-register :rdi) ; thread
              (emit-call "RT_leave_tagbody")))
           (t
-;;            (debug-log "p2-tagbody ~S default case~%" (block-name block))
+;;            (mumble "p2-tagbody ~S default case~%" (block-name block))
            ;; make tags visible
            (dolist (tag (block-tags block))
              (push tag *visible-tags*))
            (p2-tagbody-1 body)))
     ;; TAGBODY returns NIL
     (p2 nil target)
-;;     (debug-log "p2-tagbody leaving tagbody~%")
+;;     (mumble "p2-tagbody leaving tagbody~%")
     ))
 
 (defun p2-go (form target)
@@ -1664,7 +1664,7 @@
     (declare (type compiland compiland))
     (unless tag
       (error "p2-go tag ~S not found" name))
-;;     (debug-log "p2-go tag ~S found in ~S~%" name (block-name tag-block))
+;;     (mumble "p2-go tag ~S found in ~S~%" name (block-name tag-block))
     (cond ((eq (tag-compiland tag) compiland)
            (dolist (enclosing-block *visible-blocks*)
              (declare (type cblock enclosing-block))
@@ -1687,16 +1687,16 @@
                     (aver (compiland-thread-register compiland))
                     (p2-var-ref (make-var-ref (block-last-special-binding-var enclosing-block)) :rsi)
                     (inst :mov :r12 :rdi)
-;;                     (debug-log "p2-go emitting call to RT_thread_set_last_special_binding for enclosing block ~S~%"
+;;                     (mumble "p2-go emitting call to RT_thread_set_last_special_binding for enclosing block ~S~%"
 ;;                                (block-name enclosing-block))
                     (emit-call "RT_thread_set_last_special_binding"))))
-;;            (debug-log "p2-go emitting jump to ~S~%" name)
+;;            (mumble "p2-go emitting jump to ~S~%" name)
            (emit-jmp-short t (tag-label tag)))
           (t
            (p2-constant name :rsi)
            (aver (compiland-thread-register compiland))
            (inst :mov :r12 :rdi)
-;;            (debug-log "p2-go emitting call to RT_non_local_go~%")
+;;            (mumble "p2-go emitting call to RT_non_local_go~%")
            (emit-call "RT_non_local_go")))))
 
 (defun p2-unwind-protect (form target)
@@ -1765,7 +1765,7 @@
       (setq var (local-function-var local-function))
       (p2-flet-process-compiland local-function)
       (cond ((local-function-ctf local-function)
-             (debug-log "p2-flet case 1~%")
+             (mumble "p2-flet case 1~%")
              (aver var)
 ;;              (aver (var-closure-index var))
              (cond ((var-closure-index var)
@@ -1794,7 +1794,7 @@
                       (clear-register-contents) ; FIXME
                     ))))
             ((local-function-ctf-name local-function)
-             (debug-log "p2-flet case 2~%")
+             (mumble "p2-flet case 2~%")
              (aver var)
 ;;              (aver (var-closure-index var))
              (cond ((var-closure-index var)
@@ -1823,7 +1823,7 @@
                       (clear-register-contents) ; FIXME
                       ))))
             ((local-function-function local-function)
-             (debug-log "p2-flet case 3~%")
+             (mumble "p2-flet case 3~%")
              (cond ((var-closure-index var)
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
                       (p2-constant (local-function-function local-function) :rax)
@@ -1840,7 +1840,7 @@
                     ;; nothing to do
                     )))
             (t
-             (debug-log "p2-flet case 4~%")
+             (mumble "p2-flet case 4~%")
              (aver (local-function-callable-name local-function))
              (cond ((var-closure-index var)
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
@@ -1908,7 +1908,7 @@
 ;;                (inst :pop :rsi)
 ;;                (emit-call 'set-fdefinition))))
       (cond ((local-function-ctf local-function)
-             (debug-log "p2-labels local-function-ctf case~%")
+             (mumble "p2-labels local-function-ctf case~%")
              (aver (local-function-var local-function))
              (aver (var-closure-index (local-function-var local-function)))
              (let* ((compiland *current-compiland*)
@@ -2071,7 +2071,7 @@
     (cond ((symbolp arg) ; #'foo
            (cond ((setq local-function (find-local-function arg))
 ;;                   (compiler-unsupported "P2-FUNCTION: local functions are not supported yet")
-                  (debug-log "p2-function local function case~%")
+                  (mumble "p2-function local function case~%")
                   (cond ((local-function-callable-name local-function)
                          (emit-move-function-to-register (local-function-callable-name local-function) :rax)
                          (clear-register-contents :rax)
@@ -2212,16 +2212,16 @@
                            (move-result-to-target target))))))
             (;(subtypep type1 'simple-vector)
              t
-;;              (debug-log "p2-svref %svref case~%")
-             (debug-log "p2-svref default case~%")
+;;              (mumble "p2-svref %svref case~%")
+             (mumble "p2-svref default case~%")
              (process-2-args args '(:rax :rdx) t) ; vector in rax, tagged index in rdx
 
              (unless (subtypep type1 'SIMPLE-VECTOR)
-               (debug-log "p2-svref checking arg1~%")
+               (mumble "p2-svref checking arg1~%")
                (let* ((common-labels (compiland-common-labels *current-compiland*))
                       (SVREF-ERROR-NOT-SIMPLE-VECTOR (gethash :svref-error-not-simple-vector common-labels)))
                  (when SVREF-ERROR-NOT-SIMPLE-VECTOR
-                   (debug-log "p2-svref re-using label~%"))
+                   (mumble "p2-svref re-using label~%"))
                  (unless SVREF-ERROR-NOT-SIMPLE-VECTOR
                    (setq SVREF-ERROR-NOT-SIMPLE-VECTOR (make-label))
                    (let ((*current-segment* :elsewhere))
@@ -2292,7 +2292,7 @@
                  (add-type-constraint (var-ref-var arg1) 'SIMPLE-VECTOR)))
              )
 ;;             (t
-;;              (debug-log "p2-svref full call type1 = ~S type2 = ~S~%" (derive-type arg1) (derive-type arg2))
+;;              (mumble "p2-svref full call type1 = ~S type2 = ~S~%" (derive-type arg1) (derive-type arg2))
 ;;              (p2-function-call form target)
 ;;              (when (var-ref-p arg1)
 ;;                (add-type-constraint (var-ref-var arg1) 'SIMPLE-VECTOR))
@@ -2321,7 +2321,7 @@
                              (setq size (derive-vector-size type1))
                              (subtypep type2 (list 'INTEGER 0 (1- size)))))
 ;;                     (unless (zerop *safety*)
-;;                       (debug-log "p2-vector-ref (simple-array (unsigned-byte 8) (~D)) optimized case~%" size))
+;;                       (mumble "p2-vector-ref (simple-array (unsigned-byte 8) (~D)) optimized case~%" size))
                     (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
                     (clear-register-contents :rax :rdx)
                     (emit-add-immediate-to-register
@@ -2347,7 +2347,7 @@
                              (setq size (derive-vector-size type1))
                              (subtypep type2 (list 'INTEGER 0 (1- size)))))
 ;;                     (unless (zerop *safety*)
-;;                       (debug-log "p2-vector-ref (simple-array (unsigned-byte 32) (~D)) optimized case~%" size))
+;;                       (mumble "p2-vector-ref (simple-array (unsigned-byte 32) (~D)) optimized case~%" size))
                     (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
                     (clear-register-contents :rax)
                     (emit-add-immediate-to-register
@@ -2423,8 +2423,8 @@
              (p2 (list* '%VECTOR-SET args) target)
              t)
             (t
-             (debug-log "p2-vector-set full call type1 = ~S type2 = ~S~%"
-                        type1 (derive-type (%cadr args)))
+             (mumble "p2-vector-set full call type1 = ~S type2 = ~S~%"
+                     type1 (derive-type (%cadr args)))
              nil)))))
 
 (defknown p2-svset (t t) t)
@@ -2436,7 +2436,7 @@
            (arg3 (%caddr args))
            (type1 (derive-type arg1)))
       (cond ((zerop *safety*)
-             (debug-log "p2-svset safety zero case~%")
+             (mumble "p2-svset safety zero case~%")
              (process-3-args args '(:rax :rdx :rcx) t) ; vector in rax, index in rsi, new element in rcx
              (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
              ;; index is in rdx
@@ -3133,7 +3133,7 @@
                   (setq arg-registers (subseq +call-argument-registers+ 2 (+ 2 numargs)))
                   (setq runtime-name  (format nil "RT_thread_call_function_~D" numargs))))
            (cond ((local-function-callable-name local-function)
-                  (debug-log "p2-local-function-call local-function-callable-name case~%")
+                  (mumble "p2-local-function-call local-function-callable-name case~%")
                   (cond (args
                          (emit-move-function-to-register (local-function-callable-name local-function) :rax)
                          (inst :push :rax)
@@ -3147,12 +3147,12 @@
                          (unsupported)))
                   (clear-register-contents op-register))
                  ((local-function-function local-function)
-                  (debug-log "p2-local-function-call local-function-function case~%")
+                  (mumble "p2-local-function-call local-function-function case~%")
                   (process-args args arg-registers use-fast-call-p)
                   (emit-move-immediate (local-function-function local-function) op-register)
                   (clear-register-contents op-register))
                  ((local-function-var local-function)
-                  ;;            (debug-log "p2-local-function-call var ref case~%")
+                  ;;            (mumble "p2-local-function-call var ref case~%")
                   (aver (local-function-var local-function))
                   (p2-var-ref (make-var-ref (local-function-var local-function)) :rax)
                   (inst :push :rax)
@@ -3391,10 +3391,10 @@
            (set-register-contents :rax var)
            (move-result-to-target target)))
     (when var
-;;       (debug-log "p2-setq calling remove-constraints var = ~S~%" (var-name var))
+;;       (mumble "p2-setq calling remove-constraints var = ~S~%" (var-name var))
       (remove-constraints var)
       (when (and derived-type (neq derived-type :unknown))
-;;         (debug-log "p2-setq calling add-type-constraint var = ~S type = ~S~%"
+;;         (mumble "p2-setq calling add-type-constraint var = ~S type = ~S~%"
 ;;                 (var-name var) derived-type)
         (add-type-constraint var derived-type)))
 ;;     (move-result-to-target target)
@@ -3475,10 +3475,10 @@
       (unless (fixnump arg2)
         (when (and (integer-constant-value type2)
                    (flushable arg2))
-;;           (debug-log "p2-two-arg-- setting arg2 to ~S~%" (integer-constant-value type2))
+;;           (mumble "p2-two-arg-- setting arg2 to ~S~%" (integer-constant-value type2))
           (setq arg2 (integer-constant-value type2))))
       (cond ((eql arg2 0)
-;;              (debug-log "p2-two-arg-- case 0~%")
+;;              (mumble "p2-two-arg-- case 0~%")
              (process-1-arg arg1 :rax t)
              (move-result-to-target target))
             ((and (fixnum-type-p type1)
@@ -3525,13 +3525,13 @@
                  (float-type-p type2))
              (cond ((and (subtypep type1 'DOUBLE-FLOAT)
                          (subtypep type2 'DOUBLE-FLOAT))
-                    (debug-log "p2-two-arg-- double-float case~%")
+                    (mumble "p2-two-arg-- double-float case~%")
                     (process-2-args args '(:rdi :rsi) t)
                     (emit-call '%double-float--)
                     (move-result-to-target target))
                    (t
                     ;; full call
-                    (debug-log "p2-two-arg-- float case~%")
+                    (mumble "p2-two-arg-- float case~%")
                     (process-2-args args '(:rdi :rsi) t)
                     (emit-call 'two-arg--)
                     (move-result-to-target target))))
@@ -3585,13 +3585,13 @@
       (unless (fixnump arg2)
         (when (and (integer-constant-value type2)
                    (flushable arg2))
-;;           (debug-log "p2-two-arg-+ setting arg2 to ~S~%" (integer-constant-value type2))
+;;           (mumble "p2-two-arg-+ setting arg2 to ~S~%" (integer-constant-value type2))
           (setq arg2 (integer-constant-value type2))))
 ;;       (let ((*print-structure* nil))
-;;         (debug-log "arg1 = ~S type1 = ~S~%" arg1 type1)
-;;         (debug-log "arg2 = ~S type2 = ~S~%" arg2 type2))
+;;         (mumble "arg1 = ~S type1 = ~S~%" arg1 type1)
+;;         (mumble "arg2 = ~S type2 = ~S~%" arg2 type2))
       (cond ((eql arg2 0)
-;;              (debug-log "p2-two-arg-+ case 0~%")
+;;              (mumble "p2-two-arg-+ case 0~%")
              (process-1-arg arg1 :rax t)
              (move-result-to-target target))
             ((and (fixnum-type-p type1)
@@ -3600,25 +3600,25 @@
              (cond ((and (fixnump arg2)
                          (typep (fixnumize arg2) '(signed-byte 32)))
                     (cond ((reg64-p target)
-;;                            (debug-log "p2-two-arg-+ case 1a target = ~S~%" target)
+;;                            (mumble "p2-two-arg-+ case 1a target = ~S~%" target)
                            (process-1-arg arg1 target t)
                            (inst :add (fixnumize arg2) target)
                            (clear-register-contents target))
                           (t
-;;                            (debug-log "p2-two-arg-+ case 1b target = ~S~%" target)
+;;                            (mumble "p2-two-arg-+ case 1b target = ~S~%" target)
                            (process-1-arg arg1 :rax t)
                            (inst :add (fixnumize arg2) :rax)
                            (clear-register-contents :rax)
                            (move-result-to-target target))))
                    (t
-;;                     (debug-log "p2-two-arg-+ case 1c target = ~S~%" target)
+;;                     (mumble "p2-two-arg-+ case 1c target = ~S~%" target)
                     (process-2-args args '(:rax :rdx) t)
                     (inst :add :rdx :rax)
                     (clear-register-contents :rax)
                     (move-result-to-target target))))
             ((and (fixnump arg2)
                   (typep (fixnumize arg2) '(signed-byte 32)))
-;;              (debug-log "p2-two-arg-+ case 2~%")
+;;              (mumble "p2-two-arg-+ case 2~%")
              (let ((FULL-CALL (gensym))
                    (EXIT (gensym)))
                (process-1-arg arg1 :rax t)
@@ -3646,31 +3646,31 @@
                  (float-type-p type2))
              (cond ((and (subtypep type1 'DOUBLE-FLOAT)
                          (subtypep type2 'DOUBLE-FLOAT))
-                    (debug-log "p2-two-arg-+ double-float case~%")
+                    (mumble "p2-two-arg-+ double-float case~%")
                     (process-2-args args '(:rdi :rsi) t)
                     (emit-call '%double-float-+)
                     (move-result-to-target target))
                    (t
                     ;; full call
-                    (debug-log "p2-two-arg-+ float case~%")
+                    (mumble "p2-two-arg-+ float case~%")
                     (process-2-args args '(:rdi :rsi) t)
                     (emit-call 'two-arg-+)
                     (move-result-to-target target))))
             (t
-;;              (debug-log "p2-two-arg-+ case 3~%")
+;;              (mumble "p2-two-arg-+ case 3~%")
              (let ((FULL-CALL (make-label))
                    (EXIT (make-label)))
                (process-2-args args '(:rax :rdx) t)
                (inst :mov :rax :rdi)
-;;                (debug-log "type1 = ~S type2 = ~S~%" type1 type2)
+;;                (mumble "type1 = ~S type2 = ~S~%" type1 type2)
                (unless (fixnum-type-p type1)
 ;;                  (let ((*print-structure* nil))
-;;                    (debug-log "testing arg1 ~S~%" arg1))
+;;                    (mumble "testing arg1 ~S~%" arg1))
                  (inst :test +fixnum-tag-mask+ :al)
                  (emit-jmp-short :nz FULL-CALL))
                (unless (fixnum-type-p type2)
 ;;                  (let ((*print-structure* nil))
-;;                    (debug-log "testing arg2 ~S~%" arg2))
+;;                    (mumble "testing arg2 ~S~%" arg2))
                  (inst :test +fixnum-tag-mask+ :dl)
                  (emit-jmp-short :nz FULL-CALL))
                ;; falling through, both args are fixnums
@@ -3705,28 +3705,28 @@
                     (integer-constant-value type2)
                     (flushable arg1)
                     (flushable arg2))
-               (debug-log "p2-two-arg-* integer-constant-value case~%")
+               (mumble "p2-two-arg-* integer-constant-value case~%")
                (p2-constant (two-arg-* (integer-constant-value type1) (integer-constant-value type2))
                             target)
                (return-from p2-two-arg-* t))
               ((or (float-type-p type1)
                    (float-type-p type2))
                ;; full call
-               (debug-log "p2-two-arg-* float case~%")
+               (mumble "p2-two-arg-* float case~%")
                (process-2-args args '(:rdi :rsi) t)
                (emit-call 'two-arg-*)
                (move-result-to-target target)
                (return-from p2-two-arg-* t)))
         (let* ((result-type (derive-type form)))
-          (debug-log "p2-two-arg-* type1 = ~S type2 = ~S~%" type1 type2)
-          (debug-log "p2-two-arg-* result-type = ~S~%" result-type)
+          (mumble "p2-two-arg-* type1 = ~S type2 = ~S~%" type1 type2)
+          (mumble "p2-two-arg-* result-type = ~S~%" result-type)
           (cond ((and (fixnum-type-p type1)
                       (fixnum-type-p type2)
                       (fixnum-type-p result-type))
-                 (debug-log "p2-two-arg-* fixnum case~%")
+                 (mumble "p2-two-arg-* fixnum case~%")
                  (cond ((and (fixnump arg2)
                              (memql arg2 '(0 1 2 4 8 16 32 64 128 256)))
-                        (debug-log "p2-two-arg-* special case arg2 = ~S~%" arg2)
+                        (mumble "p2-two-arg-* special case arg2 = ~S~%" arg2)
                         (unless (and (eql arg2 0) (flushable arg1))
                           (process-1-arg arg1 :rax t))
                         (case arg2
@@ -3745,7 +3745,7 @@
                                                            ( 64 . 6)
                                                            (128 . 7)
                                                            (256 . 8))))))
-                             (debug-log "shift = ~S~%" shift)
+                             (mumble "shift = ~S~%" shift)
                              (inst :shl shift :rax))))
                         (move-result-to-target target))
                        (t
@@ -3756,7 +3756,7 @@
                         (emit-bytes #x48 #x0f #xaf #xc2) ; imul %rdx,%rax
                         (move-result-to-target target))))
                 (t
-                 (debug-log "p2-two-arg-* default case~%")
+                 (mumble "p2-two-arg-* default case~%")
                  (let ((OVERFLOW (make-label))
                        (FULL-CALL (make-label))
                        (EXIT (make-label)))
@@ -3913,23 +3913,23 @@
 
 (defknown p2-%cdr (t t) t)
 (defun p2-%cdr (form target)
-;;   (debug-log "p2-%cdr target = ~S~%" target)
+;;   (mumble "p2-%cdr target = ~S~%" target)
   (when (check-arg-count form 1)
     (let ((arg (%cadr form)))
       (cond ((and (var-ref-p arg)
                   (reg64-p target))
-;;              (debug-log "p2-%cdr var-ref-p reg64-p case~%")
-;;              (debug-log "p2-%cdr var-register = ~S~%" (var-register (var-ref-var arg)))
+;;              (mumble "p2-%cdr var-ref-p reg64-p case~%")
+;;              (mumble "p2-%cdr var-register = ~S~%" (var-register (var-ref-var arg)))
              (cond ((eq target (var-register (var-ref-var arg)))
-;;                     (debug-log "p2-%cdr new case 1~%")
+;;                     (mumble "p2-%cdr new case 1~%")
                     (inst :mov `(7 ,target) target)
                     (clear-register-contents target))
                    ((var-register (var-ref-var arg))
-;;                     (debug-log "p2-%cdr new case 2~%")
+;;                     (mumble "p2-%cdr new case 2~%")
                     (inst :mov `(7 ,(var-register (var-ref-var arg))) target)
                     (clear-register-contents target))
                    (t
-;;                     (debug-log "p2-%cdr new case 3~%")
+;;                     (mumble "p2-%cdr new case 3~%")
                     (process-1-arg arg target nil)
                     (inst :mov `(7 ,target) target)
                     (clear-register-contents target))))
@@ -4013,7 +4013,7 @@
                   (subtypep type 'BOOLEAN))
                (p2 arg target))
             (t
-             (debug-log "p2-require-boolean target = ~S~%" target)
+             (mumble "p2-require-boolean target = ~S~%" target)
              (process-1-arg arg :rax t)
              (let* ((EXIT (make-label))
                     (common-labels (compiland-common-labels *current-compiland*))
@@ -4242,7 +4242,7 @@
                   (eq (%car operator-form) 'QUOTE)
                   (length-eql operator-form 2)
                   (symbolp (%cadr operator-form)))
-;;              (debug-log "p2-funcall optimization 1~%")
+;;              (mumble "p2-funcall optimization 1~%")
              (p2-function-call (list* (%cadr operator-form) args) target)
              t)
             ((and (consp operator-form)
@@ -4273,13 +4273,13 @@
                                 (emit-call "RT_thread_call_function_1")))
                          (move-result-to-target target))
                         (t
-                         (debug-log "p2-funcall optimization 2 needs work! numargs = ~D~%" numargs)
+                         (mumble "p2-funcall optimization 2 needs work! numargs = ~D~%" numargs)
                          (p2-function-call (list* name args) target))))
                      (t
                       (p2-function-call (list* name args) target))))
              t)
             ((eq operator-derived-type 'SYMBOL)
-;;              (debug-log "p2-funcall optimization 3~%")
+;;              (mumble "p2-funcall optimization 3~%")
              (case numargs
                (1
                 (cond (use-fast-call-p
@@ -4294,7 +4294,7 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 1a~%")
+                       (mumble "p2-funcall not optimized 1a~%")
                        nil)))
                (4
                 (cond (use-fast-call-p
@@ -4309,13 +4309,13 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 1b~%")
+                       (mumble "p2-funcall not optimized 1b~%")
                        nil)))
                (t
-                (debug-log "p2-funcall not optimized 2~%")
+                (mumble "p2-funcall not optimized 2~%")
                 nil)))
             ((eq operator-derived-type 'FUNCTION)
-;;              (debug-log "p2-funcall optimization 4~%")
+;;              (mumble "p2-funcall optimization 4~%")
              (case numargs
                (0
                 (cond (use-fast-call-p
@@ -4330,7 +4330,7 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 3a~%")
+                       (mumble "p2-funcall not optimized 3a~%")
                        nil)
                       ))
                (1
@@ -4346,7 +4346,7 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 3b~%")
+                       (mumble "p2-funcall not optimized 3b~%")
                        nil)
                       ))
                (2
@@ -4362,7 +4362,7 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 4a~%")
+                       (mumble "p2-funcall not optimized 4a~%")
                        nil)
                       ))
                (3
@@ -4378,7 +4378,7 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 4b~%")
+                       (mumble "p2-funcall not optimized 4b~%")
                        nil)
                       ))
                (4
@@ -4394,15 +4394,15 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 4c~%")
+                       (mumble "p2-funcall not optimized 4c~%")
                        nil)
                       ))
                (t
-                (debug-log "p2-funcall not optimized 5 numargs = ~D~%" numargs)
+                (mumble "p2-funcall not optimized 5 numargs = ~D~%" numargs)
                 nil)
                ))
             (t
-;;              (debug-log "p2-funcall optimization 5~%")
+;;              (mumble "p2-funcall optimization 5~%")
              (case numargs
                (0
                 (cond (use-fast-call-p
@@ -4417,7 +4417,7 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 6~%")
+                       (mumble "p2-funcall not optimized 6~%")
                        nil)))
                (1
                 (cond (use-fast-call-p
@@ -4432,7 +4432,7 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 7~%")
+                       (mumble "p2-funcall not optimized 7~%")
                        nil)))
                (2
                 (cond (use-fast-call-p
@@ -4447,7 +4447,7 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 8~%")
+                       (mumble "p2-funcall not optimized 8~%")
                        nil)))
                (3
                 (cond (use-fast-call-p
@@ -4462,7 +4462,7 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 9~%")
+                       (mumble "p2-funcall not optimized 9~%")
                        nil)))
                (4
                 (cond (use-fast-call-p
@@ -4477,10 +4477,10 @@
                        (move-result-to-target target)
                        t)
                       (t
-                       (debug-log "p2-funcall not optimized 10~%")
+                       (mumble "p2-funcall not optimized 10~%")
                        nil)))
                (t
-                (debug-log "p2-funcall not optimized 11 numargs = ~D~%" numargs)
+                (mumble "p2-funcall not optimized 11 numargs = ~D~%" numargs)
                 nil)))))))
 
 (defun p2-length (form target)
@@ -4492,12 +4492,12 @@
              (let ((reg (process-1-arg arg :register t))
                    (displacement (- +vector-capacity-offset+ +typed-object-lowtag+)))
                (cond ((reg64-p target)
-                      (debug-log "p2-length reg64-p target reg = ~S~%" reg)
+                      (mumble "p2-length reg64-p target reg = ~S~%" reg)
                       (inst :mov `(,displacement ,reg) target)
                       (clear-register-contents target)
                       (inst :shl +fixnum-shift+ target))
                      (t
-                      (debug-log "p2-length other target reg = ~S~%" reg)
+                      (mumble "p2-length other target reg = ~S~%" reg)
                       (inst :mov `(,displacement ,reg) :rax)
                       (clear-register-contents :rax)
                       (inst :shl +fixnum-shift+ :rax)
@@ -4578,7 +4578,7 @@
          (thread-register (compiland-thread-register *current-compiland*)))
     (aver thread-register)
     (cond ((eq type2 :unknown)
-           (debug-log "p2-gethash type2 is unknown~%")
+           (mumble "p2-gethash type2 is unknown~%")
            nil)
           ((subtypep type2 'HASH-TABLE)
            (case numargs
@@ -4602,10 +4602,10 @@
               (emit-call-4 op target)
               t)
              (t
-              (debug-log "p2-gethash shouldn't happen~%")
+              (mumble "p2-gethash shouldn't happen~%")
               nil)))
           (t
-           (debug-log "p2-gethash type2 is ~S~%" type2)
+           (mumble "p2-gethash type2 is ~S~%" type2)
            nil))))
 
 (defun p2-ash (form target)
@@ -4621,8 +4621,8 @@
       (setq type1 (derive-type arg1)
             type2 (derive-type arg2))
 
-;;       (debug-log "p2-ash result type = ~S~%" (derive-type form))
-;;       (debug-log "p2-ash type1 = ~S type2 = ~S~%" type1 type2)
+;;       (mumble "p2-ash result type = ~S~%" (derive-type form))
+;;       (mumble "p2-ash type1 = ~S type2 = ~S~%" type1 type2)
 
       (cond ((and (integer-constant-value type1)
                   (integer-constant-value type2))
@@ -4664,21 +4664,21 @@
             ((and (fixnum-type-p type1)
                   (fixnum-type-p type2)
                   (fixnum-type-p (derive-type form)))
-;;              (debug-log "arg2 = ~S~%" arg2)
+;;              (mumble "arg2 = ~S~%" arg2)
              (let ((shift (integer-constant-value type2)))
-;;                (debug-log "shift = ~S~%" shift)
+;;                (mumble "shift = ~S~%" shift)
                (cond ((and shift
                            (< shift 0)
                            (> shift -64))
                       (cond ((flushable arg2)
-;;                              (debug-log "p2-ash new optimized case 1~%")
+;;                              (mumble "p2-ash new optimized case 1~%")
                              (process-1-arg arg1 :rax t)
                              (emit-bytes #x48 #xc1 #xf8 (- shift)) ; sar imm8,%rax
                              (emit-bytes #x48 #x83 #xe0 #xfc) ; and $0xfc,%rax
 ;;                              (emit-bytes #x83 #xe0 #xfc) ; and $0xfc,%eax
                              )
                             (t
-;;                              (debug-log "p2-ash new optimized case 2~%")
+;;                              (mumble "p2-ash new optimized case 2~%")
                              (process-2-args args '(:rax :rcx) t)
                              (unbox-fixnum :rcx)
                              (emit-bytes #x48 #xf7 #xd9) ; neg %rcx
@@ -4693,13 +4693,13 @@
                            (>= shift 0)
                            (< shift 64))
                       (cond ((flushable arg2)
-;;                              (debug-log "p2-ash new optimized case 3~%")
+;;                              (mumble "p2-ash new optimized case 3~%")
                              (process-1-arg arg1 :rax t)
                              (unless (eql shift 0)
                                (emit-bytes #x48 #xc1 #xe0 shift)) ; shl imm8,%rax
                              )
                             (t
-;;                              (debug-log "p2-ash new optimized case 4~%")
+;;                              (mumble "p2-ash new optimized case 4~%")
                              (process-2-args args '(:rax :rcx) t)
                              (unbox-fixnum :rcx)
                              (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
@@ -4708,7 +4708,7 @@
                       t)
 ;;                      ((subtypep type2 '(INTEGER -63 -1))
                       ((subtypep type2 '(INTEGER -63 0))
-;;                       (debug-log "p2-ash new optimized case 5~%")
+;;                       (mumble "p2-ash new optimized case 5~%")
                       (process-2-args args '(:rax :rcx) t)
                       (unbox-fixnum :rcx)
                       (emit-bytes #x48 #xf7 #xd9) ; neg %rcx
@@ -4719,24 +4719,24 @@
                       (move-result-to-target target)
                       t)
                      ((subtypep type2 '(INTEGER 0 63))
-;;                       (debug-log "p2-ash new optimized case 6~%")
+;;                       (mumble "p2-ash new optimized case 6~%")
                       (process-2-args args '(:rax :rcx) t)
                       (unbox-fixnum :rcx)
                       (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
                       (move-result-to-target target)
                       t)
                      (t
-;;                       (debug-log "p2-ash not optimized 2 type1 = ~S type2 = ~S~%" type1 type2)
+;;                       (mumble "p2-ash not optimized 2 type1 = ~S type2 = ~S~%" type1 type2)
                       nil))))
             ((and (integer-type-p type1)
                   (fixnum-type-p type2)
                   (eql (integer-constant-value type2) 0)
                   (flushable arg2))
-;;              (debug-log "p2-ash new optimized case 7~%")
+;;              (mumble "p2-ash new optimized case 7~%")
              (p2 arg1 target)
              t)
             (t
-;;              (debug-log "p2-ash not optimized 3 type1 = ~S type2 = ~S~%" type1 type2)
+;;              (mumble "p2-ash not optimized 3 type1 = ~S type2 = ~S~%" type1 type2)
              nil)
             ))))
 
@@ -4758,10 +4758,10 @@
           (setq args (list arg1 arg2)))
         (setq type1 (derive-type arg1)
               type2 (derive-type arg2))
-;;         (debug-log "p2-logior/logxor type1 = ~S type2 = ~S~%" type1 type2)
+;;         (mumble "p2-logior/logxor type1 = ~S type2 = ~S~%" type1 type2)
         (cond ((and (eql arg2 0)
                     (integer-type-p type1))
-               ;;                (debug-log "p2-logior/logxor arg2 is 0~%")
+               ;;                (mumble "p2-logior/logxor arg2 is 0~%")
                (process-1-arg arg1 :rax t)
                (move-result-to-target target))
               ((and (eql (integer-constant-value type1) 0)
@@ -4831,7 +4831,7 @@
                             (emit-call "RT_thread_call_function_2"))
                            (t
                             ;; no thread register
-                            (debug-log "p2-logior/logxor no thread register~%")
+                            (mumble "p2-logior/logxor no thread register~%")
                             ;; arg2 is already in rdx
                             (inst :mov :rax :rsi)
                             (emit-move-function-to-register two-arg-op :rdi)
@@ -4852,7 +4852,7 @@
           (return-from p2-logand t))
         (setq type1 (derive-type arg1)
               type2 (derive-type arg2))
-;;         (debug-log "p2-logand type1 = ~S type2 = ~S~%" type1 type2)
+;;         (mumble "p2-logand type1 = ~S type2 = ~S~%" type1 type2)
         (when (and (integer-constant-value type1)
                    (integer-constant-value type2)
                    (flushable arg1)
@@ -4861,20 +4861,20 @@
                        target)
           (return-from p2-logand t))
         (cond ((and (eql arg1 -1) (integer-type-p arg2))
-;;                (debug-log "p2-logand case 1~%")
+;;                (mumble "p2-logand case 1~%")
 ;;                (p2 arg2 target)
                (process-1-arg arg2 :rax t)
                (move-result-to-target target)
                )
               ((and (eql arg2 -1) (integer-type-p arg1))
-;;                (debug-log "p2-logand case 2~%")
+;;                (mumble "p2-logand case 2~%")
 ;;                (p2 arg1 target)
                (process-1-arg arg1 :rax t)
                (move-result-to-target target)
                )
               ((and (fixnum-type-p type1)
                     (fixnum-type-p type2))
-;;                (debug-log "p2-logand case 3~%")
+;;                (mumble "p2-logand case 3~%")
                (process-2-args args '(:rax :rdx) t)
                (inst :and :rdx :rax)
                (clear-register-contents :rax)
@@ -4884,7 +4884,7 @@
                     (fixnum-type-p type2)
                     (subtypep type1 '(unsigned-byte 64))
                     (subtypep type2 '(unsigned-byte 64)))
-;;                (debug-log "p2-logand case 4~%")
+;;                (mumble "p2-logand case 4~%")
                (process-2-args args '(:rax :rdx) t)
                (let ((FULL-CALL (gensym))
                      (EXIT (gensym)))
@@ -4907,9 +4907,9 @@
                )
               (t
 ;;                (let ((*print-structure* nil))
-;;                  (debug-log "p2-logand arg1 = ~S arg2 = ~S~%" arg1 arg2))
-;;                (debug-log "p2-logand type1 = ~S type2 = ~S~%" type1 type2)
-;;                (debug-log "p2-logand case 5~%")
+;;                  (mumble "p2-logand arg1 = ~S arg2 = ~S~%" arg1 arg2))
+;;                (mumble "p2-logand type1 = ~S type2 = ~S~%" type1 type2)
+;;                (mumble "p2-logand case 5~%")
                (process-2-args args '(:rax :rdx) t)
                (let ((FULL-CALL (gensym))
                      (EXIT (gensym)))
@@ -4940,7 +4940,7 @@
                           (emit-call "RT_thread_call_function_2"))
                          (t
                           ;; no thread register
-                          (debug-log "p2-logand no thread register~%")
+                          (mumble "p2-logand no thread register~%")
                           ;; arg2 is already in rdx
                           (inst :mov :rax :rsi)
                           (emit-move-function-to-register 'two-arg-logand :rdi)
@@ -5095,7 +5095,7 @@
            (reg (process-1-arg arg :register t))
            (reg8 (reg8 reg)))
       (unless (eq reg :rax)
-        (debug-log "p2-symbolp reg = ~S~%" reg))
+        (mumble "p2-symbolp reg = ~S~%" reg))
       (inst :and +lowtag-mask+ reg8)
       (clear-register-contents reg :rax)
       (inst :cmp +symbol-lowtag+ reg8)
@@ -5230,7 +5230,7 @@
                (when target
                  (move-result-to-target target))))
             (t
-             (debug-log "p2-check-fixnum-bounds full call~%")
+             (mumble "p2-check-fixnum-bounds full call~%")
              (process-3-args args :default t)
              (emit-call-3 'check-fixnum-bounds target))))
     t))
@@ -5246,11 +5246,11 @@
                 (subtypep type 'VECTOR))
            (p2 arg target))
           (t
-           (debug-log "p2-require-vector~%")
+           (mumble "p2-require-vector~%")
            (let* ((common-labels (compiland-common-labels *current-compiland*))
                   (REQUIRE-VECTOR-ERROR (gethash :require-vector-error common-labels)))
              (when REQUIRE-VECTOR-ERROR
-               (debug-log "p2-require-vector re-using label~%"))
+               (mumble "p2-require-vector re-using label~%"))
              (unless REQUIRE-VECTOR-ERROR
                (setq REQUIRE-VECTOR-ERROR (make-label))
                (let ((*current-segment* :elsewhere))
@@ -5288,11 +5288,11 @@
                 (subtypep type 'SIMPLE-VECTOR))
            (p2 arg target))
           (t
-           (debug-log "p2-require-simple-vector~%")
+           (mumble "p2-require-simple-vector~%")
            (let* ((common-labels (compiland-common-labels *current-compiland*))
                   (REQUIRE-SIMPLE-VECTOR-ERROR (gethash :require-simple-vector-error common-labels)))
              (when REQUIRE-SIMPLE-VECTOR-ERROR
-               (debug-log "p2-require-simple-vector re-using label~%"))
+               (mumble "p2-require-simple-vector re-using label~%"))
              (unless REQUIRE-SIMPLE-VECTOR-ERROR
                (setq REQUIRE-SIMPLE-VECTOR-ERROR (make-label))
                (let ((*current-segment* :elsewhere))
@@ -5318,7 +5318,7 @@
                (inst :mov :rdi :rax)
                (move-result-to-target target))
              (when (var-ref-p arg)
-               (debug-log "p2-require-simple-vector adding type constraint for ~S~%"
+               (mumble "p2-require-simple-vector adding type constraint for ~S~%"
                           (var-name (var-ref-var arg)))
                (add-type-constraint (var-ref-var arg) 'SIMPLE-VECTOR))))))
   t)
@@ -5336,7 +5336,7 @@
            (arg1 (%car args))
            (arg2 (%cadr args))
            type1)
-;;       (debug-log "p2-structure-ref type1 = ~S~%" (derive-type arg1))
+;;       (mumble "p2-structure-ref type1 = ~S~%" (derive-type arg1))
       (cond ((and (fixnump arg2)
                   (or (zerop *safety*)
                       (and (neq (setq type1 (derive-type arg1)) :unknown)
@@ -5353,7 +5353,7 @@
                       (move-result-to-target target))))
              t)
             (t
-             (debug-log "p2-structure-ref not optimized~%")
+             (mumble "p2-structure-ref not optimized~%")
              nil)))))
 
 (defun p2-structure-set (form target)
@@ -5476,7 +5476,7 @@
 (defknown p2-trivial-leaf-function-prolog (t) t)
 (defun p2-trivial-leaf-function-prolog (compiland)
   (declare (type compiland compiland))
-  (debug-log "p2-trivial-leaf-function-prolog ~S~%" (compiland-name compiland))
+  (mumble "p2-trivial-leaf-function-prolog ~S~%" (compiland-name compiland))
   (setf (compiland-omit-frame-pointer compiland) t)
   (clear-register-contents)
   t)
@@ -5484,11 +5484,11 @@
 (defknown p2-trivial-function-prolog (t) t)
 (defun p2-trivial-function-prolog (compiland)
   (declare (type compiland compiland))
-;;   (debug-log "p2-trivial-function-prolog~%")
+;;   (mumble "p2-trivial-function-prolog~%")
   (clear-register-contents)
 
 ;;   (assign-registers-for-locals compiland)
-;;   (debug-log "p2-trivial-function-prolog compiland-registers-to-be-saved = ~S~%"
+;;   (mumble "p2-trivial-function-prolog compiland-registers-to-be-saved = ~S~%"
 ;;              (compiland-registers-to-be-saved compiland))
 
   ;; "The end of the input argument area shall be aligned on a 16 byte boundary.
@@ -5740,7 +5740,7 @@
                           (setf (var-arg-index var) nil)))
                        ((eq (var-kind var) :rest)
                         ;; shouldn't happen
-                        (debug-log "P2-FUNCTION-PROLOG shouldn't happen~%")
+                        (mumble "P2-FUNCTION-PROLOG shouldn't happen~%")
                         (aver nil))
                        (t
                         (compiler-unsupported "unsupported var-kind ~S" (var-kind var))))))
@@ -5776,7 +5776,7 @@
   (when (and *closure-vars* (compiland-child-p compiland))
     (return-from p2-function-prolog (p2-child-function-prolog compiland)))
 
-;;   (debug-log "p2-function-prolog called~%")
+;;   (mumble "p2-function-prolog called~%")
 
   ;; "The end of the input argument area shall be aligned on a 16 byte boundary.
   ;; In other words, the value (%rsp - 8) is always a multiple of 16 when control is
@@ -5964,7 +5964,7 @@
                           (setf (var-arg-index var) nil)))
                        ((eq (var-kind var) :rest)
                         ;; shouldn't happen
-                        (debug-log "P2-FUNCTION-PROLOG shouldn't happen~%")
+                        (mumble "P2-FUNCTION-PROLOG shouldn't happen~%")
                         (aver nil))
                        (t
                         (compiler-unsupported "unsupported var-kind ~S" (var-kind var))))))

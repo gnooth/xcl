@@ -47,12 +47,12 @@
         (setf (compiland-needs-thread-var-p compiland) r12-used-p)
         (setf (compiland-leaf-p compiland) leaf-p)
         (when leaf-p
-          (debug-log "~S leaf-p = ~S r12-used-p = ~S numargs = ~S numvars = ~S~%"
-                     (compiland-name compiland)
-                     leaf-p
-                     r12-used-p
-                     (length (compiland-arg-vars compiland))
-                     (length (compiland-local-vars compiland)))))
+          (mumble "~S leaf-p = ~S r12-used-p = ~S numargs = ~S numvars = ~S~%"
+                  (compiland-name compiland)
+                  leaf-p
+                  r12-used-p
+                  (length (compiland-arg-vars compiland))
+                  (length (compiland-local-vars compiland)))))
       (let ((*code* nil)
             (*main* nil)
             (*elsewhere* nil))
@@ -95,7 +95,7 @@
                                 ((var-register operand1)
                                  (setf (second instruction) (var-register operand1)))
                                 (t
-                                 (debug-log "p3 no var-index for var ~S~%" (var-name operand1))
+                                 (mumble "p3 no var-index for var ~S~%" (var-name operand1))
                                  (unsupported))))
                          ((var-p operand2)
                           ;; setq
@@ -105,7 +105,7 @@
                                 ((var-register operand2)
                                  (setf (third instruction) (var-register operand2)))
                                 (t
-                                 (debug-log "p3 no var-index for var ~S~%" (var-name operand2))
+                                 (mumble "p3 no var-index for var ~S~%" (var-name operand2))
                                  (unsupported))))
                          (t
                           ;; nothing to do
@@ -119,7 +119,7 @@
                                 ((var-register operand1)
                                  (setf (second instruction) (var-register operand1)))
                                 (t
-                                 (debug-log "p3 :push unsupported case~%")
+                                 (mumble "p3 :push unsupported case~%")
                                  (unsupported))))
                          (t
                           ;; nothing to do
@@ -186,17 +186,17 @@
                                                       (list #x49 #xc7 (+ #xc0 (register-number register))))
                                     new-code))
                                   (t
-                                   (debug-log "p3 :mov-immediate :constant-32 unsupported case register = ~S~%"
+                                   (mumble "p3 :mov-immediate :constant-32 unsupported case register = ~S~%"
                                               register)
                                    (unsupported)))
                             (vector-push-extend
                              (make-instruction :constant-32 4 form)
                              new-code)))
                          (t
-                          (debug-log "p3 :mov-immediate unsupported case~%")
+                          (mumble "p3 :mov-immediate unsupported case~%")
                           (unsupported))))
                   (:cmp-immediate
-                   ;;                    (debug-log "p3 :cmp-immediate case~%")
+                   ;;                    (mumble "p3 :cmp-immediate case~%")
                    (cond ((and (consp operand1)
                                (eq (%car operand1) :constant-32))
                           (aver (length-eql operand1 2))
@@ -204,7 +204,7 @@
                                 (register operand2))
                             (aver (reg64-p register))
                             (aver (memq register '(:rax :rbx :rcx :rdx :rsi :rdi)))
-                            ;;                             (debug-log "p3 :cmp-immediate register = ~S~%" register)
+                            ;;                             (mumble "p3 :cmp-immediate register = ~S~%" register)
                             (if (eq register :rax)
                                 (vector-push-extend
                                  (make-instruction :bytes 2 (list #x48 #x3d))
@@ -217,7 +217,7 @@
                              (make-instruction :constant-32 4 form)
                              new-code)))
                          (t
-                          (debug-log "p3 :cmp-immediate unsupported case~%")
+                          (mumble "p3 :cmp-immediate unsupported case~%")
                           (unsupported))))
                   (:byte
                    (vector-push-extend (make-instruction :byte 1 operand1) new-code))
