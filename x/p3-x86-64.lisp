@@ -180,7 +180,7 @@
                                    (vector-push-extend
                                     (make-instruction :byte 1 (+ #xb8 (register-number register)))
                                     new-code))
-                                  ((memq register '(:r8 :r9))
+                                  ((memq register '(:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15))
                                    (vector-push-extend
                                     (make-instruction :bytes 3
                                                       (list #x49 #xc7 (+ #xc0 (register-number register))))

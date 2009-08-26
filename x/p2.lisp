@@ -1267,7 +1267,7 @@
 (defknown initialize-available-registers () t)
 (defun initialize-available-registers ()
   #+x86-64
-  (setq *available-registers* (list :rbx))
+  (setq *available-registers* (list :rbx :r13))
   #+x86
   (setq *available-registers* (list :ebx)))
 
