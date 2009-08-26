@@ -75,6 +75,11 @@
 
 (defun coerce-to-condition (datum arguments default-type caller)
   (cond ((typep datum 'condition)
+         ;; "The denoted condition is the datum itself. In this case, unless
+         ;; otherwise specified by the description of the operator in question,
+         ;; the arguments must be null; that is, the consequences are undefined
+         ;; if any arguments were supplied." 9.1.2.1
+         #+nil
          (when arguments
            (error 'type-error
                   :datum arguments
