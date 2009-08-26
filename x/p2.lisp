@@ -1276,7 +1276,9 @@
 
 (defun assign-registers-for-locals (compiland)
   (when *available-registers*
-    (unless (compiland-unwind-protect-p compiland)
+    (unless (or (compiland-unwind-protect-p compiland)
+                (compiland-setjmp-p compiland)
+                (compiland-longjmp-p compiland))
       (let ((locals (reverse *local-variables*)))
         (dolist (var locals)
           (declare (type var var))
@@ -1289,7 +1291,7 @@
               (let ((reg (get-available-register)))
                 (cond (reg
                        (setf (var-register var) reg)
-                       ;;                        (debug-log "assign-registers-for-locals var = ~S reg = ~S~%" (var-name var) reg)
+;;                        (debug-log "assign-registers-for-locals var = ~S reg = ~S~%" (var-name var) reg)
                        (push reg (compiland-registers-to-be-saved compiland)))
                       (t
                        ;; we've run out of available registers

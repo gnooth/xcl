@@ -69,7 +69,7 @@
 
 ;; converts IR2 into bytes
 (defun p3 ()
-  (generate-function-prolog)
+;;   (generate-function-prolog)
   (let* ((compiland *current-compiland*))
     (let* ((code *code*)
            (len (length code))

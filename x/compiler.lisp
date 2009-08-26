@@ -63,6 +63,8 @@
   needs-thread-var-p
   leaf-p
   unwind-protect-p
+  setjmp-p
+  longjmp-p
 
   #-x86-64
   thread-var
@@ -784,6 +786,10 @@
       (setf (block-non-local-return-p block) t)
       (setf (compiland-needs-thread-var-p (block-compiland block)) t)
       (setf (compiland-needs-thread-var-p *current-compiland*) t)
+
+      ;; REVIEW
+      (setf (compiland-setjmp-p (block-compiland block)) t) ; setjmp
+      (setf (compiland-longjmp-p *current-compiland*) t) ; longjmp
       ))
   form)
 
@@ -797,6 +803,7 @@
     (setf (block-form block) (p1-default form))
     (setf (block-body block) (cddr (block-form block)))
     (setf (compiland-needs-thread-var-p *current-compiland*) t)
+    (setf (compiland-setjmp-p *current-compiland*) t) ; setjmp
     (list 'CATCH block)))
 
 (defknown rewrite-throw (t) t)
@@ -840,6 +847,7 @@
     (when (neq new-form form)
       (return-from p1-throw (p1 new-form))))
   (setf (compiland-needs-thread-var-p *current-compiland*) t)
+  (setf (compiland-longjmp-p *current-compiland*) t) ; longjmp
   (list* 'THROW (mapcar #'p1 (cdr form))))
 
 (defun validate-name-and-lambda-list (name lambda-list context)
@@ -1357,6 +1365,10 @@ for special variables."
       (setf (block-non-local-go-p (tag-block tag)) t)
       (setf (compiland-needs-thread-var-p (tag-compiland tag)) t)
       (setf (compiland-needs-thread-var-p *current-compiland*) t)
+
+      ;; REVIEW
+      (setf (compiland-setjmp-p (tag-compiland tag)) t) ; setjmp
+      (setf (compiland-longjmp-p *current-compiland*) t) ; longjmp
       )
     )
   form)
