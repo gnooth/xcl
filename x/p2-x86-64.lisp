@@ -389,17 +389,9 @@
 
 (defknown emit-move-function-to-register (t t) t)
 (defun emit-move-function-to-register (symbol register)
-;;   (declare (type symbol form))
-;;   (emit-byte (+ #xb8 (register-number register))) ; mov imm32,reg
-;;   (emit-function symbol)
-  (emit (list :move-immediate (list :function symbol) register))
-  )
-
-(defknown emit-compare-rax-to-nil () t)
-(defun emit-compare-rax-to-nil ()
-;;   (emit-bytes #x48 #x3d) ; compare immediate dword to rax
-;;   (emit-constant-32 nil)
-  (inst :cmp-immediate '(:constant-32 nil) :rax)
+  (declare (type symbol form))
+;;   (inst :move-immediate (list :function symbol) register)
+  (inst :move-immediate `(:function ,symbol) register)
   )
 
 (defknown p2-constant (t t) t)
@@ -685,7 +677,7 @@
            (mumble "p2-test-numeric-comparison float case~%")
            (process-2-args args '(:rdi :rsi) t)
            (emit-call op)
-           (emit-compare-rax-to-nil)
+           (inst :cmp-immediate '(:constant-32 nil) :rax)
            (emit-jmp-short :z label)
            t)
           (t
@@ -715,7 +707,7 @@
                (inst :mov :rdx :rsi)
                (inst :mov :rax :rdi)
                (emit-call op)
-               (emit-compare-rax-to-nil)
+               (inst :cmp-immediate '(:constant-32 nil) :rax)
                (emit-jmp-short :z label)
                (emit-jmp-short t EXIT))
              (label EXIT))
@@ -770,7 +762,7 @@
             (emit-call '%type-error)
             (emit-exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
-        (emit-compare-rax-to-nil)
+        (inst :cmp-immediate '(:constant-32 nil) :rax)
         (emit-jmp-short :e EXIT)
         (inst :push :rax)
         (inst :and +lowtag-mask+ :al)
@@ -927,7 +919,7 @@
   (when (check-arg-count form 1)
     (let ((arg (%cadr form)))
       (process-1-arg arg :rax t)
-      (emit-compare-rax-to-nil)
+      (inst :cmp-immediate '(:constant-32 nil) :rax)
       (when label-if-true
         (emit-jmp-short :e label-if-true))
       (when label-if-false
@@ -1039,14 +1031,17 @@
                       (emit-call 'zerop))
                      ((setq thread-register (compiland-thread-register *current-compiland*))
                       (inst :mov :rax :rdx)
-                      (emit-move-function-to-register 'zerop :rsi)
+;;                       (emit-move-function-to-register 'zerop :rsi)
+                      (inst :move-immediate (list :function 'zerop) :rsi)
+
                       (inst :mov thread-register :rdi)
                       (emit-call "RT_thread_call_function_1"))
                      (t
                       (inst :mov :rax :rsi)
-                      (emit-move-function-to-register 'zerop :rdi)
+;;                       (emit-move-function-to-register 'zerop :rdi)
+                      (inst :move-immediate (list :function 'zerop) :rdi)
                       (emit-call "RT_current_thread_call_function_1")))
-               (emit-compare-rax-to-nil)
+               (inst :cmp-immediate '(:constant-32 nil) :rax)
                (when label-if-true
                  (emit-jmp-short :ne label-if-true))
                (when label-if-false
@@ -1062,7 +1057,7 @@
   (p2 test-form :rax)
   (unless (single-valued-p test-form)
     (emit-clear-values :preserve :rax))
-  (emit-compare-rax-to-nil)
+  (inst :cmp-immediate '(:constant-32 nil) :rax)
   (emit-jmp-short :e label))
 
 (defknown p2-if-and (t t) t)
@@ -1113,7 +1108,7 @@
                     (when op
                       (mumble "p2-if-and default case op = ~S~%" op))
                     (process-1-arg subform :rax t)
-                    (emit-compare-rax-to-nil)
+                    (inst :cmp-immediate '(:constant-32 nil) :rax)
                     (emit-jmp-short :e LABEL1)))))
          (p2 consequent target)
          (emit-jmp-short t LABEL2)
@@ -1152,7 +1147,7 @@
                    (t
                     ;; not the last subform
                     (process-1-arg subform :rax t)
-                    (emit-compare-rax-to-nil)
+                    (inst :cmp-immediate '(:constant-32 nil) :rax)
                     (emit-jmp-short :e FAIL)
                     (maybe-add-constraint subform)
                     (setq subforms tail)
@@ -1207,7 +1202,7 @@
                     (when op
                       (mumble "p2-if-or default case op = ~S~%" op))
                     (process-1-arg subform :rax t)
-                    (emit-compare-rax-to-nil)
+                    (inst :cmp-immediate '(:constant-32 nil) :rax)
                     (emit-jmp-short :ne LABEL1)))))
          (p2 alternate target)
          (emit-jmp-short t LABEL2)
@@ -1233,7 +1228,7 @@
              (arg2 (%cadr args))
              (EXIT (make-label)))
          (process-1-arg arg1 :rax t)
-         (emit-compare-rax-to-nil)
+         (inst :cmp-immediate '(:constant-32 nil) :rax)
          (emit-jmp-short :ne EXIT)
          (process-1-arg arg2 :rax nil)
          (label EXIT)
@@ -1727,7 +1722,8 @@
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
                       (aver (fixnump closure-data-index))
                       (emit-move-local-to-register closure-data-index :rsi)
-                      (emit-move-function-to-register (local-function-ctf-name local-function) :rdi)
+;;                       (emit-move-function-to-register (local-function-ctf-name local-function) :rdi)
+                      (inst :move-immediate (list :function (local-function-ctf-name local-function)) :rdi)
                       (emit-call "RT_make_compiled_closure")
                       (emit-move-local-to-register closure-data-index :rcx)
                       (emit-move-register-to-relative :rax
@@ -1760,9 +1756,6 @@
                       (clear-register-contents) ; FIXME
                       ))
                    (t
-;;                     (p2-constant (local-function-function local-function) :rax)
-;;                     (inst :mov :rax var)
-;;                     (set-register-contents :rax var)
                     ;; nothing to do
                     )))
             (t
@@ -1779,9 +1772,6 @@
                       (clear-register-contents) ; FIXME
                       ))
                    (t
-;;                     (emit-move-function-to-register (local-function-callable-name local-function) :rax)
-;;                     (inst :mov :rax var)
-;;                     (set-register-contents :rax var)
                     ;; nothing to do
                     )))))
     (dolist (local-function local-functions)
@@ -3796,7 +3786,7 @@
         (LIST
          (let ((EXIT (gensym)))
            (process-1-arg arg :rax t)
-           (emit-compare-rax-to-nil)
+           (inst :cmp-immediate '(:constant-32 nil) :rax)
            (emit-jmp-short :e EXIT)
            ;; it's a cons
            (inst :mov '(-1 :rax) :rax)
@@ -3818,7 +3808,7 @@
                (emit-call '%type-error)
                (emit-exit) ; FIXME
                (setf (gethash :error-not-list common-labels) ERROR)))
-           (emit-compare-rax-to-nil)
+           (inst :cmp-immediate '(:constant-32 nil) :rax)
            (emit-jmp-short :e EXIT)
            (inst :push :rax)
            (inst :and +lowtag-mask+ :al)
@@ -3888,7 +3878,7 @@
         (LIST
          (let ((EXIT (make-label)))
            (process-1-arg arg :rax t)
-           (emit-compare-rax-to-nil)
+           (inst :cmp-immediate '(:constant-32 nil) :rax)
            (emit-jmp-short :e EXIT)
            ;; it's a cons
            (inst :mov '(7 :rax) :rax)
@@ -3910,7 +3900,7 @@
                 (emit-call '%type-error)
                 (emit-exit) ; FIXME
                 (setf (gethash :error-not-list common-labels) ERROR)))
-            (emit-compare-rax-to-nil)
+            (inst :cmp-immediate '(:constant-32 nil) :rax)
             (emit-jmp-short :e EXIT)
             (inst :push :rax)
             (inst :and +lowtag-mask+ :al)
@@ -3950,7 +3940,7 @@
                    (emit-call '%type-error)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-boolean common-labels) ERROR)))
-               (emit-compare-rax-to-nil)
+               (inst :cmp-immediate '(:constant-32 nil) :rax)
                (emit-jmp-short :e EXIT)
 ;;                (emit-bytes #x48 #x3d) ; cmp imm32,%rax
 ;;                (emit-constant-32 t)
@@ -3985,7 +3975,7 @@
                    (emit-call '%type-error)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-list common-labels) ERROR)))
-               (emit-compare-rax-to-nil)
+               (inst :cmp-immediate '(:constant-32 nil) :rax)
                (emit-jmp-short :e EXIT)
                (inst :push :rax)
                (inst :and +lowtag-mask+ :al)
@@ -4085,7 +4075,7 @@
             (emit-call '%type-error)
             (emit-exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
-        (emit-compare-rax-to-nil)
+        (inst :cmp-immediate '(:constant-32 nil) :rax)
         (emit-jmp-short :e LABEL1)
         (inst :push :rax)
         (inst :and +lowtag-mask+ :al)

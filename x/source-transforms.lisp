@@ -243,7 +243,7 @@
       (t
        form))))
 
-(define-source-transform backq-list (&rest args)
+(define-source-transform sys::backq-list (&rest args)
   (case (length args)
     (0
      nil)
@@ -260,17 +260,17 @@
     (t
      `(list ,@args))))
 
-(define-source-transform backq-list* (&rest args)
+(define-source-transform sys::backq-list* (&rest args)
   `(list* ,@args))
 
-(define-source-transform backq-append (&rest args)
+(define-source-transform sys::backq-append (&rest args)
   (cond ((length-eql args 2)
          `(two-arg-append ,@args))
         (t
          `(append ,@args))))
 
-(define-source-transform backq-nconc (&rest args)
+(define-source-transform sys::backq-nconc (&rest args)
   `(nconc ,@args))
 
-(define-source-transform backq-cons (&rest args)
+(define-source-transform sys::backq-cons (&rest args)
   `(cons ,@args))
