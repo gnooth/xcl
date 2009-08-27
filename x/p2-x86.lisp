@@ -744,7 +744,7 @@
 ;;   (declare (type symbol form))
 ;;   (emit-byte (+ #xb8 (register-number register))) ; mov imm32,reg
 ;;   (emit-function symbol)
-  (emit (list :mov-immediate (list :function symbol) register))
+  (emit (list :move-immediate (list :function symbol) register))
   )
 
 (defknown p2-constant (t t) t)
@@ -786,10 +786,10 @@
                ((eq target :stack)
                 (inst :push (list :constant form)))
                ((reg32-p target)
-                (inst :mov-immediate (list :constant form) target)
+                (inst :move-immediate (list :constant form) target)
                 (clear-register-contents target))
                ((eq target :return)
-                (inst :mov-immediate (list :constant form) :eax)
+                (inst :move-immediate (list :constant form) :eax)
                 (clear-register-contents :eax)
                 (emit-exit))
                (t

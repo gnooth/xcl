@@ -122,7 +122,7 @@
                  (setq leaf-p nil)
                  (setq instruction (make-instruction :call 5 operand1))
                  (vector-push-extend instruction new-code))
-                (:mov-immediate
+                (:move-immediate
                  (cond ((and (consp operand1)
                              (eq (%car operand1) :function))
                         (aver (length-eql operand1 2))
@@ -157,14 +157,14 @@
                                   (make-instruction :byte 1 (+ #xb8 (register-number register)))
                                   new-code))
                                 (t
-                                 (mumble "p3 :mov-immediate :constant unsupported case register = ~S~%"
+                                 (mumble "p3 :move-immediate :constant unsupported case register = ~S~%"
                                          register)
                                  (unsupported)))
                           (vector-push-extend
                            (make-instruction :constant 4 form)
                            new-code)))
                        (t
-                        (mumble "p3 :mov-immediate unsupported case~%")
+                        (mumble "p3 :move-immediate unsupported case~%")
                         (unsupported))))
                 (:byte
                  (vector-push-extend (make-instruction :byte 1 operand1) new-code))

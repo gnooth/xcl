@@ -432,7 +432,7 @@
 ;;   (declare (type symbol form))
 ;;   (emit-byte (+ #xb8 (register-number register))) ; mov imm32,reg
 ;;   (emit-function symbol)
-  (emit (list :mov-immediate (list :function symbol) register))
+  (emit (list :move-immediate (list :function symbol) register))
   )
 
 (defknown emit-compare-rax-to-nil () t)
@@ -477,17 +477,17 @@
            ;; REVIEW following code is for small data model (-mcmodel=small)
            (case target
              (:stack
-              (inst :mov-immediate (list :constant-32 form) :eax)
+              (inst :move-immediate (list :constant-32 form) :eax)
               (inst :push :rax)
               (clear-register-contents :rax))
              ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)
-              (inst :mov-immediate (list :constant-32 form) (reg32 target))
+              (inst :move-immediate (list :constant-32 form) (reg32 target))
               (clear-register-contents target))
              ((:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15)
-              (inst :mov-immediate (list :constant-32 form) target)
+              (inst :move-immediate (list :constant-32 form) target)
               (clear-register-contents target))
              (:return
-              (inst :mov-immediate (list :constant-32 form) :eax)
+              (inst :move-immediate (list :constant-32 form) :eax)
               (clear-register-contents :rax)
               (emit-exit))
              (t
@@ -2619,7 +2619,7 @@
                   (emit-call op))
                  (kernel-function-p
 ;;                   (emit-move-function-to-register op :rdi)
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_fast_call_function_0"))
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 0))
@@ -2630,7 +2630,7 @@
           ;; not use-fast-call-p
           ((setq thread-register (compiland-thread-register compiland))
            (cond (kernel-function-p
-                  (inst :mov-immediate `(:function ,op) :rsi)
+                  (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
                   (emit-call "RT_thread_call_function_0"))
                  (t
@@ -2640,7 +2640,7 @@
                   (emit-call "RT_thread_call_symbol_0"))))
           (t
            (cond (kernel-function-p
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_current_thread_call_function_0"))
                  (t
                   (p2-symbol op :rdi)
@@ -2665,20 +2665,20 @@
                   (emit-call op))
                  (use-fast-call-p
                   (process-1-arg arg :rsi t)
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_fast_call_function_1"))
                  ;; not use-fast-call-p
                  ((setq thread-register (compiland-thread-register compiland))
                   (process-1-arg arg :rdx nil)
                   ;; RT_thread_call_function_1() calls thread->clear_values()
-                  (inst :mov-immediate `(:function ,op) :rsi)
+                  (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
                   (emit-call "RT_thread_call_function_1"))
                  ;; no thread register
                  (t
                   (process-1-arg arg :rsi nil)
                   ;; RT_current_thread_call_function_1() calls thread->clear_values()
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_current_thread_call_function_1"))))
            ;; not kernel-function-p
           (use-fast-call-p
@@ -2721,20 +2721,20 @@
                   (emit-call op))
                  (use-fast-call-p
                   (process-2-args args '(:rsi :rdx) t)
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_fast_call_function_2"))
                  ;; not use-fast-call-p
                  ((setq thread-register (compiland-thread-register compiland))
                   (process-2-args args '(:rdx :rcx) nil)
                   ;; RT_thread_call_function_2() calls thread->clear_values()
-                  (inst :mov-immediate `(:function ,op) :rsi)
+                  (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
                   (emit-call "RT_thread_call_function_2"))
                  ;; no thread register
                  (t
                   (process-2-args args '(:rsi :rdx) nil)
                   ;; RT_current_thread_call_function_2() calls thread->clear_values()
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_current_thread_call_function_2"))))
           ;; not kernel-function-p
           (use-fast-call-p
@@ -2777,20 +2777,20 @@
                   (emit-call op))
                  (use-fast-call-p
                   (process-3-args args '(:rsi :rdx :rcx) t)
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_fast_call_function_3"))
                  ;; not use-fast-call-p
                  ((setq thread-register (compiland-thread-register compiland))
                   (process-3-args args '(:rdx :rcx :r8) nil)
                   ;; RT_thread_call_function_3() calls thread->clear_values()
-                  (inst :mov-immediate `(:function ,op) :rsi)
+                  (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
                   (emit-call "RT_thread_call_function_3"))
                  ;; no thread register
                  (t
                   (process-3-args args '(:rsi :rdx :rcx) nil)
                   ;; RT_current_thread_call_function_2() calls thread->clear_values()
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_current_thread_call_function_3"))))
           ;; not kernel-function-p
           (use-fast-call-p
@@ -2830,7 +2830,7 @@
                   (emit-call op))
                  (kernel-function-p
                   (process-4-args args '(:rsi :rdx :rcx :r8) t)
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_fast_call_function_4"))
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 4))
@@ -2845,7 +2845,7 @@
            ;; RT_thread_call_symbol_4() calls thread->clear_values()
            (process-4-args args '(:rdx :rcx :r8 :r9) nil)
            (cond (kernel-function-p
-                  (inst :mov-immediate `(:function ,op) :rsi)
+                  (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
                   (emit-call "RT_thread_call_function_4"))
                  (t
@@ -2856,7 +2856,7 @@
            ;; RT_current_thread_call_symbol_4() calls thread->clear_values()
            (process-4-args args '(:rsi :rdx :rcx :r8) nil)
            (cond (kernel-function-p
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_current_thread_call_function_4"))
                  (t
                   (p2-symbol op :rdi)
@@ -2877,7 +2877,7 @@
                   (emit-call op))
                  (kernel-function-p
                   (process-5-args args '(:rsi :rdx :rcx :r8 :r9) t)
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_fast_call_function_5"))
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 5))
@@ -2893,7 +2893,7 @@
                   (process-5-args args '(:rdx :rcx :r8 :r9 :rax) nil)
                   (inst :push :rax)
                   (inst :push :rax) ; stack alignment
-                  (inst :mov-immediate `(:function ,op) :rsi)
+                  (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
                   (emit-call "RT_thread_call_function_5")
                   (inst :add (* +bytes-per-word+ 2) :rsp))
@@ -2909,7 +2909,7 @@
            ;; not use-fast-call-p
            (cond (kernel-function-p
                   (process-5-args args '(:rsi :rdx :rcx :r8 :r9) nil)
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_current_thread_call_function_5"))
                  (t
                   (process-5-args args '(:rsi :rdx :rcx :r8 :r9) nil)
@@ -2966,7 +2966,7 @@
            (inst :pop :rsi)
            (inst :push :rax) ; arg6 is passed on the stack
            (cond (kernel-function-p
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (inst :call "RT_fast_call_function_6"))
                  (t
                   (p2-symbol op :rdi)
@@ -2983,7 +2983,7 @@
            (inst :push :rax) ; arg6 is passed on the stack
            (inst :push :r11) ; arg5 is passed on the stack
            (cond (kernel-function-p
-                  (inst :mov-immediate `(:function ,op) :rsi)
+                  (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
                   (inst :call "RT_thread_call_function_6"))
                  (t
@@ -3000,7 +3000,7 @@
            (inst :pop :rsi)
            (inst :push :rax) ; arg6 is passed on the stack
            (cond (kernel-function-p
-                  (inst :mov-immediate `(:function ,op) :rdi)
+                  (inst :move-immediate `(:function ,op) :rdi)
                   (inst :call "RT_current_thread_call_function_6"))
                  (t
                   (p2-symbol op :rdi)
@@ -3047,7 +3047,7 @@
       (inst :mov :rsp args-register)
       (emit-move-immediate-dword-to-register numargs numargs-register)
       (cond (kernel-function-p
-             (inst :mov-immediate `(:function ,op) op-register)
+             (inst :move-immediate `(:function ,op) op-register)
              (cond (use-fast-call-p
                     (emit-call "RT_fast_call_function"))
                    (thread-register
@@ -5586,7 +5586,7 @@
                (inst :mov :rsi :rdi)
                (inst :mov :rdx :rsi)
                (let ((prototype (coerce-to-function (list 'LAMBDA lambda-list nil))))
-                 (inst :mov-immediate (list :constant-32 prototype) :edx))
+                 (inst :move-immediate (list :constant-32 prototype) :edx))
 
                (let* ((names (lambda-list-names lambda-list))
                       (n (length names))
@@ -5785,7 +5785,7 @@
                    (and (compiland-arity compiland)
                         (> (compiland-arity compiland) 6)))
                (let ((prototype (coerce-to-function (list 'LAMBDA lambda-list nil))))
-                 (inst :mov-immediate (list :constant-32 prototype) :edx))
+                 (inst :move-immediate (list :constant-32 prototype) :edx))
 
                (let* ((names (lambda-list-names lambda-list))
                       (n (length names))

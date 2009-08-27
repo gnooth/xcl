@@ -158,7 +158,7 @@
                   (:call
                    (setq instruction (make-instruction :call 5 operand1))
                    (vector-push-extend instruction new-code))
-                  (:mov-immediate
+                  (:move-immediate
                    (cond ((and (consp operand1)
                                (eq (%car operand1) :function))
                           (aver (length-eql operand1 2))
@@ -186,14 +186,14 @@
                                                       (list #x49 #xc7 (+ #xc0 (register-number register))))
                                     new-code))
                                   (t
-                                   (mumble "p3 :mov-immediate :constant-32 unsupported case register = ~S~%"
+                                   (mumble "p3 :move-immediate :constant-32 unsupported case register = ~S~%"
                                               register)
                                    (unsupported)))
                             (vector-push-extend
                              (make-instruction :constant-32 4 form)
                              new-code)))
                          (t
-                          (mumble "p3 :mov-immediate unsupported case~%")
+                          (mumble "p3 :move-immediate unsupported case~%")
                           (unsupported))))
                   (:cmp-immediate
                    ;;                    (mumble "p3 :cmp-immediate case~%")
