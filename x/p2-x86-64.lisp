@@ -342,35 +342,10 @@
     (setq target :rax))
   (cond ((and (eql n 0)
               (memq target '(:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)))
-;;          (emit-byte #x31) ; xor reg/mem32, reg32
-;;          (emit-byte (make-modrm-byte #b11 (register-number target) (register-number target)))
          (let ((reg32 (reg32 target)))
-           (inst :xor reg32 reg32))
-         )
+           (inst :xor reg32 reg32)))
         (t
-         (let ((x (value-to-ub64 n)))
-           (case target
-             ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)
-              (cond ((< x #x7fffffff)
-                     (emit-byte (+ #xb8 (register-number target)))
-                     (emit-raw-dword x))
-                    (t
-                     (emit-byte #x48)
-                     (emit-byte (+ #xb8 (register-number target)))
-                     (emit-raw-qword x))))
-             ((:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15)
-              (cond ((< x #x7fffffff)
-                     (emit-bytes #x49 #xc7)
-;;                      (emit-byte (if (eq target :r8) #xc0 #xc1))
-                     (emit-byte (+ #xc0 (register-number target)))
-                     (emit-raw-dword x))
-                    (t
-                     (emit-byte #x49)
-;;                      (emit-byte (if (eq target :r8) #xb8 #xb9))
-                     (emit-byte (+ #xb8 (register-number target)))
-                     (emit-raw-qword x))))
-             (t
-              (compiler-unsupported "EMIT-MOVE-IMMEDIATE unsupported target ~S" target)))))))
+         (inst :mov (value-to-ub64 n) target))))
 
 (defun emit-move-immediate-dword-to-register (n reg)
   (cond ((eql n 0)
@@ -391,12 +366,9 @@
         (emit-bytes #x48 #x6a) ; push immediate byte (sign-extended to 64 bits)
         (emit-byte n)
         (return-from emit-push-immediate))))
-;;   (emit-byte #x68)
-;;   (emit-qword arg)
   (emit-move-immediate arg :rax)
   (inst :push :rax)
-  (clear-register-contents :rax)
-  )
+  (clear-register-contents :rax))
 
 (defknown move-result-to-target (t) t)
 (defun move-result-to-target (target)
@@ -414,18 +386,6 @@
     (t
      (break)
      (compiler-unsupported "MOVE-RESULT-TO-TARGET target = ~S" target))))
-
-(defknown emit-add-immediate-to-register (t t) t)
-(defun emit-add-immediate-to-register (n register)
-  (cond ((<= -128 n 127)
-         (let ((modrm-byte (make-modrm-byte #b11 0 (register-number register))))
-           (emit-bytes #x48 #x83 modrm-byte n)))
-        ((<= 0 n #x7fffffff)
-         (let ((modrm-byte (make-modrm-byte #b11 0 (register-number register))))
-           (emit-bytes #x48 #x81 modrm-byte)
-           (emit-raw-dword n)))
-        (t
-         (unsupported))))
 
 (defknown emit-move-function-to-register (t t) t)
 (defun emit-move-function-to-register (symbol register)
@@ -452,7 +412,8 @@
               (emit-push-immediate form))
              ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)
               (if (eql form 0)
-                  (inst :xor (reg32 target) (reg32 target))
+                  (let ((reg32 (reg32 target)))
+                    (inst :xor reg32 reg32))
                   (inst :mov (value-to-ub64 form) target))
               (clear-register-contents target))
              ((:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15)
@@ -2113,7 +2074,7 @@
            type1)
       (cond ((zerop *safety*)
              (process-2-args args '(:rax :rdx) t) ; string in rax, index in rdx
-             (emit-add-immediate-to-register (- +simple-string-data-offset+ +typed-object-lowtag+) :rax)
+             (inst :add (- +simple-string-data-offset+ +typed-object-lowtag+) :rax)
              (unbox-fixnum :rdx)
              (clear-register-contents :rax :rdx)
              (inst :add :rax :rdx)
@@ -2289,9 +2250,7 @@
 ;;                       (mumble "p2-vector-ref (simple-array (unsigned-byte 8) (~D)) optimized case~%" size))
                     (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
                     (clear-register-contents :rax :rdx)
-                    (emit-add-immediate-to-register
-                     (- +simple-vector-data-offset+ +typed-object-lowtag+)
-                     :rax)
+                    (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
 
                     ;; index is in rdx
                     ;; get rid of the fixnum shift
@@ -2315,9 +2274,7 @@
 ;;                       (mumble "p2-vector-ref (simple-array (unsigned-byte 32) (~D)) optimized case~%" size))
                     (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
                     (clear-register-contents :rax)
-                    (emit-add-immediate-to-register
-                     (- +simple-vector-data-offset+ +typed-object-lowtag+)
-                     :rax)
+                    (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
 
                     ;; index is in rdx
                     ;; get rid of the fixnum shift and multiply by 4 to get the offset in bytes
@@ -3194,7 +3151,7 @@
         (let ((displacement (- +symbol-name-offset+ +symbol-lowtag+)))
           (%emit-move-relative-to-register :rax displacement :rax))
         (clear-register-contents :rax)
-        (emit-add-immediate-to-register +typed-object-lowtag+ :rax)
+        (inst :add +typed-object-lowtag+ :rax)
         (move-result-to-target target)
         t))))
 
