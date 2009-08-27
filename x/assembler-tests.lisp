@@ -141,6 +141,16 @@
     ((:mov :r13 :rax)           #(#x4c #x89 #xe8))
     ((:mov :r12 (-8 :rsp))      #(#x4c #x89 #x64 #x24 #xf8))
     ((:mov (-8 :rsp) :r12)      #(#x4c #x8b #x64 #x24 #xf8))
+    ;; (sys:value-to-ub64 most-positive-fixnum)
+    ((:mov 9223372036854775804
+           :rax)                #(#x48 #xb8 #xfc #xff #xff #xff #xff #xff #xff #x7f))
+    ((:mov 9223372036854775804
+           :r13)                #(#x49 #xbd #xfc #xff #xff #xff #xff #xff #xff #x7f))
+    ;; (sys:value-to-ub64 most-positive-fixnum)
+    ((:mov 9223372036854775808
+           :rax)                #(#x48 #xb8 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x80))
+    ((:mov 9223372036854775808
+           :r13)                #(#x49 #xbd #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x80))
     ((:push (-12 :rbp))         #(#xff #x75 #xf4))
     ((:push (8 :rbp))           #(#xff #x75 #x08))
     ((:push (132 :rbp))         #(#xff #xb5 #x84 #x00 #x00 #x00))

@@ -25,6 +25,12 @@
     (declare (type (integer 0 4) i)) ; REVIEW this should not be necessary!
     (vector-push-extend (ldb (byte 8 (* i 8)) x) *output*)))
 
+(defun emit-raw-qword (x)
+  (dotimes (i 8)
+    (declare (type (integer 0 8) i)) ; REVIEW this should not be necessary!
+    (vector-push-extend (ldb (byte 8 (* i 8)) x) *output*)
+    ))
+
 (define-assembler :add
   (cond ((and (reg64-p operand1) (not (extended-register-p operand1))
               (reg64-p operand2) (not (extended-register-p operand2)))
@@ -249,6 +255,12 @@
                 (modrm-byte (make-modrm-byte mod reg rm)))
            (emit-bytes prefix-byte #xc7 modrm-byte)
            (emit-raw-dword operand1)))
+        ((and (integerp operand1)
+              (typep operand1 '(unsigned-byte 64))
+              (reg64-p operand2))
+         (let* ((prefix-byte (if (extended-register-p operand2) #x49 #x48)))
+           (emit-bytes prefix-byte (+ #xb8 (register-number operand2)))
+           (emit-raw-qword operand1)))
         (t
          (unsupported))))
 

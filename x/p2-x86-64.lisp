@@ -453,16 +453,15 @@
              ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)
               (if (eql form 0)
                   (inst :xor (reg32 target) (reg32 target))
-                  (emit-move-immediate form target))
+                  (inst :mov (value-to-ub64 form) target))
               (clear-register-contents target))
              ((:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15)
               (emit-move-immediate form target)
               (clear-register-contents target))
              (:return
               (if (eql form 0)
-;;                   (emit-bytes #x31 #xc0)  ; xor %eax,%eax
                   (inst :xor :eax :eax)
-                  (emit-move-immediate form :rax))
+                  (inst :mov (value-to-ub64 form) :rax))
               (clear-register-contents :rax)
               (emit-exit))
              (t
@@ -474,54 +473,20 @@
                (characterp form)
                (hash-table-p form)
                (functionp form) ; REVIEW
-               (classp form)
-               )
-;;            (push form (compiland-constants *current-compiland*))
-
-;;            (let ((address (value-to-ub64 n)))
-;;            (case target
-;;              ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)
-;;               (cond ((< address #x7fffffff)
-;;                      (emit-byte (+ #xb8 (register-number target)))
-;;                      (emit-raw-dword address))
-;;                     (t
-;;                      (emit-byte #x48)
-;;                      (emit-byte (+ #xb8 (register-number target)))
-;;                      (emit-raw-qword address))))
-;;              ((:r8 :r9)
-;;               (cond ((< address #x7fffffff)
-;;                      (emit-bytes #x49 #xc7)
-;;                      (emit-byte (if (eq target :r8) #xc0 #xc1))
-;;                      (emit-raw-dword address))
-;;                     (t
-;;                      (emit-byte #x49)
-;;                      (emit-byte (if (eq target :r8) #xb8 #xb9))
-;;                      (emit-raw-qword address))))
-;;              (t
-;;               (unsupported))))
-
+               (classp form))
            ;; REVIEW following code is for small data model (-mcmodel=small)
            (case target
              (:stack
-;;               (emit-byte #xb8) ; move 32-bit constant into eax
-;;               (emit-constant-32 form)
               (inst :mov-immediate (list :constant-32 form) :eax)
               (inst :push :rax)
               (clear-register-contents :rax))
              ((:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi)
-;;               (emit-byte (+ #xb8 (register-number target)))
-;;               (emit-constant-32 form)
               (inst :mov-immediate (list :constant-32 form) (reg32 target))
               (clear-register-contents target))
              ((:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15)
-;;               (emit-bytes #x49 #xc7)
-;;               (emit-byte (if (eq target :r8) #xc0 #xc1))
-;;               (emit-constant-32 form)
               (inst :mov-immediate (list :constant-32 form) target)
               (clear-register-contents target))
              (:return
-;;               (emit-byte #xb8) ; move 32-bit unsigned constant into eax
-;;               (emit-constant-32 form)
               (inst :mov-immediate (list :constant-32 form) :eax)
               (clear-register-contents :rax)
               (emit-exit))
