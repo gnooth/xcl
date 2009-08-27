@@ -1666,7 +1666,7 @@ for special variables."
   (when *dump-code*
     (let ((i 0))
       (dolist (instruction (coerce *code* 'list))
-        (fresh-line)
+        (fresh-line *debug-io*)
         (mumble "~4,D: " (incf i))
         (cond ((vectorp instruction)
                (mumble "~S~%" instruction))
@@ -1683,7 +1683,8 @@ for special variables."
                          (print-var thing *debug-io*)
                          (mumble "~S" thing)))
                    (setq list (cdr list)))
-                 (write-char #\) *debug-io*))))))))
+                 (write-char #\) *debug-io*))))
+        (terpri *debug-io*)))))
 
 (defknown labelp (t) t)
 (defun labelp (thing)
@@ -2280,7 +2281,7 @@ for special variables."
     (optimize-ir2)
     (dump-code)
     (p3)
-    (dump-code)
+;;     (dump-code)
 ;;     (optimize-code)
     (setq *code* (coerce *code* 'list))))
 
