@@ -1,6 +1,6 @@
 // adjust_array_internal.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -79,6 +79,13 @@ Value SYS_adjust_array_internal(unsigned int numargs, Value args[])
         }
       else
         {
+          if (initial_element_p == NIL)
+            {
+              if (array->element_type() == S_character)
+                initial_element = make_character(0);
+              else
+                initial_element = 0;
+            }
           v2 = v->adjust_vector(new_size,
                                 initial_element,
                                 initial_contents);
@@ -94,10 +101,7 @@ Value SYS_adjust_array_internal(unsigned int numargs, Value args[])
     }
 
   // rank > 1
-//   if (array instanceof SimpleArray_T) {
-//     SimpleArray_T a = (SimpleArray_T) array;
   const unsigned int rank = listp(dimensions) ? length(dimensions) : 1;
-//   int[] dimv = new int[rank];
   unsigned long * dims =
     (unsigned long *) GC_malloc_atomic(rank * sizeof(unsigned long *));
   if (listp(dimensions))
@@ -124,13 +128,7 @@ Value SYS_adjust_array_internal(unsigned int numargs, Value args[])
                                  offset);
     }
   else
-    {
-      a2 = array->adjust_array(rank, dims, initial_element, initial_contents);
-    }
+    a2 = array->adjust_array(rank, dims, initial_element, initial_contents);
 
-//   }
-
-
-//   return NIL;
   return make_value(a2);
 }
