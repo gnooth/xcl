@@ -5248,20 +5248,20 @@
            (arg1 (%car args))
            (arg2 (%cadr args))
            type1)
-;;       (mumble "p2-structure-ref type1 = ~S~%" (derive-type arg1))
       (cond ((and (fixnump arg2)
                   (or (zerop *safety*)
                       (and (neq (setq type1 (derive-type arg1)) :unknown)
                            (subtypep type1 'structure-object))))
              (process-1-arg arg1 :rax t)
-             (clear-register-contents :rax)
              (let ((displacement (+ (- +typed-object-lowtag+)
                                     +structure-slots-offset+
                                     (* arg2 +bytes-per-word+))))
                (cond ((reg64-p target)
-                      (inst :mov `(,displacement :rax) target))
+                      (inst :mov `(,displacement :rax) target)
+                      (clear-register-contents target))
                      (t
                       (inst :mov `(,displacement :rax) :rax)
+                      (clear-register-contents :rax)
                       (move-result-to-target target))))
              t)
             (t
