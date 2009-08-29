@@ -62,10 +62,7 @@
                                (return-from single-valued-p nil)))
                            (single-valued-p (car (last (block-body block))))))
                         ((memq op '(TRULY-THE THE))
-                         ; FIXME (the (values fixnum &optional) 42) is single-valued
-                         (let ((value-type (second form)))
-                           (or (atom value-type)
-                               (neq (%car value-type) 'VALUES))))
+                         (single-valued-p (third form)))
                         (t
                          nil)))
                  ((operator-single-valued-p op)
