@@ -2459,7 +2459,10 @@
                   (inst :mov :rax '(:rsp))))
            (p2 arg3 reg3)
            (when clear-values-p
-             (maybe-emit-clear-values arg1 arg2 arg3))
+             (unless (and (single-valued-p arg1)
+                          (single-valued-p arg2)
+                          (single-valued-p arg3))
+               (emit-clear-values :preserve reg3)))
            (inst :pop reg2)
            (inst :pop reg1)
            (clear-register-contents reg1 reg2)))))
