@@ -1,6 +1,6 @@
 // SimpleBitVector.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -18,6 +18,7 @@
 
 #include "lisp.hpp"
 #include "primitives.hpp"
+#include "ProgramError.hpp"
 
 void SimpleBitVector::setbit(INDEX index)
 {
@@ -290,6 +291,11 @@ Value SYS_simple_bit_vector_fill(Value arg1, Value arg2)
   return arg1;
 }
 
+static Value vector_length_mismatch_error()
+{
+  return signal_lisp_error(new ProgramError("Vector length mismatch."));
+}
+
 // ### simple-bit-vector-bit-and vector-1 vector-2 vector-3
 Value SYS_simple_bit_vector_bit_and(Value arg1, Value arg2, Value arg3)
 {
@@ -300,6 +306,8 @@ Value SYS_simple_bit_vector_bit_and(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -318,6 +326,8 @@ Value SYS_simple_bit_vector_bit_andc1(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -336,6 +346,8 @@ Value SYS_simple_bit_vector_bit_andc2(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -354,6 +366,8 @@ Value SYS_simple_bit_vector_bit_eqv(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -372,6 +386,8 @@ Value SYS_simple_bit_vector_bit_ior(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -390,6 +406,8 @@ Value SYS_simple_bit_vector_bit_nand(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -408,6 +426,8 @@ Value SYS_simple_bit_vector_bit_nor(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -426,6 +446,8 @@ Value SYS_simple_bit_vector_bit_orc1(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -444,6 +466,8 @@ Value SYS_simple_bit_vector_bit_orc2(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -462,6 +486,8 @@ Value SYS_simple_bit_vector_bit_xor(Value arg1, Value arg2, Value arg3)
   unsigned int * p2 = v2->data();
   unsigned int * p3 = v3->data();
   INDEX length = v3->length();
+  if (v1->length() != length || v2->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
@@ -478,6 +504,8 @@ Value SYS_simple_bit_vector_bit_not(Value arg1, Value arg2)
   unsigned int * p1 = v1->data();
   unsigned int * p2 = v2->data();
   INDEX length = v2->length();
+  if (v1->length() != length)
+    return vector_length_mismatch_error();
   INDEX size = length >> BIT_VECTOR_SHIFT;
   if ((length & BIT_VECTOR_MASK) != 0)
     ++size;
