@@ -772,6 +772,17 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_sharp_vertical_bar, SYS_sharp_vertical_bar, 3, 3);
   ADD_PRIMITIVE(S_sharp_x, SYS_sharp_x, 3, 3);
   ADD_PRIMITIVE(S_simple_array_p, SYS_simple_array_p, 1, 1);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_and, SYS_simple_bit_vector_bit_and, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_andc1, SYS_simple_bit_vector_bit_andc1, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_andc2, SYS_simple_bit_vector_bit_andc2, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_eqv, SYS_simple_bit_vector_bit_eqv, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_ior, SYS_simple_bit_vector_bit_ior, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_nand, SYS_simple_bit_vector_bit_nand, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_nor, SYS_simple_bit_vector_bit_nor, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_not, SYS_simple_bit_vector_bit_not, 2, 2);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_orc1, SYS_simple_bit_vector_bit_orc1, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_orc2, SYS_simple_bit_vector_bit_orc2, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_bit_xor, SYS_simple_bit_vector_bit_xor, 3, 3);
   ADD_PRIMITIVE(S_simple_bit_vector_fill, SYS_simple_bit_vector_fill, 2, 2);
   ADD_PRIMITIVE(S_single_float_bits, SYS_single_float_bits, 1, 1);
   ADD_PRIMITIVE(S_single_float_p, SYS_single_float_p, 1, 1);

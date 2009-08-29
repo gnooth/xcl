@@ -1,6 +1,6 @@
 // SimpleBitVector.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,11 +23,15 @@ class SimpleBitVector : public AbstractBitVector
 {
 private:
   unsigned int * _data;
-
 public:
   SimpleBitVector(INDEX length);
   SimpleBitVector(INDEX length, Value data[]);
   SimpleBitVector(AbstractString * string);
+
+  unsigned int * data()
+  {
+    return _data;
+  }
 
   // not virtual
   inline void inline_setbit(INDEX index)

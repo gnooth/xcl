@@ -1,6 +1,6 @@
 // numbers.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -4099,6 +4099,7 @@ Value SYS_two_arg_logior(Value v1, Value v2)
   return signal_type_error(v1, S_integer);
 }
 
+// ### logior
 Value CL_logior(unsigned int numargs, Value args[])
 {
   switch (numargs)
@@ -4172,6 +4173,7 @@ Value SYS_two_arg_logxor(Value v1, Value v2)
     return signal_type_error(v1, S_integer);
 }
 
+// ### logxor
 Value CL_logxor(unsigned int numargs, Value args[])
 {
   switch (numargs)

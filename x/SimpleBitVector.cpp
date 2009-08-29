@@ -289,3 +289,199 @@ Value SYS_simple_bit_vector_fill(Value arg1, Value arg2)
   check_simple_bit_vector(arg1)->fill(arg2);
   return arg1;
 }
+
+// ### simple-bit-vector-bit-and vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_and(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = (p1[i] & p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-andc1 vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_andc1(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = (~p1[i] & p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-andc2 vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_andc2(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = (p1[i] & ~p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-eqv vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_eqv(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = ~(p1[i] ^ p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-ior vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_ior(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = (p1[i] | p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-nand vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_nand(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = ~(p1[i] & p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-nor vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_nor(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = ~(p1[i] | p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-orc1 vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_orc1(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = (~p1[i] | p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-orc2 vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_orc2(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = (p1[i] | ~p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-xor vector-1 vector-2 vector-3
+Value SYS_simple_bit_vector_bit_xor(Value arg1, Value arg2, Value arg3)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  SimpleBitVector * v3 = check_simple_bit_vector(arg3);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  unsigned int * p3 = v3->data();
+  INDEX length = v3->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p3[i] = (p1[i] ^ p2[i]);
+  return arg3;
+}
+
+// ### simple-bit-vector-bit-not vector-1 vector-2
+Value SYS_simple_bit_vector_bit_not(Value arg1, Value arg2)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  INDEX length = v2->length();
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  for (INDEX i = 0; i < size; i++)
+    p2[i] = ~p1[i];
+  return arg2;
+}

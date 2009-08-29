@@ -42,7 +42,7 @@ else
   CFLAGS := $(CFLAGS) -march=i686 -m32
 endif
 
-LIBOBJS = lisp.o Thread.o Symbol.o \
+LIBOBJS = lisp.o SimpleBitVector.o Thread.o Symbol.o \
 	peek-char.o documentation.o LogicalPathname.o parse-namestring.o merge-pathnames.o \
 	FaslReadtable.o \
 	progv.o subsetp.o position.o catch.o mapcar.o mapc.o require-type.o sxhash.o \
@@ -69,7 +69,7 @@ LIBOBJS = lisp.o Thread.o Symbol.o \
 	SimpleArray_UB8_1.o \
 	SynonymStream.o EchoStream.o ConcatenatedStream.o \
 	AbstractArray.o Array_T.o SimpleArray_T.o  make_array_internal.o adjust_array_internal.o \
-	SimpleBitVector.o BitVector.o AbstractBitVector.o \
+	BitVector.o AbstractBitVector.o \
 	Vector_T.o SimpleVector.o \
 	PrintNotReadable.o TwoWayStream.o BroadcastStream.o \
 	classes.o StandardGenericFunction.o Layout.o StandardObject.o StructureClass.o \
