@@ -104,7 +104,7 @@
   (compiland-id (compiland-id *current-compiland*))
   constant-p
   constant-value
-  register-p
+  (register-worthiness 0 :type fixnum)
   )
 
 (defknown make-var (*) t)
@@ -1453,10 +1453,10 @@ for special variables."
         (let ((op (%car arg2)))
           (cond ((and (eq op 'TWO-ARG-+)
                       (eq (cadr arg2) arg1))
-                 (setf (var-register-p var) t))
+                 (setf (var-register-worthiness var) 100))
                 ((and (memq op '(CDR %CDR))
                       (eq (cadr arg2) arg1))
-                 (setf (var-register-p var) t)))))
+                 (setf (var-register-worthiness var) 100)))))
       (unless (zerop *safety*)
         (let ((type (var-declared-type var)))
           (unless (eq type :none)
