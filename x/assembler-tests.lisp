@@ -50,6 +50,7 @@
     ((:sub 12 :esp)             #(#x83 #xec #x0c))
     ((:pop (4 :ecx))            #(#x8f #x41 #x04))
     ((:pop (:ecx))              #(#x8f #x01))
+    ((:ret)                     #(#xc3))
     ))
 
 #+x86-64
@@ -203,6 +204,7 @@
     ((:shr 2 :rdx)              #(#x48 #xc1 #xea #x02))
     ((:shr 2 :r11)              #(#x49 #xc1 #xeb #x02))
     ((:xor :eax :eax)           #(#x31 #xc0))
+    ((:ret)                     #(#xc3))
     ))
 
 (dolist (pair *tests*)
