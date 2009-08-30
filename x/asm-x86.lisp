@@ -101,7 +101,7 @@
            (emit-bytes #x89 modrm-byte)))
         ((and (reg32-p operand2)
               (integerp operand1)
-              (typep operand1 '(signed-byte 32)))
+              (typep operand1 '(unsigned-byte 32)))
          (emit-byte (+ #xb8 (register-number operand2)))
          (emit-raw operand1))
         ((and (consp operand1)

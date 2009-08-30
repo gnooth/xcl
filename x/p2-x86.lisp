@@ -628,26 +628,14 @@
 (defun emit-move-immediate (n target)
   (when (eq target :return)
     (setq target :eax))
-  (case target
-    (:eax
-     (emit-byte #xb8)
-     (emit-dword n))
-    (:edx
-     (emit-byte #xba)
-     (emit-dword n))
-    (t
-     (compiler-unsupported "EMIT-MOVE-IMMEDIATE unsupported target ~S" target))))
+  (cond ((reg32-p target)
+         (inst :mov (value-to-ub32 n) target))
+        (t
+         (compiler-unsupported "EMIT-MOVE-IMMEDIATE unsupported target ~S" target))))
 
 (defun emit-move-immediate-dword-to-register (n reg)
   (emit-byte (+ #xb8 (register-number reg)))
   (emit-raw n))
-
-(defknown emit-return () t)
-(defun emit-return ()
-  (emit-byte #xc3))
-
-(defun emit-int-3 ()
-  (emit-byte #xcc))
 
 (defknown emit-push-immediate (t) t)
 (defun emit-push-immediate (arg)
