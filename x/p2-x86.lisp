@@ -1812,6 +1812,7 @@
          (cleanup-forms (cddr (block-form block)))
          (thread-var (compiland-thread-var *current-compiland*))
          (uwp-var (block-uwp-var block))
+         (uwp-values-var (block-uwp-values-var block))
          (CLEANUP (make-label))
          (START (make-label)))
     (declare (type cblock block))
@@ -1829,13 +1830,13 @@
     (inst :push thread-var)
     (emit-call-2 "RT_leave_unwind_protect" nil)
     (p2-progn-body cleanup-forms nil)
-    (emit-return) ; end of cleanup subroutine
+    (inst :ret) ; end of cleanup subroutine
 
     (label START)
     (clear-register-contents)
     (clear-constraints)
     (inst :pop :eax) ; return address left by call above
-    (emit-add-immediate-to-register 5 :eax) ; code
+    (inst :add 5 :eax) ; code
     (inst :push :ebp) ; ebp
     (inst :push :eax) ; code
     (inst :push thread-var)
@@ -1846,8 +1847,10 @@
       (p2 protected-form :eax))
     (inst :push :eax) ; primary value
     (inst :push thread-var)
-    (emit-call-2 "RT_thread_copy_values" :stack) ; values
+    (emit-call-2 "RT_thread_copy_values" :eax) ; values
+    (inst :mov :eax uwp-values-var)
     (emit-call CLEANUP)
+    (inst :push uwp-values-var)
     (inst :push thread-var)
     (emit-call-2 "RT_thread_set_values" target)))
 
