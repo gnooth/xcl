@@ -63,13 +63,15 @@ void RT_unwind_to(Frame * frame, Thread * thread)
 #ifdef __x86_64__
                   long reg = ((UnwindProtect *)f)->rbp();
                   __asm__ __volatile__("push %%rbp\n\t"
+                                       "push %%r12\n\t"
                                        "movq %0,%%rbp\n\t"
                                        "call *%1\n\t"
                                        : // no output registers
                                        : "r"(reg), "r"(code) // input
                                        : // no clobber list
                                        );
-                  __asm__ __volatile__("pop %rbp");
+                  __asm__ __volatile__("pop %r12\n\t"
+                                       "pop %rbp");
 #else
                   int reg = ((UnwindProtect *)f)->ebp();
                   __asm__ __volatile__("push %%ebp\n\t"

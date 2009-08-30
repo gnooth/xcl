@@ -257,6 +257,7 @@
   tags
   cleanup-label         ; REVIEW
   uwp-var
+  uwp-values-var
   values-var            ; for MULTIPLE-VALUE-PROG1
   )
 
@@ -1406,6 +1407,9 @@ for special variables."
            (let ((var (make-var :name (gensym "UWP-") :kind :local)))
              (push var *local-variables*)
              (setf (block-uwp-var block) var))
+           (let ((var (make-var :name (gensym "UWP-VALUES-") :kind :local)))
+             (push var *local-variables*)
+             (setf (block-uwp-values-var block) var))
            (setf (compiland-needs-thread-var-p compiland) t)
            (setf (compiland-unwind-protect-p compiland) t)
            (list 'UNWIND-PROTECT block)))))

@@ -1627,6 +1627,7 @@
          (cleanup-forms (cddr (block-form block)))
          (thread-register (compiland-thread-register *current-compiland*))
          (uwp-var (block-uwp-var block))
+         (uwp-values-var (block-uwp-values-var block))
          (CLEANUP (make-label))
          (START (make-label)))
     (declare (type cblock block))
@@ -1639,7 +1640,6 @@
     (clear-constraints)
     ;; This is an external entry point called by RT_unwind_to(), so we need to
     ;; set up the thread register explicitly here.
-    (inst :push thread-register) ; callee-saved register
     (emit-call "RT_current_thread")
     (inst :mov :rax thread-register)
     ;; "If a non-local exit occurs during execution of cleanup-forms, no special
@@ -1649,7 +1649,6 @@
     (emit-move-var-to-register uwp-var :rsi) ; uwp
     (emit-call "RT_leave_unwind_protect")
     (p2-progn-body cleanup-forms nil)
-    (inst :pop thread-register) ; restore callee-saved register
     (inst :ret) ; end of cleanup subroutine
 
     (label START)
@@ -1666,11 +1665,9 @@
       (p2 protected-form :rsi))
     (inst :mov thread-register :rdi)
     (emit-call-2 "RT_thread_copy_values" :rax) ; REVIEW stack alignment
-    (inst :push :rax) ; save values
-    (inst :sub +bytes-per-word+ :rsp) ; align stack
+    (emit-move-register-to-var :rax uwp-values-var)
     (emit-call CLEANUP)
-    (inst :add +bytes-per-word+ :rsp)
-    (inst :pop :rsi) ; values
+    (emit-move-var-to-register uwp-values-var :rsi)
     (inst :mov thread-register :rdi) ; thread
     (emit-call-2 "RT_thread_set_values" target)))
 
@@ -4326,6 +4323,7 @@
                        (move-result-to-target target)
                        t)
                       (thread-register
+                       (mumble "p2-funcall RT_thread_funcall_0 case~%")
                        (process-1-arg (cadr form) :rsi nil)
                        (inst :mov thread-register :rdi)
                        (emit-call "RT_thread_funcall_0")
