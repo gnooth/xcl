@@ -55,7 +55,7 @@
 
 (defvar *notes* (make-hash-table :test 'equal)
   "A mapping from names of notes to note objects.")
-  
+
 (defstruct (entry (:conc-name nil))
   pend name props form vals)
 
@@ -65,7 +65,7 @@
 ;;; of the requirements.
 
 (defstruct note
-  name  
+  name
   contents
   disabled ;; When true, tests with this note are considered inactive
   )
@@ -167,7 +167,7 @@
   (setq *test* (name entry)))
 
 (defun report-error (error? &rest args)
-  (cond (*debug* 
+  (cond (*debug*
 	 (apply #'format t args)
 	 (if error? (throw '*debug* nil)))
 	(error? (apply #'error args))
@@ -226,6 +226,9 @@
     (equal x y))
    (t (eql x y))))
 
+(defvar *compiled-test-form*)
+(export '*compiled-test-form*)
+
 (defun do-entry (entry &optional
 		       (s *standard-output*))
   (catch '*in-test*
@@ -249,12 +252,13 @@
 			   (cond
 			    (*compile-tests*
 			     (multiple-value-list
-			      (funcall (compile
-					nil
-					`(lambda ()
-					   (declare
-					    (optimize ,@*optimization-settings*))
-					   ,(form entry))))))
+			      (funcall (setq *compiled-test-form*
+                                             (compile
+                                              nil
+                                              `(lambda ()
+                                                 (declare
+                                                  (optimize ,@*optimization-settings*))
+                                                 ,(form entry)))))))
 			    (*expanded-eval*
 			     (multiple-value-list
 			      (expanded-eval (form entry))))
@@ -276,7 +280,7 @@
       (setf (pend entry)
 	    (or aborted
 		(not (equalp-with-case r (vals entry)))))
-      
+
       (when (pend entry)
 	(let ((*print-circle* *print-circle-on-failure*))
 	  (format s "~&Test ~:@(~S~) failed~
@@ -345,7 +349,7 @@
     (setf (pend entry) t))
   (if (streamp out)
       (do-entries out)
-      (with-open-file 
+      (with-open-file
 	  (stream out :direction :output)
 	(do-entries stream))))
 
