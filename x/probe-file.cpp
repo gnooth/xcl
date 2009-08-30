@@ -24,6 +24,8 @@
 #include <stdlib.h>     // canonicalize_file_name(), realpath()
 #endif
 
+#include <time.h>
+
 #include "lisp.hpp"
 #include "primitives.hpp"
 #include "FileError.hpp"

@@ -1,6 +1,6 @@
 // uptime.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 
 #ifdef WIN32
 // #include <windows.h>
-// #include <time.h>
+#include <time.h>
 #else
 #include <sys/time.h>
 #endif

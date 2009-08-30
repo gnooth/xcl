@@ -26,7 +26,7 @@ jmp_buf * RT_frame_jmp(Frame * frame)
   return frame->jmp();
 }
 
-inline void restore_frame_context(Frame * frame, Thread* thread)
+inline void restore_frame_context(Frame * frame, Thread * thread)
 {
   thread->set_last_special_binding(frame->last_special_binding());
 
