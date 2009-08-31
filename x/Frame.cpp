@@ -79,7 +79,7 @@ void RT_unwind_to(Frame * frame, Thread * thread)
                                        "call *%1\n\t"
                                        : // no output registers
                                        : "r"(reg), "r"(code) // input
-                                       : // no clobber list
+                                       : "eax","ebx","ecx","edx" // clobber list
                                        );
                   __asm__ __volatile__("pop %ebp");
 #endif
