@@ -193,6 +193,7 @@ int __main(int argc, char * argv[])
             }
         }
     }
+  return 0;
 }
 
 #ifdef WIN32
