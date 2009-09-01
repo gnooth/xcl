@@ -403,13 +403,15 @@ Value Thread::execute(TypedObject * function)
 #ifdef USE_STACK_FRAME
   StackFrame * oldstack = _stack;
 //   unsigned int saved_call_depth = _call_depth;
-  unsigned int saved_call_depth = call_depth();
+//   unsigned int saved_call_depth = call_depth();
   StackFrame * frame = get_stack_frame();
   frame->initialize_0(function);
   push_stack_frame(frame);
+  call_depth();
   Value result = function->execute();
 //   _call_depth = saved_call_depth;
-  set_call_depth(saved_call_depth);
+//   set_call_depth(saved_call_depth);
+  set_call_depth(call_depth() - 1);
   _stack = oldstack;
   release_stack_frame(frame);
   return result;
@@ -428,6 +430,7 @@ Value Thread::execute(TypedObject * function, Value arg)
   StackFrame * frame = get_stack_frame();
   frame->initialize_1(function, arg);
   push_stack_frame(frame);
+  call_depth();
   Value result = function->execute(arg);
 //   _call_depth = saved_call_depth;
   set_call_depth(saved_call_depth);
@@ -449,6 +452,7 @@ Value Thread::execute(TypedObject * function, Value arg1, Value arg2)
   StackFrame * frame = get_stack_frame();
   frame->initialize_2(function, arg1, arg2);
   push_stack_frame(frame);
+  call_depth();
   Value result = function->execute(arg1, arg2);
 //   _call_depth = saved_call_depth;
   set_call_depth(saved_call_depth);
@@ -470,6 +474,7 @@ Value Thread::execute(TypedObject * function, Value arg1, Value arg2, Value arg3
   StackFrame * frame = get_stack_frame();
   frame->initialize_3(function, arg1, arg2, arg3);
   push_stack_frame(frame);
+  call_depth();
   Value result = function->execute(arg1, arg2, arg3);
 //   _call_depth = saved_call_depth;
   set_call_depth(saved_call_depth);
@@ -492,6 +497,7 @@ Value Thread::execute(TypedObject * function, Value arg1, Value arg2, Value arg3
   StackFrame * frame = get_stack_frame();
   frame->initialize_4(function, arg1, arg2, arg3, arg4);
   push_stack_frame(frame);
+  call_depth();
   Value result = function->execute(arg1, arg2, arg3, arg4);
 //   _call_depth = saved_call_depth;
   set_call_depth(saved_call_depth);
@@ -514,6 +520,7 @@ Value Thread::execute(TypedObject * function, Value arg1, Value arg2, Value arg3
   StackFrame * frame = get_stack_frame();
   frame->initialize_5(function, arg1, arg2, arg3, arg4, arg5);
   push_stack_frame(frame);
+  call_depth();
   Value result = function->execute(arg1, arg2, arg3, arg4, arg5);
 //   _call_depth = saved_call_depth;
   set_call_depth(saved_call_depth);
@@ -536,6 +543,7 @@ Value Thread::execute(TypedObject * function, Value arg1, Value arg2, Value arg3
   StackFrame * frame = get_stack_frame();
   frame->initialize_6(function, arg1, arg2, arg3, arg4, arg5, arg6);
   push_stack_frame(frame);
+  call_depth();
   Value result = function->execute(arg1, arg2, arg3, arg4, arg5, arg6);
 //   _call_depth = saved_call_depth;
   set_call_depth(saved_call_depth);
@@ -560,6 +568,7 @@ Value Thread::execute(TypedObject * function, unsigned int numargs, Value args[]
     temp = (Value *) alloca(numargs * sizeof(Value));
   frame->initialize(function, numargs, args, temp);
   push_stack_frame(frame);
+  call_depth();
   Value result = function->execute(numargs, args);
 //   _call_depth = saved_call_depth;
   set_call_depth(saved_call_depth);

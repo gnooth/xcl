@@ -586,7 +586,7 @@
 (autoload 'run-other-tests)
 
 (defun run-ansi-tests (&key (compile-tests t) (mumble t))
-  (declaim (optimize speed))
+;;   (declaim (optimize speed))
   (let* ((ansi-tests-directory
           (pathname (directory-namestring (merge-pathnames "ansi-tests/" #.*load-pathname*))))
          (*default-pathname-defaults* ansi-tests-directory)
