@@ -80,11 +80,11 @@ void RT_unwind_to(Frame * frame, Thread * thread)
                   __asm__ __volatile__("push %%ebp\n\t"
                                        "movl %0,%%ebp\n\t"
                                        "call *%1\n\t"
+                                       "pop %%ebp\n\t"
                                        : // no output registers
                                        : "r"(reg), "r"(code) // input
                                        : "eax","ebx","ecx","edx" // clobber list
                                        );
-                  __asm__ __volatile__("pop %ebp");
 #endif
                 }
               else
