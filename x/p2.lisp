@@ -1264,7 +1264,7 @@
 (defknown initialize-available-registers () t)
 (defun initialize-available-registers ()
   #+x86-64
-  (setq *available-registers* (list :rbx :r13))
+  (setq *available-registers* (list :rbx :r13 :r14 :r15))
   #+x86
   (setq *available-registers* (list :ebx)))
 
@@ -1278,12 +1278,12 @@
                 (compiland-longjmp-p compiland))
 ;;       (let ((locals (reverse *local-variables*)))
       (let ((locals (copy-list *local-variables*)))
-;;         (dolist (var locals)
-;;           (setf (var-register-worthiness var)
-;;                 (+ (var-register-worthiness var)
-;;                    (var-reads var)
-;;                    (var-writes var))))
-;;         (setq locals (sort locals #'> :key #'var-register-worthiness))
+        (dolist (var locals)
+          (setf (var-register-worthiness var)
+                (+ (var-register-worthiness var)
+                   (var-reads var)
+                   (var-writes var))))
+        (setq locals (sort locals #'> :key #'var-register-worthiness))
 ;;         (dolist (var locals)
 ;;           (mumble "~S ~S~%" (var-name var) (var-register-worthiness var)))
         (dolist (var locals)
