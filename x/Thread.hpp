@@ -19,6 +19,8 @@
 #ifndef __THREAD_HPP
 #define __THREAD_HPP
 
+#include "call_depth_limit.hpp"
+
 #define EXPERIMENTAL
 
 #ifdef WIN32
@@ -33,6 +35,8 @@ class Catch;
 class Tagbody;
 class UnwindProtect;
 class Tag;
+
+extern void handle_stack_overflow();
 
 class Values : public gc
 {
@@ -397,15 +401,15 @@ public:
 
   unsigned int call_depth() const
   {
-    if (_call_depth > 4096)
-      asm("int3");
     return _call_depth;
   }
 
   void set_call_depth(unsigned int n)
   {
-    if (n > 4096)
-      asm("int3");
+//     if (n > 4096)
+//       asm("int3");
+    if (n > call_depth_limit)
+      handle_stack_overflow();
     _call_depth = n;
   }
 
