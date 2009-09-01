@@ -19,7 +19,7 @@
 #ifndef __CALL_DEPTH_LIMIT_HPP
 #define __CALL_DEPTH_LIMIT_HPP
 
-extern int call_depth_limit;
+extern unsigned int call_depth_limit;
 
 // REVIEW
 #define DEFAULT_CALL_DEPTH_LIMIT 50000

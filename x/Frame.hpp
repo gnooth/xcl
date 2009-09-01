@@ -40,7 +40,7 @@ private:
   Tag * _last_tag;
   UnwindProtect * _unwind_protect;
   StackFrame * _stack;
-  int _call_depth;
+  unsigned int _call_depth;
   Frame * _next;
 
   void init(Thread * thread)
@@ -112,7 +112,7 @@ public:
     return _stack;
   }
 
-  int call_depth() const
+  unsigned int call_depth() const
   {
     return _call_depth;
   }

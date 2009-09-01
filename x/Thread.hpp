@@ -90,7 +90,7 @@ private:
 
   UnwindProtect * _unwind_protect;
 
-  int _call_depth;
+  unsigned int _call_depth;
 
   Value * _binding_stack_base;
   Value * _binding_stack_end;
@@ -395,13 +395,17 @@ public:
     _stack = stack;
   }
 
-  int call_depth() const
+  unsigned int call_depth() const
   {
+    if (_call_depth > 4096)
+      asm("int3");
     return _call_depth;
   }
 
-  void set_call_depth(int n)
+  void set_call_depth(unsigned int n)
   {
+    if (n > 4096)
+      asm("int3");
     _call_depth = n;
   }
 

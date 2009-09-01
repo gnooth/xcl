@@ -1,6 +1,6 @@
 // catch.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ Value CL_catch(Value args, Environment * env, Thread * thread)
   Value body = xcdr(args);
 #ifndef NDEBUG
   StackFrame * saved_stack = thread->stack();
-  int saved_call_depth = thread->call_depth();
+  unsigned int saved_call_depth = thread->call_depth();
 #endif
   Catch * catch_frame = thread->add_catch_frame(tag); // RT_enter_catch
   assert(catch_frame->type() == CATCH);
