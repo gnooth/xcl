@@ -26,9 +26,6 @@
 
 (defvar *current-segment* :main)
 
-(defun install-p2-handler (symbol handler)
-  (put symbol 'p2-handler handler))
-
 (defknown fixnumize (integer) integer)
 (defun fixnumize (n)
   (ash n +fixnum-shift+))
@@ -1077,6 +1074,20 @@
                (set-register-contents +call-return-register+ (var-ref-var arg1))))))
     t))
 
+(defun p2-require-ub32 (form target)
+  (when (check-arg-count form 1)
+    (let ((arg (%cadr form))
+          type)
+      (cond ((zerop *safety*)
+             (p2 arg target))
+            ((and (neq (setq type (derive-type arg)) :unknown)
+                  (subtypep type '(INTEGER 0 4294967295)))
+             (p2 arg target))
+            (t
+             (process-1-arg arg :default t)
+             (emit-call-1 'require-ub32 target))))
+    t))
+
 (defun p2-reverse/nreverse (form target)
   (when (check-arg-count form 1)
     (let* ((op (%car form))
@@ -1118,6 +1129,20 @@
                  (fixnum-type-p (derive-type arg2)))
         (p2-neq form target)
         t))))
+
+(defknown p2-two-arg-/ (t t) t)
+(defun p2-two-arg-/ (form target)
+  (when (check-arg-count form 2)
+    (let* ((args (%cdr form))
+           (arg1 (%car args))
+           (arg2 (%cadr args)))
+      (cond ((and (numberp arg1)
+                  (numberp arg2))
+             (p2-constant (two-arg-/ arg1 arg2) target))
+            (t
+             (process-2-args args :default t)
+             (emit-call-2 'two-arg-/ target))))
+    t))
 
 (defun p2-the (form target)
   (let* ((args (cdr form))

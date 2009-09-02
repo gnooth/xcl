@@ -142,6 +142,7 @@
                           "initialize-classes"
                           "inline-expansion"
                           "inspect"
+                          "install-p2-handlers"
                           "intersection"
                           "invoke-debugger"
                           "known-functions"

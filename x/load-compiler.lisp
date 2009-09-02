@@ -62,6 +62,8 @@
   (load-system-file "p2-x86-64")
   (load-system-file "p3-x86-64"))
 
+(load-system-file "install-p2-handlers")
+
 (load-system-file "source-transforms")
 
 (load-system-file "compiler")
