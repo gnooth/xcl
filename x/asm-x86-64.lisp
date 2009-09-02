@@ -32,7 +32,11 @@
     ))
 
 (define-assembler :add
-  (cond ((and (reg64-p operand1) (not (extended-register-p operand1))
+  (cond ((and (fixnump operand1)
+              (typep operand1 '(unsigned-byte 8))
+              (eq operand2 :al))
+         (emit-bytes #x04 operand1))
+        ((and (reg64-p operand1) (not (extended-register-p operand1))
               (reg64-p operand2) (not (extended-register-p operand2)))
          (let* ((mod #b11)
                 (reg (register-number operand1))
@@ -408,7 +412,15 @@
          (unsupported))))
 
 (define-assembler :shl
-  (cond ((and (typep operand1 '(unsigned-byte 8))
+  (cond ((and (null operand2)
+              (reg32-p operand1))
+         (let ((modrm-byte (make-modrm-byte #b11 4 (register-number operand1))))
+           (emit-bytes #xd1 modrm-byte)))
+        ((and (eql operand1 1)
+              (reg32-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 4 (register-number operand2))))
+           (emit-bytes #xd1 modrm-byte)))
+        ((and (typep operand1 '(unsigned-byte 8))
               (reg64-p operand2))
          (let ((modrm-byte (make-modrm-byte #b11 4 (register-number operand2)))
                (prefix-byte #x48))
@@ -426,7 +438,15 @@
          (unsupported))))
 
 (define-assembler :shr
-  (cond ((and (typep operand1 '(unsigned-byte 8))
+  (cond ((and (null operand2)
+              (reg32-p operand1))
+         (let ((modrm-byte (make-modrm-byte #b11 5 (register-number operand1))))
+           (emit-bytes #xd1 modrm-byte)))
+        ((and (eql operand1 1)
+              (reg32-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 5 (register-number operand2))))
+           (emit-bytes #xd1 modrm-byte)))
+        ((and (typep operand1 '(unsigned-byte 8))
               (reg64-p operand2))
          (let ((modrm-byte (make-modrm-byte #b11 5 (register-number operand2)))
                (prefix-byte #x48))
@@ -438,6 +458,10 @@
 
 (define-assembler :sub
   (cond ((and (fixnump operand1)
+              (typep operand1 '(unsigned-byte 8))
+              (eq operand2 :al))
+         (emit-bytes #x2c operand1))
+        ((and (fixnump operand1)
               (reg64-p operand2))
          (let ((prefix-byte (if (extended-register-p operand2) #x49 #x48)))
            (cond ((typep operand1 '(signed-byte 8))

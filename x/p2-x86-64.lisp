@@ -3711,8 +3711,8 @@
   (when (check-arg-count form 1)
     (let ((arg (%cadr form)))
       (process-1-arg arg :rax t)
-      (emit-bytes #x2c +character-lowtag+) ; sub $0x6,%al
-      (emit-bytes #xd1 #xe8) ; shr %eax "SHR performs an unsigned divide; the high-order bit is set to 0."
+      (inst :sub +character-lowtag+ :al)
+      (inst :shr :eax)
       (clear-register-contents :rax)
       (move-result-to-target target)
       t)))
@@ -3731,8 +3731,8 @@
   (when (check-arg-count form 1)
     (let ((arg (%cadr form)))
       (process-1-arg arg :rax t)
-      (emit-bytes #xd1 #xe0) ; shl %eax
-      (emit-bytes #x04 +character-lowtag+) ; add $0x6,%al
+      (inst :shl :eax)
+      (inst :add +character-lowtag+ :al)
       (clear-register-contents :rax)
       (move-result-to-target target)
       t)))
@@ -4525,10 +4525,6 @@
 
       (cond ((and (integer-constant-value type1)
                   (integer-constant-value type2))
-;;              (unless (flushable arg1)
-;;                (p2 arg1 nil))
-;;              (unless (flushable arg2)
-;;                (p2 arg2 nil))
              (let ((must-clear-values nil))
                (unless (flushable arg1)
                  (p2 arg1 nil)
