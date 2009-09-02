@@ -191,14 +191,8 @@ void Thread::unbind_to(INDEX n)
       Value name = _binding_stack_base[--index];
       _binding_stack_base[index] = 0;
       Value value = _binding_stack_base[--index];
-
-      // this is the line that causes all the trouble
-//       _binding_stack_base[index] = 0;
-
+      _binding_stack_base[index] = 0;
       set_symbol_thread_local_value(the_symbol(name), value);
-
-      // it doesn't work if we move it here, either
-//       _binding_stack_base[index] = 0;
     }
   assert(index == n);
   _binding_stack_index = n;
