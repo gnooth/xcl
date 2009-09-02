@@ -29,20 +29,25 @@
   type
   )
 
-(defknown add-type-constraint (var t) t)
-(defun add-type-constraint (var type)
-  (push (make-constraint :var var :type (canonicalize-type type)) *constraints*))
-
-(defknown remove-constraints (var) t)
-(defun remove-constraints (var)
-  (when *constraints*
-    (setq *constraints* (delete var *constraints* :key 'constraint-var))))
-
 (defknown find-constraint (var) t)
 (defun find-constraint (var)
   (dolist (constraint *constraints* nil)
     (when (eq (constraint-var constraint) var)
       (return constraint))))
+
+(defknown add-type-constraint (var t) t)
+(defun add-type-constraint (var type)
+;;   (push (make-constraint :var var :type (canonicalize-type type)) *constraints*))
+  (setq type (canonicalize-type type))
+  (let ((constraint (find-constraint var)))
+    (when (or (null constraint)
+              (subtypep type (constraint-type constraint)))
+      (push (make-constraint :var var :type type) *constraints*))))
+
+(defknown remove-constraints (var) t)
+(defun remove-constraints (var)
+  (when *constraints*
+    (setq *constraints* (delete var *constraints* :key 'constraint-var))))
 
 (defknown constrained-type (t) t)
 (defun constrained-type (var)

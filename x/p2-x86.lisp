@@ -2231,7 +2231,12 @@
              (p2-function-call (list '%SCHAR arg1 arg2) target))
             (t
              (mumble "p2-schar no optimization~%")
-             (p2-function-call form target))))
+             (p2-function-call form target)
+             (when (var-ref-p arg1)
+               (let ((var (var-ref-var arg1)))
+                 (unless (or (var-special-p var)
+                             (var-used-non-locally-p var))
+                   (add-type-constraint var 'SIMPLE-STRING)))))))
     t))
 
 (defknown p2-svref (t t) t)
