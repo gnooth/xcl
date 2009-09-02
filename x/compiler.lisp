@@ -596,6 +596,14 @@
   (declare (type cons form))
   (cons (car form) (mapcar 'p1 (cdr form))))
 
+(defun p1-eval-when (form)
+  (let ((situations (cadr form)))
+    (cond ((or (memq :execute situations)
+               (memq 'eval situations))
+           (list* 'PROGN (mapcar #'p1 (cddr form))))
+          (t
+           '(PROGN)))))
+
 (defun p1-ldb (form)
   (let* ((args (cdr form))
          bytespec)
@@ -1649,6 +1657,7 @@ for special variables."
 (install-p1-handler 'and                        'p1-default)
 (install-p1-handler 'block                      'p1-block)
 (install-p1-handler 'catch                      'p1-catch)
+(install-p1-handler 'eval-when                  'p1-eval-when)
 (install-p1-handler 'flet                       'p1-flet)
 (install-p1-handler 'funcall                    'p1-funcall)
 (install-p1-handler 'function                   'p1-function)
