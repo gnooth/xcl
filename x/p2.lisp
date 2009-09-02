@@ -1265,16 +1265,11 @@
                     (p2-function-call form target))
                   )
                  (t
-                  (p2-function-call form target)))
-;;            (unless (eq op 'setq)
-;;              (clear-register-contents)) ; FIXME
-           ))
+                  (p2-function-call form target)))))
         ((var-ref-p form)
          (p2-var-ref form target))
         ((constantp form)
-         (p2-constant form target)
-;;          (clear-register-contents) ; FIXME
-         ))
+         (p2-constant form target)))
   t)
 
 (defknown p2-test-char= (t t) t)
