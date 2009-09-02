@@ -1071,7 +1071,12 @@
              (process-2-args args :default t)
              (emit-call-2 'require-structure-type target)
              (when (var-ref-p arg1)
-               (set-register-contents +call-return-register+ (var-ref-var arg1))))))
+               (let ((var (var-ref-var arg1)))
+                 (set-register-contents +call-return-register+ var)
+                 (unless (or (var-special-p var)
+                             (var-used-non-locally-p var))
+                   (when (quoted-form-p arg2)
+                     (add-type-constraint var (%cadr arg2)))))))))
     t))
 
 (defun p2-require-ub32 (form target)
