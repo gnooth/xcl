@@ -1694,6 +1694,8 @@ for special variables."
 (install-p1-handler 'require-type               'p1-require-type)
 (install-p1-handler 'two-arg--                  'p1-minus)
 
+(defvar *ir2-only* nil)
+
 (defvar *dump-code* nil)
 
 (defun dump-code ()
@@ -2315,11 +2317,15 @@ for special variables."
         (setq *code* (concatenate 'simple-vector *main*)))
 ;;     (dump-code) ; IR2
     (optimize-ir2)
-    (dump-code)
-    (p3)
-;;     (dump-code)
-;;     (optimize-code)
-    (setq *code* (coerce *code* 'list))))
+    (cond (*ir2-only*
+           (let ((*dump-code* t))
+             (dump-code)))
+          (t
+           (dump-code)
+           (p3)
+           ;;     (dump-code)
+           ;;     (optimize-code)
+           (setq *code* (coerce *code* 'list))))))
 
 (defun compile-defun (name lambda-expression)
   (aver (eq (car lambda-expression) 'LAMBDA))
@@ -2338,15 +2344,20 @@ for special variables."
     (initialize-available-registers)
     (p1-compiland compiland)
     (p2-compiland compiland)
-    (multiple-value-bind (code constants)
-        (generate-code-vector *code* (nreverse (compiland-constants *current-compiland*)))
-      (let ((compiled-function (make-compiled-function name
-                                                       code
-                                                       (compiland-minargs compiland)
-                                                       (compiland-maxargs compiland)
-                                                       constants)))
-        (save-local-variable-information compiled-function)
-        compiled-function))))
+    (unless *ir2-only*
+      (multiple-value-bind (code constants)
+          (generate-code-vector *code* (nreverse (compiland-constants *current-compiland*)))
+        (let ((compiled-function (make-compiled-function name
+                                                         code
+                                                         (compiland-minargs compiland)
+                                                         (compiland-maxargs compiland)
+                                                         constants)))
+          (save-local-variable-information compiled-function)
+          compiled-function)))))
+
+(defun dump-ir2 (name)
+  (let ((*ir2-only* t))
+    (compile-defun name (function-lambda-expression (fdefinition name)))))
 
 (defun compile-defun-for-compile-file (name lambda-expression)
   (aver (eq (car lambda-expression) 'LAMBDA))

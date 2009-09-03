@@ -579,6 +579,10 @@
 
 (load-system-file "epsilons.lisp")
 
+(in-package "EXTENSIONS")
+(export 'dump-ir2)
+(autoload 'dump-ir2 "load-compiler")
+
 (in-package "CL-USER")
 
 (autoload '(do-tests do-compiled-tests) "rt")
