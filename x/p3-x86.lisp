@@ -37,7 +37,7 @@
       (setq *code* (concatenate 'simple-vector prolog *code*)))))
 
 (defun p3 ()
-  (generate-function-prolog)
+;;   (generate-function-prolog)
   (let* ((compiland *current-compiland*)
          (code *code*)
          (len (length code))
