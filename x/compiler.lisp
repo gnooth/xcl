@@ -2285,6 +2285,12 @@ for special variables."
         (aver (neq (var-declared-type var) :none))
         (setf (var-derived-type var) (canonicalize-type (var-declared-type var)))))))
 
+(defun trivial-p (compiland)
+  (let ((arity (compiland-arity compiland)))
+    (and arity
+         (<= arity 6)
+         (null *closure-vars*))))
+
 (defun p2-compiland (compiland)
   (declare (type compiland compiland))
   (let ((*local-variables* (compiland-local-vars compiland))
@@ -2296,19 +2302,20 @@ for special variables."
     (when (compiland-needs-thread-var-p compiland)
       (allocate-thread-var compiland))
     (clear-register-contents)
-    (let ((arity (compiland-arity compiland)))
-      (cond ((and arity
-                  (<= arity 6)
-                  (null *closure-vars*))
-             (assign-registers-for-locals compiland)
-             #+x86
-             (let ((delta (length (compiland-registers-to-be-saved compiland))))
-               (dolist (var (compiland-arg-vars compiland))
-                 (when (eq (var-kind var) :required)
-                   (setf (var-index var) (+ (var-index var) delta)))))
-             (p2-trivial-function-prolog compiland))
-            (t
-             (p2-function-prolog compiland))))
+;;     (let ((arity (compiland-arity compiland)))
+;;       (cond ((and arity
+;;                   (<= arity 6)
+;;                   (null *closure-vars*))
+    (cond ((trivial-p compiland)
+           (assign-registers-for-locals compiland)
+           #+x86
+           (let ((delta (length (compiland-registers-to-be-saved compiland))))
+             (dolist (var (compiland-arg-vars compiland))
+               (when (eq (var-kind var) :required)
+                 (setf (var-index var) (+ (var-index var) delta)))))
+           (p2-trivial-function-prolog compiland))
+          (t
+           (p2-function-prolog compiland)))
     (p2-check-argument-types compiland)
     (p2 (compiland-p1-body compiland) :return)
     (aver (vectorp *main*))
