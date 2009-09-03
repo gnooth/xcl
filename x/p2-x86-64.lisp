@@ -5648,11 +5648,8 @@
               ))
 
       (incf stack-used (allocate-locals compiland index))
-
       (when (oddp stack-used)
-        ;;       (emit-bytes #x48 #x83 #xec #x08) ; sub $0x8,%rsp
-        (inst :push :rax)
-        )
+        (inst :push :rax))
 
       (when (compiland-thread-register compiland)
         (emit-call "RT_current_thread")

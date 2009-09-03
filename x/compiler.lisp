@@ -2295,16 +2295,18 @@ for special variables."
       (allocate-thread-var compiland))
     (clear-register-contents)
     (let ((arity (compiland-arity compiland)))
-      (when (and arity
-                 (<= arity 6)
-                 (null *closure-vars*))
-        (assign-registers-for-locals compiland)
-        #+x86
-        (let ((delta (length (compiland-registers-to-be-saved compiland))))
-          (dolist (var (compiland-arg-vars compiland))
-            (when (eq (var-kind var) :required)
-              (setf (var-index var) (+ (var-index var) delta)))))))
-    (p2-function-prolog compiland)
+      (cond ((and arity
+                  (<= arity 6)
+                  (null *closure-vars*))
+             (assign-registers-for-locals compiland)
+             #+x86
+             (let ((delta (length (compiland-registers-to-be-saved compiland))))
+               (dolist (var (compiland-arg-vars compiland))
+                 (when (eq (var-kind var) :required)
+                   (setf (var-index var) (+ (var-index var) delta)))))
+             (p2-trivial-function-prolog compiland))
+            (t
+             (p2-function-prolog compiland))))
     (p2-check-argument-types compiland)
     (p2 (compiland-p1-body compiland) :return)
     (aver (vectorp *main*))
