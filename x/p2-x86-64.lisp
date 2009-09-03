@@ -967,15 +967,21 @@
 (defun %p2-test-symbolp (form label-if-true label-if-false)
   (when (check-arg-count form 1)
     (let* ((arg (%cadr form))
-           (reg (process-1-arg arg :register t))
-           (reg8 (reg8 reg)))
-      (inst :and +lowtag-mask+ reg8)
-      (clear-register-contents reg)
-      (inst :cmp +symbol-lowtag+ reg8)
-      (when label-if-true
-        (emit-jmp-short :e label-if-true))
-      (when label-if-false
-        (emit-jmp-short :ne label-if-false)))
+           (derived-type (derive-type arg)))
+      (cond ((eq derived-type 'SYMBOL)
+             (p2 arg nil) ; for effect
+             (when label-if-true
+               (emit-jmp-short t label-if-true)))
+            (t
+             (let* ((reg (process-1-arg arg :register t))
+                    (reg8 (reg8 reg)))
+               (inst :and +lowtag-mask+ reg8)
+               (clear-register-contents reg)
+               (inst :cmp +symbol-lowtag+ reg8)
+               (when label-if-true
+                 (emit-jmp-short :e label-if-true))
+               (when label-if-false
+                 (emit-jmp-short :ne label-if-false))))))
     t))
 
 (defknown p2-test-symbolp (t t) t)
@@ -1021,7 +1027,7 @@
              (when label-if-false
                (emit-jmp-short :nz label-if-false)))
             (t
-             (let ((EXIT (gensym))
+             (let ((EXIT (make-label))
                    (thread-register nil))
                (when label-if-true
                  (emit-jmp-short :z label-if-true))

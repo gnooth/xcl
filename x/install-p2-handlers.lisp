@@ -159,4 +159,5 @@
 (install-p2-handler 'vector-set                 'p2-vector-set)
 (install-p2-handler 'vector2                    'p2-vector2)
 (install-p2-handler 'vector3                    'p2-vector3)
+(install-p2-handler 'vectorp                    'p2-vectorp)
 (install-p2-handler 'zerop                      'p2-zerop)
