@@ -72,6 +72,7 @@
   #+x86-64
   thread-register
 
+  prolog
   epilog
   registers-to-be-saved
   (common-labels (make-hash-table :test 'eq) :type hash-table :read-only t)
@@ -2307,13 +2308,14 @@ for special variables."
 ;;                   (<= arity 6)
 ;;                   (null *closure-vars*))
     (cond ((trivial-p compiland)
-           (assign-registers-for-locals compiland)
-           #+x86
-           (let ((delta (length (compiland-registers-to-be-saved compiland))))
-             (dolist (var (compiland-arg-vars compiland))
-               (when (eq (var-kind var) :required)
-                 (setf (var-index var) (+ (var-index var) delta)))))
-           (p2-trivial-function-prolog compiland))
+;;            (assign-registers-for-locals compiland)
+;;            #+x86
+;;            (let ((delta (length (compiland-registers-to-be-saved compiland))))
+;;              (dolist (var (compiland-arg-vars compiland))
+;;                (when (eq (var-kind var) :required)
+;;                  (setf (var-index var) (+ (var-index var) delta)))))
+;;            (p2-trivial-function-prolog compiland)
+           )
           (t
            (p2-function-prolog compiland)))
     (p2-check-argument-types compiland)
@@ -2322,6 +2324,17 @@ for special variables."
     (if *elsewhere*
         (setq *code* (concatenate 'simple-vector *main* *elsewhere*))
         (setq *code* (concatenate 'simple-vector *main*)))
+
+    (when (trivial-p compiland)
+      (let ((*code* nil)
+            (*main* nil)
+            (*elsewhere* nil))
+        (p2-trivial-function-prolog compiland)
+        (if *elsewhere*
+            (setf (compiland-prolog compiland) (concatenate 'simple-vector *main* *elsewhere*))
+            (setf (compiland-prolog compiland) (concatenate 'simple-vector *main*))))
+      (setq *code* (concatenate 'simple-vector (compiland-prolog compiland) *code*)))
+
 ;;     (dump-code) ; IR2
     (optimize-ir2)
     (cond (*ir2-only*

@@ -1284,11 +1284,11 @@
                          (setq reg (find-register-containing-var (var-ref-var initform))))
                     (inst :mov reg var)
                     (set-register-contents reg (list var (var-ref-var initform))))
-                   ((var-register var)
-;;                     (mumble "bind-var ~S var-register case~%" (var-name var))
-                    (p2 initform (var-register var))
-                    (when (integerp initform)
-                      (add-type-constraint var `(INTEGER ,initform ,initform))))
+;;                    ((var-register var)
+;; ;;                     (mumble "bind-var ~S var-register case~%" (var-name var))
+;;                     (p2 initform (var-register var))
+;;                     (when (integerp initform)
+;;                       (add-type-constraint var `(INTEGER ,initform ,initform))))
                    (t
 ;;                     (mumble "bind-var ~S default case~%" (var-name var))
                     (p2 initform :rax)
@@ -3208,19 +3208,19 @@
                     (inst :mov `(,displacement :rdi) :rax)
                     (set-register-contents :rax var)
                     (move-result-to-target target)))))
-          ((var-register var)
-           (let ((reg (var-register var)))
-             (case target
-               (:stack
-                (inst :push reg))
-               (:return
-                (when (neq reg :rax)
-                  (inst :mov reg :rax))
-                (emit-exit))
-               (t
-                (when (neq reg target)
-                  (inst :mov reg target)
-                  (set-register-contents target var))))))
+;;           ((var-register var)
+;;            (let ((reg (var-register var)))
+;;              (case target
+;;                (:stack
+;;                 (inst :push reg))
+;;                (:return
+;;                 (when (neq reg :rax)
+;;                   (inst :mov reg :rax))
+;;                 (emit-exit))
+;;                (t
+;;                 (when (neq reg target)
+;;                   (inst :mov reg target)
+;;                   (set-register-contents target var))))))
           (t
            (let ((reg (find-register-containing-var var)))
              (if reg
@@ -3275,25 +3275,25 @@
                     (note "P2-SETQ: emitting call to RT_current_thread_set_symbol_value~%")
                     (emit-call "RT_current_thread_set_symbol_value"))))
            (move-result-to-target target))
-          ((var-register var)
-           (setq derived-type (derive-type value-form))
-           (let ((reg (var-register var)))
-             (process-1-arg value-form reg t)
-             (clear-var-registers var)
-             (case target
-               ((nil)
-                ;; nothing to do
-                )
-               (:stack
-                (inst :push reg))
-               (:return
-                (when (neq reg :rax)
-                  (inst :mov reg :rax))
-                (emit-exit))
-               (t
-                (unless (eq reg target)
-                  (inst :mov reg target)
-                  (set-register-contents target var))))))
+;;           ((var-register var)
+;;            (setq derived-type (derive-type value-form))
+;;            (let ((reg (var-register var)))
+;;              (process-1-arg value-form reg t)
+;;              (clear-var-registers var)
+;;              (case target
+;;                ((nil)
+;;                 ;; nothing to do
+;;                 )
+;;                (:stack
+;;                 (inst :push reg))
+;;                (:return
+;;                 (when (neq reg :rax)
+;;                   (inst :mov reg :rax))
+;;                 (emit-exit))
+;;                (t
+;;                 (unless (eq reg target)
+;;                   (inst :mov reg target)
+;;                   (set-register-contents target var))))))
           (t
            (cond ((var-closure-index var)
                   (process-1-arg value-form :rax t)
@@ -3824,11 +3824,11 @@
                   (reg64-p target))
 ;;              (mumble "p2-%cdr var-ref-p reg64-p case~%")
 ;;              (mumble "p2-%cdr var-register = ~S~%" (var-register (var-ref-var arg)))
-             (cond ((eq target (var-register (var-ref-var arg)))
+             (cond #+nil ((eq target (var-register (var-ref-var arg)))
 ;;                     (mumble "p2-%cdr new case 1~%")
                     (inst :mov `(7 ,target) target)
                     (clear-register-contents target))
-                   ((var-register (var-ref-var arg))
+                   #+nil ((var-register (var-ref-var arg))
 ;;                     (mumble "p2-%cdr new case 2~%")
                     (inst :mov `(7 ,(var-register (var-ref-var arg))) target)
                     (clear-register-contents target))
