@@ -509,19 +509,6 @@
     (emit-call "RT_current_thread")
     (inst :mov :eax (compiland-thread-var compiland))))
 
-(defun emit-exit()
-  (inst :exit))
-
-;; (defknown emit-move (t t) t)
-;; (defun emit-move (from-reg to-reg)
-;;   (let* ((mod #b11)
-;;          (reg (register-number from-reg))
-;;          (rm  (register-number to-reg))
-;;          (modrm-byte (make-modrm-byte mod reg rm)))
-;;     (emit (make-instruction :bytes
-;;                             2
-;;                             (list #x89 modrm-byte)))))
-
 ;; index-displacement index => displacement
 (defknown index-displacement (t) t)
 (declaim (inline index-displacement))
@@ -535,27 +522,29 @@
 
 (defknown %emit-move-relative-to-register (t t t) t)
 (defun %emit-move-relative-to-register (from-reg displacement to-reg)
-  (cond ((and (>= displacement #x-80)
-              (< displacement #x7f))
-         ;; displacement fits in a byte
-         (let* (;(displacement-byte (* index 4))
-                (mod #b01)
-                (reg (register-number to-reg))
-                (rm  (register-number from-reg))
-                (modrm-byte (make-modrm-byte mod reg rm)))
-           (emit (make-instruction :bytes
-                                   3
-                                   (list #x8b modrm-byte
-                                         ;displacement-byte
-                                         displacement
-                                         )))))
-        (t
-         (let* ((mod #b10)
-                (reg (register-number to-reg))
-                (rm  (register-number from-reg))
-                (modrm-byte (make-modrm-byte mod reg rm)))
-           (emit-bytes #x8b modrm-byte)
-           (emit-raw displacement)))))
+;;   (cond ((and (>= displacement #x-80)
+;;               (< displacement #x7f))
+;;          ;; displacement fits in a byte
+;;          (let* (;(displacement-byte (* index 4))
+;;                 (mod #b01)
+;;                 (reg (register-number to-reg))
+;;                 (rm  (register-number from-reg))
+;;                 (modrm-byte (make-modrm-byte mod reg rm)))
+;;            (emit (make-instruction :bytes
+;;                                    3
+;;                                    (list #x8b modrm-byte
+;;                                          ;displacement-byte
+;;                                          displacement
+;;                                          )))))
+;;         (t
+;;          (let* ((mod #b10)
+;;                 (reg (register-number to-reg))
+;;                 (rm  (register-number from-reg))
+;;                 (modrm-byte (make-modrm-byte mod reg rm)))
+;;            (emit-bytes #x8b modrm-byte)
+;;            (emit-raw displacement))))
+  (inst :mov `(,displacement ,from-reg) to-reg)
+  )
 
 (defknown emit-move-relative-to-register (t t t) t)
 (defun emit-move-relative-to-register (from-reg index to-reg)
@@ -563,43 +552,46 @@
 
 (defknown %emit-move-register-to-relative (t t t) t)
 (defun %emit-move-register-to-relative (from-reg to-reg displacement)
-  (cond ((and (>= displacement #x-80)
-              (< displacement #x7f))
-         ;; displacement fits in a byte
-         (let* ((mod #b01)
-                (reg (register-number from-reg))
-                (rm  (register-number to-reg))
-                (modrm-byte (make-modrm-byte mod reg rm)))
-           (emit-bytes #x89 modrm-byte displacement)))
-        (t
-         (let* ((mod #b10)
-                (reg (register-number from-reg))
-                (rm  (register-number to-reg))
-                (modrm-byte (make-modrm-byte mod reg rm)))
-           (emit-bytes #x89 modrm-byte)
-           (emit-raw displacement)))))
+;;   (cond ((and (>= displacement #x-80)
+;;               (< displacement #x7f))
+;;          ;; displacement fits in a byte
+;;          (let* ((mod #b01)
+;;                 (reg (register-number from-reg))
+;;                 (rm  (register-number to-reg))
+;;                 (modrm-byte (make-modrm-byte mod reg rm)))
+;;            (emit-bytes #x89 modrm-byte displacement)))
+;;         (t
+;;          (let* ((mod #b10)
+;;                 (reg (register-number from-reg))
+;;                 (rm  (register-number to-reg))
+;;                 (modrm-byte (make-modrm-byte mod reg rm)))
+;;            (emit-bytes #x89 modrm-byte)
+;;            (emit-raw displacement))))
+  (inst :mov from-reg `(,displacement ,to-reg))
+  )
 
 (defknown emit-move-register-to-relative (t t t) t)
 (defun emit-move-register-to-relative (from-reg to-reg index)
   (let ((displacement (index-displacement index)))
-    (cond ((and (>= displacement #x-80)
-                (< displacement #x7f))
-           ;; displacement fits in a byte
-           (let* ((displacement-byte (* index 4))
-                  (mod #b01)
-                  (reg (register-number from-reg))
-                  (rm  (register-number to-reg))
-                  (modrm-byte (make-modrm-byte mod reg rm)))
-             (emit (make-instruction :bytes
-                                     3
-                                     (list #x89 modrm-byte displacement-byte)))))
-          (t
-           (let* ((mod #b10)
-                  (reg (register-number from-reg))
-                  (rm  (register-number to-reg))
-                  (modrm-byte (make-modrm-byte mod reg rm)))
-             (emit-bytes #x89 modrm-byte)
-             (emit-raw displacement))))))
+;;     (cond ((and (>= displacement #x-80)
+;;                 (< displacement #x7f))
+;;            ;; displacement fits in a byte
+;;            (let* ((displacement-byte (* index 4))
+;;                   (mod #b01)
+;;                   (reg (register-number from-reg))
+;;                   (rm  (register-number to-reg))
+;;                   (modrm-byte (make-modrm-byte mod reg rm)))
+;;              (emit (make-instruction :bytes
+;;                                      3
+;;                                      (list #x89 modrm-byte displacement-byte)))))
+;;           (t
+;;            (let* ((mod #b10)
+;;                   (reg (register-number from-reg))
+;;                   (rm  (register-number to-reg))
+;;                   (modrm-byte (make-modrm-byte mod reg rm)))
+;;              (emit-bytes #x89 modrm-byte)
+;;              (emit-raw displacement))))))
+    (inst :mov from-reg `(,displacement ,to-reg))))
 
 (defun emit-dword (n)
   (let ((x (value-to-ub32 n)))
@@ -667,7 +659,7 @@
     (:stack
      (inst :push :eax))
     (:return
-     (emit-exit))
+     (inst :exit))
     (t
      (compiler-unsupported "MOVE-RESULT-TO-TARGET target = ~S" target))))
 
@@ -716,22 +708,9 @@
         (t
          (compiler-unsupported "EMIT-SUBTRACT-IMMEDIATE-FROM-REGISTER n = ~D" n))))
 
-(defknown emit-constant (t) t)
-(defun emit-constant (form)
-  (emit (make-instruction :constant 4 form)))
-
-;; (defknown emit-function (t) t)
-;; (defun emit-function (form)
-;;   (declare (type symbol form))
-;;   (emit (make-instruction :function 4 form)))
-
 (defknown emit-move-function-to-register (t t) t)
 (defun emit-move-function-to-register (symbol register)
-;;   (declare (type symbol form))
-;;   (emit-byte (+ #xb8 (register-number register))) ; mov imm32,reg
-;;   (emit-function symbol)
-  (emit (list :move-immediate (list :function symbol) register))
-  )
+  (inst :move-immediate `(:function ,symbol) register))
 
 (defknown p2-constant (t t) t)
 (defun p2-constant (form target)
@@ -755,7 +734,7 @@
                 (emit-move-immediate form :eax)
 ;;                 (inst :mov form :eax)
                 )
-            (emit-exit))
+            (inst :exit))
            (t
             (compiler-unsupported "P2-CONSTANT unsupported situation 1"))))
         ((or (numberp form)
@@ -777,7 +756,7 @@
                ((eq target :return)
                 (inst :move-immediate (list :constant form) :eax)
                 (clear-register-contents :eax)
-                (emit-exit))
+                (inst :exit))
                (t
                 (compiler-unsupported "P2-CONSTANT unsupported situation 2")))
          )
@@ -1064,7 +1043,7 @@
             ;; arg is in rax
             (inst :push :eax)
             (emit-call '%type-error)
-            (emit-exit) ; FIXME
+            (inst :exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
         (inst :compare-immediate nil :eax)
         (emit-jmp-short :e EXIT)
@@ -1696,8 +1675,9 @@
                  (push tag *visible-tags*)
                  (when (tag-non-local-go-p tag)
                    (setf (tag-index tag) index)
-                   (emit-move-immediate-dword-to-register index :eax)
-                   (inst :push :eax)
+;;                    (emit-move-immediate-dword-to-register index :eax)
+;;                    (inst :push :eax)
+                   (inst :push index)
                    (inst :push tagbody-var)
                    (p2-constant (tag-name tag) :stack)
                    (inst :push thread-var)
@@ -2159,7 +2139,7 @@
                     (:return
                      (emit-byte #xb8) ; mov imm32,%eax
                      (emit-function arg)
-                     (emit-exit)
+                     (inst :exit)
                      (clear-register-contents))
                     (t
                      (compiler-unsupported "P2-FUNCTION: unsupported target ~S" target))))
@@ -2283,7 +2263,7 @@
                      (p2-symbol 'FIXNUM :stack)
                      (inst :push :edx)
                      (emit-call-2 '%type-error nil)
-                     (emit-exit) ; FIXME
+                     (inst :exit) ; FIXME
                      (setf (gethash :svref-error-not-fixnum common-labels) SVREF-ERROR-NOT-FIXNUM)))
                  (inst :test +fixnum-tag-mask+ :dl)
                  (emit-jmp-short :nz SVREF-ERROR-NOT-FIXNUM)))
@@ -2298,7 +2278,7 @@
                    (inst :push :ecx)
                    (inst :push :edx)
                    (emit-call-2 "RT_bad_index" nil)
-                   (emit-exit) ; FIXME
+                   (inst :exit) ; FIXME
                    (setf (gethash :svref-error-bad-index common-labels) SVREF-ERROR-BAD-INDEX)))
                (inst :mov `(,displacement :eax) :ecx) ; raw length in ecx
                (clear-register-contents :ecx)
@@ -3116,7 +3096,7 @@
                    (:return
                     (unless (eq reg :eax)
                       (inst :mov reg :eax))
-                    (emit-exit))
+                    (inst :exit))
                    (t
                     (aver (reg32-p target))
                     (unless (eq reg target)
@@ -3127,7 +3107,7 @@
                     (inst :push var))
                    (:return
                     (inst :mov var :eax)
-                    (emit-exit))
+                    (inst :exit))
                    (t
                     (aver (reg32-p target))
                     (inst :mov var target)
@@ -3313,7 +3293,7 @@
                  (:return
                   (emit-jmp-short :o OVERFLOW)
                   ;; falling through: no overflow, we're done
-                  (emit-exit)
+                  (inst :exit)
                   (label OVERFLOW))
                  (t
                   ;; if no overflow, we're done
@@ -3419,7 +3399,7 @@
                  (:return
                   (emit-jmp-short :o OVERFLOW)
                   ;; falling through: no overflow, we're done
-                  (emit-exit)
+                  (inst :exit)
                   (label OVERFLOW))
                  (t
                   ;; if no overflow, we're done
@@ -3487,7 +3467,7 @@
                      (:return
                       (emit-jmp-short :o OVERFLOW)
                       ;; falling through: no overflow, we're done
-                      (emit-exit)
+                      (inst :exit)
                       (label OVERFLOW))
                      (t
                       ;; if no overflow, we're done
@@ -3776,7 +3756,7 @@
                   (emit-bytes #x31 #xd0))) ; xor %edx,%eax
                (clear-register-contents :eax)
                (cond ((eq target :return)
-                      (emit-exit))
+                      (inst :exit))
                      (t
                       (move-result-to-target target)
                       (emit-jmp-short t EXIT)))
@@ -3833,7 +3813,7 @@
             (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
             (emit-jmp-short :nz FULL-CALL)
             (cond ((eq target :return)
-                   (emit-exit))
+                   (inst :exit))
                   (t
                    (move-result-to-target target)
                    (emit-jmp-short t EXIT)))
@@ -3882,7 +3862,7 @@
                  (emit-bytes #x21 #xd0) ; and %edx,%eax
                  (clear-register-contents :eax)
 ;;                  (cond ((eq target :return)
-;;                         (emit-exit))
+;;                         (inst :exit))
 ;;                        (t
 ;;                         (move-result-to-target target)
 ;;                         (emit-jmp-short t EXIT)))
@@ -4019,7 +3999,7 @@
                (p2-symbol 'LIST :stack)
                (inst :push :eax)
                (emit-call-2 '%type-error nil)
-               (emit-exit) ; FIXME
+               (inst :exit) ; FIXME
                (setf (gethash :error-not-list common-labels) ERROR)))
            (inst :compare-immediate nil :eax)
            (emit-jmp-short :e EXIT)
@@ -4090,7 +4070,7 @@
                (p2-symbol 'LIST :stack)
                (inst :push :eax)
                (emit-call-2 '%type-error nil)
-               (emit-exit) ; FIXME
+               (inst :exit) ; FIXME
                (setf (gethash :error-not-list common-labels) ERROR)))
            (inst :compare-immediate nil :eax)
            (emit-jmp-short :e EXIT)
@@ -4129,7 +4109,7 @@
                    (p2-symbol 'BOOLEAN :stack)
                    (inst :push :eax)
                    (emit-call '%type-error)
-                   (emit-exit) ; FIXME
+                   (inst :exit) ; FIXME
                    (setf (gethash :error-not-boolean common-labels) ERROR)))
                (inst :compare-immediate nil :eax)
                (emit-jmp-short :e EXIT)
@@ -4159,7 +4139,7 @@
                    (p2-symbol 'CONS :stack)
                    (inst :push :eax)
                    (emit-call-2 '%type-error nil)
-                   (emit-exit) ; FIXME
+                   (inst :exit) ; FIXME
                    (setf (gethash :error-not-cons common-labels) ERROR)))
                (inst :push :eax)
                (inst :and +lowtag-mask+ :al)
@@ -4194,7 +4174,7 @@
                    (p2-symbol 'LIST :stack)
                    (inst :push :eax)
                    (emit-call-2 '%type-error nil)
-                   (emit-exit) ; FIXME
+                   (inst :exit) ; FIXME
                    (setf (gethash :error-not-list common-labels) ERROR)))
                (inst :compare-immediate nil :eax)
                (emit-jmp-short :e EXIT)
@@ -4231,7 +4211,7 @@
                    (p2-symbol 'SYMBOL :stack)
                    (inst :push :eax)
                    (emit-call-2 '%type-error nil)
-                   (emit-exit) ; FIXME
+                   (inst :exit) ; FIXME
                    (setf (gethash :error-not-list common-labels) ERROR)))
                (inst :push :eax)
                (inst :and +lowtag-mask+ :al)
@@ -4322,10 +4302,10 @@
       (cond ((eq target :return)
              (emit-jmp-short :ne NO)
              (p2-symbol t :eax)
-             (emit-exit)
+             (inst :exit)
              (label NO)
              (p2-symbol nil :eax)
-             (emit-exit))
+             (inst :exit))
             (t
              (emit-jmp-short :ne NO)
              (p2-symbol t :eax)
@@ -4348,10 +4328,10 @@
       (cond ((eq target :return)
              (emit-jmp-short :ne NO)
              (p2-symbol t :eax)
-             (emit-exit)
+             (inst :exit)
              (label NO)
              (p2-symbol nil :eax)
-             (emit-exit))
+             (inst :exit))
             (t
              (emit-jmp-short :ne NO)
              (p2-symbol t :eax)
@@ -4392,10 +4372,10 @@
       (cond ((eq target :return)
              (emit-jmp-short :ne NO)
              (p2-symbol t :eax)
-             (emit-exit)
+             (inst :exit)
              (label NO)
              (p2-symbol nil :eax)
-             (emit-exit))
+             (inst :exit))
             (t
              (emit-jmp-short :ne NO)
              (p2-symbol t :eax)
@@ -4422,7 +4402,7 @@
             ;; arg is in rax
             (inst :push :eax)
             (emit-call-2 '%type-error nil)
-            (emit-exit) ; FIXME
+            (inst :exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
         (inst :compare-immediate nil :eax)
         (emit-jmp-short :e LABEL1)
@@ -4614,10 +4594,10 @@
                     (let ((LABEL1 (make-label)))
                       (emit-jmp-short :ne LABEL1)
                       (p2-symbol nil :eax)
-                      (emit-exit)
+                      (inst :exit)
                       (label LABEL1)
                       (p2-symbol t :eax)
-                      (emit-exit)))
+                      (inst :exit)))
                    (t
                     (let ((LABEL1 (make-label))
                           (LABEL2 (make-label)))
@@ -4682,7 +4662,7 @@
                    (p2-symbol 'FIXNUM :stack)
                    (inst :push :eax)
                    (emit-call-2 '%type-error nil)
-                   (emit-exit) ; FIXME
+                   (inst :exit) ; FIXME
                    (setf (gethash :require-fixnum-error common-labels) ERROR)))
                (inst :test +fixnum-tag-mask+ :al)
                (emit-jmp-short :nz ERROR)
@@ -4731,7 +4711,7 @@
                  (inst :push :eax)
                  (inst :push :edx)
                  (emit-call-2 '%type-error nil)
-                 (emit-exit) ; FIXME
+                 (inst :exit) ; FIXME
                  )))
             (t
              (mumble "p2-check-fixnum-bounds full call~%")
@@ -4771,7 +4751,7 @@
                (p2-symbol 'VECTOR :stack)
                (inst :push :edx)
                (emit-call-2 '%type-error nil)
-               (emit-exit) ; FIXME
+               (inst :exit) ; FIXME
                )))))
   t)
 
@@ -4799,7 +4779,7 @@
                  (inst :push :edx)
                  (emit-call-2 '%type-error nil)
                  ;; FIXME
-                 (emit-exit))
+                 (inst :exit))
                (setf (gethash :require-simple-vector-error common-labels) REQUIRE-SIMPLE-VECTOR-ERROR))
              (process-1-arg arg :eax t)
              (inst :mov :eax :edx)
