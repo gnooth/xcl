@@ -137,22 +137,15 @@
 
 (defknown emit-byte (t) t)
 (defun emit-byte (byte)
-;;   (declare (type (unsigned-byte 8) byte))
-;;   (emit (make-instruction :byte 1 byte))
-  (inst :byte byte)
-  )
+  (inst :byte byte))
 
 (defknown emit-bytes (*) t)
 (defun emit-bytes (&rest bytes)
-;;   (emit (make-instruction :bytes (length bytes) bytes))
-  (emit (list* :bytes bytes))
-  )
+  (emit (list* :bytes bytes)))
 
 (defknown label (t) t)
 (defun label (label)
-;;   (emit (make-instruction :label 0 label))
-  (emit (list :label label))
-  )
+  (emit (list :label label)))
 
 (defknown make-label () t)
 (defun make-label ()

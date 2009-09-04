@@ -104,6 +104,17 @@
                        (t
                         ;; nothing to do
                         (vector-push-extend (assemble-instruction instruction) new-code))))
+                (:push-immediate
+                 (cond ((and (consp operand1)
+                             (eq (%car operand1) :constant))
+                        (aver (length-eql operand1 2))
+                        (vector-push-extend (make-instruction :byte 1 #x68) new-code)
+                        (vector-push-extend
+                         (make-instruction :constant 4 (%cadr operand1))
+                         new-code))
+                       (t
+                        (mumble "push-immediate unsupported case~%")
+                        (unsupported))))
                 (:exit
                  (let ((instructions nil))
                    (unless (compiland-omit-frame-pointer compiland)

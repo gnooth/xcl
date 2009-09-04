@@ -220,8 +220,7 @@
                (decf index n))
 
              (let ((prototype (coerce-to-function (list 'LAMBDA lambda-list nil))))
-               (emit-byte #x68) ; push imm32
-               (emit-constant prototype))
+               (inst :push-immediate `(:constant ,prototype)))
              (emit-move-local-to-register argument-vector-index :eax) ; argument vector
              (inst :push :eax)
              (emit-move-local-to-register numargs-index :eax) ; numargs
@@ -230,7 +229,7 @@
 
              ;; address of processed argument vector is now in eax
              (when (some #'var-used-non-locally-p (compiland-arg-vars compiland))
-               (emit-move :eax :ecx))
+               (inst :mov :eax :ecx))
              (let ((base (1+ index)))
                (dolist (var (compiland-arg-vars compiland))
                  (declare (type var var))
@@ -261,7 +260,7 @@
                         ;;                       (decf index)
                         ))))
              ;;              ;; restore ebx
-             ;;              (emit-move :edx :ebx))
+             ;;              (inst :mov :edx :ebx))
              )
             ((null (compiland-arity compiland))
              ;; restvar case, with or without required args
@@ -406,14 +405,13 @@
                (decf index n))
 
              (let ((prototype (coerce-to-function (list 'LAMBDA lambda-list nil))))
-               (emit-byte #x68) ; push imm32
-               (emit-constant prototype))
+               (inst :push-immediate `(:constant ,prototype)))
              (inst :push '(12 :ebp)) ; args
              (inst :push '(8 :ebp)) ; numargs
              (emit-call-4 "RT_process_args" :eax)
              ;; address of args array is now in eax
              (when (some #'var-used-non-locally-p (compiland-arg-vars compiland))
-               (emit-move :eax :ecx))
+               (inst :mov :eax :ecx))
              ;; address of args array is now in ecx
              (let ((base (1+ index)))
                (dolist (var (compiland-arg-vars compiland))
@@ -514,15 +512,15 @@
 (defun emit-exit()
   (inst :exit))
 
-(defknown emit-move (t t) t)
-(defun emit-move (from-reg to-reg)
-  (let* ((mod #b11)
-         (reg (register-number from-reg))
-         (rm  (register-number to-reg))
-         (modrm-byte (make-modrm-byte mod reg rm)))
-    (emit (make-instruction :bytes
-                            2
-                            (list #x89 modrm-byte)))))
+;; (defknown emit-move (t t) t)
+;; (defun emit-move (from-reg to-reg)
+;;   (let* ((mod #b11)
+;;          (reg (register-number from-reg))
+;;          (rm  (register-number to-reg))
+;;          (modrm-byte (make-modrm-byte mod reg rm)))
+;;     (emit (make-instruction :bytes
+;;                             2
+;;                             (list #x89 modrm-byte)))))
 
 ;; index-displacement index => displacement
 (defknown index-displacement (t) t)
@@ -3253,7 +3251,7 @@
                     (fixnum-type-p type2))
                (process-2-args args '(:eax :edx) t)
                (unless (fixnum-type-p result-type)
-                 (emit-move :eax :ecx) ; copy arg1 to ecx in case we need to do a full call
+                 (inst :mov :eax :ecx) ; copy arg1 to ecx in case we need to do a full call
                  (clear-register-contents :ecx))
                (emit-bytes #x29 #xd0) ; sub %edx,%eax
                (clear-register-contents :eax)
@@ -3481,7 +3479,7 @@
                      (emit-bytes #xf6 #xc2 #x03)          ; test $0x3,%dl
                      (emit-jmp-short :nz FULL-CALL))
                    ;; falling through, both args are fixnums
-                   (emit-move :eax :ecx) ; we're about to trash :eax
+                   (inst :mov :eax :ecx) ; we're about to trash :eax
                    ;;              (emit-bytes #x01 #xd0) ; add %edx,%eax
                    (emit-bytes #xc1 #xf8 #x02) ; sar $0x2,%eax
                    (emit-bytes #x0f #xaf #xc2) ; imul %edx,%eax
@@ -3494,7 +3492,7 @@
                      (t
                       ;; if no overflow, we're done
                       (emit-jmp-short :no EXIT)))
-                   (emit-move :ecx :eax)
+                   (inst :mov :ecx :eax)
                    (label FULL-CALL)
                    (inst :push :edx)
                    (inst :push :eax)
@@ -3529,7 +3527,7 @@
                             ((min two-arg-min) :l)
                             ((max two-arg-max) :g))
                           EXIT)
-          (emit-move :edx :eax)
+          (inst :mov :edx :eax)
           (clear-register-contents :eax)
           (unless (and (fixnum-type-p type1)
                        (fixnum-type-p type2))
