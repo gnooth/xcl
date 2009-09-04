@@ -168,13 +168,13 @@
                         (unsupported))))
                 (:compare-immediate
                  (let (form register)
-                   (cond ((and (consp operand1)
+                   (cond ((memq operand1 '(nil t))
+                          (setq form     operand1
+                                register operand2))
+                         ((and (consp operand1)
                                (eq (%car operand1) :constant))
                           (aver (length-eql operand1 2))
                           (setq form     (%cadr operand1)
-                                register operand2))
-                         ((memq operand1 '(nil t))
-                          (setq form     operand1
                                 register operand2))
                          (t
                           (mumble "p3 :compare-immediate unsupported case~%")
