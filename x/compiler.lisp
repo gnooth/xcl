@@ -2081,6 +2081,7 @@ for special variables."
       (when (compiland-needs-thread-var-p *current-compiland*)
         (mumble "preoptimize-ir2 thread var not used~%")
         (setf (compiland-needs-thread-var-p *current-compiland*) nil)
+        #+x86
         (setf (compiland-thread-var *current-compiland*) nil)))
     (when leaf-p
       (mumble "preoptimize-ir2 leaf-p~%")
