@@ -66,7 +66,7 @@
   setjmp-p
   longjmp-p
 
-  #-x86-64
+  #+x86
   thread-var
 
   #+x86-64
@@ -2042,9 +2042,14 @@ for special variables."
 
 (defun preoptimize-ir2 ()
   (let ((code *code*)
-        (r12-used-p nil)
+        (thread-var-used-p nil)
         (need-stack-frame-p nil)
-        (leaf-p t))
+        (leaf-p t)
+        #+x86-64
+        (thread-var :r12)
+        #+x86
+        (thread-var (compiland-thread-var *current-compiland*))
+        )
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
@@ -2056,23 +2061,27 @@ for special variables."
               (operand2 (third instruction)))
           (cond ((eq operation :call)
                  (setq leaf-p nil))
-                ((or (eq operand1 :r12)
-                     (eq operand2 :r12))
-                 (setq r12-used-p t))
-                ((and (consp operand1)
-                      (memq :r12 operand1))
-                 (setq r12-used-p t))
-                ((and (consp operand2)
-                      (memq :r12 operand2))
-                 (setq r12-used-p t))
+                ((and thread-var
+                      (or (eq operand1 thread-var)
+                          (eq operand2 thread-var)))
+                 (setq thread-var-used-p t))
+                ((and thread-var
+                      (consp operand1)
+                      (memq thread-var operand1))
+                 (setq thread-var-used-p t))
+                ((and thread-var
+                      (consp operand2)
+                      (memq thread-var operand2))
+                 (setq thread-var-used-p t))
                 ((or (var-p operand1)
                      (var-p operand2))
                  (setq need-stack-frame-p t))))))
-;;     (mumble "preoptimize-ir2 r12-used-p = ~S need-stack-frame-p = ~S~%" r12-used-p need-stack-frame-p)
-    (unless r12-used-p
+;;     (mumble "preoptimize-ir2 thread-var-used-p = ~S need-stack-frame-p = ~S~%" thread-var-used-p need-stack-frame-p)
+    (unless thread-var-used-p
       (when (compiland-needs-thread-var-p *current-compiland*)
-        (mumble "preoptimize r12 not used~%")
-        (setf (compiland-needs-thread-var-p *current-compiland*) nil)))
+        (mumble "preoptimize-ir2 thread var not used~%")
+        (setf (compiland-needs-thread-var-p *current-compiland*) nil)
+        (setf (compiland-thread-var *current-compiland*) nil)))
     (when leaf-p
       (mumble "preoptimize-ir2 leaf-p~%")
       (setf (compiland-leaf-p *current-compiland*) leaf-p)
@@ -2372,7 +2381,6 @@ for special variables."
       (dump-code) ; IR2
       )
 
-    #+x86-64
     (preoptimize-ir2)
 
     (when (trivial-p compiland)
