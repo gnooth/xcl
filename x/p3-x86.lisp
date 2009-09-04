@@ -18,23 +18,23 @@
 
 (in-package "COMPILER")
 
-(defun generate-function-prolog ()
-  (let* ((compiland *current-compiland*)
-         (arity (compiland-arity compiland))
-         prolog)
-    (when (and arity
-               (<= arity 6)
-               (null *closure-vars*)
-;;                (not (compiland-child-p compiland))
-               )
-      (let ((*code* nil)
-            (*main* nil)
-            (*elsewhere* nil))
-        (p2-trivial-function-prolog compiland)
-        (if *elsewhere*
-            (setq prolog (concatenate 'simple-vector *main* *elsewhere*))
-            (setq prolog (concatenate 'simple-vector *main*))))
-      (setq *code* (concatenate 'simple-vector prolog *code*)))))
+;; (defun generate-function-prolog ()
+;;   (let* ((compiland *current-compiland*)
+;;          (arity (compiland-arity compiland))
+;;          prolog)
+;;     (when (and arity
+;;                (<= arity 6)
+;;                (null *closure-vars*)
+;; ;;                (not (compiland-child-p compiland))
+;;                )
+;;       (let ((*code* nil)
+;;             (*main* nil)
+;;             (*elsewhere* nil))
+;;         (p2-trivial-function-prolog compiland)
+;;         (if *elsewhere*
+;;             (setq prolog (concatenate 'simple-vector *main* *elsewhere*))
+;;             (setq prolog (concatenate 'simple-vector *main*))))
+;;       (setq *code* (concatenate 'simple-vector prolog *code*)))))
 
 (defun p3 ()
 ;;   (generate-function-prolog)
@@ -166,6 +166,26 @@
                        (t
                         (mumble "p3 :move-immediate unsupported case~%")
                         (unsupported))))
+                (:compare-immediate
+                 (let (form register)
+                   (cond ((and (consp operand1)
+                               (eq (%car operand1) :constant))
+                          (aver (length-eql operand1 2))
+                          (setq form     (%cadr operand1)
+                                register operand2))
+                         ((memq operand1 '(nil t))
+                          (setq form     operand1
+                                register operand2))
+                         (t
+                          (mumble "p3 :compare-immediate unsupported case~%")
+                          (unsupported)))
+                   (aver (memq register '(:eax :ebx :ecx :edx :esi :edi)))
+                   (if (eq register :eax)
+                       (vector-push-extend (make-instruction :byte 1 #x3d) new-code)
+                       (vector-push-extend (make-instruction :bytes 2
+                                                             (list #x81 (+ #xf8 (register-number register))))
+                                           new-code))
+                   (vector-push-extend (make-instruction :constant 4 form) new-code)))
                 (:byte
                  (vector-push-extend (make-instruction :byte 1 operand1) new-code))
                 (:bytes

@@ -991,8 +991,7 @@
            (mumble "p2-test-numeric-comparison float case~%")
            (process-2-args args :stack t)
            (emit-call-2 op :eax)
-           (emit-byte #x3d)             ; compare immediate dword to eax
-           (emit-constant nil)
+           (inst :compare-immediate nil :eax)
            (emit-jmp-short :z label)
            t)
           (t
@@ -1022,8 +1021,7 @@
              (inst :push :edx)
              (inst :push :eax)
              (emit-call-2 op :eax)
-             (emit-byte #x3d)             ; compare immediate dword to eax
-             (emit-constant nil)
+             (inst :compare-immediate nil :eax)
              (emit-jmp-short :z label)
              (label EXIT)
              t)))))
@@ -1070,8 +1068,7 @@
             (emit-call '%type-error)
             (emit-exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
-        (emit-bytes #x3d) ; cmp imm32,%eax
-        (emit-constant nil)
+        (inst :compare-immediate nil :eax)
         (emit-jmp-short :e EXIT)
         (inst :push :eax)
         (inst :and +lowtag-mask+ :al)
@@ -1246,16 +1243,14 @@
                   (p2-symbol 'zerop :stack)
                   (emit-call (if (use-fast-call-p) "RT_fast_call_symbol_1" "RT_current_thread_call_symbol_1"))
                   (emit-adjust-stack-after-call 2)))
-           (emit-byte #x3d)             ; compare immediate dword to eax
-           (emit-constant nil)
+           (inst :compare-immediate nil :eax)
            (emit-jmp-short :z label)
            (label EXIT))))
   t)
 
 (defun p2-test-form-default (test-form label) ; jump to label if test fails
   (process-1-arg test-form :eax t)
-  (emit-byte #x3d) ; compare immediate dword to eax
-  (emit-constant nil)
+  (inst :compare-immediate nil :eax)
   (emit-jmp-short :z label))
 
 (defknown p2-if-and (t t) t)
@@ -1275,8 +1270,7 @@
              (LABEL2 (make-label)))
          (dolist (subform subforms)
            (process-1-arg subform :eax t)
-           (emit-byte #x3d) ; compare immediate dword to eax
-           (emit-constant nil)
+           (inst :compare-immediate nil :eax)
            (emit-jmp-short :e LABEL1))
          (p2 consequent target)
          (emit-jmp-short t LABEL2)
@@ -1314,8 +1308,7 @@
                    (t
                     ;; not the last subform
                     (process-1-arg subform :eax t)
-                    (emit-byte #x3d) ; compare immediate dword to eax
-                    (emit-constant nil)
+                    (inst :compare-immediate nil :eax)
                     (emit-jmp-short :e FAIL)
                     (maybe-add-constraint subform)
                     (setq subforms tail)
@@ -1361,8 +1354,7 @@
                       (p2 subform :eax)
                       (unless (single-valued-p subform)
                         (emit-clear-values :preserve :eax))
-                      (emit-byte #x3d) ; compare immediate dword to eax
-                      (emit-constant nil)
+                      (inst :compare-immediate nil :eax)
                       (emit-jmp-short :ne LABEL1)))))
            (p2 alternate target)
            (emit-jmp-short t LABEL2)
@@ -1388,8 +1380,7 @@
              (arg2 (%cadr args))
              (EXIT (make-label)))
          (process-1-arg arg1 :eax t)
-         (emit-byte #x3d) ; compare immediate dword to eax
-         (emit-constant nil)
+         (inst :compare-immediate nil :eax)
          (emit-jmp-short :ne EXIT)
          (process-1-arg arg2 :eax nil)
          (label EXIT)
@@ -4011,8 +4002,7 @@
            (p2 arg :eax)
            (unless (single-valued-p arg)
              (emit-clear-values :preserve :eax))
-           (emit-byte #x3d) ; cmp imm32,%eax
-           (emit-constant nil)
+           (inst :compare-immediate nil :eax)
            (emit-jmp-short :e EXIT)
            ;; it's a cons
            (inst :mov '(-1 :eax) :eax)
@@ -4033,8 +4023,7 @@
                (emit-call-2 '%type-error nil)
                (emit-exit) ; FIXME
                (setf (gethash :error-not-list common-labels) ERROR)))
-           (emit-byte #x3d) ; cmp imm32,%eax
-           (emit-constant nil)
+           (inst :compare-immediate nil :eax)
            (emit-jmp-short :e EXIT)
            (inst :push :eax)
            (inst :and +lowtag-mask+ :al)
@@ -4084,8 +4073,7 @@
         (LIST
          (let ((EXIT (gensym)))
            (process-1-arg arg :eax t)
-           (emit-byte #x3d) ; cmp imm32,%eax
-           (emit-constant nil)
+           (inst :compare-immediate nil :eax)
            (emit-jmp-short :e EXIT)
            ;; it's a cons
            (inst :mov '(3 :eax) :eax)
@@ -4106,8 +4094,7 @@
                (emit-call-2 '%type-error nil)
                (emit-exit) ; FIXME
                (setf (gethash :error-not-list common-labels) ERROR)))
-           (emit-byte #x3d) ; cmp imm32,%eax
-           (emit-constant nil)
+           (inst :compare-immediate nil :eax)
            (emit-jmp-short :e EXIT)
            (inst :push :eax)
            (inst :and +lowtag-mask+ :al)
@@ -4146,11 +4133,9 @@
                    (emit-call '%type-error)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-boolean common-labels) ERROR)))
-               (emit-bytes #x3d) ; cmp imm32,%eax
-               (emit-constant nil)
+               (inst :compare-immediate nil :eax)
                (emit-jmp-short :e EXIT)
-               (emit-bytes #x3d) ; cmp imm32,%eax
-               (emit-constant t)
+               (inst :compare-immediate t :eax)
                (emit-jmp-short :ne ERROR)
                (label EXIT)
                (when target
@@ -4213,8 +4198,7 @@
                    (emit-call-2 '%type-error nil)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-list common-labels) ERROR)))
-               (emit-byte #x3d) ; cmp imm32,%eax
-               (emit-constant nil)
+               (inst :compare-immediate nil :eax)
                (emit-jmp-short :e EXIT)
                (inst :push :eax)
                (inst :and +lowtag-mask+ :al)
@@ -4442,8 +4426,7 @@
             (emit-call-2 '%type-error nil)
             (emit-exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
-        (emit-bytes #x3d) ; cmp imm32,%eax
-        (emit-constant nil)
+        (inst :compare-immediate nil :eax)
         (emit-jmp-short :e LABEL1)
         (inst :push :eax)
         (inst :and +lowtag-mask+ :al)
@@ -4653,8 +4636,7 @@
                (p2 arg :eax)
                (unless (single-valued-p arg)
                  (emit-clear-values :preserve :eax))
-               (emit-byte #x3d) ; cmp imm32,%eax
-               (emit-constant nil)
+               (inst :compare-immediate nil :eax)
                (emit-jmp-short :ne NO)
                (p2-symbol t :eax)
                (emit-jmp-short t EXIT)
@@ -4664,12 +4646,6 @@
                (clear-register-contents :eax)
                (move-result-to-target target)))))
     t))
-
-;; (defun p2-require-structure-type (form target)
-;;   (when (check-arg-count form 2)
-;;     (process-2-args (cdr form) :stack t)
-;;     (emit-call-2 'require-structure-type target)
-;;     t))
 
 (defun p2-require-type (form target)
   (when (check-arg-count form 2)
