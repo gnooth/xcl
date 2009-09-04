@@ -215,7 +215,7 @@
              (let* ((names (lambda-list-names lambda-list))
                     (n (length names))
                     (numbytes (* n +bytes-per-word+)))
-               (emit-subtract-immediate-from-register numbytes :esp)
+               (inst :sub numbytes :esp)
                (inst :push :esp)
                (decf index n))
 
@@ -311,7 +311,7 @@
                     (return))))
                (emit-move-local-to-register numargs-index :eax) ; numargs (end index)
                (inst :push :eax)
-               (emit-push-raw start) ; start index
+               (inst :push start) ; start index
                (emit-move-local-to-register argument-vector-index :eax) ; argument vector
                (inst :push :eax)
                (emit-call-3 "RT_restify" :eax)
@@ -377,7 +377,7 @@
 
   (let ((index -1)) ; first local is at -4(%ebp)
     (when (and *closure-vars* (null (compiland-parent compiland))) ; top-level compiland
-      (emit-push-raw (* (length *closure-vars*) +bytes-per-word+))
+      (inst :push (* (length *closure-vars*) +bytes-per-word+))
       (emit-call-1 "RT_malloc" :stack) ; the first local is the closure variable vector
       (setf (compiland-closure-data-index compiland) index)
       (decf index)
@@ -491,7 +491,7 @@
                     (return))))
                (emit-move-local-to-register 2 :eax) ; numargs (end index)
                (inst :push :eax)
-               (emit-push-raw start) ; start index
+               (inst :push start) ; start index
                (emit-move-local-to-register 3 :eax) ; argument vector
                (inst :push :eax)
                (emit-call-3 "RT_restify" :eax)
@@ -522,29 +522,7 @@
 
 (defknown %emit-move-relative-to-register (t t t) t)
 (defun %emit-move-relative-to-register (from-reg displacement to-reg)
-;;   (cond ((and (>= displacement #x-80)
-;;               (< displacement #x7f))
-;;          ;; displacement fits in a byte
-;;          (let* (;(displacement-byte (* index 4))
-;;                 (mod #b01)
-;;                 (reg (register-number to-reg))
-;;                 (rm  (register-number from-reg))
-;;                 (modrm-byte (make-modrm-byte mod reg rm)))
-;;            (emit (make-instruction :bytes
-;;                                    3
-;;                                    (list #x8b modrm-byte
-;;                                          ;displacement-byte
-;;                                          displacement
-;;                                          )))))
-;;         (t
-;;          (let* ((mod #b10)
-;;                 (reg (register-number to-reg))
-;;                 (rm  (register-number from-reg))
-;;                 (modrm-byte (make-modrm-byte mod reg rm)))
-;;            (emit-bytes #x8b modrm-byte)
-;;            (emit-raw displacement))))
-  (inst :mov `(,displacement ,from-reg) to-reg)
-  )
+  (inst :mov `(,displacement ,from-reg) to-reg))
 
 (defknown emit-move-relative-to-register (t t t) t)
 (defun emit-move-relative-to-register (from-reg index to-reg)
@@ -552,45 +530,11 @@
 
 (defknown %emit-move-register-to-relative (t t t) t)
 (defun %emit-move-register-to-relative (from-reg to-reg displacement)
-;;   (cond ((and (>= displacement #x-80)
-;;               (< displacement #x7f))
-;;          ;; displacement fits in a byte
-;;          (let* ((mod #b01)
-;;                 (reg (register-number from-reg))
-;;                 (rm  (register-number to-reg))
-;;                 (modrm-byte (make-modrm-byte mod reg rm)))
-;;            (emit-bytes #x89 modrm-byte displacement)))
-;;         (t
-;;          (let* ((mod #b10)
-;;                 (reg (register-number from-reg))
-;;                 (rm  (register-number to-reg))
-;;                 (modrm-byte (make-modrm-byte mod reg rm)))
-;;            (emit-bytes #x89 modrm-byte)
-;;            (emit-raw displacement))))
-  (inst :mov from-reg `(,displacement ,to-reg))
-  )
+  (inst :mov from-reg `(,displacement ,to-reg)))
 
 (defknown emit-move-register-to-relative (t t t) t)
 (defun emit-move-register-to-relative (from-reg to-reg index)
   (let ((displacement (index-displacement index)))
-;;     (cond ((and (>= displacement #x-80)
-;;                 (< displacement #x7f))
-;;            ;; displacement fits in a byte
-;;            (let* ((displacement-byte (* index 4))
-;;                   (mod #b01)
-;;                   (reg (register-number from-reg))
-;;                   (rm  (register-number to-reg))
-;;                   (modrm-byte (make-modrm-byte mod reg rm)))
-;;              (emit (make-instruction :bytes
-;;                                      3
-;;                                      (list #x89 modrm-byte displacement-byte)))))
-;;           (t
-;;            (let* ((mod #b10)
-;;                   (reg (register-number from-reg))
-;;                   (rm  (register-number to-reg))
-;;                   (modrm-byte (make-modrm-byte mod reg rm)))
-;;              (emit-bytes #x89 modrm-byte)
-;;              (emit-raw displacement))))))
     (inst :mov from-reg `(,displacement ,to-reg))))
 
 (defun emit-dword (n)
@@ -599,21 +543,14 @@
                       (ldb (byte 8 8) x)
                       (ldb (byte 8 16) x)
                       (ldb (byte 8 24) x))))
-      (emit (make-instruction :bytes 4 code)))))
-
-(defun emit-raw-dword (n)
-  (let ((code (list (ldb (byte 8 0) n)
-                    (ldb (byte 8 8) n)
-                    (ldb (byte 8 16) n)
-                    (ldb (byte 8 24) n))))
-    (emit (make-instruction :bytes 4 code))))
+      (emit (list* :bytes code)))))
 
 (defun emit-raw (x)
   (let ((code (list (ldb (byte 8 0) x)
                     (ldb (byte 8 8) x)
                     (ldb (byte 8 16) x)
                     (ldb (byte 8 24) x))))
-    (emit (make-instruction :bytes 4 code))))
+    (emit (list* :bytes code))))
 
 (defun emit-move-immediate (n target)
   (when (eq target :return)
@@ -622,10 +559,6 @@
          (inst :mov (value-to-ub32 n) target))
         (t
          (compiler-unsupported "EMIT-MOVE-IMMEDIATE unsupported target ~S" target))))
-
-(defun emit-move-immediate-dword-to-register (n reg)
-  (emit-byte (+ #xb8 (register-number reg)))
-  (emit-raw n))
 
 (defknown emit-push-immediate (t) t)
 (defun emit-push-immediate (arg)
@@ -637,15 +570,6 @@
         (return-from emit-push-immediate))))
   (emit-byte #x68)
   (emit-dword arg))
-
-(defknown emit-push-raw (t) t)
-(defun emit-push-raw (n)
-  (cond ((<= 0 n 127)
-         (emit-byte #x6a) ; push immediate byte
-         (emit-byte n))
-        (t
-         (emit-byte #x68)
-         (emit-raw n))))
 
 (defknown move-result-to-target (t) t)
 (defun move-result-to-target (target)
@@ -669,44 +593,16 @@
   (cond ((eql n 0)) ; nothing to do
         ((eql n 1)
          (inst :pop :edx)
-         (clear-register-contents)
-         )
+         (clear-register-contents))
         ((eql n 2)
          (inst :pop :edx)
          (inst :pop :edx)
          (clear-register-contents)
          )
         ((< n 32)
-;;          (emit-bytes #x83 #xc4)
-;;          (emit-byte (* n +bytes-per-word+))
-         (inst :add (* n +bytes-per-word+) :esp)
-         )
+         (inst :add (* n +bytes-per-word+) :esp))
         (t
          (compiler-unsupported "EMIT-ADJUST-STACK-AFTER-CALL n = ~D" n))))
-
-(defknown emit-add-immediate-to-register (t t) t)
-(defun emit-add-immediate-to-register (n register)
-  (cond ((<= -128 n 127)
-         (let ((modrm-byte (make-modrm-byte #b11 0 (register-number register))))
-           (emit-bytes #x83 modrm-byte n)))
-        ((<= 0 n #x7fffffff)
-         (let ((modrm-byte (make-modrm-byte #b11 0 (register-number register))))
-           (emit-bytes #x81 modrm-byte)
-           (emit-raw-dword n)))
-        (t
-         (compiler-unsupported "EMIT-ADD-IMMEDIATE-TO-REGISTER n = ~D" n))))
-
-(defknown emit-subtract-immediate-from-register (t t) t)
-(defun emit-subtract-immediate-from-register (n register)
-  (cond ((<= -128 n 127)
-         (let ((modrm-byte (make-modrm-byte #b11 #b101 (register-number register))))
-           (emit-bytes #x83 modrm-byte n)))
-        ((<= 0 n #x7fffffff)
-         (let ((modrm-byte (make-modrm-byte #b11 #b101 (register-number register))))
-           (emit-bytes #x81 modrm-byte)
-           (emit-raw-dword n)))
-        (t
-         (compiler-unsupported "EMIT-SUBTRACT-IMMEDIATE-FROM-REGISTER n = ~D" n))))
 
 (defknown emit-move-function-to-register (t t) t)
 (defun emit-move-function-to-register (symbol register)
@@ -1675,8 +1571,6 @@
                  (push tag *visible-tags*)
                  (when (tag-non-local-go-p tag)
                    (setf (tag-index tag) index)
-;;                    (emit-move-immediate-dword-to-register index :eax)
-;;                    (inst :push :eax)
                    (inst :push index)
                    (inst :push tagbody-var)
                    (p2-constant (tag-name tag) :stack)
@@ -2187,11 +2081,11 @@
       (cond ((zerop *safety*)
              (clear-register-contents)
              (process-2-args args '(:eax :edx) t) ; string in eax, offset in edx
-             (emit-add-immediate-to-register (- +simple-string-data-offset+ +typed-object-lowtag+) :eax)
+             (inst :add (- +simple-string-data-offset+ +typed-object-lowtag+) :eax)
              (emit-bytes #xc1 #xfa +fixnum-shift+) ; sar $0x2,%edx
-             (emit-bytes #x01 #xc2) ; add %eax,%edx
+             (inst :add :eax :edx)
              (emit-bytes #x0f #xb6 #x02) ; movzbl (%edx),%eax
-             (emit-bytes #xc1 #xe0 +character-shift+) ; shl $0x3,%eax
+             (inst :shl +character-shift+ :eax)
              (emit-bytes #x83 #xc8 +character-lowtag+) ; or $0x6,%eax
              (move-result-to-target target))
             ((and (neq (setq type1 (derive-type arg1)) :unknown)
@@ -2235,9 +2129,7 @@
                    (t
                     (process-2-args args '(:eax :edx) t) ; vector in eax, index in edx
                     (clear-register-contents :eax :edx)
-                    (emit-add-immediate-to-register
-                     (- +simple-vector-data-offset+ +typed-object-lowtag+)
-                     :eax)
+                    (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :eax)
                     ;; index is in edx
                     ;; get rid of the fixnum shift and multiply by 4 to get the offset in bytes
                     ;; (emit-bytes #xc1 #xfa +fixnum-shift+)         ; sar $0x2,%edx
@@ -3028,7 +2920,7 @@
         (let ((displacement (- +symbol-name-offset+ +symbol-lowtag+)))
           (%emit-move-relative-to-register :eax displacement :eax))
         (clear-register-contents :eax)
-        (emit-add-immediate-to-register +typed-object-lowtag+ :eax)
+        (inst :add +typed-object-lowtag+ :eax)
         (move-result-to-target target)
         t))))
 
@@ -3158,13 +3050,13 @@
          (not-less (gensym))
          (full-call (gensym))
          (exit (gensym)))
-    (cond ((and (eql (length args) 2)
+    (cond ((and (length-eql args 2)
                 (fixnump arg2))
            ;; as in (< n 2), for example
            (p2 arg1 :eax)
            (unless (single-valued-p arg1)
              (emit-clear-values :preserve :eax))
-           (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
+           (inst :test +fixnum-tag-mask+ :al)
            (emit-jmp-short :nz FULL-CALL)
            ;; falling through, arg1 is a fixnum
            (emit-byte #x3d) ; compare immediate dword to eax
