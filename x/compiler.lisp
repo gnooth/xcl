@@ -2040,6 +2040,48 @@ for special variables."
   #+x86-64
   (optimize-ir2-6))
 
+(defun preoptimize-ir2 ()
+  (let ((code *code*)
+        (r12-used-p nil)
+        (need-stack-frame-p nil)
+        (leaf-p t))
+    (declare (type simple-vector code))
+    (dotimes (i (length code))
+      (let ((instruction (svref code i)))
+        (unless (consp instruction)
+          (mumble "preoptimize-ir2 instruction not a cons: ~S~%" instruction)
+          (return-from preoptimize-ir2))
+        (let ((operation (first instruction))
+              (operand1 (second instruction))
+              (operand2 (third instruction)))
+          (cond ((eq operation :call)
+                 (setq leaf-p nil))
+                ((or (eq operand1 :r12)
+                     (eq operand2 :r12))
+                 (setq r12-used-p t))
+                ((and (consp operand1)
+                      (memq :r12 operand1))
+                 (setq r12-used-p t))
+                ((and (consp operand2)
+                      (memq :r12 operand2))
+                 (setq r12-used-p t))
+                ((or (var-p operand1)
+                     (var-p operand2))
+                 (setq need-stack-frame-p t))))))
+;;     (mumble "preoptimize-ir2 r12-used-p = ~S need-stack-frame-p = ~S~%" r12-used-p need-stack-frame-p)
+    (unless r12-used-p
+      (when (compiland-needs-thread-var-p *current-compiland*)
+        (mumble "preoptimize r12 not used~%")
+        (setf (compiland-needs-thread-var-p *current-compiland*) nil)))
+    (when leaf-p
+      (mumble "preoptimize-ir2 leaf-p~%")
+      (setf (compiland-leaf-p *current-compiland*) leaf-p)
+;;       (unless need-stack-frame-p
+;;         (mumble "preoptimize-ir2 omit frame pointer~%")
+;;         (setf (compiland-omit-frame-pointer *current-compiland*) t))
+      )
+  ))
+
 (defconstant +assemble-instruction-output+
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
 
@@ -2325,6 +2367,14 @@ for special variables."
         (setq *code* (concatenate 'simple-vector *main* *elsewhere*))
         (setq *code* (concatenate 'simple-vector *main*)))
 
+    (when *dump-code*
+      (mumble "code before generating prolog:~%")
+      (dump-code) ; IR2
+      )
+
+    #+x86-64
+    (preoptimize-ir2)
+
     (when (trivial-p compiland)
       (let ((*code* nil)
             (*main* nil)
@@ -2339,6 +2389,7 @@ for special variables."
     (optimize-ir2)
     (cond (*ir2-only*
            (let ((*dump-code* t))
+             (mumble "code (including prolog) after IR2 optimization:~%")
              (dump-code)))
           (t
            (dump-code)
@@ -2376,7 +2427,8 @@ for special variables."
           compiled-function)))))
 
 (defun dump-ir2 (name)
-  (let ((*ir2-only* t))
+  (let ((*ir2-only* t)
+        (*dump-code* t))
     (compile-defun name (function-lambda-expression (fdefinition name)))))
 
 (defun compile-defun-for-compile-file (name lambda-expression)

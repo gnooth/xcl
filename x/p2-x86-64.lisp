@@ -5403,9 +5403,10 @@
            (dolist (reg (compiland-registers-to-be-saved compiland))
              (inst :push reg)
              (incf stack-used))
-           (inst :push :rbp)
-           (incf stack-used)
-           (inst :mov :rsp :rbp))
+           (unless (compiland-omit-frame-pointer compiland)
+             (inst :push :rbp)
+             (incf stack-used)
+             (inst :mov :rsp :rbp)))
           (t
            (setf (compiland-omit-frame-pointer compiland) t)))
 
@@ -5425,9 +5426,10 @@
       ;; set up permanent locations for local variables
       (incf stack-used (allocate-locals compiland index))
 
-      ;; fix stack alignment if necessary
-      (when (oddp stack-used)
-        (inst :push :rax))
+      (unless (compiland-leaf-p compiland)
+        ;; fix stack alignment if necessary
+        (when (oddp stack-used)
+          (inst :push :rax)))
 
 ;;       (when (compiland-thread-register compiland)
       (when (compiland-needs-thread-var-p compiland)
