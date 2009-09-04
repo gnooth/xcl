@@ -195,8 +195,8 @@
                          (t
                           (mumble "p3 :move-immediate unsupported case~%")
                           (unsupported))))
-                  (:cmp-immediate
-                   ;;                    (mumble "p3 :cmp-immediate case~%")
+                  (:compare-immediate
+                   ;;                    (mumble "p3 :compare-immediate case~%")
                    (cond ((and (consp operand1)
                                (eq (%car operand1) :constant-32))
                           (aver (length-eql operand1 2))
@@ -204,7 +204,7 @@
                                 (register operand2))
                             (aver (reg64-p register))
                             (aver (memq register '(:rax :rbx :rcx :rdx :rsi :rdi)))
-                            ;;                             (mumble "p3 :cmp-immediate register = ~S~%" register)
+                            ;;                             (mumble "p3 :compare-immediate register = ~S~%" register)
                             (if (eq register :rax)
                                 (vector-push-extend
                                  (make-instruction :bytes 2 (list #x48 #x3d))
@@ -217,7 +217,7 @@
                              (make-instruction :constant-32 4 form)
                              new-code)))
                          (t
-                          (mumble "p3 :cmp-immediate unsupported case~%")
+                          (mumble "p3 :compare-immediate unsupported case~%")
                           (unsupported))))
                   (:byte
                    (vector-push-extend (make-instruction :byte 1 operand1) new-code))
