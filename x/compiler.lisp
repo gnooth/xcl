@@ -2040,7 +2040,7 @@ for special variables."
   #+x86-64
   (optimize-ir2-6))
 
-(defun preoptimize-ir2 ()
+(defun analyze-ir2 ()
   (let ((code *code*)
         (thread-var-used-p nil)
         (need-stack-frame-p nil)
@@ -2054,8 +2054,8 @@ for special variables."
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
         (unless (consp instruction)
-          (mumble "preoptimize-ir2 instruction not a cons: ~S~%" instruction)
-          (return-from preoptimize-ir2))
+          (mumble "analyze-ir2 instruction not a cons: ~S~%" instruction)
+          (return-from analyze-ir2))
         (let ((operation (first instruction))
               (operand1 (second instruction))
               (operand2 (third instruction)))
@@ -2076,18 +2076,18 @@ for special variables."
                 ((or (var-p operand1)
                      (var-p operand2))
                  (setq need-stack-frame-p t))))))
-;;     (mumble "preoptimize-ir2 thread-var-used-p = ~S need-stack-frame-p = ~S~%" thread-var-used-p need-stack-frame-p)
+;;     (mumble "analyze-ir2 thread-var-used-p = ~S need-stack-frame-p = ~S~%" thread-var-used-p need-stack-frame-p)
     (unless thread-var-used-p
       (when (compiland-needs-thread-var-p *current-compiland*)
-        (mumble "preoptimize-ir2 thread var not used~%")
+        (mumble "analyze-ir2 thread var not used~%")
         (setf (compiland-needs-thread-var-p *current-compiland*) nil)
         #+x86
         (setf (compiland-thread-var *current-compiland*) nil)))
     (when leaf-p
-      (mumble "preoptimize-ir2 leaf-p~%")
+      (mumble "analyze-ir2 leaf-p~%")
       (setf (compiland-leaf-p *current-compiland*) leaf-p)
 ;;       (unless need-stack-frame-p
-;;         (mumble "preoptimize-ir2 omit frame pointer~%")
+;;         (mumble "analyze-ir2 omit frame pointer~%")
 ;;         (setf (compiland-omit-frame-pointer *current-compiland*) t))
       )
   ))
@@ -2378,7 +2378,7 @@ for special variables."
       (dump-code) ; IR2
       )
 
-    (preoptimize-ir2)
+    (analyze-ir2)
 
     (when (trivial-p compiland)
       (let ((*code* nil)

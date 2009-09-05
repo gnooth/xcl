@@ -5397,16 +5397,19 @@
   ;; is transferred to the function entry point."
   (let ((stack-used -1)) ; we want this to be an even number when we're done
     (cond ((or t (compiland-arg-vars compiland) *local-variables* *closure-vars*)
-           (when (compiland-needs-thread-var-p compiland)
-             (inst :push :r12)
-             (incf stack-used))
+;;            (when (compiland-needs-thread-var-p compiland)
+;;              (inst :push :r12)
+;;              (incf stack-used))
+           (inst :maybe-save-thread-register)
            (dolist (reg (compiland-registers-to-be-saved compiland))
              (inst :push reg)
              (incf stack-used))
-           (unless (compiland-omit-frame-pointer compiland)
-             (inst :push :rbp)
-             (incf stack-used)
-             (inst :mov :rsp :rbp)))
+;;            (unless (compiland-omit-frame-pointer compiland)
+;;              (inst :push :rbp)
+;;              (incf stack-used)
+;;              (inst :mov :rsp :rbp))
+           (inst :maybe-enter-frame)
+           )
           (t
            (setf (compiland-omit-frame-pointer compiland) t)))
 
@@ -5423,19 +5426,25 @@
         (set-register-contents (var-register var) var)
         (setf (var-register var) nil))
 
-      ;; set up permanent locations for local variables
-      (incf stack-used (allocate-locals compiland index))
+      (dolist (var (compiland-arg-vars compiland))
+        (inst :initialize-arg-var var))
 
-      (unless (compiland-leaf-p compiland)
+      ;; set up permanent locations for local variables
+      (incf stack-used (allocate-locals compiland index)))
+
+;;     (unless (compiland-leaf-p compiland)
         ;; fix stack alignment if necessary
 ;;         (when (oddp stack-used)
 ;;           (inst :push :rax)))
-        (inst :align-stack))
+      (inst :maybe-align-stack)
+;;       )
 
 ;;       (when (compiland-thread-register compiland)
-      (when (compiland-needs-thread-var-p compiland)
-        (emit-call "RT_current_thread")
-        (inst :mov :rax :r12))))
+;;       (when (compiland-needs-thread-var-p compiland)
+;;         (emit-call "RT_current_thread")
+;;         (inst :mov :rax :r12)))
+    (inst :maybe-initialize-thread-register)
+    )
   (clear-register-contents)
   t)
 
