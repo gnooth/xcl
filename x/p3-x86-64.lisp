@@ -25,7 +25,9 @@
          ;; make initial size big enough to avoid having to resize the output vector
          (initial-size (max (logand (+ len (ash len -1) 16) (lognot 15)) 64))
          (new-code (make-array initial-size :fill-pointer 0))
-         (index (length (compiland-arg-vars compiland))))
+;;          (index (length (compiland-arg-vars compiland)))
+         (index 0)
+         )
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
@@ -58,9 +60,6 @@
                  (when (compiland-needs-thread-var-p compiland)
                    (vector-push-extend '(:pop :r12) new-code))
                  (vector-push-extend '(:ret) new-code))
-                (:initialize-arg-var
-                 ;; do nothing for now
-                 )
                 (:maybe-align-stack
                  (unless (compiland-leaf-p compiland)
                    (let ((*code* nil)
@@ -87,6 +86,16 @@
                    (incf index)
                    ;; FIXME coalesce all these pushes at the end of FINALIZE-VARS
                    (vector-push-extend '(:push :rax) new-code)))
+                (:initialize-arg-var
+                 ;; FIXME move this case to FINALIZE-VARS
+                 (let ((var (second instruction)))
+                   (aver (var-p var))
+                   (aver (null (var-index var)))
+                   (aver (var-register var))
+                   (vector-push-extend `(:push ,(var-register var)) new-code)
+                   (setf (var-index var) index)
+                   (incf index)
+                   (setf (var-register var) nil)))
                 (:maybe-enter-frame
                  (unless (compiland-omit-frame-pointer compiland)
                    (vector-push-extend '(:push :rbp) new-code)

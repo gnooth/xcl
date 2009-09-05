@@ -5360,8 +5360,8 @@
     stack-used))
 
 (defknown trivial-allocate-locals (t t) t)
-(defun trivial-allocate-locals (compiland index)
-    (declare (type index index))
+(defun trivial-allocate-locals (compiland)
+;;     (declare (type index index))
     (let ((locals (reverse *local-variables*)))
       (when locals
         (dolist (var locals)
@@ -5415,26 +5415,30 @@
     (inst :push reg))
   (inst :maybe-enter-frame)
 
-  (let ((index 0))
+  (let (
+;;         (index 0)
+        )
     ;; copy args from registers to permanent locations
-    (dolist (var (compiland-arg-vars compiland))
-      (declare (type var var))
-      (aver (null (var-index var)))
-      (aver (var-register var))
-      (inst :push (var-register var))
-      ;;         (incf stack-used)
-      (setf (var-index var) index)
-      (incf index)
-      (set-register-contents (var-register var) var)
-      (setf (var-register var) nil))
+;;     (dolist (var (compiland-arg-vars compiland))
+;;       (declare (type var var))
+;;       (aver (null (var-index var)))
+;;       (aver (var-register var))
+;;       (inst :push (var-register var))
+;;       ;;         (incf stack-used)
+;;       (setf (var-index var) index)
+;;       (incf index)
+;;       (set-register-contents (var-register var) var)
+;;       (setf (var-register var) nil))
 
     (dolist (var (compiland-arg-vars compiland))
       (inst :initialize-arg-var var))
 
     ;; set up permanent locations for local variables
-    (aver (eql index (length (compiland-arg-vars compiland))))
+;;     (aver (eql index (length (compiland-arg-vars compiland))))
 ;;     (allocate-locals compiland index)
-    (trivial-allocate-locals compiland (length (compiland-arg-vars compiland)))
+    (trivial-allocate-locals compiland
+;;                              (length (compiland-arg-vars compiland))
+                             )
     )
   (inst :maybe-align-stack)
   (inst :maybe-initialize-thread-register)
