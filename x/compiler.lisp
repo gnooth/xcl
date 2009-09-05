@@ -2362,7 +2362,7 @@ for special variables."
 ;;              (dolist (var (compiland-arg-vars compiland))
 ;;                (when (eq (var-kind var) :required)
 ;;                  (setf (var-index var) (+ (var-index var) delta)))))
-;;            (p2-trivial-function-prolog compiland)
+           (p2-trivial-function-prolog compiland)
            )
           (t
            (p2-function-prolog compiland)))
@@ -2380,15 +2380,15 @@ for special variables."
 
     (analyze-ir2)
 
-    (when (trivial-p compiland)
-      (let ((*code* nil)
-            (*main* nil)
-            (*elsewhere* nil))
-        (p2-trivial-function-prolog compiland)
-        (if *elsewhere*
-            (setf (compiland-prolog compiland) (concatenate 'simple-vector *main* *elsewhere*))
-            (setf (compiland-prolog compiland) (concatenate 'simple-vector *main*))))
-      (setq *code* (concatenate 'simple-vector (compiland-prolog compiland) *code*)))
+;;     (when (trivial-p compiland)
+;;       (let ((*code* nil)
+;;             (*main* nil)
+;;             (*elsewhere* nil))
+;;         (p2-trivial-function-prolog compiland)
+;;         (if *elsewhere*
+;;             (setf (compiland-prolog compiland) (concatenate 'simple-vector *main* *elsewhere*))
+;;             (setf (compiland-prolog compiland) (concatenate 'simple-vector *main*))))
+;;       (setq *code* (concatenate 'simple-vector (compiland-prolog compiland) *code*)))
 
 ;;     (dump-code) ; IR2
     (optimize-ir2)
