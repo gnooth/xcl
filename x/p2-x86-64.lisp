@@ -5374,13 +5374,13 @@
 
 ;; A parent can also be a child.
 
-(defknown p2-trivial-leaf-function-prolog (t) t)
-(defun p2-trivial-leaf-function-prolog (compiland)
-  (declare (type compiland compiland))
-  (mumble "p2-trivial-leaf-function-prolog ~S~%" (compiland-name compiland))
-  (setf (compiland-omit-frame-pointer compiland) t)
-  (clear-register-contents)
-  t)
+;; (defknown p2-trivial-leaf-function-prolog (t) t)
+;; (defun p2-trivial-leaf-function-prolog (compiland)
+;;   (declare (type compiland compiland))
+;;   (mumble "p2-trivial-leaf-function-prolog ~S~%" (compiland-name compiland))
+;;   (setf (compiland-omit-frame-pointer compiland) t)
+;;   (clear-register-contents)
+;;   t)
 
 (defknown p2-trivial-function-prolog (t) t)
 (defun p2-trivial-function-prolog (compiland)
@@ -5428,8 +5428,9 @@
 
       (unless (compiland-leaf-p compiland)
         ;; fix stack alignment if necessary
-        (when (oddp stack-used)
-          (inst :push :rax)))
+;;         (when (oddp stack-used)
+;;           (inst :push :rax)))
+        (inst :align-stack))
 
 ;;       (when (compiland-thread-register compiland)
       (when (compiland-needs-thread-var-p compiland)

@@ -122,6 +122,9 @@
         (t
          (unsupported))))
 
+(define-assembler :int3
+  (emit-byte #xcc))
+
 (define-assembler :leave
   (emit-byte #xc9))
 
