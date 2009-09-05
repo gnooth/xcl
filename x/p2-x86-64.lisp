@@ -5359,6 +5359,20 @@
                (inst :sub numbytes :rsp)))))
     stack-used))
 
+(defknown trivial-allocate-locals (t t) t)
+(defun trivial-allocate-locals (compiland index)
+    (declare (type index index))
+    (let ((locals (reverse *local-variables*)))
+      (when locals
+        (dolist (var locals)
+          (declare (type var var))
+          (unless (var-special-p var)
+            (when (eq (var-compiland-id var) (compiland-id compiland))
+              (aver (null (var-index var)))
+              (aver (null (var-register var)))
+              (aver (null (var-closure-index var)))
+              (inst :maybe-allocate-local var)))))))
+
 ;; 1. required arguments only, 6 or fewer: rdi, rsi, rdx, rcx, r8, r9
 
 ;; 2. required arguments only, more than 6: numargs in rdi, args vector in rsi
@@ -5395,56 +5409,35 @@
   ;; "The end of the input argument area shall be aligned on a 16 byte boundary.
   ;; In other words, the value (%rsp - 8) is always a multiple of 16 when control
   ;; is transferred to the function entry point."
-  (let ((stack-used -1)) ; we want this to be an even number when we're done
-    (cond ((or t (compiland-arg-vars compiland) *local-variables* *closure-vars*)
-;;            (when (compiland-needs-thread-var-p compiland)
-;;              (inst :push :r12)
-;;              (incf stack-used))
-           (inst :maybe-save-thread-register)
-           (dolist (reg (compiland-registers-to-be-saved compiland))
-             (inst :push reg)
-             (incf stack-used))
-;;            (unless (compiland-omit-frame-pointer compiland)
-;;              (inst :push :rbp)
-;;              (incf stack-used)
-;;              (inst :mov :rsp :rbp))
-           (inst :maybe-enter-frame)
-           )
-          (t
-           (setf (compiland-omit-frame-pointer compiland) t)))
 
-    (let ((index 0))
-      ;; copy args from registers to permanent locations
-      (dolist (var (compiland-arg-vars compiland))
-        (declare (type var var))
-        (aver (null (var-index var)))
-        (aver (var-register var))
-        (inst :push (var-register var))
-        (incf stack-used)
-        (setf (var-index var) index)
-        (incf index)
-        (set-register-contents (var-register var) var)
-        (setf (var-register var) nil))
+  (inst :maybe-save-thread-register)
+  (dolist (reg (compiland-registers-to-be-saved compiland))
+    (inst :push reg))
+  (inst :maybe-enter-frame)
 
-      (dolist (var (compiland-arg-vars compiland))
-        (inst :initialize-arg-var var))
+  (let ((index 0))
+    ;; copy args from registers to permanent locations
+    (dolist (var (compiland-arg-vars compiland))
+      (declare (type var var))
+      (aver (null (var-index var)))
+      (aver (var-register var))
+      (inst :push (var-register var))
+      ;;         (incf stack-used)
+      (setf (var-index var) index)
+      (incf index)
+      (set-register-contents (var-register var) var)
+      (setf (var-register var) nil))
 
-      ;; set up permanent locations for local variables
-      (incf stack-used (allocate-locals compiland index)))
+    (dolist (var (compiland-arg-vars compiland))
+      (inst :initialize-arg-var var))
 
-;;     (unless (compiland-leaf-p compiland)
-        ;; fix stack alignment if necessary
-;;         (when (oddp stack-used)
-;;           (inst :push :rax)))
-      (inst :maybe-align-stack)
-;;       )
-
-;;       (when (compiland-thread-register compiland)
-;;       (when (compiland-needs-thread-var-p compiland)
-;;         (emit-call "RT_current_thread")
-;;         (inst :mov :rax :r12)))
-    (inst :maybe-initialize-thread-register)
+    ;; set up permanent locations for local variables
+    (aver (eql index (length (compiland-arg-vars compiland))))
+;;     (allocate-locals compiland index)
+    (trivial-allocate-locals compiland (length (compiland-arg-vars compiland)))
     )
+  (inst :maybe-align-stack)
+  (inst :maybe-initialize-thread-register)
   (clear-register-contents)
   t)
 
