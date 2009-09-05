@@ -5438,6 +5438,20 @@
   (clear-register-contents)
   t)
 
+#+nil
+(defun p2-simple-function-prolog (compiland)
+  (inst :save-registers)
+  (inst :enter-frame)
+  (dolist (var (compiland-arg-vars compiland))
+    (inst :maybe-initialize var)
+    )
+  (let ((locals (reverse *local-variables*)))
+    (dolist (var locals)
+      (inst :maybe-initialize-local var)))
+  (inst :align-stack)
+  (inst :maybe-initialize-thread-var)
+  )
+
 (defknown allocate-closure-data-vector (t t) t)
 (defun allocate-closure-data-vector (compiland numvars stack-used)
   ;; the call to RT_malloc may trash all the argument registers!

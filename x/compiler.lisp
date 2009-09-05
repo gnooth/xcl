@@ -2355,10 +2355,6 @@ for special variables."
     (when (compiland-needs-thread-var-p compiland)
       (allocate-thread-var compiland))
     (clear-register-contents)
-;;     (let ((arity (compiland-arity compiland)))
-;;       (cond ((and arity
-;;                   (<= arity 6)
-;;                   (null *closure-vars*))
     (cond ((trivial-p compiland)
 ;;            (assign-registers-for-locals compiland)
 ;;            #+x86
