@@ -18,6 +18,7 @@
 
 (in-package "COMPILER")
 
+#+nil
 (defun finalize-ir2 ()
   (let* ((compiland *current-compiland*)
          (code *code*)
@@ -55,6 +56,74 @@
                  (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
                    (vector-push-extend `(:pop ,reg) new-code))
                  (vector-push-extend '(:ret) new-code))
+                (t
+                 (vector-push-extend instruction new-code)))))))
+    (setq *code* (coerce new-code 'simple-vector))))
+
+(defun finalize-ir2 ()
+  (let* ((compiland *current-compiland*)
+         (code *code*)
+         (len (length code))
+         ;; make initial size big enough to avoid having to resize the output vector
+         (initial-size (max (logand (+ len (ash len -1) 16) (lognot 15)) 64))
+         (new-code (make-array initial-size :fill-pointer 0))
+         ;;          (index (length (compiland-arg-vars compiland)))
+         (index -1) ; first local is at -4(%ebp)
+         )
+    (declare (type simple-vector code))
+    (dotimes (i (length code))
+      (let ((instruction (svref code i)))
+        (unless (consp instruction)
+          (format t "p3 non-cons instruction = ~S~%" instruction))
+        (if (consp instruction)
+            (let ((operation (first instruction))
+                  ;;                   (operand1 (second instruction))
+                  ;;                   (operand2 (third  instruction))
+                  )
+              (case operation
+                (:exit
+                 (unless (compiland-omit-frame-pointer compiland)
+                   (vector-push-extend '(:leave) new-code))
+                 (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
+                   (vector-push-extend `(:pop ,reg) new-code))
+                 (vector-push-extend '(:ret) new-code))
+                (:maybe-align-stack
+                 (unless (compiland-leaf-p compiland)
+                   (let ((*code* nil)
+                         (*main* nil)
+                         (*elsewhere* nil)
+                         (*current-segment* :main))
+                     (let ((OK (make-label)))
+                       (inst :test 15 :esp)
+                       (emit-jmp-short :z OK)
+                       (inst :sub 8 :rsp)
+                       (inst :test 15 :rsp)
+                       (emit-jmp-short :z OK)
+                       (inst :int3)
+                       (label OK))
+                     (dotimes (i (length *main*))
+                       (vector-push-extend (aref *main* i) new-code)))))
+                (:maybe-allocate-local
+                 ;; FIXME move this case to FINALIZE-VARS
+                 (let ((var (second instruction)))
+                   (aver (var-p var))
+                   (aver (null (var-index var)))
+                   (aver (null (var-register var)))
+                   (setf (var-index var) index)
+                   (decf index)
+                   ;; FIXME coalesce all these pushes at the end of FINALIZE-VARS
+                   (vector-push-extend '(:push :eax) new-code)))
+                (:maybe-enter-frame
+                 (unless (compiland-omit-frame-pointer compiland)
+                   (vector-push-extend '(:push :ebp) new-code)
+                   (vector-push-extend '(:mov :esp :ebp) new-code)))
+                (:initialize-thread-var
+                 (when (compiland-thread-var compiland)
+                   (vector-push-extend '(:call "RT_current_thread") new-code)
+                   (vector-push-extend `(:mov :eax ,(compiland-thread-var compiland)) new-code)))
+                (:save-registers
+                 (dolist (reg (compiland-registers-to-be-saved compiland))
+                   (vector-push-extend `(:push ,reg) new-code)))
                 (t
                  (vector-push-extend instruction new-code)))))))
     (setq *code* (coerce new-code 'simple-vector))))

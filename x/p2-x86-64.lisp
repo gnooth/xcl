@@ -5359,7 +5359,7 @@
                (inst :sub numbytes :rsp)))))
     stack-used))
 
-(defknown trivial-allocate-locals (t t) t)
+(defknown trivial-allocate-locals (t) t)
 (defun trivial-allocate-locals (compiland)
 ;;     (declare (type index index))
     (let ((locals (reverse *local-variables*)))
