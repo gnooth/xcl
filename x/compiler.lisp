@@ -2061,6 +2061,9 @@ for special variables."
               (operand2 (third instruction)))
           (cond ((eq operation :call)
                  (setq leaf-p nil))
+                ((eq operation :allocate-local)
+                 ;; not a use of the var in question
+                 )
                 ((and thread-var
                       (or (eq operand1 thread-var)
                           (eq operand2 thread-var)))
