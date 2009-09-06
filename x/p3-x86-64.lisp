@@ -43,6 +43,10 @@
                    (vector-push-extend '(:pop :r12) new-code))
                  (vector-push-extend '(:ret) new-code))
                 (:align-stack
+                 ;; "The end of the input argument area shall be aligned on a
+                 ;; 16 byte boundary. In other words, the value (%rsp - 8) is
+                 ;; always a multiple of 16 when control is transferred to the
+                 ;; function entry point."
                  (unless (compiland-leaf-p compiland)
 ;;                    (let ((*code* nil)
 ;;                          (*main* nil)
@@ -65,11 +69,12 @@
                  (let ((var (second instruction)))
                    (aver (var-p var))
                    (aver (null (var-index var)))
-                   (aver (null (var-register var)))
-                   (setf (var-index var) index)
-                   (incf index)
-                   ;; FIXME coalesce all these pushes at the end of FINALIZE-VARS
-                   (vector-push-extend '(:push :rax) new-code)))
+;;                    (aver (null (var-register var)))
+                   (unless (var-register var)
+                     (setf (var-index var) index)
+                     (incf index)
+                     ;; FIXME coalesce all these pushes at the end of FINALIZE-VARS
+                     (vector-push-extend '(:push :rax) new-code))))
                 (:initialize-arg-var
                  ;; FIXME move this case to FINALIZE-VARS
                  (let ((var (second instruction)))

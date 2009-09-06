@@ -1340,7 +1340,7 @@
               (let ((reg (get-available-register)))
                 (cond (reg
                        (setf (var-register var) reg)
-;;                        (mumble "assign-registers-for-locals var = ~S reg = ~S~%" (var-name var) reg)
+                       (mumble "assign-registers-for-locals var = ~S reg = ~S~%" (var-name var) reg)
                        (push reg (compiland-registers-to-be-saved compiland)))
                       (t
                        ;; we've run out of available registers

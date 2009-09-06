@@ -3540,7 +3540,8 @@
              (let ((FULL-CALL (gensym))
                    (EXIT (gensym)))
                (process-1-arg arg1 :rax t)
-               (inst :mov :rax :rdi)
+               (unless (constant-or-local-var-ref-p arg1)
+                 (inst :mov :rax :rdi))
                (unless (fixnum-type-p type1)
                  (inst :test +fixnum-tag-mask+ :al)
                  (emit-jmp-short :nz FULL-CALL))
@@ -3557,6 +3558,9 @@
                (move-result-to-target target)
                (let ((*current-segment* :elsewhere))
                  (label FULL-CALL)
+                 (clear-register-contents)
+                 (when (constant-or-local-var-ref-p arg1)
+                   (process-1-arg arg1 :rdi nil))
                  (inst :mov (fixnumize arg2) :rsi)
                  (emit-call 'two-arg-+)
                  (emit-jmp-short t EXIT))))
@@ -5361,7 +5365,6 @@
 
 (defknown trivial-allocate-locals (t) t)
 (defun trivial-allocate-locals (compiland)
-;;     (declare (type index index))
     (let ((locals (reverse *local-variables*)))
       (when locals
         (dolist (var locals)
@@ -5399,48 +5402,13 @@
 (defknown p2-trivial-function-prolog (t) t)
 (defun p2-trivial-function-prolog (compiland)
   (declare (type compiland compiland))
-;;   (mumble "p2-trivial-function-prolog~%")
   (clear-register-contents)
-
-;;   (assign-registers-for-locals compiland)
-;;   (mumble "p2-trivial-function-prolog compiland-registers-to-be-saved = ~S~%"
-;;              (compiland-registers-to-be-saved compiland))
-
-  ;; "The end of the input argument area shall be aligned on a 16 byte boundary.
-  ;; In other words, the value (%rsp - 8) is always a multiple of 16 when control
-  ;; is transferred to the function entry point."
-
   (inst :save-thread-register)
-;;   (dolist (reg (compiland-registers-to-be-saved compiland))
-;;     (inst :push reg))
   (inst :save-registers)
   (inst :enter-frame)
-
-  (let (
-;;         (index 0)
-        )
-    ;; copy args from registers to permanent locations
-;;     (dolist (var (compiland-arg-vars compiland))
-;;       (declare (type var var))
-;;       (aver (null (var-index var)))
-;;       (aver (var-register var))
-;;       (inst :push (var-register var))
-;;       ;;         (incf stack-used)
-;;       (setf (var-index var) index)
-;;       (incf index)
-;;       (set-register-contents (var-register var) var)
-;;       (setf (var-register var) nil))
-
-    (dolist (var (compiland-arg-vars compiland))
-      (inst :initialize-arg-var var))
-
-    ;; set up permanent locations for local variables
-;;     (aver (eql index (length (compiland-arg-vars compiland))))
-;;     (allocate-locals compiland index)
-    (trivial-allocate-locals compiland
-;;                              (length (compiland-arg-vars compiland))
-                             )
-    )
+  (dolist (var (compiland-arg-vars compiland))
+    (inst :initialize-arg-var var))
+  (trivial-allocate-locals compiland)
   (inst :align-stack)
   (inst :initialize-thread-register)
   (clear-register-contents)

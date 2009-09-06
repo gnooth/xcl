@@ -2397,6 +2397,11 @@ for special variables."
 
 ;;     (dump-code) ; IR2
     (optimize-ir2)
+
+    #+x86-64
+    (when (trivial-p compiland)
+      (assign-registers-for-locals compiland))
+
     (cond (*ir2-only*
            (let ((*dump-code* t))
              (mumble "code (including prolog) after IR2 optimization:~%")
