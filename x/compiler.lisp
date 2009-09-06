@@ -89,6 +89,8 @@
   kind ; :required :optional :rest :key :local
   index
   register
+  #+x86-64
+  arg-register
   arg-index ; index in argument vector
   closure-index
   special-p
@@ -2226,7 +2228,7 @@ for special variables."
                                     (5 :r9)
                                     (t
                                      (compiler-unsupported "P1-LAMBDA-LIST shouldn't happen"))))
-                        (var (make-var :name name :kind :required :register register)))
+                        (var (make-var :name name :kind :required :arg-register register)))
                    (push var vars))
                  (incf index)))))
       (let* ((minargs (length required))
