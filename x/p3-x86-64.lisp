@@ -34,25 +34,9 @@
         (unless (consp instruction)
           (format t "p3 non-cons instruction = ~S~%" instruction))
         (if (consp instruction)
-            (let ((operation (first instruction))
-;;                   (operand1 (second instruction))
-;;                   (operand2 (third  instruction))
-                  )
+            (let ((operation (first instruction)))
               (case operation
                 (:exit
-;;                  (let ((instructions nil))
-;;                    (unless (compiland-omit-frame-pointer compiland)
-;;                      (push '(:leave) instructions))
-;;                    (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
-;;                      (push `(:pop ,reg) instructions))
-;;                    (when (compiland-needs-thread-var-p compiland)
-;;                      (push '(:pop :r12) instructions))
-;;                    (push '(:ret) instructions)
-;;                    (setq instructions (nreverse instructions))
-;;                    (let ((bytes (assemble instructions)))
-;;                      (setq instruction
-;;                            (make-instruction :exit (length bytes) (coerce bytes 'list)))))
-;;                  (vector-push-extend instruction new-code))
                  (unless (compiland-omit-frame-pointer compiland)
                    (vector-push-extend '(:leave) new-code))
                  (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
@@ -60,7 +44,7 @@
                  (when (compiland-needs-thread-var-p compiland)
                    (vector-push-extend '(:pop :r12) new-code))
                  (vector-push-extend '(:ret) new-code))
-                (:maybe-align-stack
+                (:align-stack
                  (unless (compiland-leaf-p compiland)
                    (let ((*code* nil)
                          (*main* nil)
@@ -76,7 +60,7 @@
                        (label OK))
                      (dotimes (i (length *main*))
                        (vector-push-extend (aref *main* i) new-code)))))
-                (:maybe-allocate-local
+                (:allocate-local
                  ;; FIXME move this case to FINALIZE-VARS
                  (let ((var (second instruction)))
                    (aver (var-p var))
@@ -96,15 +80,18 @@
                    (setf (var-index var) index)
                    (incf index)
                    (setf (var-register var) nil)))
-                (:maybe-enter-frame
+                (:enter-frame
                  (unless (compiland-omit-frame-pointer compiland)
                    (vector-push-extend '(:push :rbp) new-code)
                    (vector-push-extend '(:mov :rsp :rbp) new-code)))
-                (:maybe-initialize-thread-register
+                (:initialize-thread-register
                  (when (compiland-needs-thread-var-p compiland)
                    (vector-push-extend '(:call "RT_current_thread") new-code)
                    (vector-push-extend '(:mov :rax :r12) new-code)))
-                (:maybe-save-thread-register
+                (:save-registers
+                 (dolist (reg (compiland-registers-to-be-saved compiland))
+                   (vector-push-extend `(:push ,reg) new-code)))
+                (:save-thread-register
                  (when (compiland-needs-thread-var-p compiland)
                    (vector-push-extend '(:push :r12) new-code)))
                 (t

@@ -147,7 +147,7 @@
             (aver (null (var-index var)))
             (aver (null (var-register var)))
             (aver (null (var-closure-index var)))
-            (inst :maybe-allocate-local var)))))))
+            (inst :allocate-local var)))))))
 
 (defknown p2-trivial-function-prolog (compiland) t)
 (defun p2-trivial-function-prolog (compiland)
@@ -160,7 +160,7 @@
 ;;   (cond ((or t (compiland-arg-vars compiland) *local-variables* *closure-vars*)
 ;;   (inst :push :ebp)
 ;;   (inst :mov :esp :ebp)
-  (inst :maybe-enter-frame)
+  (inst :enter-frame)
   ;;          )
 ;;         (t
 ;;          (setf (compiland-omit-frame-pointer compiland) t)))

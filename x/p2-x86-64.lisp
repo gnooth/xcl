@@ -5371,7 +5371,7 @@
               (aver (null (var-index var)))
               (aver (null (var-register var)))
               (aver (null (var-closure-index var)))
-              (inst :maybe-allocate-local var)))))))
+              (inst :allocate-local var)))))))
 
 ;; 1. required arguments only, 6 or fewer: rdi, rsi, rdx, rcx, r8, r9
 
@@ -5410,10 +5410,11 @@
   ;; In other words, the value (%rsp - 8) is always a multiple of 16 when control
   ;; is transferred to the function entry point."
 
-  (inst :maybe-save-thread-register)
-  (dolist (reg (compiland-registers-to-be-saved compiland))
-    (inst :push reg))
-  (inst :maybe-enter-frame)
+  (inst :save-thread-register)
+;;   (dolist (reg (compiland-registers-to-be-saved compiland))
+;;     (inst :push reg))
+  (inst :save-registers)
+  (inst :enter-frame)
 
   (let (
 ;;         (index 0)
@@ -5440,24 +5441,10 @@
 ;;                              (length (compiland-arg-vars compiland))
                              )
     )
-  (inst :maybe-align-stack)
-  (inst :maybe-initialize-thread-register)
+  (inst :align-stack)
+  (inst :initialize-thread-register)
   (clear-register-contents)
   t)
-
-#+nil
-(defun p2-simple-function-prolog (compiland)
-  (inst :save-registers)
-  (inst :enter-frame)
-  (dolist (var (compiland-arg-vars compiland))
-    (inst :maybe-initialize var)
-    )
-  (let ((locals (reverse *local-variables*)))
-    (dolist (var locals)
-      (inst :maybe-initialize-local var)))
-  (inst :align-stack)
-  (inst :maybe-initialize-thread-var)
-  )
 
 (defknown allocate-closure-data-vector (t t) t)
 (defun allocate-closure-data-vector (compiland numvars stack-used)
