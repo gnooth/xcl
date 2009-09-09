@@ -1,6 +1,6 @@
 ;;; disassemble.lisp
 ;;;
-;;; Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -393,6 +393,8 @@
 
 (defun disassemble (arg)
   (setq *lambda-name* (if (symbolp arg) arg nil))
+  (when (and (symbolp arg) (autoloadp arg))
+    (resolve arg))
   (let ((function (if (symbolp arg)
                       (fdefinition arg)
                       (coerce-to-function arg))))
