@@ -3927,9 +3927,11 @@
     (let* ((args (%cdr form))
            (arg1 (%car args))
            (type1 (derive-type arg1)))
-      (when (eq type1 'CONS)
+      (when (or (eq type1 'CONS)
+                (and (consp type1)
+                     (eq (%car type1) 'CONS)))
         (process-2-args args '(:eax :edx) t)
-        (inst :mov :edx '(7 :eax))
+        (inst :mov :edx '(3 :eax))
         (move-result-to-target target)
         t))))
 
