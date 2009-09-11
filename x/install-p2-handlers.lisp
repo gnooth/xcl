@@ -127,7 +127,6 @@
 (install-p2-handler 'require-vector             'p2-require-vector)
 (install-p2-handler 'rest                       'p2-cdr)
 (install-p2-handler 'reverse                    'p2-reverse/nreverse)
-#+x86
 (install-p2-handler 'rplaca                     'p2-rplaca)
 (install-p2-handler 'rplacd                     'p2-rplacd)
 (install-p2-handler 'schar                      'p2-schar)
