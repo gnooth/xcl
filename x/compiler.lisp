@@ -1706,7 +1706,8 @@ for special variables."
     (let ((i 0))
       (dolist (instruction (coerce *code* 'list))
         (fresh-line *debug-io*)
-        (mumble "~4,D: " (incf i))
+        (mumble "~4,D: " i)
+        (incf i)
         (cond ((vectorp instruction)
                (mumble "~S~%" instruction))
               ((consp instruction)
@@ -2003,6 +2004,61 @@ for special variables."
       (setq *code* (delete nil code)))
     changed))
 
+(defknown optimize-ir2-7 () t)
+#+x86-64
+(defun optimize-ir2-7 ()
+;;   (let ((*dump-code* t))
+;;     (dump-code))
+  (let ((code *code*)
+        (changed nil))
+    (declare (type simple-vector code))
+    (dotimes (i (length code))
+      (let ((instruction-1 (svref code i)))
+        (when (and instruction-1
+                   (eq (first instruction-1) :push)
+;;                    (reg64-p (second instruction-1))
+                   (memq (second instruction-1) '(:rax :rcx :rdx :rbx)) ; FIXME
+                   )
+;;           (mumble "considering instruction ~S~%" i)
+          (let ((reg (second instruction-1))
+                (j (1+ i)))
+            (loop
+              (when (eql j (length code))
+                (return))
+              (let ((instruction (svref code j)))
+                (unless (null instruction)
+                  (case (first instruction)
+                    (:call
+                     (return))
+                    ((:jmp :jmp-short)
+                     (return))
+                    (:label
+                     (return))
+                    (:bytes ; FIXME
+                     (return))
+                    (:push
+                     (return))
+                    (:pop
+                     (cond ((eq (second instruction) reg)
+                            (mumble "found match for instruction ~S at instruction ~S~%" i j)
+                            (setf (svref code i) nil)
+                            (setf (svref code j) nil)
+                            (setq changed t)
+                            (return))
+                           (t
+                            (return))))
+                    (t
+                     (when (memq (third instruction) (list reg (reg8 reg) (reg32 reg)))
+                       ;; reg used
+                       (return))))))
+              (incf j))))))
+    (when changed
+      (setq *code* (delete nil code))
+;;       (let ((*dump-code* t))
+;;         (dump-code))
+      )
+    changed))
+
 ;; TCO
 (defknown optimize-ir2-6 () t)
 (defun optimize-ir2-6 ()
@@ -2037,6 +2093,8 @@ for special variables."
       (setq changed (or (optimize-ir2-3)  changed))
       (setq changed (or (optimize-ir2-4)  changed))
       (setq changed (or (optimize-ir2-5)  changed))
+      #+x86-64
+      (setq changed (or (optimize-ir2-7)  changed))
       (unless changed
         (return))))
   #+x86-64
