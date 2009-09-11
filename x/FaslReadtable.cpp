@@ -1,6 +1,6 @@
 // FaslReadtable.cpp
 //
-// Copyright (C) 2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2008-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -255,7 +255,7 @@ Value SYS_fasl_sharp_left_paren(Value streamarg, Value subchar, Value numarg)
           SimpleVector * vector = new_simple_vector(len);
           for (INDEX i = 0; i < len; i++)
             {
-              vector->aset(i, car(list));
+              vector->inline_xaset(i, car(list));
               if (cdr(list) != NIL)
                 list = xcdr(list);
             }

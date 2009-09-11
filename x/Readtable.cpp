@@ -584,7 +584,7 @@ Value SYS_sharp_left_paren(Value streamarg, Value subchar, Value numarg)
           SimpleVector * vector = new_simple_vector(len);
           for (INDEX i = 0; i < len; i++)
             {
-              vector->aset(i, car(list));
+              vector->inline_xaset(i, car(list));
               if (cdr(list) != NIL)
                 list = xcdr(list);
             }

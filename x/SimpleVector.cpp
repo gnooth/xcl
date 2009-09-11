@@ -18,7 +18,6 @@
 
 #include "lisp.hpp"
 #include "primitives.hpp"
-
 #include "SimpleVector.hpp"
 
 SimpleVector::SimpleVector(INDEX capacity, Value data[])
@@ -126,11 +125,6 @@ inline Value SimpleVector::inline_aset(INDEX i, Value new_value)
   if (i < _capacity)
     return (_data[i] = new_value);
   return bad_index(i, 0, _capacity);
-}
-
-inline Value SimpleVector::inline_xaset(INDEX i, Value new_value)
-{
-  return (_data[i] = new_value);
 }
 
 Value SimpleVector::aset(INDEX i, Value new_value)

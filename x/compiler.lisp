@@ -2040,7 +2040,7 @@ for special variables."
                      (return))
                     (:pop
                      (cond ((eq (second instruction) reg)
-                            (mumble "found match for instruction ~S at instruction ~S~%" i j)
+;;                             (mumble "found match for instruction ~S at instruction ~S~%" i j)
                             (setf (svref code i) nil)
                             (setf (svref code j) nil)
                             (setq changed t)

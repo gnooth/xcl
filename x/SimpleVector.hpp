@@ -1,6 +1,6 @@
 // SimpleVector.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@ public:
     memset(_data, 0, capacity * sizeof(Value));
   }
 
-  SimpleVector(INDEX length, Value data[]);
+  SimpleVector(INDEX capacity, Value data[]);
 
   SimpleVector(Value list);
 
@@ -100,7 +100,10 @@ public:
   inline Value inline_aset(INDEX i, Value new_value);
 
   // not virtual
-  inline Value inline_xaset(INDEX i, Value new_value);
+  inline Value inline_xaset(INDEX i, Value new_value)
+  {
+    return (_data[i] = new_value);
+  }
 
   virtual Value aset(INDEX i, Value new_value);
 
