@@ -4495,7 +4495,6 @@
          (type2 (derive-type arg2))
          (numargs (length args))
          (thread-register (compiland-thread-register *current-compiland*)))
-    (aver thread-register)
     (cond ((eq type2 :unknown)
            (mumble "p2-gethash type2 is unknown~%")
            nil)
@@ -4508,12 +4507,16 @@
                  (process-2-args args :default t)
                  (emit-call-2 op target))
                 (gethash2
+                 (unless thread-register
+                   (return-from p2-gethash nil))
                  (setq op "RT_gethash2")
                  (process-2-args args '(:rsi :rdx) t)
                  (inst :mov thread-register :rdi)
                  (emit-call-3 op target)))
               t)
              (3
+              (unless thread-register
+                (return-from p2-gethash nil))
               (aver (eq op 'gethash3))
               (setq op "RT_gethash3")
               (process-3-args args '(:rsi :rdx :rcx) t)
