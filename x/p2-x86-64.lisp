@@ -643,12 +643,12 @@
          (arg2 (%cadr args))
          (type1 (derive-type arg1))
          (type2 (derive-type arg2)))
-    (mumble "p2-test-numeric-comparison ~S type1 = ~S~A type2 = ~S~A~%"
-            op
-            type1
-            (if (fixnum-type-p type1) " (fixnum)" "")
-            type2
-            (if (fixnum-type-p type2) " (fixnum)" ""))
+;;     (mumble "p2-test-numeric-comparison ~S type1 = ~S~A type2 = ~S~A~%"
+;;             op
+;;             type1
+;;             (if (fixnum-type-p type1) " (fixnum)" "")
+;;             type2
+;;             (if (fixnum-type-p type2) " (fixnum)" ""))
     (cond ((and (fixnum-type-p type1)
                 (fixnum-type-p type2))
            (cond ((and (fixnump arg1)
@@ -674,7 +674,6 @@
                   t)))
           ((or (float-type-p type1) (float-type-p type2))
            ;; full call
-           (mumble "p2-test-numeric-comparison float case~%")
            (process-2-args args '(:rdi :rsi) t)
            (emit-call op)
            (inst :compare-immediate nil :rax)
@@ -1111,8 +1110,8 @@
                     (inst :test :al :al)
                     (emit-jmp-short :z LABEL1))
                    (t
-                    (when op
-                      (mumble "p2-if-and default case op = ~S~%" op))
+;;                     (when op
+;;                       (mumble "p2-if-and default case op = ~S~%" op))
                     (process-1-arg subform :rax t)
                     (inst :compare-immediate nil :rax)
                     (emit-jmp-short :e LABEL1)))))
@@ -1205,8 +1204,8 @@
                     (inst :test :al :al)
                     (emit-jmp-short :nz LABEL1))
                    (t
-                    (when op
-                      (mumble "p2-if-or default case op = ~S~%" op))
+;;                     (when op
+;;                       (mumble "p2-if-or default case op = ~S~%" op))
                     (process-1-arg subform :rax t)
                     (inst :compare-immediate nil :rax)
                     (emit-jmp-short :ne LABEL1)))))
@@ -2351,7 +2350,6 @@
            (arg3 (%caddr args))
            (type1 (derive-type arg1)))
       (cond ((zerop *safety*)
-             (mumble "p2-svset safety zero case~%")
              (process-3-args args '(:rax :rdx :rcx) t) ; vector in rax, index in rsi, new element in rcx
              (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
              ;; index is in rdx

@@ -1221,9 +1221,9 @@
                       (inst :test :al :al)
                       (emit-jmp-short :nz LABEL1))
                      (t
-                      (if op
-                          (mumble "p2-if-or default op = ~S~%" op)
-                          (mumble "p2-if-or default~%"))
+;;                       (if op
+;;                           (mumble "p2-if-or default op = ~S~%" op)
+;;                           (mumble "p2-if-or default~%"))
                       (p2 subform :eax)
                       (unless (single-valued-p subform)
                         (emit-clear-values :preserve :eax))
