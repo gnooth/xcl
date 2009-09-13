@@ -18,56 +18,9 @@
 
 (in-package "COMPILER")
 
-;; ;; (declaim (inline make-ir2-instruction))
-;; (defknown make-ir2-instruction (t t t) t)
-;; (defun make-ir2-instruction (operator operand1 operand2)
-;;   (list operator operand1 operand2))
-
-;; ;; (declaim (inline ir2-instruction-p))
-;; (defknown ir2-instruction-p (t) t)
-;; (defun ir2-instruction-p (instruction)
-;;   (consp instruction))
-
-;; ;; (declaim (inline operator))
-;; (defknown operator (t) t)
-;; (defun operator (instruction)
-;;   (first instruction))
-
-;; ;; (declaim (inline operand1))
-;; (defknown operand1 (t) t)
-;; (defun operand1 (instruction)
-;;   (second instruction))
-
-;; ;; (declaim (inline set-operand1))
-;; (defknown set-operand1 (t t) t)
-;; (defun set-operand1 (instruction operand)
-;;   (setf (second instruction) operand))
-
-;; ;; (declaim (inline operand2))
-;; (defknown operand2 (t) t)
-;; (defun operand2 (instruction)
-;;   (third instruction))
-
-;; ;; (declaim (inline set-operand2))
-;; (defknown set-operand2 (t t) t)
-;; (defun set-operand2 (instruction operand)
-;;   (setf (third instruction) operand))
-
 (defstruct (ir2-instruction
             (:conc-name nil)
             (:constructor make-ir2-instruction (operator operand1 operand2)))
   operator
   operand1
   operand2)
-
-;; (declaim (inline set-operand1))
-(defknown set-operand1 (t t) t)
-(defun set-operand1 (instruction operand)
-  (declare (type ir2-instruction instruction))
-  (setf (operand1 instruction) operand))
-
-;; (declaim (inline set-operand2))
-(defknown set-operand2 (t t) t)
-(defun set-operand2 (instruction operand)
-  (declare (type ir2-instruction instruction))
-  (setf (operand2 instruction) operand))

@@ -140,10 +140,9 @@
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
-;;         (unless (consp instruction)
-;;           (format t "p3 non-cons instruction = ~S~%" instruction))
-        (aver (ir2-instruction-p instruction))
-        (if (ir2-instruction-p instruction)
+;;         (aver (ir2-instruction-p instruction))
+        (declare (type ir2-instruction instruction))
+;;         (if (ir2-instruction-p instruction)
             (let ((operator (operator instruction))
                   (operand1 (operand1 instruction))
                   (operand2 (operand2 instruction)))
@@ -152,21 +151,23 @@
                  (cond ((var-p operand1)
                         ;; var ref
                         (cond ((var-index operand1)
-                               (set-operand1 instruction
-                                             (list (index-displacement (var-index operand1)) :rbp)))
+;;                                (set-operand1 instruction
+;;                                              (list (index-displacement (var-index operand1)) :rbp)))
+                               (setf (operand1 instruction)
+                                     (list (index-displacement (var-index operand1)) :rbp)))
                               ((var-register operand1)
-                               (set-operand1 instruction
-                                             (var-register operand1)))
+                               (setf (operand1 instruction)
+                                               (var-register operand1)))
                               (t
                                (mumble "p3 no var-index for var ~S~%" (var-name operand1))
                                (unsupported))))
                        ((var-p operand2)
                         ;; setq
                         (cond ((var-index operand2)
-                               (set-operand2 instruction
-                                             (list (index-displacement (var-index operand2)) :rbp)))
+                               (setf (operand2 instruction)
+                                     (list (index-displacement (var-index operand2)) :rbp)))
                               ((var-register operand2)
-                               (set-operand2 instruction (var-register operand2)))
+                               (setf (operand2 instruction) (var-register operand2)))
                               (t
                                (mumble "p3 no var-index for var ~S~%" (var-name operand2))
                                (unsupported))))
@@ -177,10 +178,10 @@
                 (:push
                  (cond ((var-p operand1)
                         (cond ((var-index operand1)
-                               (set-operand1 instruction
-                                             (list (index-displacement (var-index operand1)) :rbp)))
+                               (setf (operand1 instruction)
+                                     (list (index-displacement (var-index operand1)) :rbp)))
                               ((var-register operand1)
-                               (set-operand1 instruction (var-register operand1)))
+                               (setf (operand1 instruction) (var-register operand1)))
                               (t
                                (mumble "p3 :push unsupported case~%")
                                (unsupported))))
@@ -215,14 +216,20 @@
                      (push '(:pop :r12) instructions))
                    (when instructions
                      (setq instructions (nreverse instructions))
+;;                      (let ((bytes (assemble instructions)))
+;;                        (setq instruction
+;;                              (make-instruction :exit (length bytes) (coerce bytes 'list))))
+;;                      (vector-push-extend instruction new-code)
                      (let ((bytes (assemble instructions)))
-                       (setq instruction
-                             (make-instruction :exit (length bytes) (coerce bytes 'list))))
-                     (vector-push-extend instruction new-code))
+                       (vector-push-extend (make-instruction :exit (length bytes) (coerce bytes 'list))
+                                           new-code))
+                     )
                    (vector-push-extend (make-instruction :jmp 5 (list t target)) new-code)))
                 (:call
-                 (setq instruction (make-instruction :call 5 operand1))
-                 (vector-push-extend instruction new-code))
+;;                  (setq instruction (make-instruction :call 5 operand1))
+;;                  (vector-push-extend instruction new-code)
+                 (vector-push-extend (make-instruction :call 5 operand1) new-code)
+                 )
                 (:move-immediate
                  (cond ((and (consp operand1)
                              (eq (%car operand1) :function))
@@ -290,7 +297,9 @@
                  (vector-push-extend (make-instruction :recurse 5 nil) new-code))
                 (t
                  (vector-push-extend (assemble-instruction instruction) new-code))))
-            (vector-push-extend instruction new-code))))
+;;             (vector-push-extend instruction new-code)
+;;             )
+        ))
     (setq *code* (coerce new-code 'simple-vector))))
 
 (defun p3 ()

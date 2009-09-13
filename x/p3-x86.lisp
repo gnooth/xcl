@@ -30,79 +30,73 @@
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
-;;         (unless (consp instruction)
-;;           (format t "p3 non-cons instruction = ~S~%" instruction))
-;;         (aver (ir2-instruction-p instruction))
         (declare (type ir2-instruction instruction))
-;;         (if (ir2-instruction-p instruction)
-            (let ((operator (operator instruction)))
-              (case operator
-                (:exit
-                 (unless (compiland-omit-frame-pointer compiland)
-;;                    (vector-push-extend '(:leave) new-code)
-                   (vector-push-extend (make-ir2-instruction :leave nil nil) new-code)
-                   )
-                 (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
-;;                    (vector-push-extend `(:pop ,reg) new-code)
-                   (vector-push-extend (make-ir2-instruction :pop reg nil) new-code)
-                   )
-;;                  (vector-push-extend '(:ret) new-code)
-                 (vector-push-extend (make-ir2-instruction :ret nil nil) new-code)
-                 )
-                (:align-stack
-                 (aver nil)
-;;                  (unless (compiland-leaf-p compiland)
-;;                    (let ((*code* nil)
-;;                          (*main* nil)
-;;                          (*elsewhere* nil)
-;;                          (*current-segment* :main))
-;;                      (let ((OK (make-label)))
-;;                        (inst :test 15 :esp)
-;;                        (emit-jmp-short :z OK)
-;;                        (inst :sub 8 :rsp)
-;;                        (inst :test 15 :rsp)
-;;                        (emit-jmp-short :z OK)
-;;                        (inst :int3)
-;;                        (label OK))
-;;                      (dotimes (i (length *main*))
-;;                        (vector-push-extend (aref *main* i) new-code))))
-                 )
-                (:allocate-local
-                 ;; FIXME move this case to FINALIZE-VARS
-                 (let ((var (operand1 instruction)))
-;;                    (aver (var-p var))
-                   (declare (type var var))
-                   (aver (null (var-index var)))
-                   (aver (null (var-register var)))
-                   (setf (var-index var) index)
-                   (decf index)
-                   ;; FIXME coalesce all these pushes at the end of FINALIZE-VARS
-;;                    (vector-push-extend '(:push :eax) new-code)
-                   (vector-push-extend (make-ir2-instruction :push :eax nil) new-code)
-                   ))
-                (:enter-frame
-                 (unless (compiland-omit-frame-pointer compiland)
-;;                    (vector-push-extend '(:push :ebp) new-code)
-                   (vector-push-extend (make-ir2-instruction :push :ebp nil) new-code)
-;;                    (vector-push-extend '(:mov :esp :ebp) new-code)
-                   (vector-push-extend (make-ir2-instruction :mov :esp :ebp) new-code)
-                   ))
-                (:initialize-thread-var
-                 (when (compiland-thread-var compiland)
-;;                    (vector-push-extend '(:call "RT_current_thread") new-code)
-                   (vector-push-extend (make-ir2-instruction :call "RT_current_thread" nil) new-code)
-;;                    (vector-push-extend `(:mov :eax ,(compiland-thread-var compiland)) new-code)
-                   (vector-push-extend (make-ir2-instruction :mov :eax (compiland-thread-var compiland)) new-code)
-                   ))
-                (:save-registers
-                 (dolist (reg (compiland-registers-to-be-saved compiland))
-;;                    (vector-push-extend `(:push ,reg) new-code)
-                   (vector-push-extend (make-ir2-instruction :push reg nil) new-code)
-                   ))
-                (t
-                 (vector-push-extend instruction new-code))))
-;;             )
-        ))
+        (let ((operator (operator instruction)))
+          (case operator
+            (:exit
+             (unless (compiland-omit-frame-pointer compiland)
+               ;;                    (vector-push-extend '(:leave) new-code)
+               (vector-push-extend (make-ir2-instruction :leave nil nil) new-code)
+               )
+             (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
+               ;;                    (vector-push-extend `(:pop ,reg) new-code)
+               (vector-push-extend (make-ir2-instruction :pop reg nil) new-code)
+               )
+             ;;                  (vector-push-extend '(:ret) new-code)
+             (vector-push-extend (make-ir2-instruction :ret nil nil) new-code)
+             )
+            (:align-stack
+             (aver nil)
+             ;;                  (unless (compiland-leaf-p compiland)
+             ;;                    (let ((*code* nil)
+             ;;                          (*main* nil)
+             ;;                          (*elsewhere* nil)
+             ;;                          (*current-segment* :main))
+             ;;                      (let ((OK (make-label)))
+             ;;                        (inst :test 15 :esp)
+             ;;                        (emit-jmp-short :z OK)
+             ;;                        (inst :sub 8 :rsp)
+             ;;                        (inst :test 15 :rsp)
+             ;;                        (emit-jmp-short :z OK)
+             ;;                        (inst :int3)
+             ;;                        (label OK))
+             ;;                      (dotimes (i (length *main*))
+             ;;                        (vector-push-extend (aref *main* i) new-code))))
+             )
+            (:allocate-local
+             ;; FIXME move this case to FINALIZE-VARS
+             (let ((var (operand1 instruction)))
+               ;;                    (aver (var-p var))
+               (declare (type var var))
+               (aver (null (var-index var)))
+               (aver (null (var-register var)))
+               (setf (var-index var) index)
+               (decf index)
+               ;; FIXME coalesce all these pushes at the end of FINALIZE-VARS
+               ;;                    (vector-push-extend '(:push :eax) new-code)
+               (vector-push-extend (make-ir2-instruction :push :eax nil) new-code)
+               ))
+            (:enter-frame
+             (unless (compiland-omit-frame-pointer compiland)
+               ;;                    (vector-push-extend '(:push :ebp) new-code)
+               (vector-push-extend (make-ir2-instruction :push :ebp nil) new-code)
+               ;;                    (vector-push-extend '(:mov :esp :ebp) new-code)
+               (vector-push-extend (make-ir2-instruction :mov :esp :ebp) new-code)
+               ))
+            (:initialize-thread-var
+             (when (compiland-thread-var compiland)
+               ;;                    (vector-push-extend '(:call "RT_current_thread") new-code)
+               (vector-push-extend (make-ir2-instruction :call "RT_current_thread" nil) new-code)
+               ;;                    (vector-push-extend `(:mov :eax ,(compiland-thread-var compiland)) new-code)
+               (vector-push-extend (make-ir2-instruction :mov :eax (compiland-thread-var compiland)) new-code)
+               ))
+            (:save-registers
+             (dolist (reg (compiland-registers-to-be-saved compiland))
+               ;;                    (vector-push-extend `(:push ,reg) new-code)
+               (vector-push-extend (make-ir2-instruction :push reg nil) new-code)
+               ))
+            (t
+             (vector-push-extend instruction new-code))))))
     (setq *code* (coerce new-code 'simple-vector))))
 
 (defun assemble-ir2 ()
@@ -118,175 +112,170 @@
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
-        ;;           (mumble "p3 instruction = ~S~%" instruction)
-        ;;           (unless (consp instruction)
-        ;;             (format t "p3 non-cons instruction = ~S~%" instruction))
-;;         (aver (ir2-instruction-p instruction))
         (declare (type ir2-instruction instruction))
-;;         (if (ir2-instruction-p instruction)
-            (let ((operator (operator instruction))
-                  (operand1 (operand1 instruction))
-                  (operand2 (operand2 instruction)))
-              (case operator
-                (:mov
-                 (cond ((var-p operand1)
-                        ;; var ref
-                        (incf var-ref-count)
-                        (cond ((var-index operand1)
-                               (set-operand1 instruction
-                                             (list (index-displacement (var-index operand1)) :ebp)))
-                              ((var-register operand1)
-                               (set-operand1 instruction (var-register operand1)))
-                              (t
-                               (mumble "p3 :mov no var-index for var ~S~%" (var-name operand1))
-                               (unsupported))))
-                       ((var-p operand2)
-                        ;; setq
-                        (incf var-ref-count)
-                        (cond ((var-index operand2)
-                               (set-operand2 instruction
-                                             (list (index-displacement (var-index operand2)) :ebp)))
-                              ((var-register operand2)
-                               (set-operand2 instruction (var-register operand2)))
-                              (t
-                               (mumble "p3 :mov no var-index for var ~S~%" (var-name operand2))
-                               (unsupported))))
-                       (t
-                        ;; nothing to do
-                        ))
-                 (vector-push-extend (assemble-instruction instruction) new-code))
-                (:push
-                 (cond ((var-p operand1)
-                        (cond ((var-index operand1)
-                               (set-operand1 instruction
-                                             (list (index-displacement (var-index operand1)) :ebp))
-                               (vector-push-extend (assemble-instruction instruction) new-code))
-                              ((var-register operand1)
-                               (set-operand1 instruction (var-register operand1))
-                               (vector-push-extend (assemble-instruction instruction) new-code))
-                              (t
-                               (mumble "p3 :push no var-index for var ~S~%" (var-name operand1))
-                               (unsupported))))
-                       ((and (consp operand1)
-                             (length-eql operand1 2)
-                             (eq (%car operand1) :constant))
-                        (vector-push-extend (make-instruction :byte 1 #x68) new-code)
-                        (vector-push-extend (make-instruction :constant 4 (%cadr operand1)) new-code))
-                       (t
-                        ;; nothing to do
-                        (vector-push-extend (assemble-instruction instruction) new-code))))
-                (:push-immediate
-                 (cond ((and (consp operand1)
-                             (eq (%car operand1) :constant))
-                        (aver (length-eql operand1 2))
-                        (vector-push-extend (make-instruction :byte 1 #x68) new-code)
-                        (vector-push-extend
-                         (make-instruction :constant 4 (%cadr operand1))
-                         new-code))
-                       (t
-                        (mumble "push-immediate unsupported case~%")
-                        (unsupported))))
-                (:exit
-                 (aver nil)
-;;                  (let ((instructions nil))
-;;                    (unless (compiland-omit-frame-pointer compiland)
-;;                      (push '(:leave) instructions))
-;;                    (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
-;;                      (push `(:pop ,reg) instructions))
-;;                    (push '(:ret) instructions)
-;;                    (setq instructions (nreverse instructions))
-;;                    (let ((bytes (assemble instructions)))
-;;                      (setq instruction
-;;                            (make-instruction :exit (length bytes) (coerce bytes 'list)))
-;;                      ;;                        (setf (svref code i) instruction)
-;;                      ))
-;;                  (vector-push-extend instruction new-code)
-                 )
-                (:call
-                 (setq leaf-p nil)
-;;                  (setq instruction (make-instruction :call 5 operand1))
-;;                  (vector-push-extend instruction new-code)
-                 (vector-push-extend (make-instruction :call 5 operand1) new-code)
-                 )
-                (:move-immediate
-                 (cond ((and (consp operand1)
-                             (eq (%car operand1) :function))
-                        (aver (length-eql operand1 2))
-                        (let ((symbol (%cadr operand1))
-                              (register operand2))
-                          ;; mov imm32, reg
-                          (vector-push-extend
-                           (make-instruction :byte 1 (+ #xb8 (register-number register)))
-                           new-code)
-                          (vector-push-extend
-                           (make-instruction :function 4 symbol)
-                           new-code)))
-                       ;;                          ((and (consp operand1)
-                       ;;                                (eq (%car operand1) :constant-32))
-                       ;;                           (aver (length-eql operand1 2))
-                       ;;                           (let ((form (%cadr operand1))
-                       ;;                                 (register operand2))
-                       ;;                             ;; mov imm32, reg
-                       ;;                             (vector-push-extend
-                       ;;                              (make-instruction :byte 1 (+ #xb8 (register-number register)))
-                       ;;                              new-code)
-                       ;;                             (vector-push-extend
-                       ;;                              (make-instruction :constant-32 4 form)
-                       ;;                              new-code)))
-                       ((and (consp operand1)
-                             (eq (%car operand1) :constant))
-                        (aver (length-eql operand1 2))
-                        (let ((form (%cadr operand1))
-                              (register operand2))
-                          (cond ((memq register '(:eax :ebx :ecx :edx :esi :edi))
-                                 (vector-push-extend
-                                  (make-instruction :byte 1 (+ #xb8 (register-number register)))
-                                  new-code))
-                                (t
-                                 (mumble "p3 :move-immediate :constant unsupported case register = ~S~%"
-                                         register)
-                                 (unsupported)))
-                          (vector-push-extend
-                           (make-instruction :constant 4 form)
-                           new-code)))
-                       (t
-                        (mumble "p3 :move-immediate unsupported case~%")
-                        (unsupported))))
-                (:compare-immediate
-                 (let (form register)
-                   (cond ((memq operand1 '(nil t))
-                          (setq form     operand1
-                                register operand2))
-                         ((and (consp operand1)
-                               (eq (%car operand1) :constant))
-                          (aver (length-eql operand1 2))
-                          (setq form     (%cadr operand1)
-                                register operand2))
-                         (t
-                          (mumble "p3 :compare-immediate unsupported case~%")
-                          (unsupported)))
-                   (aver (memq register '(:eax :ebx :ecx :edx :esi :edi)))
-                   (if (eq register :eax)
-                       (vector-push-extend (make-instruction :byte 1 #x3d) new-code)
-                       (vector-push-extend (make-instruction :bytes 2
-                                                             (list #x81 (+ #xf8 (register-number register))))
-                                           new-code))
-                   (vector-push-extend (make-instruction :constant 4 form) new-code)))
-                (:byte
-                 (vector-push-extend (make-instruction :byte 1 operand1) new-code))
-                (:bytes
-                 (let* ((bytes (operand1 instruction))
-                        (length (length bytes)))
-                   (vector-push-extend (make-instruction :bytes length bytes) new-code)))
-                (:recurse
-                 (vector-push-extend (make-instruction :recurse 5 nil) new-code))
-                (t
-                 (vector-push-extend (assemble-instruction instruction) new-code))))
-            ;;             (when (consp instruction)
-            ;;               (let ((assembled-instruction (assemble-instruction instruction)))
-            ;;                 (setf (svref code i) assembled-instruction)))
-;;             (vector-push-extend instruction new-code)
-;;             )
+        (let ((operator (operator instruction))
+              (operand1 (operand1 instruction))
+              (operand2 (operand2 instruction)))
+          (case operator
+            (:mov
+             (cond ((var-p operand1)
+                    ;; var ref
+                    (incf var-ref-count)
+                    (cond ((var-index operand1)
+                           (setf (operand1 instruction)
+                                 (list (index-displacement (var-index operand1)) :ebp)))
+                          ((var-register operand1)
+                           (setf (operand1 instruction) (var-register operand1)))
+                          (t
+                           (mumble "p3 :mov no var-index for var ~S~%" (var-name operand1))
+                           (unsupported))))
+                   ((var-p operand2)
+                    ;; setq
+                    (incf var-ref-count)
+                    (cond ((var-index operand2)
+                           (setf (operand2 instruction)
+                                 (list (index-displacement (var-index operand2)) :ebp)))
+                          ((var-register operand2)
+                           (setf (operand2 instruction) (var-register operand2)))
+                          (t
+                           (mumble "p3 :mov no var-index for var ~S~%" (var-name operand2))
+                           (unsupported))))
+                   (t
+                    ;; nothing to do
+                    ))
+             (vector-push-extend (assemble-instruction instruction) new-code))
+            (:push
+             (cond ((var-p operand1)
+                    (cond ((var-index operand1)
+                           (setf (operand1 instruction)
+                                 (list (index-displacement (var-index operand1)) :ebp))
+                           (vector-push-extend (assemble-instruction instruction) new-code))
+                          ((var-register operand1)
+                           (setf (operand1 instruction) (var-register operand1))
+                           (vector-push-extend (assemble-instruction instruction) new-code))
+                          (t
+                           (mumble "p3 :push no var-index for var ~S~%" (var-name operand1))
+                           (unsupported))))
+                   ((and (consp operand1)
+                         (length-eql operand1 2)
+                         (eq (%car operand1) :constant))
+                    (vector-push-extend (make-instruction :byte 1 #x68) new-code)
+                    (vector-push-extend (make-instruction :constant 4 (%cadr operand1)) new-code))
+                   (t
+                    ;; nothing to do
+                    (vector-push-extend (assemble-instruction instruction) new-code))))
+            (:push-immediate
+             (cond ((and (consp operand1)
+                         (eq (%car operand1) :constant))
+                    (aver (length-eql operand1 2))
+                    (vector-push-extend (make-instruction :byte 1 #x68) new-code)
+                    (vector-push-extend
+                     (make-instruction :constant 4 (%cadr operand1))
+                     new-code))
+                   (t
+                    (mumble "push-immediate unsupported case~%")
+                    (unsupported))))
+            (:exit
+             (aver nil)
+             ;;                  (let ((instructions nil))
+             ;;                    (unless (compiland-omit-frame-pointer compiland)
+             ;;                      (push '(:leave) instructions))
+             ;;                    (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
+             ;;                      (push `(:pop ,reg) instructions))
+             ;;                    (push '(:ret) instructions)
+             ;;                    (setq instructions (nreverse instructions))
+             ;;                    (let ((bytes (assemble instructions)))
+             ;;                      (setq instruction
+             ;;                            (make-instruction :exit (length bytes) (coerce bytes 'list)))
+             ;;                      ;;                        (setf (svref code i) instruction)
+             ;;                      ))
+             ;;                  (vector-push-extend instruction new-code)
+             )
+            (:call
+             (setq leaf-p nil)
+             ;;                  (setq instruction (make-instruction :call 5 operand1))
+             ;;                  (vector-push-extend instruction new-code)
+             (vector-push-extend (make-instruction :call 5 operand1) new-code)
+             )
+            (:move-immediate
+             (cond ((and (consp operand1)
+                         (eq (%car operand1) :function))
+                    (aver (length-eql operand1 2))
+                    (let ((symbol (%cadr operand1))
+                          (register operand2))
+                      ;; mov imm32, reg
+                      (vector-push-extend
+                       (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                       new-code)
+                      (vector-push-extend
+                       (make-instruction :function 4 symbol)
+                       new-code)))
+                   ;;                          ((and (consp operand1)
+                   ;;                                (eq (%car operand1) :constant-32))
+                   ;;                           (aver (length-eql operand1 2))
+                   ;;                           (let ((form (%cadr operand1))
+                   ;;                                 (register operand2))
+                   ;;                             ;; mov imm32, reg
+                   ;;                             (vector-push-extend
+                   ;;                              (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                   ;;                              new-code)
+                   ;;                             (vector-push-extend
+                   ;;                              (make-instruction :constant-32 4 form)
+                   ;;                              new-code)))
+                   ((and (consp operand1)
+                         (eq (%car operand1) :constant))
+                    (aver (length-eql operand1 2))
+                    (let ((form (%cadr operand1))
+                          (register operand2))
+                      (cond ((memq register '(:eax :ebx :ecx :edx :esi :edi))
+                             (vector-push-extend
+                              (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                              new-code))
+                            (t
+                             (mumble "p3 :move-immediate :constant unsupported case register = ~S~%"
+                                     register)
+                             (unsupported)))
+                      (vector-push-extend
+                       (make-instruction :constant 4 form)
+                       new-code)))
+                   (t
+                    (mumble "p3 :move-immediate unsupported case~%")
+                    (unsupported))))
+            (:compare-immediate
+             (let (form register)
+               (cond ((memq operand1 '(nil t))
+                      (setq form     operand1
+                            register operand2))
+                     ((and (consp operand1)
+                           (eq (%car operand1) :constant))
+                      (aver (length-eql operand1 2))
+                      (setq form     (%cadr operand1)
+                            register operand2))
+                     (t
+                      (mumble "p3 :compare-immediate unsupported case~%")
+                      (unsupported)))
+               (aver (memq register '(:eax :ebx :ecx :edx :esi :edi)))
+               (if (eq register :eax)
+                   (vector-push-extend (make-instruction :byte 1 #x3d) new-code)
+                   (vector-push-extend (make-instruction :bytes 2
+                                                         (list #x81 (+ #xf8 (register-number register))))
+                                       new-code))
+               (vector-push-extend (make-instruction :constant 4 form) new-code)))
+            (:byte
+             (vector-push-extend (make-instruction :byte 1 operand1) new-code))
+            (:bytes
+             (let* ((bytes (operand1 instruction))
+                    (length (length bytes)))
+               (vector-push-extend (make-instruction :bytes length bytes) new-code)))
+            (:recurse
+             (vector-push-extend (make-instruction :recurse 5 nil) new-code))
+            (t
+             (vector-push-extend (assemble-instruction instruction) new-code))))
+        ;;             (when (consp instruction)
+        ;;               (let ((assembled-instruction (assemble-instruction instruction)))
+        ;;                 (setf (svref code i) assembled-instruction)))
+        ;;             (vector-push-extend instruction new-code)
+        ;;             )
         ))
     (when (> (length new-code) initial-size)
       (mumble "p3 initial-size = ~D (length new-code) = ~D~%"

@@ -114,48 +114,42 @@
                (setf (var-derived-type var) declared-type)))))))
 
 (defknown emit (t) t)
-(defun emit (thing)
+(defun emit (instruction)
+  (declare (type ir2-instruction instruction))
   (ecase *current-segment*
     (:main
      (let ((main *main*))
        (when main
          ;; fast path
-         (return-from emit (vector-push-extend thing main))))
+         (return-from emit (vector-push-extend instruction main))))
      (setq *main* (make-array 64 :fill-pointer 0))
-     (vector-push-extend thing *main*))
+     (vector-push-extend instruction *main*))
     (:elsewhere
      (let ((elsewhere *elsewhere*))
        (when elsewhere
          ;; fast path
-         (return-from emit (vector-push-extend thing elsewhere))))
+         (return-from emit (vector-push-extend instruction elsewhere))))
      (setq *elsewhere* (make-array 64 :fill-pointer 0))
-     (vector-push-extend thing *elsewhere*))))
+     (vector-push-extend instruction *elsewhere*))))
 
 (defknown inst (*) t)
 (defun inst (&rest args)
-;;   (emit args)
   (aver (<= (length args) 3))
-  (emit (make-ir2-instruction (first args) (second args) (third args)))
-  )
+  (emit (make-ir2-instruction (first args) (second args) (third args))))
 
 (defknown emit-byte (t) t)
 (defun emit-byte (byte)
-;;   (inst :byte byte)
-  (emit (make-ir2-instruction :byte byte nil))
-  )
+  (emit (make-ir2-instruction :byte byte nil)))
 
 (defknown emit-bytes (*) t)
 (defun emit-bytes (&rest bytes)
-;;   (emit (list* :bytes bytes))
-  (emit (make-ir2-instruction :bytes bytes nil))
-  )
+  (emit (make-ir2-instruction :bytes bytes nil)))
 
 (defknown label (t) t)
 (defun label (label)
-;;   (emit (list :label label))
-  (emit (make-ir2-instruction :label label nil))
-  )
+  (emit (make-ir2-instruction :label label nil)))
 
+(declaim (inline make-label))
 (defknown make-label () t)
 (defun make-label ()
   (gensym))
