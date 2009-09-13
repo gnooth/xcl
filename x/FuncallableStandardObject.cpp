@@ -1,6 +1,6 @@
 // FuncallableStandardObject.cpp
 //
-// Copyright (C) 2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2007-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,16 +21,21 @@
 
 void FuncallableStandardObject::autocompile()
 {
-  if (!the_symbol(S_compile)->is_autoload())
+  if (!the_symbol(S_compile)->is_autoload()) // REVIEW compiler-loaded-p
     {
       Thread * thread = current_thread();
-      Value compiled_function = RT_thread_call_symbol_2(thread, S_compile, NIL,
+      Value compiled_function = RT_thread_call_symbol_1(thread, S_autocompile,
                                                         make_value(_function));
-      thread->clear_values();
       if (functionp(compiled_function))
         _function = the_typed_object(compiled_function);
       _autocompilep = false;
     }
+}
+
+// ### autocompile function => compiled-function
+Value SYS_autocompile(Value arg)
+{
+  return NIL;
 }
 
 // ### funcallable-instance-function

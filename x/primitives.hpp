@@ -475,6 +475,7 @@ extern Value SYS_allocate_instance_standard_generic_function(Value arg);
 extern Value SYS_allocate_standard_instance(Value arg);
 extern Value SYS_aset(unsigned int numargs, Value args[]);
 extern Value SYS_atan_1(Value arg);
+extern Value SYS_autocompile(Value arg1);
 extern Value SYS_builtin_typep(Value object, Value type_specifier);
 extern Value SYS_canonicalize_logical_host(Value arg);
 extern Value SYS_check_fixnum_bounds(Value arg1, Value arg2, Value arg3);

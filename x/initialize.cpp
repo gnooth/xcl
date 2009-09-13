@@ -475,6 +475,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_assq, EXT_assq, 2, 2);
   ADD_PRIMITIVE(S_assql, EXT_assql, 2, 2);
   ADD_PRIMITIVE(S_atan_1, SYS_atan_1, 1, 1);
+  ADD_TEMPORARY(S_autocompile, SYS_autocompile, 1, 1);
   ADD_PRIMITIVE(S_autoload, EXT_autoload, 1, 2);
   ADD_PRIMITIVE(S_autoload_macro, EXT_autoload_macro, 1, 2);
   ADD_PRIMITIVE(S_autoloadp, EXT_autoloadp, 1, 1);

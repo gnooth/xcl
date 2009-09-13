@@ -1,6 +1,6 @@
 // initialize_symbols.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -303,4 +303,7 @@ void initialize_symbols()
 
   DOCUMENTATION_HASH_TABLE = new EqHashTable();
   the_symbol(S_documentation_hash_table)->initialize_constant(make_value(DOCUMENTATION_HASH_TABLE));
+
+  // REVIEW
+  the_symbol(S_enable_autocompile)->initialize_special(T);
 }

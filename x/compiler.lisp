@@ -1179,9 +1179,9 @@
               (when (name-looks-special-p (var-name var))
                 (unless (var-special-p var)
                   (compiler-style-warn
-                   "Using a lexical binding of the symbol ~S, not a dynamic binding, ~@
-even though the symbol name follows the usual naming convention ~@
-for special variables."
+                   "Using a lexical binding of the symbol ~S, not a dynamic binding,
+;     even though the symbol name follows the usual naming convention
+;     for special variables."
                    (var-name var))))
               (p1-check-var-type var))
 
@@ -2114,7 +2114,7 @@ for special variables."
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
         (unless (consp instruction)
-          (mumble "analyze-ir2 instruction not a cons: ~S~%" instruction)
+;;           (mumble "analyze-ir2 instruction not a cons: ~S~%" instruction)
           (return-from analyze-ir2))
         (let ((operation (first instruction))
               (operand1 (second instruction))
@@ -2142,12 +2142,12 @@ for special variables."
 ;;     (mumble "analyze-ir2 thread-var-used-p = ~S need-stack-frame-p = ~S~%" thread-var-used-p need-stack-frame-p)
     (unless thread-var-used-p
       (when (compiland-needs-thread-var-p *current-compiland*)
-        (mumble "analyze-ir2 thread var not used~%")
+;;         (mumble "analyze-ir2 thread var not used~%")
         (setf (compiland-needs-thread-var-p *current-compiland*) nil)
         #+x86
         (setf (compiland-thread-var *current-compiland*) nil)))
     (when leaf-p
-      (mumble "analyze-ir2 leaf-p~%")
+;;       (mumble "analyze-ir2 leaf-p~%")
       (setf (compiland-leaf-p *current-compiland*) leaf-p)
 ;;       (unless need-stack-frame-p
 ;;         (mumble "analyze-ir2 omit frame pointer~%")
@@ -2533,7 +2533,7 @@ for special variables."
   (if name
       (mumble "~&; Compiling ~S~%" name)
 ;;       (let ((*print-readably* nil))
-;;         (mumble "~&; Compiling ~S~%" definition))
+;;         (mumble "~&; Compiling top-level form ~S~%" definition))
       (mumble "~&; Compiling top-level form~%"))
   (unless definition
     (when (autoloadp name)
@@ -2600,3 +2600,8 @@ for special variables."
   (if *enable-compiler*
       (%compile name definition)
       (precompile name definition)))
+
+(defun autocompile (function)
+  (when *enable-autocompile*
+    (let ((compiled-function (compile nil function)))
+      compiled-function)))

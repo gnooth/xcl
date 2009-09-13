@@ -68,8 +68,9 @@
               (*print-structure* nil)
               (*package* original-package)
               (*debug-condition* condition))
-          (format *debug-io* "~&Debugger invoked on condition of type ~A:~%  ~A~%"
-                  (type-of condition) condition)
+          (let ((*enable-autocompile* nil))
+            (format *debug-io* "~&Debugger invoked on condition of type ~A:~%  ~A~%"
+                    (type-of condition) condition))
           (cond ((and (fboundp 'compute-restarts)
                       (fboundp 'top-level::repl))
                  (clear-input)

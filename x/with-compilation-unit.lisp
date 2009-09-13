@@ -1,6 +1,6 @@
 ;;; with-compilation-unit.lisp
 ;;;
-;;; Copyright (C) 2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -63,7 +63,8 @@
   (unless *suppress-compiler-warnings*
 ;;     (fresh-line *error-output*)
     (note-error-context)
-    (format *error-output* ";   Caught ~A:~%;     ~A~%" (type-of condition) condition))
+    (let ((*enable-autocompile* nil))
+      (format *error-output* ";   Caught ~A:~%;     ~A~%" (type-of condition) condition)))
   (incf *style-warnings*)
   (muffle-warning))
 
@@ -71,14 +72,16 @@
   (unless *suppress-compiler-warnings*
 ;;     (fresh-line *error-output*)
     (note-error-context)
-    (format *error-output* ";   Caught ~A:~%;     ~A~%" (type-of condition) condition))
+    (let ((*enable-autocompile* nil))
+      (format *error-output* ";   Caught ~A:~%;     ~A~%" (type-of condition) condition)))
   (incf *warnings*)
   (muffle-warning))
 
 (defun handle-compiler-error (condition)
   (fresh-line *error-output*)
   (note-error-context)
-  (format *error-output* ";   Caught ERROR:~%;     ~A~%" condition)
+  (let ((*enable-autocompile* nil))
+    (format *error-output* ";   Caught ERROR:~%;     ~A~%" condition))
   (incf *errors*)
 ;;   (throw 'compile-defun-abort (funcall *compiler-error-bailout*))
   )
