@@ -29,11 +29,12 @@
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
-        (unless (consp instruction)
-          (format t "p3 non-cons instruction = ~S~%" instruction))
-        (if (consp instruction)
-            (let ((operation (first instruction)))
-              (case operation
+;;         (unless (consp instruction)
+;;           (format t "p3 non-cons instruction = ~S~%" instruction))
+        (aver (ir2-instruction-p instruction))
+        (if (ir2-instruction-p instruction)
+            (let ((operator (operator instruction)))
+              (case operator
                 (:exit
                  (unless (compiland-omit-frame-pointer compiland)
                    (vector-push-extend '(:leave) new-code))
@@ -66,7 +67,7 @@
                      (vector-push-extend '(:push :rax) new-code))))
                 (:allocate-local
                  ;; FIXME move this case to FINALIZE-VARS
-                 (let ((var (second instruction)))
+                 (let ((var (operand1 instruction)))
                    (aver (var-p var))
                    (aver (null (var-index var)))
 ;;                    (aver (null (var-register var)))
@@ -77,7 +78,7 @@
                      (vector-push-extend '(:push :rax) new-code))))
                 (:initialize-arg-var
                  ;; FIXME move this case to FINALIZE-VARS
-                 (let ((var (second instruction)))
+                 (let ((var (operand1 instruction)))
                    (aver (var-p var))
                    (aver (null (var-index var)))
                    (aver (null (var-register var)))
@@ -116,31 +117,33 @@
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
-        (unless (consp instruction)
-          (format t "p3 non-cons instruction = ~S~%" instruction))
-        (if (consp instruction)
-            (let ((operation (first instruction))
-                  (operand1 (second instruction))
-                  (operand2 (third  instruction)))
-              (case operation
+;;         (unless (consp instruction)
+;;           (format t "p3 non-cons instruction = ~S~%" instruction))
+        (aver (ir2-instruction-p instruction))
+        (if (ir2-instruction-p instruction)
+            (let ((operator (operator instruction))
+                  (operand1 (operand1 instruction))
+                  (operand2 (operand2 instruction)))
+              (case operator
                 (:mov
                  (cond ((var-p operand1)
                         ;; var ref
                         (cond ((var-index operand1)
-                               (setf (second instruction)
-                                     (list (index-displacement (var-index operand1)) :rbp)))
+                               (set-operand1 instruction
+                                             (list (index-displacement (var-index operand1)) :rbp)))
                               ((var-register operand1)
-                               (setf (second instruction) (var-register operand1)))
+                               (set-operand1 instruction
+                                             (var-register operand1)))
                               (t
                                (mumble "p3 no var-index for var ~S~%" (var-name operand1))
                                (unsupported))))
                        ((var-p operand2)
                         ;; setq
                         (cond ((var-index operand2)
-                               (setf (third instruction)
-                                     (list (index-displacement (var-index operand2)) :rbp)))
+                               (set-operand2 instruction
+                                             (list (index-displacement (var-index operand2)) :rbp)))
                               ((var-register operand2)
-                               (setf (third instruction) (var-register operand2)))
+                               (set-operand2 instruction (var-register operand2)))
                               (t
                                (mumble "p3 no var-index for var ~S~%" (var-name operand2))
                                (unsupported))))
@@ -151,10 +154,10 @@
                 (:push
                  (cond ((var-p operand1)
                         (cond ((var-index operand1)
-                               (setf (second instruction)
-                                     (list (index-displacement (var-index operand1)) :rbp)))
+                               (set-operand1 instruction
+                                             (list (index-displacement (var-index operand1)) :rbp)))
                               ((var-register operand1)
-                               (setf (second instruction) (var-register operand1)))
+                               (set-operand1 instruction (var-register operand1)))
                               (t
                                (mumble "p3 :push unsupported case~%")
                                (unsupported))))
