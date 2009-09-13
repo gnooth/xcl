@@ -562,14 +562,6 @@
 
 (autoload '(query-readline y-or-n-p yes-or-no-p) "query")
 
-;; (in-package "EXTENSIONS")
-
-;; (export 'maybe-compile)
-
-;; (defun maybe-compile (name &optional definition)
-;;   (when (fboundp 'c::%compile)
-;;     (c::%compile name definition)))
-
 (let ((software-type (software-type)))
   (cond ((equal software-type "Linux")
          (pushnew :linux *features*)
