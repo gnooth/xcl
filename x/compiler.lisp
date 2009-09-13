@@ -1813,7 +1813,8 @@ for special variables."
                    (when referral
                      (set-operand2 instruction referral)))))
               (:call
-               (aver (length-eql instruction 2))
+;;                (aver (length-eql instruction 2))
+               (aver (null (operand2 instruction)))
                (let ((target (operand1 instruction)))
                  (when (labelp target)
                    (aver (not (null target)))

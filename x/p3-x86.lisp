@@ -252,7 +252,7 @@
                 (:byte
                  (vector-push-extend (make-instruction :byte 1 operand1) new-code))
                 (:bytes
-                 (let* ((bytes (cdr instruction))
+                 (let* ((bytes (operand1 instruction))
                         (length (length bytes)))
                    (vector-push-extend (make-instruction :bytes length bytes) new-code)))
                 (:recurse

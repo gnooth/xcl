@@ -133,11 +133,16 @@
 
 (defknown inst (*) t)
 (defun inst (&rest args)
-  (emit args))
+;;   (emit args)
+  (aver (<= (length args) 3))
+  (emit (make-ir2-instruction (first args) (second args) (third args)))
+  )
 
 (defknown emit-byte (t) t)
 (defun emit-byte (byte)
-  (inst :byte byte))
+;;   (inst :byte byte)
+  (emit (make-ir2-instruction :byte byte nil))
+  )
 
 (defknown emit-bytes (*) t)
 (defun emit-bytes (&rest bytes)
@@ -147,7 +152,9 @@
 
 (defknown label (t) t)
 (defun label (label)
-  (emit (list :label label)))
+;;   (emit (list :label label))
+  (emit (make-ir2-instruction :label label nil))
+  )
 
 (defknown make-label () t)
 (defun make-label ()
