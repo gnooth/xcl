@@ -1778,14 +1778,14 @@ for special variables."
             instruction-2)
         (setq instruction-1 (svref code i))
         (when instruction-1
-          (unless (consp instruction-1)
+          (unless (ir2-instruction-p instruction-1)
             (mumble "instruction-1 = ~S~%" instruction-1)
-            (aver (consp instruction-1)))
-          (when (and (consp instruction-1)
+            (aver (ir2-instruction-p instruction-1)))
+          (when (and (ir2-instruction-p instruction-1)
                      (eq (operator instruction-1) :label))
             (setq instruction-2 (svref code (1+ i)))
-            (aver (consp instruction-2))
-            (when (and (consp instruction-2)
+            (aver (ir2-instruction-p instruction-2))
+            (when (and (ir2-instruction-p instruction-2)
                        (eq (operator instruction-2) :label))
               ;; two labels in a row
               ;; kill the second one
@@ -1844,9 +1844,9 @@ for special variables."
       (let ((instruction-1 (svref code i))
             (instruction-2 (svref code (+ i 1)))
             (instruction-3 (svref code (+ i 2))))
-        (when (and (consp instruction-1)
-                   (consp instruction-2)
-                   (consp instruction-3)
+        (when (and (ir2-instruction-p instruction-1)
+                   (ir2-instruction-p instruction-2)
+                   (ir2-instruction-p instruction-3)
                    (memq (operator instruction-1) '(:jmp-short :jmp))
                    (memq (operator instruction-2) '(:jmp-short :jmp))
                    (eq (operator instruction-3) :label)
@@ -1974,7 +1974,7 @@ for special variables."
             target)
         (aver (ir2-instruction-p instruction-1))
         (aver (ir2-instruction-p instruction-2))
-        (when (and (consp instruction-1)
+        (when (and (ir2-instruction-p instruction-1)
                    (memq (operator instruction-1) '(:jmp-short :jmp))
                    (eq (operand1 instruction-1) t))
           ;; instruction-1 is an unconditional jump
@@ -2172,28 +2172,30 @@ for special variables."
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
 
 (defun assemble-instruction (instruction)
-  (declare (type cons instruction))
-  (case (car instruction)
+;;   (declare (type cons instruction))
+  (aver (ir2-instruction-p instruction))
+  (case (operator instruction)
     (:label
-     (make-instruction :label 0 (second instruction)))
+     (make-instruction :label 0 (operand1 instruction)))
     (:jmp-short
-     (let ((test (second instruction))
-           (label (third instruction)))
+     (let ((test (operand1 instruction))
+           (label (operand2 instruction)))
        (make-instruction :jmp-short 2 (list test label))))
     (:jmp
-     (let ((test (second instruction))
-           (label (third instruction)))
+     (let ((test (operand1 instruction))
+           (label (operand2 instruction)))
        (make-instruction :jmp
                           (if (memq test '(t :jump-table))
                               5
                               6)
                           (list test label))))
     (:function
-     (make-instruction :function 4 (second instruction)))
+     (make-instruction :function 4 (operand1 instruction)))
     (t
      (let ((asm:*output* +assemble-instruction-output+))
        (setf (fill-pointer +assemble-instruction-output+) 0)
-       (asm::assemble-instruction instruction)
+;;        (asm::assemble-instruction instruction)
+       (asm::assemble-instruction (list (operator instruction) (operand1 instruction) (operand2 instruction)))
        (make-instruction :bytes (length asm:*output*) (coerce-vector-to-list asm:*output*))))))
 
 ;; (defun preoptimize-1 ()

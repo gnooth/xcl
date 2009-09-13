@@ -37,12 +37,20 @@
               (case operator
                 (:exit
                  (unless (compiland-omit-frame-pointer compiland)
-                   (vector-push-extend '(:leave) new-code))
+;;                    (vector-push-extend '(:leave) new-code)
+                   (vector-push-extend (make-ir2-instruction :leave nil nil) new-code)
+                   )
                  (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
-                   (vector-push-extend `(:pop ,reg) new-code))
+;;                    (vector-push-extend `(:pop ,reg) new-code)
+                   (vector-push-extend (make-ir2-instruction :pop reg nil) new-code)
+                   )
                  (when (compiland-needs-thread-var-p compiland)
-                   (vector-push-extend '(:pop :r12) new-code))
-                 (vector-push-extend '(:ret) new-code))
+;;                    (vector-push-extend '(:pop :r12) new-code)
+                   (vector-push-extend (make-ir2-instruction :pop :r12 nil) new-code)
+                   )
+;;                  (vector-push-extend '(:ret) new-code)
+                 (vector-push-extend (make-ir2-instruction :ret nil nil) new-code)
+                 )
                 (:align-stack
                  ;; "The end of the input argument area shall be aligned on a
                  ;; 16 byte boundary. In other words, the value (%rsp - 8) is
@@ -64,7 +72,9 @@
 ;;                      (dotimes (i (length *main*))
 ;;                        (vector-push-extend (aref *main* i) new-code)))
                    (when (oddp index)
-                     (vector-push-extend '(:push :rax) new-code))))
+;;                      (vector-push-extend '(:push :rax) new-code)
+                     (vector-push-extend (make-ir2-instruction :push :rax nil) new-code)
+                     )))
                 (:allocate-local
                  ;; FIXME move this case to FINALIZE-VARS
                  (let ((var (operand1 instruction)))
@@ -75,7 +85,9 @@
                      (setf (var-index var) index)
                      (incf index)
                      ;; FIXME coalesce all these pushes at the end of FINALIZE-VARS
-                     (vector-push-extend '(:push :rax) new-code))))
+;;                      (vector-push-extend '(:push :rax) new-code)
+                     (vector-push-extend (make-ir2-instruction :push :rax nil) new-code)
+                     )))
                 (:initialize-arg-var
                  ;; FIXME move this case to FINALIZE-VARS
                  (let ((var (operand1 instruction)))
@@ -83,25 +95,36 @@
                    (aver (null (var-index var)))
                    (aver (null (var-register var)))
                    (aver (var-arg-register var))
-                   (vector-push-extend `(:push ,(var-arg-register var)) new-code)
+;;                    (vector-push-extend `(:push ,(var-arg-register var)) new-code)
+                   (vector-push-extend (make-ir2-instruction :push (var-arg-register var) nil) new-code)
                    (setf (var-index var) index)
                    (incf index)
 ;;                    (setf (var-register var) nil)
                    ))
                 (:enter-frame
                  (unless (compiland-omit-frame-pointer compiland)
-                   (vector-push-extend '(:push :rbp) new-code)
-                   (vector-push-extend '(:mov :rsp :rbp) new-code)))
+;;                    (vector-push-extend '(:push :rbp) new-code)
+                   (vector-push-extend (make-ir2-instruction :push :rbp nil) new-code)
+;;                    (vector-push-extend '(:mov :rsp :rbp) new-code)
+                   (vector-push-extend (make-ir2-instruction :mov :rsp :rbp) new-code)
+                   ))
                 (:initialize-thread-register
                  (when (compiland-needs-thread-var-p compiland)
-                   (vector-push-extend '(:call "RT_current_thread") new-code)
-                   (vector-push-extend '(:mov :rax :r12) new-code)))
+;;                    (vector-push-extend '(:call "RT_current_thread") new-code)
+                   (vector-push-extend (make-ir2-instruction :call "RT_current_thread" nil) new-code)
+;;                    (vector-push-extend '(:mov :rax :r12) new-code)
+                   (vector-push-extend (make-ir2-instruction :mov :rax :r12) new-code)
+                   ))
                 (:save-registers
                  (dolist (reg (compiland-registers-to-be-saved compiland))
-                   (vector-push-extend `(:push ,reg) new-code)))
+;;                    (vector-push-extend `(:push ,reg) new-code)
+                   (vector-push-extend (make-ir2-instruction :push reg nil) new-code)
+                   ))
                 (:save-thread-register
                  (when (compiland-needs-thread-var-p compiland)
-                   (vector-push-extend '(:push :r12) new-code)))
+;;                    (vector-push-extend '(:push :r12) new-code)
+                   (vector-push-extend (make-ir2-instruction :push :r12 nil) new-code)
+                   ))
                 (t
                  (vector-push-extend instruction new-code)))))))
     (setq *code* (coerce new-code 'simple-vector))))
