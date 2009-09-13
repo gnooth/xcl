@@ -163,7 +163,8 @@
 ;;              (emit (make-instruction :bytes
 ;;                                      4
 ;;                                      (list #x48 #x89 modrm-byte displacement-byte)))
-             (inst :bytes #x48 #x89 modrm-byte displacement-byte)
+;;              (inst :bytes #x48 #x89 modrm-byte displacement-byte)
+             (emit-bytes #x48 #x89 modrm-byte displacement-byte)
              ))
           (t
            (let* ((mod #b10)
@@ -295,7 +296,8 @@
                       (ldb (byte 8 48) x)
                       (ldb (byte 8 56) x))))
 ;;       (emit (make-instruction :bytes 8 code))
-      (emit (list* :bytes code))
+;;       (emit (list* :bytes code))
+      (emit (make-ir2-instruction :bytes code nil))
       )))
 
 (defknown emit-raw-dword (t) t)
@@ -305,7 +307,8 @@
                     (ldb (byte 8 16) n)
                     (ldb (byte 8 24) n))))
 ;;     (emit (make-instruction :bytes 4 code))
-    (emit (list* :bytes code))
+;;     (emit (list* :bytes code))
+    (emit (make-ir2-instruction :bytes code nil))
     ))
 
 (defknown emit-dword (t) t)
@@ -324,7 +327,8 @@
                     (ldb (byte 8 48) n)
                     (ldb (byte 8 56) n))))
 ;;     (emit (make-instruction :bytes 8 code))
-    (emit (list* :bytes code))
+;;     (emit (list* :bytes code))
+    (emit (make-ir2-instruction :bytes code nil))
     ))
 
 (defun emit-raw (x)
@@ -333,7 +337,8 @@
                     (ldb (byte 8 16) x)
                     (ldb (byte 8 24) x))))
 ;;     (emit (make-instruction :bytes 4 code))
-    (emit (list* :bytes code))
+;;     (emit (list* :bytes code))
+    (emit (make-ir2-instruction :bytes code nil))
     ))
 
 (defknown emit-move-immediate (t t) t)
