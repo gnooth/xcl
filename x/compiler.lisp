@@ -1732,6 +1732,36 @@ for special variables."
   (and (symbolp thing)
        (null (symbol-package thing))))
 
+;; (declaim (inline ir2-instruction-p))
+(defknown ir2-instruction-p (t) t)
+(defun ir2-instruction-p (instruction)
+  (consp instruction))
+
+;; (declaim (inline operator))
+(defknown operator (t) t)
+(defun operator (instruction)
+  (first instruction))
+
+;; (declaim (inline operand1))
+(defknown operand1 (t) t)
+(defun operand1 (instruction)
+  (second instruction))
+
+;; (declaim (inline set-operand1))
+(defknown set-operand1 (t t) t)
+(defun set-operand1 (instruction operand)
+  (setf (second instruction) operand))
+
+;; (declaim (inline operand2))
+(defknown operand2 (t) t)
+(defun operand2 (instruction)
+  (third instruction))
+
+;; (declaim (inline set-operand2))
+(defknown set-operand2 (t t) t)
+(defun set-operand2 (instruction operand)
+  (setf (third instruction) operand))
+
 (defknown optimize-ir2-1 () t)
 (defun optimize-ir2-1 ()
   (let ((code *code*)
@@ -1740,32 +1770,29 @@ for special variables."
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let* ((instruction (svref code i)))
-        (if (consp instruction)
-            (case (%car instruction)
-              (:exit
-               (cond (dead
-                      (setf (svref code i) nil)
-                      (setq changed t))
-                     (t
-                      (setq dead t))))
-              ((:jmp-short :jmp)
-               (cond (dead
-                      (setf (svref code i) nil)
-                      (setq changed t))
-                     (t
-                      (let ((test (cadr instruction)))
-                        (when (eq test t)
-                          ;; unconditional jump
-                          (setq dead t))))))
-              (:label
-               (setq dead nil))
-              (t
-               (when dead
-                 (setf (svref code i) nil)
-                 (setq changed t))))
-            (when dead
-              (setf (svref code i) nil)
-              (setq changed t)))))
+        (aver (ir2-instruction-p instruction))
+        (case (operator instruction)
+          (:exit
+           (cond (dead
+                  (setf (svref code i) nil)
+                  (setq changed t))
+                 (t
+                  (setq dead t))))
+          ((:jmp-short :jmp)
+           (cond (dead
+                  (setf (svref code i) nil)
+                  (setq changed t))
+                 (t
+                  (let ((test (operand1 instruction)))
+                    (when (eq test t)
+                      ;; unconditional jump
+                      (setq dead t))))))
+          (:label
+           (setq dead nil))
+          (t
+           (when dead
+             (setf (svref code i) nil)
+             (setq changed t))))))
     (when changed
       (setq *code* (delete nil code)))
     changed))
@@ -1780,45 +1807,50 @@ for special variables."
       (let (instruction-1
             instruction-2)
         (setq instruction-1 (svref code i))
-        (when (and (consp instruction-1)
-                   (eq (%car instruction-1) :label))
-          (setq instruction-2 (svref code (1+ i)))
-          (when (and (consp instruction-2)
-                     (eq (%car instruction-2) :label))
-            ;; two labels in a row
-            ;; kill the second one
-            (unless ht
-              (setq ht (make-hash-table :test 'eq)))
-            (let ((symbol-1 (cadr instruction-1))
-                  (symbol-2 (cadr instruction-2)))
-              (aver (not (null symbol-1)))
-              (aver (symbolp symbol-1))
-              (aver (not (null symbol-2)))
-              (aver (symbolp symbol-2))
-              (setf (gethash symbol-2 ht) symbol-1)
-              (setf (svref code (1+ i)) nil)
-              (setq changed t))))))
+        (when instruction-1
+          (unless (consp instruction-1)
+            (mumble "instruction-1 = ~S~%" instruction-1)
+            (aver (consp instruction-1)))
+          (when (and (consp instruction-1)
+                     (eq (operator instruction-1) :label))
+            (setq instruction-2 (svref code (1+ i)))
+            (aver (consp instruction-2))
+            (when (and (consp instruction-2)
+                       (eq (operator instruction-2) :label))
+              ;; two labels in a row
+              ;; kill the second one
+              (unless ht
+                (setq ht (make-hash-table :test 'eq)))
+              (let ((symbol-1 (operand1 instruction-1))
+                    (symbol-2 (operand1 instruction-2)))
+                (aver (not (null symbol-1)))
+                (aver (symbolp symbol-1))
+                (aver (not (null symbol-2)))
+                (aver (symbolp symbol-2))
+                (setf (gethash symbol-2 ht) symbol-1)
+                (setf (svref code (1+ i)) nil)
+                (setq changed t)))))))
     (when changed
       (dotimes (i (length code))
         (let ((instruction (svref code i)))
-          (when (consp instruction)
-            (case (%car instruction)
+          (when (ir2-instruction-p instruction)
+            (case (operator instruction)
               ((:jmp-short :jmp)
-               (let ((target (third instruction)))
+               (let ((target (operand2 instruction)))
                  (aver (not (null target)))
                  (aver (symbolp target))
                  (let ((referral (gethash2-1 target ht)))
                    (when referral
-                     (setf (third instruction) referral)))))
+                     (set-operand2 instruction referral)))))
               (:call
                (aver (length-eql instruction 2))
-               (let ((target (%cadr instruction)))
+               (let ((target (operand1 instruction)))
                  (when (labelp target)
                    (aver (not (null target)))
                    (aver (symbolp target))
                    (let ((referral (gethash2-1 target ht)))
                      (when referral
-                       (setf (cadr instruction) referral))))))))))
+                       (set-operand1 instruction referral))))))))))
       (setq *code* (delete nil code)))
     changed))
 
@@ -1844,18 +1876,18 @@ for special variables."
         (when (and (consp instruction-1)
                    (consp instruction-2)
                    (consp instruction-3)
-                   (memq (%car instruction-1) '(:jmp-short :jmp))
-                   (memq (%car instruction-2) '(:jmp-short :jmp))
-                   (eq (%car instruction-3) :label)
+                   (memq (operator instruction-1) '(:jmp-short :jmp))
+                   (memq (operator instruction-2) '(:jmp-short :jmp))
+                   (eq (operator instruction-3) :label)
 ;;                    (neq (instruction-jump-test instruction-1) t)
-                   (neq (second instruction-1) t)
+                   (neq (operand1 instruction-1) t)
 ;;                    (eq (instruction-data instruction-3) (instruction-jump-target instruction-1))
-                   (eq (second instruction-3) (third instruction-1))
+                   (eq (operand1 instruction-3) (operand2 instruction-1))
 ;;                    (eq (instruction-jump-test instruction-2) t)
-                   (eq (second instruction-2) t)
+                   (eq (operand1 instruction-2) t)
                    )
           (let* (;(test (instruction-jump-test instruction-1))
-                 (test (second instruction-1))
+                 (test (operand1 instruction-1))
                  (negated-test (case test
                                  (:e  :ne)
                                  (:z  :nz)
@@ -1867,13 +1899,18 @@ for special variables."
                                  (:g  :ng)
                                  (:ng :g)
                                  (t
+                                  (aver nil)
                                   nil))))
             (cond (negated-test
                    (setf (svref code i) nil)
-                   (setf (second instruction-2) negated-test)
+;;                    (setf (second instruction-2) negated-test)
+;;                    (mumble "old instruction-2 = ~S~%" instruction-2)
+                   (set-operand1 instruction-2 negated-test)
+;;                    (mumble "new instruction-2 = ~S~%" instruction-2)
                    (setq changed t))
                   (t
                    (mumble "optimize-ir2-1c unsupported test ~S~%" test)
+                   (aver nil)
                    nil))))))
     (when changed
       (setq *code* (delete nil code)))))
@@ -1888,25 +1925,25 @@ for special variables."
     ;; first pass: populate used labels hash table
     (dotimes (i (length code))
       (let* ((instruction (svref code i))
-             (kind (and (consp instruction)
-                        (%car instruction))))
-        (case kind
+             (operator (and (ir2-instruction-p instruction)
+                            (operator instruction))))
+        (case operator
           ((:jmp-short :jmp)
-           (let ((target (third instruction)))
+           (let ((target (operand2 instruction)))
              (aver (not (null target)))
              (aver (symbolp target))
              (setf (gethash target used-labels) t)))
           (:call
-           (let ((target (second instruction)))
+           (let ((target (operand1 instruction)))
              (when (labelp target)
                (setf (gethash target used-labels) t)))))))
     ;; second pass: replace unused labels with nil
     (dotimes (i (length code))
       (let* ((instruction (svref code i))
-             (kind (and (consp instruction)
-                        (%car instruction))))
-        (when (eq kind :label)
-          (let ((target (second instruction)))
+             (operator (and (ir2-instruction-p instruction)
+                            (operator instruction))))
+        (when (eq operator :label)
+          (let ((target (operand1 instruction)))
             (aver (not (null target)))
             (aver (symbolp target))
             (unless (gethash2-1 target used-labels)
@@ -1925,31 +1962,32 @@ for special variables."
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let* ((instruction (svref code i))
-             (kind (and (consp instruction)
-                        (%car instruction))))
+             (operator (and (ir2-instruction-p instruction)
+                            (operator instruction))))
         (cond (label
                ;; the previous instruction was a label
                ;; record this one if it's an unconditional jump
-               (when (and (memq kind '(:jmp :jmp-short))
-                          (eq (second instruction) t))
-                 (let ((target (third instruction)))
+               (when (and (memq operator '(:jmp :jmp-short))
+                          (eq (operand1 instruction) t))
+                 (let ((target (operand2 instruction)))
                    (setf (gethash label ht) target)))
                (setq label nil))
-              ((eq kind :label)
+              ((eq operator :label)
                ;; this instruction is a label
-               (setq label (second instruction))))))
+               (setq label (operand1 instruction))))))
     (unless (zerop (hash-table-count ht))
       (dotimes (i (length code))
         (let ((instruction (svref code i)))
-          (when (and (consp instruction)
-                     (memq (%car instruction) '(:jmp-short :jmp)))
+          (aver (ir2-instruction-p instruction))
+          (when (and (ir2-instruction-p instruction)
+                     (memq (operator instruction) '(:jmp-short :jmp)))
             ;; this instruction is a conditional or unconditional jump
-            (let ((target (third instruction)))
+            (let ((target (operand2 instruction)))
               (aver (not (null target)))
               (aver (symbolp target))
               (let ((referral (gethash2-1 target ht)))
                 (when (and referral (neq referral target))
-                  (setf (third instruction) referral)
+                  (set-operand2 instruction referral)
                   (setq changed t))))))))
     changed))
 
@@ -2113,15 +2151,15 @@ for special variables."
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
-        (unless (consp instruction)
-;;           (mumble "analyze-ir2 instruction not a cons: ~S~%" instruction)
+        (unless (ir2-instruction-p instruction)
+          (mumble "analyze-ir2 not ir2-instruction-p: ~S~%" instruction)
           (return-from analyze-ir2))
-        (let ((operation (first instruction))
-              (operand1 (second instruction))
-              (operand2 (third instruction)))
-          (cond ((eq operation :call)
+        (let ((operator (operator instruction))
+              (operand1 (operand1 instruction))
+              (operand2 (operand2 instruction)))
+          (cond ((eq operator :call)
                  (setq leaf-p nil))
-                ((eq operation :allocate-local)
+                ((eq operator :allocate-local)
                  ;; not a use of the var in question
                  )
                 ((and thread-var
