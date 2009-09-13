@@ -38,6 +38,7 @@
       #+x86-64
       (load (compile-file-if-needed "x86-64.lisp"))
       (load (compile-file-if-needed "derive-type.lisp"))
+      (load (compile-file-if-needed "ir2-defs.lisp"))
       (load (compile-file-if-needed "p2.lisp"))
       #+x86
       (load (compile-file-if-needed "p2-x86.lisp"))

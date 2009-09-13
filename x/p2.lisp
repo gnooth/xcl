@@ -173,33 +173,21 @@
 
 (defknown emit-jmp (t t) t)
 (defun emit-jmp (test label)
-;;   (emit (make-instruction :jmp
-;;                           (if (or (eq test t) (eq test :jump-table))
-;;                               5 6)
-;;                           (list test label)))
-  (inst :jmp test label)
-  )
+  (inst :jmp test label))
 
 (defknown emit-jmp-short (t t) t)
 (defun emit-jmp-short (test label)
-;;   (emit (make-instruction :jmp-short
-;;                           2
-;;                           (list test label)))
-  (inst :jmp-short test label)
-  )
+  (inst :jmp-short test label))
 
 (defknown emit-recurse () t)
 (defun emit-recurse ()
-;;   (emit (make-instruction :recurse 5 nil))
   (inst :recurse)
   (clear-register-contents))
 
 (defknown emit-function (t) t)
 (defun emit-function (form)
   (declare (type symbol form))
-;;   (emit (make-instruction :function 4 form))
-  (inst :function form)
-  )
+  (inst :function form))
 
 (defknown p2-function-call (t t) t)
 (defun p2-function-call (form target)

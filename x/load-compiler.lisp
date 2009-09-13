@@ -50,6 +50,8 @@
 
 (load-system-file "derive-type")
 
+(load-system-file "ir2-defs")
+
 (load-system-file "p2")
 
 #+x86
