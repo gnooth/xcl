@@ -1329,7 +1329,6 @@
           (*call-next-method-p* nil)
           (*next-method-p-p* nil))
       (multiple-value-bind (body declarations) (parse-body body)
-        (declare (ignore declarations)) ; FIXME
         (walk-form body)
         (when (or *call-next-method-p* *next-method-p-p*)
           (return-from compute-method-fast-function nil))
@@ -1341,12 +1340,14 @@
           (1
            `(lambda ,lambda-list
               (declare (ignorable ,@lambda-list))
+              ,@declarations
 ;;               (require-type ,(%car lambda-list) ',(%car specializers))
               ,@body)
            )
           (2
            `(lambda ,lambda-list
               (declare (ignorable ,@lambda-list))
+              ,@declarations
 ;;               (require-type ,(%car lambda-list) ',(%car specializers))
 ;;               (require-type ,(%cadr lambda-list) ',(%cadr specializers))
               ,@body)
@@ -1354,6 +1355,7 @@
           (3
            `(lambda ,lambda-list
               (declare (ignorable ,@lambda-list))
+              ,@declarations
 ;;               (require-type ,(%car lambda-list) ',(%car specializers))
 ;;               (require-type ,(%cadr lambda-list) ',(%cadr specializers))
 ;;               (require-type ,(%caddr lambda-list) ',(%caddr specializers))
