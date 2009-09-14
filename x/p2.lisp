@@ -703,9 +703,10 @@
       (when (and (var-ref-p arg1)
                  (setq var (var-ref-var arg1)))
              (let ((type (case operator
-                           (%typep              (if (and (eql numargs 2) (quoted-form-p arg2))
-                                                    (canonicalize-type (cadr arg2))
-                                                    :unknown))
+                           ((%typep structure-typep)
+                            (if (and (eql numargs 2) (quoted-form-p arg2))
+                                (canonicalize-type (cadr arg2))
+                                :unknown))
                            (bit-vector-p        'BIT-VECTOR)
                            (characterp          'CHARACTER)
                            (consp               'CONS)

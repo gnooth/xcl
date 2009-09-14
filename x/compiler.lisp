@@ -1944,8 +1944,8 @@ for special variables."
           (when (memq (operator instruction) '(:jmp-short :jmp))
             ;; this instruction is a conditional or unconditional jump
             (let ((target (operand2 instruction)))
-              (aver (not (null target)))
-              (aver (symbolp target))
+;;               (aver (not (null target)))
+;;               (aver (symbolp target))
               (let ((referral (gethash2-1 target ht)))
                 (when (and referral (neq referral target))
                   (setf (operand2 instruction) referral)

@@ -330,8 +330,16 @@
                         (> (length object) ,index)
                         (eq (aref object ,index) ',*dd-name*))))))
             (t
-             `((declaim (inline ,pred))
-               (defun ,pred (object) (typep object ',*dd-name*))))))))
+;;              `((declaim (inline ,pred))
+;;                (defun ,pred (object) (typep object ',*dd-name*)))
+             `((defun ,pred (object) (typep object ',*dd-name*))
+               (define-source-transform ,pred (object)
+;;                  `(structure-typep ,object ',',*dd-name*)
+;;                  (list 'structure-typep object '',*dd-name*) ; works
+                 `(structure-typep ,object ',',*dd-name*)
+                 )
+               )
+             )))))
 
 (defun define-reader (slot accessor)
   (let ((slot-index (slot-index slot)))
