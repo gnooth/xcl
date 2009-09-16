@@ -3989,6 +3989,7 @@
             ((eq (setq type (derive-type arg)) 'SYMBOL)
              (p2 arg target))
             (t
+             (mumble "p2-require-symbol default case~%")
              (process-1-arg arg :rax t)
              (let* ((EXIT (make-label))
                     (common-labels (compiland-common-labels *current-compiland*))
@@ -4002,12 +4003,18 @@
                    (emit-call '%type-error)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-symbol common-labels) ERROR)))
-               (inst :mov :rax :rdi)
-               (inst :and +lowtag-mask+ :al)
-               (clear-register-contents :rax :rdi)
-               (inst :cmp +symbol-lowtag+ :al)
+               (inst :compare-immediate nil :rax)
+               (emit-jmp-short :e EXIT)
+;;                (inst :mov :rax :rdi)
                (when target
-                 (inst :mov :rdi :rax))
+                 (inst :push :rax))
+               (inst :and +lowtag-mask+ :al)
+;;                (clear-register-contents :rax)
+               (inst :cmp +symbol-lowtag+ :al)
+;;                (when target
+;;                  (inst :mov :rdi :rax))
+               (when target
+                 (inst :pop :rax))
                (emit-jmp-short :ne ERROR)
                (label EXIT)
                (when target
