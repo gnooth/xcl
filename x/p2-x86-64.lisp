@@ -3953,7 +3953,7 @@
              (p2 arg target))
             (t
              (process-1-arg arg :rax t)
-             (let* ((EXIT (make-label))
+             (let* (;(EXIT (make-label))
                     (common-labels (compiland-common-labels *current-compiland*))
                     (ERROR (gethash :error-not-list common-labels)))
                (unless ERROR
@@ -3966,14 +3966,14 @@
                    (emit-call '%type-error)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-list common-labels) ERROR)))
-               (inst :compare-immediate nil :rax)
-               (emit-jmp-short :e EXIT)
+;;                (inst :compare-immediate nil :rax)
+;;                (emit-jmp-short :e EXIT)
                (inst :push :rax)
                (inst :and +lowtag-mask+ :al)
                (inst :cmp +list-lowtag+ :al)
                (inst :pop :rax)
                (emit-jmp-short :ne ERROR)
-               (label EXIT)
+;;                (label EXIT)
                (when (var-ref-p arg)
                  (set-register-contents :rax (var-ref-var arg)))
                (when target

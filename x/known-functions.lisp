@@ -274,7 +274,6 @@
                 string-trim
                 string=
                 sublis
-                subseq
                 subst
                 subst-if
                 subst-if-not
@@ -604,6 +603,7 @@
 (defknown stringp (t) boolean (:safe))
 (defknown structure-object-p (t) boolean (:safe))
 (defknown structure-typep (t) boolean (:safe))
+(defknown subseq (*) sequence)
 (defknown subseq2 (sequence index) sequence)
 (defknown subseq3 (sequence index t) sequence)
 (defknown subsetp-eql (list list) t)
