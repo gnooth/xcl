@@ -29,12 +29,10 @@
                 abs
                 acos
                 acosh
-                adjoin
                 adjust-array
                 adjustable-array-p
                 alpha-char-p
                 alphanumericp
-                append
                 apropos-list
                 aref
                 array-dimension
@@ -64,7 +62,6 @@
                 boole
                 both-case-p
                 boundp
-                butlast
                 byte
                 caadr
                 caar
@@ -87,7 +84,6 @@
                 char<=
                 char>
                 char>=
-                character
                 characterp
                 class-of
                 clear-output
@@ -98,11 +94,9 @@
                 compiled-function-p
                 complement
                 complex
-                concatenate
                 conjugate
                 constantp
                 copy-readtable
-                copy-seq
                 copy-tree
                 cos
                 cosh
@@ -391,7 +385,7 @@
                 two-arg-=
                 two-arg->
                 two-arg->=
-                two-arg-append
+;;                 two-arg-append
                 two-arg-char=
                 two-arg-lcm
                 two-arg-logand
@@ -429,6 +423,7 @@
 (defknown (/ two-arg-/) (*) number)
 (defknown acons (*) cons)
 (defknown adjoin (*) list)
+(defknown append (*) list)
 (defknown arrayp (t) boolean (:safe))
 (defknown array-rank (array) (integer 0 #.array-rank-limit))
 (defknown array-dimension (array t) index)
@@ -444,6 +439,7 @@
 (defknown bignump (t) boolean (:safe))
 (defknown (bit sbit sbit1) (*) (integer 0 1))
 (defknown bit-vector-p (t) boolean (:safe))
+(defknown (butlast nbutlast) (*) list)
 (defknown byte-position (*) (integer 0 *))
 (defknown byte-size (*) (integer 0 *))
 (defknown canonicalize-type (t) t)
@@ -617,6 +613,7 @@
 (defknown sxhash (t) (integer 0 #.most-positive-fixnum))
 (defknown symbol-name (symbol) simple-string)
 (defknown symbolp (t) boolean (:safe))
+(defknown two-arg-append (*) list)
 (defknown two-arg-logior (integer integer) integer)
 (defknown two-arg-logxor (integer integer) integer)
 (defknown two-arg-max (real real) real)
@@ -625,8 +622,8 @@
 (defknown value-to-ub64 (t) (integer 0 #.(1- (expt 2 64))))
 (defknown values (*) * (:safe :flushable))
 (defknown vector (*) simple-vector)
-(defknown vector2 (t t) simple-vector)
-(defknown vector3 (t t t) simple-vector)
+(defknown vector2 (t t) (simple-array t (2)))
+(defknown vector3 (t t t) (simple-array t (3)))
 (defknown vector-fill (vector t t t) vector)
 (defknown vector-length (vector) index)
 (defknown vector-pop (vector) t)
