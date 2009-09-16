@@ -505,28 +505,30 @@
         (when (and (neq type2 :unknown)
                    (subtypep type2 'LIST))
           (cond ((eql numargs 2)
-                 (let ((type1 (derive-type arg1)))
-                   (cond ((and (neq type1 :unknown)
-                               (or (fixnum-type-p type1)
-                                   (eq type1 'CHARACTER)
-                                   (eq type1 'SYMBOL)
-                                   (subtypep type1 'structure-object)))
-                          (mumble "p2-delete list-delete-eq~%")
-                          (p2-function-call (list 'LIST-DELETE-EQ arg1 arg2) target)
-                          t)
-                         (t
-                          (mumble "p2-delete list-delete-eql~%")
-                          (p2-function-call (list 'LIST-DELETE-EQL arg1 arg2) target)
-                          t))))
+                 (let* ((type1 (derive-type arg1))
+                        (operator (cond ((eq type1 :unknown)
+                                         'LIST-DELETE-EQL)
+                                        ((fixnum-type-p type1)
+                                         ;; EQL fixnums are EQ in this implementation
+                                         'LIST-DELETE-EQ)
+                                        ((subtypep type1 'NUMBER)
+                                         ;; numbers other than fixnums
+                                         'LIST-DELETE-EQL)
+                                        (t
+                                         ;; EQL characters are EQ in this implementation
+                                         'LIST-DELETE-EQ))))
+                   (mumble "p2-delete ~S~%" operator)
+                   (p2-function-call (list operator arg1 arg2) target))
+                 t)
                 ((and (eql numargs 4)
                       (eq (third args) :test))
                  (case (fourth args)
                    (EQ
-                    (mumble "p2-delete list-delete-eq~%")
+                    (mumble "p2-delete LIST-DELETE-EQ~%")
                     (p2-function-call (list 'LIST-DELETE-EQ arg1 arg2) target)
                     t)
                    (EQL
-                    (mumble "p2-delete list-delete-eql~%")
+                    (mumble "p2-delete LIST-DELETE-EQL~%")
                     (p2-function-call (list 'LIST-DELETE-EQL arg1 arg2) target)
                     t)))))))))
 

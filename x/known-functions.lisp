@@ -179,8 +179,6 @@
                 make-hash-table
                 make-package
                 make-pathname
-                make-sequence
-                make-string
                 make-symbol
                 mask-field
                 makunbound
@@ -188,9 +186,6 @@
                 mapc
                 mapcar
                 max
-                member
-                member-if
-                member-if-not
                 merge-pathnames
                 min
                 minusp
