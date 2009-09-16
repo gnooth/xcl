@@ -36,6 +36,8 @@
 #include "TwoWayStream.hpp"
 #include "documentation.hpp"
 
+Value S_nil;
+
 static Value get_xcl_home()
 {
   char * xcl_home = getenv("XCL_HOME");
@@ -61,7 +63,11 @@ static Value add_keyword(const char * name)
 
 void initialize_symbols()
 {
+  S_nil = PACKAGE_CL->add_nil();
+
 #include "symdefs.hpp"
+
+  the_symbol(S_nil)->initialize_constant(NIL);
 
   the_symbol(S_t)->initialize_constant(S_t);
   T = S_t;
@@ -206,7 +212,7 @@ void initialize_symbols()
 
   the_symbol(S_character_shift)->initialize_constant(make_fixnum(CHARACTER_SHIFT));
   the_symbol(S_character_lowtag)->initialize_constant(make_fixnum(LOWTAG_CHARACTER));
-  the_symbol(S_cons_lowtag)->initialize_constant(make_fixnum(LOWTAG_CONS));
+  the_symbol(S_list_lowtag)->initialize_constant(make_fixnum(LOWTAG_LIST));
   the_symbol(S_symbol_lowtag)->initialize_constant(make_fixnum(LOWTAG_SYMBOL));
 
   the_symbol(S_typed_object_lowtag)->initialize_constant(make_fixnum(LOWTAG_TYPED_OBJECT));

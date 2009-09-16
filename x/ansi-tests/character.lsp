@@ -53,7 +53,7 @@
   (extended-char.3.body)
   t)
 
-;;; 
+;;;
 
 (deftest character.1
   (character.1.body)
@@ -232,7 +232,7 @@
 (deftest digit-char-p.2
   (digit-char-p.2.body)
   t)
-		   
+
 (deftest digit-char-p.3
   (digit-char-p.3.body)
   t)
@@ -272,7 +272,7 @@
 (deftest digit-char-p.error.1
   (signals-error (digit-char-p) program-error)
   t)
-  
+
 (deftest digit-char-p.error.2
   (signals-error (digit-char-p #\1 10 'foo) program-error)
   t)
@@ -340,7 +340,7 @@
 (deftest standard-char-p.error.1
   (signals-error (standard-char-p) program-error)
   t)
-  
+
 (deftest standard-char-p.error.2
   (signals-error (standard-char-p #\a #\a) program-error)
   t)
@@ -597,7 +597,7 @@
 ;;; appropriate.  This is complicated by the possibility that two different
 ;;; names may refer to the same character (as is allowed by the standard,
 ;;; for example in the case of Newline and Linefeed).
- 
+
 (deftest char-name.4
   (loop for s in '("Rubout" "Page" "Backspace" "Return" "Tab" "Linefeed")
 	for c = (name-char s)

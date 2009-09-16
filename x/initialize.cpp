@@ -73,15 +73,19 @@ void initialize_lisp()
   mp_set_memory_functions(mp_alloc, mp_realloc, mp_free);
 
   // NIL is a special case.
-  NIL = make_value(new Symbol("NIL"));
+//   NIL = make_value(new Symbol("NIL"));
+  Cons * cons = new Cons(0, 0);
+  NIL = make_value(cons);
+  cons->setcar(NIL);
+  cons->setcdr(NIL);
 
   initialize_packages_1();
 
-  assert(the_symbol(NIL)->package() == 0);
-  assert(PACKAGE_CL != 0);
-  the_symbol(NIL)->set_package(make_value(PACKAGE_CL));
-  the_symbol(NIL)->set_constant_value(NIL);
-  PACKAGE_CL->add_external_symbol(the_symbol(NIL));
+//   assert(the_symbol(NIL)->package() == 0);
+//   assert(PACKAGE_CL != 0);
+//   the_symbol(NIL)->set_package(make_value(PACKAGE_CL));
+//   the_symbol(NIL)->set_constant_value(NIL);
+//   PACKAGE_CL->add_external_symbol(the_symbol(NIL));
 
   initialize_symbols();
 
@@ -920,6 +924,7 @@ void initialize_lisp()
   add_special_operator(S_progn, CL_progn);
   add_special_operator(S_progv, CL_progv);
   add_special_operator(S_quote, CL_quote);
+  add_special_operator(S_return, CL_return);
   add_special_operator(S_return_from, CL_return_from);
   add_special_operator(S_setq, CL_setq);
   add_special_operator(S_symbol_macrolet, CL_symbol_macrolet);

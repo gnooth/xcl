@@ -160,14 +160,14 @@ Value CL_class_of(Value obj)
     case LOWTAG_EVEN_FIXNUM:
     case LOWTAG_ODD_FIXNUM:
       return C_integer;
-    case LOWTAG_CONS:
-      return C_cons;
+    case LOWTAG_LIST:
+      return (obj == NIL) ? C_null : C_cons;
     case LOWTAG_TYPED_OBJECT:
       return the_typed_object(obj)->class_of();
     case LOWTAG_CHARACTER:
       return C_character;
     case LOWTAG_SYMBOL:
-      return obj == NIL ? C_null : C_symbol;
+      return C_symbol;
     default:
       {
         String * message = new String();

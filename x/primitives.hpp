@@ -342,6 +342,7 @@ extern Value CL_rename_file(Value arg1, Value arg2);
 extern Value CL_rename_package(unsigned int numargs, Value args[]);
 extern Value CL_rest(Value arg);
 extern Value CL_restart_name(Value arg);
+extern Value CL_return(Value args, Environment * env, Thread * thread) __attribute__ ((noreturn));
 extern Value CL_return_from(Value args, Environment * env, Thread * thread) __attribute__ ((noreturn));
 extern Value CL_reverse(Value arg);
 extern Value CL_room(unsigned int numargs, Value args[]);

@@ -55,7 +55,9 @@ unsigned long hash(Value value)
       return the_typed_object(value)->hash();
     case LOWTAG_SYMBOL:
       return the_symbol(value)->hash();
-    case LOWTAG_CONS:
+    case LOWTAG_LIST:
+      if (value == NIL)
+        return 0x12345678; // FIXME
       return compute_hash(value, 4);
     case LOWTAG_CHARACTER:
       return (unsigned long) xchar(value);
@@ -95,7 +97,9 @@ unsigned long equalp_hash(Value value)
       return the_typed_object(value)->equalp_hash();
     case LOWTAG_SYMBOL:
       return the_symbol(value)->hash();
-    case LOWTAG_CONS:
+    case LOWTAG_LIST:
+      if (value == NIL)
+        return 0x12345678; // FIXME
       return compute_equalp_hash(value, 4);
     case LOWTAG_CHARACTER:
       return (unsigned long) xchar(value);

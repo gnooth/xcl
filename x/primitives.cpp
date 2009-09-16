@@ -1368,7 +1368,6 @@ Value CL_vector_pop(Value vector)
 // ### value-to-ub64
 Value SYS_value_to_ub64(Value arg)
 {
-  //   return make_number((unsigned long)arg);
   unsigned long n = (unsigned long) arg;
   if (n <= (unsigned long) MOST_POSITIVE_FIXNUM)
     return make_fixnum((long)n);
@@ -1378,7 +1377,6 @@ Value SYS_value_to_ub64(Value arg)
 // ### value-to-ub32
 Value SYS_value_to_ub32(Value arg)
 {
-  //   return make_number((unsigned long)arg);
   unsigned long n = (unsigned long) arg;
   if (n <= (unsigned long) MOST_POSITIVE_FIXNUM)
     return make_fixnum((long)n);

@@ -1,6 +1,6 @@
 // dolist.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -79,8 +79,6 @@ Value CL_dolist(Value args, Environment * env, Thread * thread)
           if (consp(current))
             continue;
           // it's a tag
-          printf("adding tag %s\n", ::prin1_to_string(current)->as_c_string());
-          fflush(stdout);
           thread->add_tag(current, tagbody, body, tag_index++);
         }
       // establish a reusable binding

@@ -175,13 +175,13 @@ int __main(int argc, char * argv[])
               long values_length = thread->values_length();
               if (values_length < 0)
                 {
-                  // Single value.
+                  // single value
                   out->terpri();
                   out->prin1(result);
                 }
               else
                 {
-                  // Multiple values.
+                  // multiple values
                   Value * values = thread->values();
                   for (long i = 0; i < values_length; i++)
                     {

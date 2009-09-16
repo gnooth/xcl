@@ -1,6 +1,6 @@
 // Cons.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,6 +30,7 @@ private:
   Value _car;
   Value _cdr;
 
+public:
   Cons(Value car, Value cdr) : _car(car), _cdr(cdr)
   {
     ++count;
@@ -40,7 +41,6 @@ private:
     ++count;
   }
 
-public:
   static unsigned long get_count() { return count; }
   static void reset_count() { count = 0; }
 
@@ -57,18 +57,20 @@ public:
 
 inline Value make_value(Cons * cons)
 {
-  return make_value(cons, LOWTAG_CONS);
+  return make_value(cons, LOWTAG_LIST);
 }
 
 inline bool consp(Value value)
 {
-  return (value & LOWTAG_MASK) == LOWTAG_CONS;
+  if (value == NIL)
+    return false;
+  return (value & LOWTAG_MASK) == LOWTAG_LIST;
 }
 
 inline Cons * the_cons(Value value)
 {
   assert(consp(value));
-  return (Cons *) (value - LOWTAG_CONS);
+  return reinterpret_cast<Cons *>(value - LOWTAG_LIST);
 }
 
 inline Cons * check_cons(Value value)
@@ -82,12 +84,12 @@ inline Cons * check_cons(Value value)
 
 inline Value make_cons(Value car, Value cdr)
 {
-  return make_value(new Cons(car, cdr), LOWTAG_CONS);
+  return make_value(new Cons(car, cdr), LOWTAG_LIST);
 }
 
 inline Value make_cons(Value car)
 {
-  return make_value(new Cons(car, NIL), LOWTAG_CONS);
+  return make_value(new Cons(car, NIL), LOWTAG_LIST);
 }
 
 #endif

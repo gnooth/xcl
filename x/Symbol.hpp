@@ -24,6 +24,8 @@ class Operator;
 class SimpleString;
 class TypedObject;
 
+extern Value S_nil;
+
 class Symbol : public LispObject
 {
 private:
@@ -219,17 +221,23 @@ public:
 
 inline Symbol * the_symbol(Value value)
 {
+  if (value == NIL)
+    value = S_nil;
   assert(lowtag_of(value) == LOWTAG_SYMBOL);
   return (Symbol *) (value - LOWTAG_SYMBOL);
 }
 
 inline Value make_value(Symbol * symbol)
 {
+  if (symbol == (Symbol *) (S_nil - LOWTAG_SYMBOL))
+    return NIL;
   return make_value(symbol, LOWTAG_SYMBOL);
 }
 
 inline bool symbolp(Value value)
 {
+  if (value == NIL)
+    return T;
   return (value & LOWTAG_MASK) == LOWTAG_SYMBOL;
 }
 
@@ -238,7 +246,7 @@ inline Symbol * check_symbol(Value value)
   if (symbolp(value))
     return the_symbol(value);
   signal_type_error(value, S_symbol);
-  // Not reached.
+  // not reached
   return NULL;
 }
 

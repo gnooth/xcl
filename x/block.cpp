@@ -1,6 +1,6 @@
 // block.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -64,6 +64,22 @@ Value CL_return_from(Value args, Environment * env, Thread * thread)
   Value result;
   if (numargs == 2)
     result = eval(xcadr(args), env, thread);
+  else
+    result = NIL;
+  RT_return_from(thread, block_name, result);
+  // noreturn
+}
+
+// ### return
+Value CL_return(Value args, Environment * env, Thread * thread)
+{
+  INDEX numargs = length(args);
+  if (numargs > 1)
+    wrong_number_of_arguments(S_return, numargs, 0, 1);
+  Value block_name = NIL;
+  Value result;
+  if (numargs == 1)
+    result = eval(xcar(args), env, thread);
   else
     result = NIL;
   RT_return_from(thread, block_name, result);

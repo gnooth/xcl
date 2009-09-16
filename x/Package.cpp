@@ -1,6 +1,6 @@
 // Package.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -256,6 +256,14 @@ Value Package::add_external_symbol(const char * name)
   return make_value(symbol);
 }
 
+Value Package::add_nil()
+{
+  assert(this == PACKAGE_CL);
+  Symbol * symbol = new Symbol("NIL", this);
+  _external_symbols->put(symbol);
+  return make_value(symbol, LOWTAG_SYMBOL);
+}
+
 Symbol * Package::find_accessible_symbol(AbstractString * name)
 {
   // Look in external and internal symbols of this package.
@@ -278,7 +286,7 @@ Symbol * Package::find_accessible_symbol(AbstractString * name)
           list = xcdr(list);
         }
     }
-  // Not found.
+  // not found
   return NULL;
 }
 
@@ -305,7 +313,7 @@ Value Package::find_symbol(AbstractString * name)
           list = xcdr(list);
         }
     }
-  // Not found.
+  // not found
   return thread->set_values(NIL, NIL);
 }
 
@@ -373,7 +381,7 @@ Value Package::intern(AbstractString * name, bool exportp)
         }
     }
 
-  // Not found.
+  // not found
   symbol = new Symbol(name, this);
   if (this == PACKAGE_KEYWORD)
     {
@@ -540,7 +548,7 @@ Value Package::unintern_symbol(Symbol * symbol)
   else if (_external_symbols->get(name) == symbol)
     _external_symbols->remove(symbol);
   else
-    // Not found.
+    // not found
     return NIL;
   assert(_internal_symbols->get(name) == NULL);
   assert(_external_symbols->get(name) == NULL);

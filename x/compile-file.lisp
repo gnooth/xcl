@@ -338,7 +338,7 @@
                                    (eq (first (second form)) 'QUOTE))))
                      (setq form (precompile-form form)))
                     ((eq operator 'IMPORT)
-                     (setf form (precompile-form form))
+                     (setq form (precompile-form form))
                      ;; make sure package prefix is printed when symbols are imported
                      (let ((*package* +keyword-package+))
                        (dump-form form stream))

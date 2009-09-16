@@ -75,6 +75,8 @@ public:
 
   Value add_external_symbol(Symbol * symbol);
   Value add_external_symbol(const char * name);
+  
+  Value add_nil();
 
   Symbol * find_internal_symbol(AbstractString * name)
   {

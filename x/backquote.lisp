@@ -186,7 +186,7 @@
 	     (memq flag '(t nil)))
 	 thing)
 	((eq flag 'quote)
-	 (list  'quote thing))
+	 (list 'quote thing))
 	((eq flag 'list*)
          (cond ((and (null (cddr thing))
                      (not (expandable-backq-expression-p (cadr thing))))

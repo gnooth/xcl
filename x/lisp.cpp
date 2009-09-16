@@ -255,8 +255,8 @@ Value CL_type_of(Value value)
         else
           return S_fixnum;
       }
-    case LOWTAG_CONS:
-      return S_cons;
+    case LOWTAG_LIST:
+      return (value == NIL) ? S_null : S_cons;
     case LOWTAG_TYPED_OBJECT:
       return the_typed_object(value)->type_of();
     case LOWTAG_CHARACTER:
@@ -265,8 +265,6 @@ Value CL_type_of(Value value)
       else
         return S_character;
     case LOWTAG_SYMBOL:
-      if (value == NIL)
-        return S_null;
       if (value == T)
         return S_boolean;
       if (the_symbol(value)->package() == make_value(PACKAGE_KEYWORD))

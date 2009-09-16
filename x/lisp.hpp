@@ -131,23 +131,13 @@ const int CHAR_CODE_LIMIT = 256;
 typedef unsigned char BASE_CHAR;
 
 // lowtags
-// #ifdef __x86_64__
-// const long LOWTAG_EVEN_FIXNUM                 =   0;
-// const long LOWTAG_CONS                        =   1;
-// const long LOWTAG_TYPED_OBJECT                =   2;
-// const long LOWTAG_ODD_FIXNUM                  =   8;
-// const long LOWTAG_NULL_VALUE                  =   5;
-// const long LOWTAG_CHARACTER                   =   6;
-// const long LOWTAG_SYMBOL                      =   7;
-// #else
 const long LOWTAG_EVEN_FIXNUM                   =   0;
-const long LOWTAG_CONS                          =   1;
+const long LOWTAG_LIST                          =   1;
 const long LOWTAG_TYPED_OBJECT                  =   2;
 const long LOWTAG_ODD_FIXNUM                    =   4;
 const long LOWTAG_NULL_VALUE                    =   5;
 const long LOWTAG_CHARACTER                     =   6;
 const long LOWTAG_SYMBOL                        =   7;
-// #endif
 
 // widetags
 const long WIDETAG_BIGNUM                       =   8;
@@ -251,7 +241,7 @@ typedef long TYPECODE;
 // typecodes
 const TYPECODE TYPECODE_FIXNUM                    = 0;
 
-const TYPECODE TYPECODE_CONS                      = LOWTAG_CONS;
+const TYPECODE TYPECODE_LIST                      = LOWTAG_LIST;
 const TYPECODE TYPECODE_CHARACTER                 = LOWTAG_CHARACTER;
 const TYPECODE TYPECODE_SYMBOL                    = LOWTAG_SYMBOL;
 
@@ -502,12 +492,19 @@ inline bool null(Value obj)
 
 inline bool listp(Value value)
 {
-  return consp(value) || null(value);
+  return (value & LOWTAG_MASK) == LOWTAG_LIST;
+}
+
+inline Cons * the_list(Value obj)
+{
+  assert(listp(obj));
+  // internally, NIL is implemented as a cons
+  return reinterpret_cast<Cons *>(obj - LOWTAG_LIST);
 }
 
 inline Value check_list(Value obj)
 {
-  if (consp(obj) || obj == NIL)
+  if (listp(obj))
     return obj;
   return signal_type_error(obj, S_list);
 }
@@ -526,12 +523,12 @@ inline void setcdr(Value obj, Value cdr)
 
 inline Value xcar(Value arg)
 {
-  return the_cons(arg)->xcar();
+  return the_list(arg)->xcar();
 }
 
 inline Value xcdr(Value arg)
 {
-  return the_cons(arg)->xcdr();
+  return the_list(arg)->xcdr();
 }
 
 inline Value xcadr(Value arg)
@@ -541,23 +538,19 @@ inline Value xcadr(Value arg)
 
 inline Value car(Value arg)
 {
-  if (consp(arg))
+  if (listp(arg))
     return xcar(arg);
-  if (arg == NIL)
-    return NIL;
   signal_type_error(arg, S_list);
-  // Not reached.
+  // not reached
   return 0;
 }
 
 inline Value cdr(Value arg)
 {
-  if (consp(arg))
+  if (listp(arg))
     return xcdr(arg);
-  if (arg == NIL)
-    return NIL;
   signal_type_error(arg, S_list);
-  // Not reached.
+  // not reached
   return 0;
 }
 
