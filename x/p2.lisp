@@ -869,7 +869,8 @@
 (install-p2-test-handler 'eql           'p2-test-eql)
 (install-p2-test-handler 'fixnump       'p2-test-fixnump)
 (install-p2-test-handler 'neq           'p2-test-neq)
-;; (install-p2-test-handler 'symbolp       'p2-test-symbolp)
+#+x86-64
+(install-p2-test-handler 'symbolp       'p2-test-symbolp)
 (install-p2-test-handler 'two-arg-/=    'p2-test-numeric-comparison)
 (install-p2-test-handler 'two-arg-<     'p2-test-numeric-comparison)
 (install-p2-test-handler 'two-arg-<=    'p2-test-numeric-comparison)
