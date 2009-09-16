@@ -121,7 +121,6 @@
 (install-p2-handler 'require-stream             'p2-require-stream)
 (install-p2-handler 'require-string             'p2-require-string)
 (install-p2-handler 'require-structure-type     'p2-require-structure-type)
-#+x86-64
 (install-p2-handler 'require-symbol             'p2-require-symbol)
 (install-p2-handler 'require-type               'p2-require-type)
 (install-p2-handler 'require-ub32               'p2-require-ub32)
