@@ -1086,16 +1086,29 @@
       (label EXIT))
     t))
 
+(defknown %p2-test-consp (t t t) t)
+(defun %p2-test-consp (form label-if-true label-if-false)
+  (when (check-arg-count form 1)
+    (let* ((arg (%cadr form))
+           (EXIT (make-label)))
+      (process-1-arg arg :eax t)
+      (inst :compare-immediate nil :eax)
+      (if label-if-false
+          (emit-jmp-short :e label-if-false)
+          (emit-jmp-short :e EXIT))
+      (inst :and +lowtag-mask+ :al)
+      (clear-register-contents :eax)
+      (inst :cmp +list-lowtag+ :al)
+      (when label-if-true
+        (emit-jmp-short :e label-if-true))
+      (when label-if-false
+        (emit-jmp-short :ne label-if-false))
+      (label EXIT))
+    t))
+
+(defknown p2-test-consp (t t) t)
 (defun p2-test-consp (test-form label)
-  (unless (check-arg-count test-form 1)
-    (return-from p2-test-consp nil))
-  (let ((arg (cadr test-form)))
-    (process-1-arg arg :eax t)
-    (inst :and +lowtag-mask+ :al)
-    (clear-register-contents :eax)
-    (inst :cmp +list-lowtag+ :al)
-    (emit-jmp-short :ne label))
-  t)
+  (%p2-test-consp test-form nil label))
 
 (defun p2-test-fixnump (test-form label)
   (unless (check-arg-count test-form 1)
