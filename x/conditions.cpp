@@ -236,6 +236,12 @@ Value SYS_type_error_internal(Value datum, Value expected_type)
   return signal_lisp_error(new TypeError(datum, expected_type));
 }
 
+// ### error-not-list
+Value SYS_error_not_list(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, S_list));
+}
+
 Value bad_index(Value index, Value expected_type)
 {
   return signal_type_error(index, expected_type);

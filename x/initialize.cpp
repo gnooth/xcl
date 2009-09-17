@@ -528,6 +528,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_environment_empty_p, SYS_environment_empty_p, 1, 1);
   ADD_PRIMITIVE(S_environment_variables, EXT_environment_variables, 1, 1);
   ADD_PRIMITIVE(S_equals_2, SYS_equals_2, 2, 2);
+  ADD_PRIMITIVE(S_error_not_list, SYS_error_not_list, 1, 1);
   ADD_PRIMITIVE(S_exit, EXT_exit, 0, 0);
   ADD_PRIMITIVE(S_fasl_read_backquote, SYS_fasl_read_backquote, 2, 2);
   ADD_PRIMITIVE(S_fasl_read_comma, SYS_fasl_read_comma, 2, 2);
