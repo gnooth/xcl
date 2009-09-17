@@ -5076,7 +5076,7 @@
     (let ((arg (%cadr form)))
       (cond ((zerop *safety*)
              (p2 arg target))
-            ((eq (derive-type arg) 'CONS)
+            ((cons-type-p (derive-type arg))
              (p2 arg target))
             (t
              (let ((FAIL (make-label)))
