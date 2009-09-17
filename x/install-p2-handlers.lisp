@@ -71,7 +71,8 @@
 (install-p2-handler 'check-fixnum-bounds        'p2-check-fixnum-bounds)
 (install-p2-handler 'code-char                  'p2-code-char)
 (install-p2-handler 'coerce                     'p2-coerce)
-;; (install-p2-handler 'consp                      'p2-consp)
+#+x86-64
+(install-p2-handler 'consp                      'p2-consp)
 (install-p2-handler 'delete                     'p2-delete)
 ;; (install-p2-handler 'endp                       'p2-endp)
 (install-p2-handler 'eq                         'p2-eq)
