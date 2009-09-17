@@ -283,8 +283,8 @@
                    (aver (memq register '(:rax :rbx :rcx :rdx :rsi :rdi)))
                    (if (eq register :rax)
                        (vector-push-extend (make-instruction :bytes 2 '(#x48 #x3d)) new-code)
-                       (vector-push-extend (make-instruction :bytes 2
-                                                             (list #x81 (+ #xf8 (register-number register))))
+                       (vector-push-extend (make-instruction :bytes 3
+                                                             (list #x48 #x81 (+ #xf8 (register-number register))))
                                            new-code))
                    (vector-push-extend (make-instruction :constant-32 4 form) new-code)))
                 (:byte

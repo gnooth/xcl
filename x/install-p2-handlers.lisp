@@ -74,7 +74,8 @@
 #+x86-64
 (install-p2-handler 'consp                      'p2-consp)
 (install-p2-handler 'delete                     'p2-delete)
-;; (install-p2-handler 'endp                       'p2-endp)
+#+x86-64
+(install-p2-handler 'endp                       'p2-endp)
 (install-p2-handler 'eq                         'p2-eq)
 (install-p2-handler 'eql                        'p2-eql)
 (install-p2-handler 'evenp                      'p2-oddp/evenp)

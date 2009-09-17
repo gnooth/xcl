@@ -600,17 +600,23 @@
                          operand1 (make-absolute-operand absolute-address))))
                 (#x81
                  (with-modrm-byte (mref-8 block-start (1+ offset))
-                   (cond ((and (= mod #b11)
-                               (= reg 0))
+                   (cond ((and (eql mod #b11)
+                               (eql reg 0))
                           (setq length 6
                                 mnemonic :add
                                 operand1 (make-immediate-operand (mref-32 block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm))))
-                         ((and (= mod #b11)
-                               (= reg #b101))
+                         ((and (eql mod #b11)
+                               (eql reg #b101))
                           (setq length 6
                                 mnemonic :sub
                                 operand1 (make-immediate-operand (mref-32 block-start (+ offset 2)))
+                                operand2 (make-register-operand (register rm prefix-byte))))
+                         ((and (eql mod #b11)
+                               (eql reg 7))
+                          (setq length 6
+                                mnemonic :cmp
+                                operand1 (make-immediate-operand (mref-32-signed block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm prefix-byte))))
                          (t
                           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)
