@@ -110,7 +110,8 @@
 (install-p2-handler 'position-eql               'p2-position-eql)
 (install-p2-handler 'require-boolean            'p2-require-boolean)
 (install-p2-handler 'require-character          'p2-require-character)
-;; (install-p2-handler 'require-cons               'p2-require-cons)
+#+x86-64
+(install-p2-handler 'require-cons               'p2-require-cons)
 (install-p2-handler 'require-fixnum             'p2-require-fixnum)
 (install-p2-handler 'require-hash-table         'p2-require-hash-table)
 (install-p2-handler 'require-integer            'p2-require-integer)

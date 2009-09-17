@@ -769,15 +769,15 @@
                  )
                 ((setq constraint (find-constraint var))
                  (setq type (canonicalize-type type))
-                 (mumble "already have constraint for ~S: ~S~%"
-                         (var-name var) (constraint-type constraint))
-                 (mumble "new constraint: ~S~%" type)
+;;                  (mumble "already have constraint for ~S: ~S~%"
+;;                          (var-name var) (constraint-type constraint))
+;;                  (mumble "new constraint: ~S~%" type)
                  (when (subtypep type (constraint-type constraint))
-                   (mumble "adding new constraint~%")
+;;                    (mumble "adding new constraint~%")
                    (push (make-constraint :var var :type type) *constraints*)))
                 (t
                  (setq type (canonicalize-type type))
-                 (mumble "adding negative constraint var = ~S type = ~S~%" (var-name var) type)
+;;                  (mumble "adding negative constraint var = ~S type = ~S~%" (var-name var) type)
                  (push (make-constraint :var var :type type) *constraints*))))))))
 
 (defun p2-if (form target)
@@ -1015,9 +1015,6 @@
 (defun p2-require-character (form target)
   (%p2-require-type form target 'character))
 
-;; (defun p2-require-cons (form target)
-;;   (%p2-require-type form target 'cons))
-
 (defun p2-require-hash-table (form target)
   (%p2-require-type form target 'hash-table))
 
@@ -1038,12 +1035,6 @@
 
 (defun p2-require-string (form target)
   (%p2-require-type form target 'string))
-
-;; (defun p2-require-simple-vector (form target)
-;;   (%p2-require-type form target 'simple-vector))
-
-;; (defun p2-require-vector (form target)
-;;   (%p2-require-type form target 'vector))
 
 (defun p2-require-structure-type (form target)
   (when (check-arg-count form 2)
