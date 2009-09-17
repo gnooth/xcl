@@ -35,9 +35,6 @@
           (t
            form))))
 
-(define-source-transform atom (x)
-  `(not (consp ,x)))
-
 (define-source-transform logtest (x y)
   `(not (zerop (logand ,x ,y))))
 

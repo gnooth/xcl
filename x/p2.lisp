@@ -862,7 +862,8 @@
 (define-runtime-predicate 'stringp   "RT_stringp")
 (define-runtime-predicate 'vectorp   "RT_vectorp")
 
-;; (install-p2-test-handler 'atom          'p2-test-atom)
+#+x86-64
+(install-p2-test-handler 'atom          'p2-test-atom)
 (install-p2-test-handler 'char=         'p2-test-char=)
 (install-p2-test-handler 'characterp    'p2-test-characterp)
 #+x86-64
