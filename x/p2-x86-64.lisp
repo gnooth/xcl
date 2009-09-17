@@ -3161,7 +3161,7 @@
         (move-result-to-target target)
         t))))
 
-(defknown p2-symbol-package (t t) t)
+(defknown p2-symbol-name (t t) t)
 (defun p2-symbol-name (form target)
   (when (check-arg-count form 1)
     (let* ((arg (%cadr form))
