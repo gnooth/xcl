@@ -138,7 +138,8 @@
 (install-p2-handler 'svref                      'p2-svref)
 (install-p2-handler 'svset                      'p2-svset)
 (install-p2-handler 'sxhash                     'p2-sxhash)
-;; (install-p2-handler 'symbol-global-value        'p2-symbol-global-value)
+#+x86-64
+(install-p2-handler 'symbol-global-value        'p2-symbol-global-value)
 ;; (install-p2-handler 'symbol-name                'p2-symbol-name)
 ;; (install-p2-handler 'symbol-package             'p2-symbol-package)
 (install-p2-handler 'symbolp                    'p2-symbolp)
