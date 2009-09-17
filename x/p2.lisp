@@ -866,8 +866,8 @@
 (install-p2-test-handler 'char=         'p2-test-char=)
 (install-p2-test-handler 'characterp    'p2-test-characterp)
 ;; (install-p2-test-handler 'consp         'p2-test-consp)
-;; #+x86-64
-;; (install-p2-test-handler 'endp          'p2-test-endp)
+#+x86-64
+(install-p2-test-handler 'endp          'p2-test-endp)
 (install-p2-test-handler 'eq            'p2-test-eq)
 (install-p2-test-handler 'eql           'p2-test-eql)
 (install-p2-test-handler 'fixnump       'p2-test-fixnump)
