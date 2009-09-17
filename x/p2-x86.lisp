@@ -4345,7 +4345,7 @@
           (let ((*current-segment* :elsewhere))
             (label ERROR)
             (p2-symbol 'LIST :stack)
-            ;; arg is in rax
+            ;; arg is in eax
             (inst :push :eax)
             (emit-call-2 '%type-error nil)
             (inst :exit) ; FIXME
