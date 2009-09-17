@@ -299,7 +299,7 @@ void initialize_symbols()
   the_symbol(S_symbol_value_offset)->initialize_constant(make_fixnum(SYMBOL_VALUE_OFFSET));
   the_symbol(S_bytes_per_word)->initialize_constant(make_fixnum(BYTES_PER_WORD));
 
-  the_symbol(S_cl_package)->initialize_constant(make_value(PACKAGE_CL));
+  the_symbol(S_common_lisp_package)->initialize_constant(make_value(PACKAGE_CL));
   the_symbol(S_keyword_package)->initialize_constant(make_value(PACKAGE_KEYWORD));
 
   the_symbol(S_two_arg_operators)->initialize_constant(make_value(new EqHashTable()));

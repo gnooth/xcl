@@ -301,7 +301,7 @@
                (not (special-operator-p (%cadr callee)))
                (not (macro-function (%cadr callee) *compile-file-environment*))
                (memq (symbol-package (%cadr callee))
-                     (list +cl-package+ (find-package "SYSTEM"))))
+                     (list +common-lisp-package+ (find-package "SYSTEM"))))
       (setq form `(,(%cadr callee) ,@(%cdr args)))))
   (precompile-default form))
 

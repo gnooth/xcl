@@ -140,8 +140,10 @@
 (install-p2-handler 'sxhash                     'p2-sxhash)
 #+x86-64
 (install-p2-handler 'symbol-global-value        'p2-symbol-global-value)
-;; (install-p2-handler 'symbol-name                'p2-symbol-name)
-;; (install-p2-handler 'symbol-package             'p2-symbol-package)
+#+x86-64
+(install-p2-handler 'symbol-name                'p2-symbol-name)
+#+x86-64
+(install-p2-handler 'symbol-package             'p2-symbol-package)
 (install-p2-handler 'symbolp                    'p2-symbolp)
 (install-p2-handler 'two-arg-*                  'p2-two-arg-*)
 (install-p2-handler 'two-arg-+                  'p2-two-arg-+)

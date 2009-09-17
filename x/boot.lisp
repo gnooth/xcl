@@ -101,6 +101,9 @@
 ;;      ',name))
 (load-system-file "defconstant.lisp")
 
+(defconstant +nil-symbol-name+ "NIL")
+(export '+nil-symbol-name+)
+
 ;; (%defconstant 'single-float-epsilon (float 8388609/140737488355328))
 ;; (%defconstant 'short-float-epsilon single-float-epsilon)
 ;; (%defconstant 'double-float-epsilon (float 4503599627370497/40564819207303340847894502572032 1.0d0))

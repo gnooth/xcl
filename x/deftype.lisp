@@ -19,7 +19,7 @@
 (in-package "SYSTEM")
 
 (defmacro deftype (name lambda-list &rest body)
-;;   (when (eq (symbol-package name) +cl-package+)
+;;   (when (eq (symbol-package name) +common-lisp-package+)
 ;;     (error :format-control "Attempt to define ~S, a symbol in the COMMON-LISP package, as a type specifier."
 ;;            :format-arguments (list name)))
 ;;   (check-declaration-type name)

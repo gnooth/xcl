@@ -347,7 +347,7 @@
          (args (cdr form))
          (ok (length-eql args n)))
     (unless ok
-      (funcall (if (eq (symbol-package op) +cl-package+)
+      (funcall (if (eq (symbol-package op) +common-lisp-package+)
                    'compiler-warn ; see above!
                    'compiler-style-warn)
                "Wrong number of arguments for ~A (expected ~D, but received ~D)."
@@ -1723,7 +1723,21 @@ for special variables."
                          (print-var thing *debug-io*)
                          (mumble "~S" thing)))
                    (setq list (cdr list)))
-                 (write-char #\) *debug-io*))))
+                 (write-char #\) *debug-io*)))
+              ((ir2-instruction-p instruction)
+               (let ((operand1 (operand1 instruction))
+                     (operand2 (operand2 instruction)))
+                 (mumble "~S" (operator instruction))
+                 (when (or operand1 operand2)
+                   (write-char #\space *debug-io*)
+                   (if (var-p operand1)
+                       (print-var operand1 *debug-io*)
+                       (mumble "~S" operand1)))
+                 (when operand2
+                   (write-char #\space *debug-io*)
+                   (if (var-p operand2)
+                       (print-var operand2 *debug-io*)
+                       (mumble "~S" operand2))))))
         (terpri *debug-io*)))))
 
 (defknown labelp (t) t)
