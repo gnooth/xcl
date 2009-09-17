@@ -941,7 +941,7 @@
           (let ((*current-segment* :elsewhere))
             (label ERROR)
             (p2-symbol 'LIST :stack)
-            ;; arg is in rax
+            ;; arg is in eax
             (inst :push :eax)
             (emit-call '%type-error)
             (inst :exit) ; FIXME
@@ -955,8 +955,6 @@
         (emit-jmp-short :ne ERROR)
         (emit-jmp-short t label-if-false)
         (label EXIT)
-        (when (var-ref-p arg)
-          (add-type-constraint (var-ref-var arg) 'LIST))
         t))))
 
 (defknown %p2-test-eq (t t t) t)
