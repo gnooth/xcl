@@ -142,7 +142,6 @@
 (install-p2-handler 'symbol-global-value        'p2-symbol-global-value)
 #+x86-64
 (install-p2-handler 'symbol-name                'p2-symbol-name)
-#+x86-64
 (install-p2-handler 'symbol-package             'p2-symbol-package)
 (install-p2-handler 'symbolp                    'p2-symbolp)
 (install-p2-handler 'two-arg-*                  'p2-two-arg-*)
