@@ -4084,26 +4084,17 @@
 
 (defun p2-endp (form target)
   (when (check-arg-count form 1)
-    (mumble "p2-endp~%")
     (let ((arg (%cadr form)))
       (process-1-arg arg :rdi t)
       (let* ((LABEL1 (make-label))
              (LABEL2 (make-label))
-;;              (common-labels (compiland-common-labels *current-compiland*))
-;;              (ERROR (gethash :error-not-list common-labels))
-             (ERROR (make-label))
-             )
-;;         (unless ERROR
-;;           (setq ERROR (make-label))
+             (ERROR (make-label)))
           (let ((*current-segment* :elsewhere))
             (label ERROR)
-            (p2-symbol 'LIST :rsi)
             ;; arg is already in rdi
-            (emit-call '%type-error)
+            (emit-call 'error-not-list)
             (emit-exit) ; FIXME
-;;             (setf (gethash :error-not-list common-labels) ERROR)
             )
-;;           )
         (inst :mov :edi :eax)
         (inst :and +lowtag-mask+ :al)
         (inst :cmp +list-lowtag+ :al)
