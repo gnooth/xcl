@@ -750,23 +750,45 @@
         (move-result-to-target target)
         t))))
 
+(defknown common-label-error-not-list () t)
+(defun common-label-error-not-list (compiland)
+  (let* ((common-labels (compiland-common-labels compiland))
+         (label (gethash :error-not-list common-labels)))
+    (if label
+        (mumble "common-label-error-not-list re-using existing label~%")
+        (mumble "common-label-error-not-list~%"))
+    (unless label
+      (setq label (make-label))
+      (let ((*current-segment* :elsewhere))
+        (label label)
+;;         (p2-symbol 'LIST :rsi)
+        ;; arg is in rax
+        (inst :mov :rax :rdi)
+;;         (emit-call '%type-error)
+        (emit-call 'error-not-list)
+        (emit-exit) ; FIXME
+        (setf (gethash :error-not-list common-labels) label)))
+    label))
+
 (defun p2-test-endp (test-form label-if-false)
   (when (check-arg-count test-form 1)
     (let ((arg (%cadr test-form)))
       (process-1-arg arg :rax t)
       (let* ((EXIT (make-label))
-             (common-labels (compiland-common-labels *current-compiland*))
-             (ERROR (gethash :error-not-list common-labels)))
-        (unless ERROR
-          (setq ERROR (make-label))
-          (let ((*current-segment* :elsewhere))
-            (label ERROR)
-            (p2-symbol 'LIST :rsi)
-            ;; arg is in rax
-            (inst :mov :rax :rdi)
-            (emit-call '%type-error)
-            (emit-exit) ; FIXME
-            (setf (gethash :error-not-list common-labels) ERROR)))
+;;              (common-labels (compiland-common-labels *current-compiland*))
+;;              (ERROR (gethash :error-not-list common-labels))
+             (ERROR (common-label-error-not-list *current-compiland*))
+             )
+;;         (unless ERROR
+;;           (setq ERROR (make-label))
+;;           (let ((*current-segment* :elsewhere))
+;;             (label ERROR)
+;;             (p2-symbol 'LIST :rsi)
+;;             ;; arg is in rax
+;;             (inst :mov :rax :rdi)
+;;             (emit-call '%type-error)
+;;             (emit-exit) ; FIXME
+;;             (setf (gethash :error-not-list common-labels) ERROR)))
         (inst :compare-immediate nil :rax)
         (emit-jmp-short :e EXIT)
         (inst :push :rax)
@@ -3825,19 +3847,21 @@
              (p2-%car form target))
             (t
              (process-1-arg arg :rax t)
-             (let* (;(EXIT (make-label))
-                    (common-labels (compiland-common-labels *current-compiland*))
-                    (ERROR (gethash :error-not-list common-labels)))
-               (unless ERROR
-                 (setq ERROR (make-label))
-                 (let ((*current-segment* :elsewhere))
-                   (label ERROR)
-                   ;; arg is in rax
-                   (p2-symbol 'LIST :rsi)
-                   (inst :mov :rax :rdi)
-                   (emit-call '%type-error)
-                   (emit-exit) ; FIXME
-                   (setf (gethash :error-not-list common-labels) ERROR)))
+             (let (;(EXIT (make-label))
+;;                     (common-labels (compiland-common-labels *current-compiland*))
+;;                     (ERROR (gethash :error-not-list common-labels))
+                    (ERROR (common-label-error-not-list *current-compiland*))
+                    )
+;;                (unless ERROR
+;;                  (setq ERROR (make-label))
+;;                  (let ((*current-segment* :elsewhere))
+;;                    (label ERROR)
+;;                    ;; arg is in rax
+;;                    (p2-symbol 'LIST :rsi)
+;;                    (inst :mov :rax :rdi)
+;;                    (emit-call '%type-error)
+;;                    (emit-exit) ; FIXME
+;;                    (setf (gethash :error-not-list common-labels) ERROR)))
 ;;                (inst :compare-immediate nil :rax)
 ;;                (emit-jmp-short :e EXIT)
                (inst :push :rax)
@@ -3886,19 +3910,21 @@
              (p2-%cdr form target))
             (t
              (process-1-arg arg :rax t)
-             (let* (;(EXIT (make-label))
-                    (common-labels (compiland-common-labels *current-compiland*))
-                    (ERROR (gethash :error-not-list common-labels)))
-               (unless ERROR
-                 (setq ERROR (make-label))
-                 (let ((*current-segment* :elsewhere))
-                   (label ERROR)
-                   ;; arg is in rax
-                   (p2-symbol 'LIST :rsi)
-                   (inst :mov :rax :rdi)
-                   (emit-call '%type-error)
-                   (emit-exit) ; FIXME
-                   (setf (gethash :error-not-list common-labels) ERROR)))
+             (let (;(EXIT (make-label))
+;;                     (common-labels (compiland-common-labels *current-compiland*))
+;;                     (ERROR (gethash :error-not-list common-labels))
+                    (ERROR (common-label-error-not-list *current-compiland*))
+                    )
+;;                (unless ERROR
+;;                  (setq ERROR (make-label))
+;;                  (let ((*current-segment* :elsewhere))
+;;                    (label ERROR)
+;;                    ;; arg is in rax
+;;                    (p2-symbol 'LIST :rsi)
+;;                    (inst :mov :rax :rdi)
+;;                    (emit-call '%type-error)
+;;                    (emit-exit) ; FIXME
+;;                    (setf (gethash :error-not-list common-labels) ERROR)))
 ;;                (inst :compare-immediate nil :rax)
 ;;                (emit-jmp-short :e EXIT)
                (inst :push :rax)
@@ -3985,19 +4011,21 @@
              (p2 arg target))
             (t
              (process-1-arg arg :rax t)
-             (let* (;(EXIT (make-label))
-                    (common-labels (compiland-common-labels *current-compiland*))
-                    (ERROR (gethash :error-not-list common-labels)))
-               (unless ERROR
-                 (setq ERROR (make-label))
-                 (let ((*current-segment* :elsewhere))
-                   (label ERROR)
-                   (p2-symbol 'LIST :rsi)
-                   ;; arg is in rax
-                   (inst :mov :rax :rdi)
-                   (emit-call '%type-error)
-                   (emit-exit) ; FIXME
-                   (setf (gethash :error-not-list common-labels) ERROR)))
+             (let (;(EXIT (make-label))
+;;                     (common-labels (compiland-common-labels *current-compiland*))
+;;                     (ERROR (gethash :error-not-list common-labels))
+                   (ERROR (common-label-error-not-list *current-compiland*))
+                   )
+;;                (unless ERROR
+;;                  (setq ERROR (make-label))
+;;                  (let ((*current-segment* :elsewhere))
+;;                    (label ERROR)
+;;                    (p2-symbol 'LIST :rsi)
+;;                    ;; arg is in rax
+;;                    (inst :mov :rax :rdi)
+;;                    (emit-call '%type-error)
+;;                    (emit-exit) ; FIXME
+;;                    (setf (gethash :error-not-list common-labels) ERROR)))
 ;;                (inst :compare-immediate nil :rax)
 ;;                (emit-jmp-short :e EXIT)
                (inst :push :rax)
