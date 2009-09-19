@@ -375,9 +375,9 @@
       (setf string (subseq string 1)
             len (1- len)))
     (dolist (entry *command-table*)
-      (when (or (string= string (entry-abbreviation entry))
+      (when (or (string-equal string (entry-abbreviation entry))
                 (and (<= 2 len (length (entry-name entry)))
-                     (string= string (subseq (entry-name entry) 0 len))))
+                     (string-equal string (subseq (entry-name entry) 0 len))))
         (return (entry-command entry))))))
 
 (defun process-command (form)
