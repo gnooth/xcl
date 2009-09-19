@@ -97,9 +97,10 @@ void gc_warn_proc(char * msg, GC_word arg)
   fflush(stdout);
 }
 
+volatile bool boot_loaded_p = false;
+
 int __main(int argc, char * argv[])
 {
-  bool boot_loaded_p = false;
 //   initialize_uptime();
 //   GC_init();
 //   GC_set_warn_proc(gc_warn_proc);
