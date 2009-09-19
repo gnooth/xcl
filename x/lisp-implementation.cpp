@@ -28,5 +28,5 @@ Value CL_lisp_implementation_type()
 // ### lisp-implementation-version
 Value CL_lisp_implementation_version()
 {
-  return make_simple_string("0.0.0.279");
+  return make_simple_string("0.0.0.280");
 }
