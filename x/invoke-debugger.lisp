@@ -58,10 +58,14 @@
 
 (defun invoke-debugger (condition)
   (let ((*saved-backtrace* (backtrace-as-list)))
-    (when *debugger-hook*
-      (let ((hook-function *debugger-hook*)
-            (*debugger-hook* nil))
-        (funcall hook-function condition hook-function)))
+    (let ((old-hook *invoke-debugger-hook*))
+      (when old-hook
+        (let ((*invoke-debugger-hook* nil))
+          (funcall old-hook condition old-hook))))
+    (let ((old-hook *debugger-hook*))
+      (when old-hook
+        (let ((*debugger-hook* nil))
+          (funcall old-hook condition old-hook))))
     (let ((original-package *package*))
       (with-standard-io-syntax
         (let ((*print-readably* nil)
