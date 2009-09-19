@@ -1,6 +1,6 @@
 // classdefs.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -46,6 +46,8 @@ DEFINE_BUILT_IN_CLASS(real);
 DEFINE_BUILT_IN_CLASS(restart);
 DEFINE_BUILT_IN_CLASS(sequence);
 DEFINE_BUILT_IN_CLASS(server_socket);
+DEFINE_BUILT_IN_CLASS(slime_input_stream);
+DEFINE_BUILT_IN_CLASS(slime_output_stream);
 DEFINE_BUILT_IN_CLASS(socket_stream);
 DEFINE_BUILT_IN_CLASS(stream);
 DEFINE_BUILT_IN_CLASS(string);

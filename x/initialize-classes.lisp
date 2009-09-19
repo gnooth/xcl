@@ -1,6 +1,6 @@
 ;;; initialize-classes.lisp
 ;;;
-;;; Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -181,6 +181,8 @@
 ;;                            '(simple-vector vector simple-array array sequence t))
 ;; (initialize-built-in-class 'single-float '(float) '(single-float float real number t))
 (initialize-built-in-class 'server-socket '(t) '(server-socket t))
+(initialize-built-in-class 'slime-input-stream '(stream) '(slime-input-stream stream t))
+(initialize-built-in-class 'slime-output-stream '(stream) '(slime-output-stream stream t))
 (initialize-built-in-class 'socket-stream '(stream) '(socket-stream stream t))
 
 (initialize-funcallable-standard-class 'standard-generic-function

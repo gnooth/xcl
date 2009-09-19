@@ -451,6 +451,8 @@ extern Value EXT_getenv(Value arg);
 extern Value EXT_get_mutex(unsigned int numargs, Value args[]);
 extern Value EXT_local_port(Value arg);
 extern Value EXT_make_condition_variable();
+extern Value EXT_make_slime_input_stream(Value arg1, Value arg2);
+extern Value EXT_make_slime_output_stream(Value arg);
 extern Value EXT_memq(Value item, Value list);
 extern Value EXT_memql(Value item, Value list);
 extern Value EXT_neq(Value arg1, Value arg2);

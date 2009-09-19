@@ -642,6 +642,8 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_make_primitive, SYS_make_primitive, 4, 4);
   ADD_PRIMITIVE(S_make_restart_internal, SYS_make_restart_internal, 5, 5);
   ADD_PRIMITIVE(S_make_simple_vector, SYS_make_simple_vector, 1, 1);
+  ADD_PRIMITIVE(S_make_slime_input_stream, EXT_make_slime_input_stream, 2, 2);
+  ADD_PRIMITIVE(S_make_slime_output_stream, EXT_make_slime_output_stream, 1, 1);
   ADD_PRIMITIVE(S_make_socket_internal, SYS_make_socket_internal, 7, 7);
   ADD_PRIMITIVE(S_make_string_internal, SYS_make_string_internal, 3, 3);
   ADD_PRIMITIVE(S_make_string_output_stream_internal, SYS_make_string_output_stream_internal, 1, 1);

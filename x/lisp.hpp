@@ -188,6 +188,8 @@ const long WIDETAG_READTABLE                    =  50;
 const long WIDETAG_MUTEX                        =  52;
 const long WIDETAG_CONDITION_VARIABLE           =  53;
 const long WIDETAG_LOGICAL_PATHNAME             =  54;
+const long WIDETAG_SLIME_INPUT_STREAM           =  55;
+const long WIDETAG_SLIME_OUTPUT_STREAM          =  56;
 
 const long WIDETAG_ARRAY_BIT                    =   64;
 const long WIDETAG_SIMPLE_ARRAY_BIT             =  128;

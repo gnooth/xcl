@@ -1,6 +1,6 @@
 // Stream.hpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ protected:
 #ifdef WIN32
   HANDLE _h;
 #endif
-  unsigned long _offset;
+  INDEX _offset;
 
   // the number of characters on the current line of output
   long _charpos;
@@ -91,12 +91,25 @@ public:
     return _fd;
   }
 
-  unsigned long offset() const { return _offset; }
+  unsigned long offset() const
+  {
+    return _offset;
+  }
 
-  long charpos() const { return _charpos; }
-  void set_charpos(long n) { _charpos = n; }
+  long charpos() const
+  {
+    return _charpos;
+  }
 
-  bool is_open() const { return _open; }
+  void set_charpos(long n)
+  {
+    _charpos = n;
+  }
+
+  bool is_open() const
+  {
+    return _open;
+  }
 
   virtual Value type_of() const
   {
@@ -251,6 +264,8 @@ inline bool streamp(Value value)
         case WIDETAG_CONCATENATED_STREAM:
         case WIDETAG_ECHO_STREAM:
         case WIDETAG_SYNONYM_STREAM:
+        case WIDETAG_SLIME_INPUT_STREAM:
+        case WIDETAG_SLIME_OUTPUT_STREAM:
           return true;
         }
     }
