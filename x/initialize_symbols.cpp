@@ -312,6 +312,7 @@ void initialize_symbols()
 
   // REVIEW
   the_symbol(S_enable_autocompile)->initialize_special(T);
+  the_symbol(S_autocompile_verbose)->initialize_special(NIL);
 
   the_symbol(S_invoke_debugger_hook)->initialize_special(NIL);
 }
