@@ -583,6 +583,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_gethash2, SYS_gethash2, 2, 2);
   ADD_PRIMITIVE(S_gethash2_1, SYS_gethash2_1, 2, 2);
   ADD_PRIMITIVE(S_gethash3, SYS_gethash3, 3, 3);
+  ADD_PRIMITIVE(S_getpid, EXT_getpid, 0, 0);
   ADD_PRIMITIVE(S_gt_2, SYS_gt_2, 2, 2);
   ADD_PRIMITIVE(S_hash_table_entries, SYS_hash_table_entries, 1, 1);
   ADD_PRIMITIVE(S_heap_free, SYS_heap_free, 0, 0);
