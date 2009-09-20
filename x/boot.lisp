@@ -577,6 +577,8 @@
 (in-package "EXTENSIONS")
 (export 'dump-ir2)
 (autoload 'dump-ir2 "load-compiler")
+(export 'with-mutex)
+(autoload-macro 'with-mutex)
 
 (in-package "CL-USER")
 

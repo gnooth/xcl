@@ -271,6 +271,7 @@
                           "with-accessors"
                           "with-hash-table-iterator"
                           "with-input-from-string"
+                          "with-mutex"
                           "with-open-file"
                           "with-open-stream"
                           "with-output-to-string"
