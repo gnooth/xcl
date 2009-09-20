@@ -1,6 +1,6 @@
 ;;; open.lisp
 ;;;
-;;; Copyright (C) 2003-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -128,7 +128,10 @@
             (error 'file-error
                    :pathname pathname
                    :format-control "The file ~S does not exist."
-                   :format-arguments (list namestring)))))
+                   :format-arguments (list namestring))))
+         ((nil)
+          (unless (probe-file pathname)
+            (return-from open nil))))
        (make-file-stream pathname namestring element-type :input nil))
       (:probe
        (case if-does-not-exist
