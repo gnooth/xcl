@@ -243,7 +243,7 @@
 (defun find-unique-name (arg)
   (setq arg (string-upcase arg)) ; FIXME readtable-case
   (when (position #\: arg)
-    (return-from find-unique-name (ignore-errors (read-from-string arg))))
+    (return-from find-unique-name (values (ignore-errors (read-from-string arg)))))
   (let ((name (find-symbol arg))) ; look in current package first
     (when (or (null name)
               (not (fboundp name)))
@@ -261,8 +261,15 @@
 
 (defun disassemble-command (arg)
   (let ((name (find-unique-name arg)))
-    (when name
-      (disassemble name))))
+    (when (and name (symbolp name) (fboundp name))
+      (disassemble name)
+      (return-from disassemble-command)))
+  (let* ((form (values (ignore-errors (read-from-string arg))))
+         (thing (values (ignore-errors (eval form)))))
+    (when (and thing
+               (or (functionp thing)
+                   (and (symbolp thing) (fboundp thing))))
+      (disassemble thing))))
 
 (defun edit-command (arg)
   (let ((name (find-unique-name arg)))
