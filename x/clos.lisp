@@ -1513,10 +1513,9 @@
             (function-lambda-expression function)
           (declare (ignore lambda-expression))
           (unless environment
-            (setq compiled-function (compile nil function)))))
+            (setq compiled-function (autocompile function)))))
       (setf (method-function method) (or compiled-function function)))
 
-;;     (setf (method-fast-function method) fast-function)
     (let ((compiled-fast-function nil))
       (when fast-function
         (unless (autoloadp 'compile)
@@ -1524,7 +1523,7 @@
               (function-lambda-expression fast-function)
             (declare (ignore lambda-expression))
             (unless environment
-              (setq compiled-fast-function (compile nil fast-function))))))
+              (setq compiled-fast-function (autocompile fast-function))))))
       (setf (method-fast-function method) (or compiled-fast-function fast-function)))
 
     method))
@@ -1646,7 +1645,7 @@
           (unless (compiled-function-p dfun)
             (when (fboundp 'compile)
               (unless (autoloadp 'compile)
-                (setq dfun (or (compile nil dfun) dfun)))))
+                (setq dfun (or (autocompile dfun) dfun)))))
           (return-from std-compute-discriminating-function dfun)))))
 
   (let* ((lambda-expression
@@ -1663,7 +1662,7 @@
          (dfun (coerce-to-function lambda-expression)))
     (when (fboundp 'compile)
       (unless (autoloadp 'compile)
-        (setq dfun (or (compile nil dfun) dfun))))
+        (setq dfun (or (autocompile dfun) dfun))))
     dfun))
 
 (defun slow-method-lookup (gf args classes)

@@ -2623,5 +2623,7 @@ for special variables."
 
 (defun autocompile (function)
   (when *enable-autocompile*
-    (let ((compiled-function (compile nil function)))
-      compiled-function)))
+    (let* ((verbose *autocompile-verbose*)
+           (*compile-verbose* verbose)
+           (*mumble* verbose))
+      (values (compile nil function)))))
