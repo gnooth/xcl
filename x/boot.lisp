@@ -83,46 +83,22 @@
 (defun ext:precompile (name &optional definition)
   (or name definition))
 
-;; Redefined in pprint.lisp.
+;; redefined in pprint.lisp
 (defun ext:charpos (stream)
   (%stream-charpos stream))
 
-;; Redefined in pprint.lisp.
+;; redefined in pprint.lisp
 (defun (setf ext:charpos) (new-value stream)
   (%stream-set-charpos stream new-value))
 
 (load-system-file "defmacro.lisp")
 
-;; (defmacro defconstant (name initial-value &optional (doc nil docp))
-;;   `(progn
-;;      (%defconstant ',name ,initial-value)
-;;      ,@(when docp
-;;          `((%set-documentation ',name 'variable ,doc)))
-;;      ',name))
 (load-system-file "defconstant.lisp")
 
 (defconstant +nil-symbol-name+ "NIL")
 (export '+nil-symbol-name+)
 
-;; (%defconstant 'single-float-epsilon (float 8388609/140737488355328))
-;; (%defconstant 'short-float-epsilon single-float-epsilon)
-;; (%defconstant 'double-float-epsilon (float 4503599627370497/40564819207303340847894502572032 1.0d0))
-;; (%defconstant 'long-float-epsilon double-float-epsilon)
-
-;; (%defconstant 'single-float-negative-epsilon (float 8388609/281474976710656))
-;; (%defconstant 'short-float-negative-epsilon single-float-negative-epsilon)
-;; (%defconstant 'double-float-negative-epsilon (float 4503599627370497/81129638414606681695789005144064 1.0d0))
-;; (%defconstant 'long-float-negative-epsilon double-float-negative-epsilon)
-
-(defmacro defparameter (name initial-value &optional docstring)
-  `(progn
-     (%defparameter ',name ,initial-value)
-     (%set-documentation ',name 'variable ,docstring)
-     ',name))
-
-(set-symbol-function 'defparameter (macro-function 'defparameter))
-(set-symbol-plist 'defparameter nil)
-(set-macro-function 'defparameter (symbol-function 'defparameter))
+(load-system-file "defparameter.lisp")
 
 (autoload-macro 'destructuring-bind)
 
@@ -230,6 +206,7 @@
 (maybe-load-system-file "find.xcl")
 (maybe-load-system-file "defmacro.xcl")
 (maybe-load-system-file "defconstant.xcl")
+(maybe-load-system-file "defparameter.xcl")
 (maybe-load-system-file "backquote.xcl")
 (maybe-load-system-file "featurep.xcl")
 (maybe-load-system-file "read-conditional.xcl")

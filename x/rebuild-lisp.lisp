@@ -103,6 +103,7 @@
                           "defknown"
                           "defmacro"
                           "defpackage"
+                          "defparameter"
                           "defsetf"
                           "defstruct"
                           "deftype"
