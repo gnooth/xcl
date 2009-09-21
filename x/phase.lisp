@@ -1,6 +1,6 @@
 ;;; phase.lisp
 ;;;
-;;; Copyright (C) 2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -17,6 +17,8 @@
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 ;;; Adapted from SBCL.
+
+(in-package "SYSTEM")
 
 (defun phase (number)
   (etypecase number
