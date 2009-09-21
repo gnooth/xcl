@@ -23,11 +23,7 @@
 (setq *autoload-verbose* nil)
 
 (load-system-file "backquote.lisp")
-
-(defmacro in-package (name)
-  `(eval-when (:compile-toplevel :load-toplevel :execute)
-     (%in-package ,(string name))))
-
+(load-system-file "early-macros.lisp")
 (load-system-file "featurep.lisp")
 (load-system-file "read-conditional.lisp")
 
@@ -58,25 +54,22 @@
 (defun mapcan (function &rest lists)
   (apply #'nconc (apply #'mapcar function lists)))
 
-;; (load-system-file "make-list.lisp")
 (autoload 'make-list)
 
-;; (defun make-string (size &key initial-element element-type)
-;;   (%make-string size initial-element element-type))
 (autoload 'make-string)
 
 (defun make-package (package-name &key nicknames use)
   (%make-package package-name nicknames use))
 
-(defmacro return (&optional result)
-  `(return-from nil ,result))
-
+;; redefined in define-modify-macro.lisp
 (defmacro incf (place &optional (delta 1))
   `(setq ,place (+ ,place ,delta)))
 
+;; redefined in define-modify-macro.lisp
 (defmacro decf (place &optional (delta 1))
   `(setq ,place (- ,place ,delta)))
 
+;; redefined in push.lisp
 (defmacro push (item place)
   `(setq ,place (cons ,item ,place)))
 
@@ -149,21 +142,9 @@
 (autoload-macro 'typecase)
 (autoload-macro 'etypecase)
 
-(defmacro prog1 (first-form &rest forms)
-  (let ((result (gensym)))
-    `(let ((,result ,first-form))
-       ,@forms
-       ,result)))
-
-(defmacro prog2 (first-form second-form &rest forms)
-  `(prog1 (progn ,first-form ,second-form) ,@forms))
-
 (load-system-file "member.lisp")
 
-(defmacro apply-key (key element)
-  `(if ,key
-       (funcall ,key ,element)
-       ,element))
+(autoload-macro 'apply-key)
 
 ;; needed for reader.lisp
 (load-system-file "make-hash-table.lisp")
@@ -175,18 +156,15 @@
 (load-system-file "typep.lisp")
 
 ;; needed for reader.lisp
+(load-system-file "apply-key.lisp")
 (load-system-file "find.lisp")
 
 (load-system-file "reader.lisp")
 
-;; (autoload 'adjoin)
 (load-system-file "adjoin.lisp")
-;; (autoload-macro 'pushnew)
 (load-system-file "pushnew.lisp")
 
 (load-system-file "ldb.lisp")
-;; (load-system-file "canonicalize-type.lisp")
-;; (load-system-file "make-array.lisp")
 (load-system-file "typecase.lisp")
 (load-system-file "etypecase.lisp")
 (load-system-file "defknown.lisp")
@@ -218,13 +196,15 @@
 (maybe-load-system-file "typecase.xcl")
 (maybe-load-system-file "etypecase.xcl")
 
+(maybe-load-system-file "early-macros.xcl")
+(maybe-load-system-file "apply-key.xcl")
+
 (autoload-macro 'defsetf)
 
 (load-system-file "invoke-debugger")
 (load-system-file "signal")
 (load-system-file "concatenate")
 (autoload '(make-array adjust-array))
-;; (autoload 'adjust-array)
 (load-system-file "copy-seq")
 
 (autoload 'parse-lambda-list)
@@ -262,20 +242,10 @@
 (autoload 'notevery)
 (autoload '(some notany) "some")
 
-(load-system-file "late-setf.lisp")
+(load-system-file "late-setf")
 
 (autoload '(dpb %dpb) "dpb")
 
-(defmacro multiple-value-setq (vars value-form)
-  (unless (and (listp vars) (every #'symbolp vars))
-    (error "~S is not a list of symbols." vars))
-  (if vars
-      `(values (setf (values ,@vars) ,value-form))
-      `(values ,value-form)))
-
-;; (autoload 'pushnew)
-;; (load-system-file "pushnew.lisp")
-;; (autoload-macro 'pushnew)
 (autoload-macro 'psetq)
 (autoload-macro '(make-string-output-stream with-output-to-string))
 
@@ -300,8 +270,8 @@
 
 (autoload 'make-sequence-of-type)
 
-(defmacro make-sequence-like (sequence length)
-  `(make-sequence-of-type (type-of ,sequence) ,length))
+;; (defmacro make-sequence-like (sequence length)
+;;   `(make-sequence-of-type (type-of ,sequence) ,length))
 
 (autoload-macro 'deftype)
 (autoload 'make-sequence)
@@ -362,20 +332,7 @@
 (autoload '(open write-byte read-byte write-sequence read-sequence))
 (autoload-macro 'with-open-file)
 
-(defmacro lambda (lambda-list &rest body)
-  (list 'FUNCTION (list* 'LAMBDA lambda-list body)))
-
-(defmacro when (test-form &rest body)
-  (if (cdr body)
-      `(if ,test-form (progn ,@body))
-      `(if ,test-form ,(car body))))
-
-(defmacro unless (test-form &rest body)
-  (if (cdr body)
-      `(if (not ,test-form) (progn ,@body))
-      `(if (not ,test-form) ,(car body))))
-
-(load-system-file "define-modify-macro.lisp")
+(load-system-file "define-modify-macro")
 
 (autoload-macro 'with-hash-table-iterator)
 (autoload 'hash-table-iterator-function "with-hash-table-iterator")
@@ -392,15 +349,6 @@
 (load-system-file "defvar")
 (load-system-file "defconstant")
 (defmacro define-condition (&rest args))
-
-;; (defmacro defconstant (name initial-value &optional docstring)
-;;   `(%defconstant ',name ,initial-value ,docstring))
-
-;; (defmacro defparameter (name initial-value &optional docstring)
-;;   `(%defparameter ',name ,initial-value ,docstring))
-
-(defmacro nth-value (n form)
-  `(nth ,n (multiple-value-list ,form)))
 
 (autoload 'assign-setf-macro "defsetf")
 (load-system-file "initialize-classes")
@@ -421,8 +369,6 @@
 (autoload '(set-exclusive-or nset-exclusive-or))
 (autoload 'check-type-error "check-type")
 (autoload-macro '(ccase ctypecase check-type))
-;; (autoload-macro 'define-compiler-macro)
-;; (autoload 'compiler-macro-function "define-compiler-macro")
 (load-system-file "define-compiler-macro")
 
 (autoload-macro 'defclass)
@@ -592,5 +538,5 @@
                  (load arg))))))))
 
 ;; REVIEW
-(when (probe-file "featurep.xcl")
+(when (probe-file "grovel.xcl")
   (make-thread #'sys:grovel-cpp-definitions))

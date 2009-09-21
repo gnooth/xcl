@@ -1,6 +1,6 @@
 ;;; substitute.lisp
 ;;;
-;;; Copyright (C) 2003-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -64,7 +64,7 @@
 ;;; on each pass through the loop. Called by all three substitute functions.
 (defun vector-substitute* (pred new sequence incrementer left right length
                                 start end count key test test-not old)
-  (let ((result (make-sequence-like sequence length))
+  (let ((result (make-sequence-of-type (type-of sequence) length))
         (index left))
     (do ()
       ((eql index start))

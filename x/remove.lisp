@@ -1,6 +1,6 @@
 ;;; remove.lisp
 ;;;
-;;; Copyright (C) 2003-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@
   `(do ((index ,begin (,bump index))
         (result
          (do ((index ,left (,bump index))
-              (result (make-sequence-like sequence length)))
+              (result (make-sequence-of-type (type-of sequence) length)))
            ((eql index ,begin) result)
            (aset result index (aref sequence index))))
         (new-index ,begin)
