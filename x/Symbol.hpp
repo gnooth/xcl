@@ -34,18 +34,18 @@ private:
     // bit flags
     FLAG_SPECIAL_VARIABLE = 0x0001,
     FLAG_SPECIAL_OPERATOR = 0x0002,
-    FLAG_MACRO = 0x0004,
-    FLAG_CONSTANT = 0x0008,
-    FLAG_AUTOLOAD = 0x0010,
-    FLAG_KERNEL_FUNCTION = 0x0020
+    FLAG_MACRO            = 0x0004,
+    FLAG_CONSTANT         = 0x0008,
+    FLAG_AUTOLOAD         = 0x0010,
+    FLAG_KERNEL_FUNCTION  = 0x0020
   };
   unsigned long _flags;
   unsigned long _hash;
-#define SYMBOL_NAME_OFFSET (BYTES_PER_WORD * 2) // +SYMBOL-NAME-OFFSET+
+#define SYMBOL_NAME_OFFSET    (BYTES_PER_WORD * 2) // +SYMBOL-NAME-OFFSET+
   SimpleString * const _name;
 #define SYMBOL_PACKAGE_OFFSET (BYTES_PER_WORD * 3) // +SYMBOL-PACKAGE-OFFSET+
   Value _package;
-#define SYMBOL_VALUE_OFFSET (BYTES_PER_WORD * 4) // +SYMBOL-VALUE-OFFSET+
+#define SYMBOL_VALUE_OFFSET   (BYTES_PER_WORD * 4) // +SYMBOL-VALUE-OFFSET+
   Value _value;
   TypedObject * _function;
   Value _plist;
@@ -74,10 +74,18 @@ public:
 
   unsigned long hash();
 
-  unsigned long flags() { return _flags; }
-  void set_flags(unsigned long flags) { _flags = flags; }
+  unsigned long flags()
+  {
+    return _flags;
+  }
+
+  void set_flags(unsigned long flags)
+  {
+    _flags = flags;
+  }
 
   Value value() { return _value; }
+
   void set_value(Value value) { _value = value; }
 
   void set_constant_value(Value value)
@@ -98,8 +106,9 @@ public:
     return _flags & FLAG_CONSTANT;
   }
 
-  void initialize_special() // No initial value.
+  void initialize_special()
   {
+     // no initial value
     _flags |= FLAG_SPECIAL_VARIABLE;
   }
 
@@ -119,7 +128,6 @@ public:
     return _function;
   }
 
-//   void set_function(class Function * function)
   void set_function(TypedObject * function)
   {
     _function = function;
@@ -128,7 +136,6 @@ public:
     _flags &= ~FLAG_AUTOLOAD;
   }
 
-//   void set_autoload(class Function * function)
   void set_autoload(TypedObject * function)
   {
     _function = function;
@@ -186,6 +193,16 @@ public:
       _flags |= FLAG_KERNEL_FUNCTION;
     else
       _flags &= ~FLAG_KERNEL_FUNCTION;
+  }
+
+  void fmakunbound()
+  {
+    _function = NULL;;
+//     _flags &= ~FLAG_SPECIAL_OPERATOR;
+//     _flags &= ~FLAG_MACRO;
+//     _flags &= ~FLAG_AUTOLOAD;
+//     _flags &= ~FLAG_KERNEL_FUNCTION;
+    _flags &= ~(FLAG_SPECIAL_OPERATOR | FLAG_MACRO | FLAG_AUTOLOAD | FLAG_KERNEL_FUNCTION);
   }
 
   Value plist()

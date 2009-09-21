@@ -755,7 +755,7 @@ Value CL_fmakunbound(Value name)
 {
   if (symbolp(name))
     {
-      the_symbol(name)->set_function(NULL);
+      the_symbol(name)->fmakunbound();
       return name;
     }
   else if (is_valid_setf_function_name(name))
