@@ -49,7 +49,7 @@ Value EXT_backtrace()
   Value error_output = thread->symbol_value(S_error_output);
   if (!streamp(error_output))
     {
-      // Restore sanity.
+      // restore sanity
       error_output = make_value(ERROR_OUTPUT);
       thread->set_symbol_value(S_error_output, error_output);
     }
@@ -213,7 +213,7 @@ Value SYS_xinspected_parts(Value arg)
 Value EXT_quit()
 {
   exit(0);
-  // Not reached.
+  // not reached
   return NIL;
 }
 
@@ -221,7 +221,7 @@ Value EXT_quit()
 Value EXT_exit()
 {
   exit(0);
-  // Not reached.
+  // not reached
   return NIL;
 }
 
@@ -783,31 +783,18 @@ Value CL_defmacro(Value args, Environment * env, Thread * thread)
   Value lambda_list = check_list(CL_cadr(args));
   Value body = CL_cddr(args);
   Value block = make_cons(S_block, make_cons(name_arg, body));
-//   Value to_be_applied =
-//     list2(S_function, list3(S_lambda, lambda_list, block));
   Value to_be_applied =
     make_value(new Closure(list3(S_lambda, lambda_list, block), env));
   Value form_arg = gensym(thread);
-  Value env_arg = gensym(thread); // Ignored.
+  Value env_arg = gensym(thread); // ignored
   Value expander =
     list3(S_lambda, list2(form_arg, env_arg),
           list3(S_apply, to_be_applied,
                 list2(S_cdr, form_arg)));
   Closure * expansion_function =
     new Closure(list2(S_macro_function, name_arg), expander, env);
-//   MacroObject macroObject =
-//     new MacroObject(symbol, expansion_function);
-//   if (symbol.getSymbolFunction() instanceof SpecialOperator)
-//     put(symbol, Symbol.MACROEXPAND_MACRO, macroObject);
-//   else
-//     symbol.setSymbolFunction(macroObject);
-
   symbol->set_macro_function(expansion_function);
-
   SYS_record_source_information(name_arg);
-
-//   macroObject.setLambdaList(lambdaList);
-//   thread._values = null;
   return name_arg;
 }
 
