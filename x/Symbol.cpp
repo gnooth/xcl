@@ -517,6 +517,14 @@ Value CL_symbolp(Value arg)
   return symbolp(arg) ? T : NIL;
 }
 
+// ### symbol-flags
+Value SYS_symbol_flags(Value arg)
+{
+  if (!symbolp(arg))
+    return signal_type_error(arg, S_symbol);
+  return make_number(the_symbol(arg)->flags());
+}
+
 // ### symbol-value
 Value CL_symbol_value(Value arg)
 {

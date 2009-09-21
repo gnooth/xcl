@@ -833,6 +833,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_subtract_2, SYS_subtract_2, 2, 2);
   ADD_PRIMITIVE(S_svset, SYS_svset, 3, 3);
   ADD_PRIMITIVE(S_swap_slots, SYS_swap_slots, 2, 2);
+  ADD_PRIMITIVE(S_symbol_flags, SYS_symbol_flags, 1, 1);
   ADD_PRIMITIVE(S_symbol_global_value, SYS_symbol_global_value, 1, 1);
   ADD_PRIMITIVE(S_thread_name, EXT_thread_name, 1, 1);
   ADD_PRIMITIVE(S_threadp, EXT_threadp, 1, 1);
