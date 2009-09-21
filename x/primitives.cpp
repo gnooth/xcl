@@ -366,7 +366,7 @@ Value gensym(const char * prefix, Thread * thread)
     }
   else
     {
-      // Restore sanity.
+      // restore sanity
       thread->set_symbol_value(S_gensym_counter, FIXNUM_ZERO);
       return signal_type_error(old_value, S_unsigned_byte);
     }
@@ -427,24 +427,6 @@ Value CL_macro_function(unsigned int numargs, Value args[])
   if (numargs < 1 || numargs > 2)
     return wrong_number_of_arguments(S_macro_function, numargs, 1, 2);
   Symbol * sym = check_symbol(args[0]);
-//   if (sym->is_autoload_macro())
-//     {
-//       Autoload * autoload = reinterpret_cast<Autoload *>(sym->function());
-//       assert(autoload != NULL);
-//       autoload->load();
-//     }
-//   if (numargs == 2 && args[1] != NIL)
-//     {
-//       Environment * env = check_environment(args[1]);
-//       TypedObject * op = env->lookup_function(args[0]);
-//       if (op)
-//         {
-//           if (op->widetag() == WIDETAG_MACRO)
-//             return make_value(reinterpret_cast<Macro *>(op)->expansion_function());
-//           else
-//             return NIL;
-//         }
-//     }
   if (sym->is_special_operator())
     {
       Value value = sym->get(S_macro);
@@ -790,7 +772,7 @@ Value SYS_two_arg_append(Value arg1, Value arg2)
 {
   if (arg1 == NIL)
     return arg2;
-  // APPEND is required to copy its first argument.
+  // APPEND is required to copy its first argument
   Value result = make_cons(car(arg1));
   Value splice = result;
   arg1 = xcdr(arg1);
