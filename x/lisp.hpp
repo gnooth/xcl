@@ -478,10 +478,6 @@ inline bool standard_char_p(Value value)
 #include "Function.hpp"
 #include "Symbol.hpp"
 #include "Autoload.hpp"
-
-extern Symbol * _intern(const char * s);
-extern Value intern(const char * s);
-
 #include "Cons.hpp"
 
 inline Value list1(Value arg)
