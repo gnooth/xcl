@@ -383,37 +383,39 @@
         (return))
       (let ((decls (%cdr form)))
         (dolist (decl decls)
-          (case (car decl)
-            ((DYNAMIC-EXTENT FTYPE INLINE NOTINLINE OPTIMIZE)
-             ;; Nothing to do here.
-             )
-            ((IGNORE IGNORABLE)
-             (process-ignore/ignorable (%car decl) (%cdr decl) vars)
-             )
-            (SPECIAL
-             (dolist (name (%cdr decl))
-               (let ((var (find-var name vars)))
-                 (cond ((and var
-                             ;; see comment below (and DO-ALL-SYMBOLS.11)
-                             (eq (var-compiland-id var) (compiland-id *current-compiland*)))
-                        (setf (var-special-p var) t))
-                       (t
-                        (push (make-var :name name :special-p t) free-specials))))))
-            (TYPE
-             (dolist (name (cddr decl))
-               (let ((var (find-var name vars)))
-                 (when (and var
-                            ;; Don't apply a declaration in a local function to
-                            ;; a variable defined in its parent. For an example,
-                            ;; see CREATE-GREEDY-NO-ZERO-MATCHER in cl-ppcre.
-                            ;; FIXME suboptimal, since we ignore the declaration
-                            (eq (var-compiland-id var) (compiland-id *current-compiland*)))
-                   (setf (var-declared-type var) (cadr decl))))))
-            (t
-             (dolist (name (cdr decl))
-               (let ((var (find-var name vars)))
-                 (when var
-                   (setf (var-declared-type var) (%car decl))))))))))
+          (let ((declaration-identifier (car decl)))
+            (case declaration-identifier
+              ((DYNAMIC-EXTENT FTYPE INLINE NOTINLINE OPTIMIZE)
+               ;; nothing to do here
+               )
+              ((IGNORE IGNORABLE)
+               (process-ignore/ignorable (%car decl) (%cdr decl) vars)
+               )
+              (SPECIAL
+               (dolist (name (%cdr decl))
+                 (let ((var (find-var name vars)))
+                   (cond ((and var
+                               ;; see comment below (and DO-ALL-SYMBOLS.11)
+                               (eq (var-compiland-id var) (compiland-id *current-compiland*)))
+                          (setf (var-special-p var) t))
+                         (t
+                          (push (make-var :name name :special-p t) free-specials))))))
+              (TYPE
+               (dolist (name (cddr decl))
+                 (let ((var (find-var name vars)))
+                   (when (and var
+                              ;; Don't apply a declaration in a local function to
+                              ;; a variable defined in its parent. For an example,
+                              ;; see CREATE-GREEDY-NO-ZERO-MATCHER in cl-ppcre.
+                              ;; FIXME suboptimal, since we ignore the declaration
+                              (eq (var-compiland-id var) (compiland-id *current-compiland*)))
+                     (setf (var-declared-type var) (cadr decl))))))
+              (t
+               (unless (proclaimed-declaration-p declaration-identifier)
+                 (dolist (name (cdr decl))
+                   (let ((var (find-var name vars)))
+                     (when var
+                       (setf (var-declared-type var) declaration-identifier)))))))))))
     free-specials))
 
 (defknown p1-check-var-type (var) t)

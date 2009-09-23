@@ -11,4 +11,7 @@
 #+xcl
 (setq *print-structure* nil)
 
+;; (setq *force-full-calls* t)
+;; (setq *force-type-checks* t)
+
 (load "make-host-1.lisp")

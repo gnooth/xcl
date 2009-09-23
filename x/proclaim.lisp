@@ -18,9 +18,11 @@
 
 (in-package "SYSTEM")
 
-(export '(proclaimed-type proclaimed-ftype ftype-result-type))
+(export '(proclaimed-type proclaimed-ftype ftype-result-type
+          proclaimed-declaration-p))
 
-(defconstant *proclaimed-ftypes* (make-hash-table :test 'equal))
+;; FIXME defglobal
+(defvar *proclaimed-ftypes* (make-hash-table :test 'equal))
 
 (defknown proclaim-type (*) t)
 (defun proclaim-type (type &rest names)
@@ -60,6 +62,19 @@
                '*)))
         (t
          '*)))
+
+;; FIXME defglobal
+(defvar *proclaimed-declarations* (make-hash-table :test 'eq))
+
+(defknown proclaim-declaration (*) t)
+(defun proclaim-declaration (&rest names)
+  (dolist (name names)
+    (setf (gethash name *proclaimed-declarations*) t)
+    (mumble "noted DECLARATION: ~S~%" name)))
+
+(defknown proclaimed-declaration-p (symbol) boolean)
+(defun proclaimed-declaration-p (name)
+  (gethash2-1 name *proclaimed-declarations*))
 
 ;; proclaim declaration-specifier => implementation-dependent
 (defun proclaim (declaration-specifier)
@@ -102,5 +117,7 @@
     (FTYPE
      (unless (%cdr declaration-specifier)
        (error "No type specified in FTYPE declaration: ~S" declaration-specifier))
-     (apply #'proclaim-ftype (%cdr declaration-specifier))))
+     (apply #'proclaim-ftype (%cdr declaration-specifier)))
+    (DECLARATION
+     (apply #'proclaim-declaration (%cdr declaration-specifier))))
   t)
