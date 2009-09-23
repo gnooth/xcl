@@ -246,8 +246,6 @@
                 rest
                 room
                 row-major-aref
-                rplaca
-                rplacd
                 search
                 second
                 set-exclusive-or
@@ -344,11 +342,6 @@
                 kernel-function-p
                 list-copy-seq
                 list-directory
-                list1
-                list2
-                list3
-                list4
-                list5
                 make-code-vector
                 mumble
                 package-external-symbols
@@ -576,12 +569,15 @@
 (defknown require-ub32 (t) (unsigned-byte 32))
 (defknown require-vector (t) vector)
 (defknown reverse (t) sequence)
+(defknown rplaca (cons t) cons)
+(defknown rplacd (cons t) cons)
 (defknown schar (simple-string index) character)
 (defknown sequencep (t) boolean (:safe))
 (defknown set-difference (*) list)
 (defknown (set-sbit set-sbit1) (*) bit)
 (defknown set-subseq (*) sequence)
 (defknown setcar (cons t) t)
+(defknown setcdr (cons t) t)
 (defknown simple-array-p (t) boolean)
 (defknown simple-bit-vector-p (t) boolean (:safe))
 (defknown simple-string-p (t) boolean (:safe))

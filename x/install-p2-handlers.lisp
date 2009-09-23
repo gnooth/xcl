@@ -130,6 +130,8 @@
 (install-p2-handler 'rplaca                     'p2-rplaca)
 (install-p2-handler 'rplacd                     'p2-rplacd)
 (install-p2-handler 'schar                      'p2-schar)
+(install-p2-handler 'setcar                     'p2-setcar)
+(install-p2-handler 'setcdr                     'p2-setcdr)
 (install-p2-handler 'structure-ref              'p2-structure-ref)
 (install-p2-handler 'structure-set              'p2-structure-set)
 (install-p2-handler 'svref                      'p2-svref)
