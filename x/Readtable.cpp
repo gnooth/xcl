@@ -192,7 +192,7 @@ Value Readtable::get_dispatch_macro_character(BASE_CHAR dispchar, BASE_CHAR subc
   if (!dt)
     {
       String * s = new String(::prin1_to_string(make_character(dispchar)));
-      s->append(" is not a dispatch character.");
+      s->append(" is not a dispatch macro character.");
       return signal_lisp_error(s);
     }
   Value function = dt->_functions[toupper(subchar)];
@@ -398,6 +398,8 @@ void Readtable::set_syntax_from_char(BASE_CHAR from_char, BASE_CHAR to_char, Rea
   // table of reader macro functions is copied."
   if (rt->_dispatch_tables[from_char] != NULL)
     _dispatch_tables[to_char] = new DispatchTable(rt->_dispatch_tables[from_char]);
+  else
+    _dispatch_tables[to_char] = NULL;
 }
 
 // ### set-syntax-from-char to-char from-char &optional to-readtable from-readtable => t
