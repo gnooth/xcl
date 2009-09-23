@@ -58,8 +58,9 @@
 
 (defknown cons-type-p (t) t)
 (defun cons-type-p (type)
-  (and (consp type)
-       (eq (%car type) 'CONS)))
+  (or (eq type 'CONS)
+      (and (consp type)
+           (eq (%car type) 'CONS))))
 
 (defknown union-type-p (t) t)
 (defun union-type-p (type)
