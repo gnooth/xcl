@@ -669,6 +669,17 @@ Value RT_make_compiled_closure(Value template_function, Value * data)
   return make_compiled_closure(template_function, data);
 }
 
+Value RT_make_compiled_closure_2(Value template_function, Value * data, unsigned int data_length)
+{
+//   printf("RT_make_compiled_closure_2 called data_length = %d\n", data_length);
+//   fflush(stdout);
+  INDEX size = data_length * sizeof(Value);
+  Value * copy = (Value *) GC_malloc(size);
+  memcpy(copy, data, size);
+//   return make_compiled_closure(template_function, data);
+  return make_compiled_closure(template_function, copy);
+}
+
 Value RT_restify(Value args[], int start, int end)
 {
   Value result = NIL;
@@ -1148,6 +1159,9 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_make_compiled_closure"),
                 make_number((unsigned long)RT_make_compiled_closure));
+
+  ht_names->put(make_simple_string("RT_make_compiled_closure_2"),
+                make_number((unsigned long)RT_make_compiled_closure_2));
 
   ht_names->put(make_simple_string("RT_restify"),
                 make_number((unsigned long)RT_restify));
