@@ -1940,6 +1940,7 @@
 (defun p2-closure (compiland target)
   (declare (type compiland compiland))
   (aver (compiland-child-p compiland))
+;;   (mumble "p2-closure compiland = ~S~%" compiland)
   (let ((compile-file-p (compile-file-p))
         (minargs (compiland-minargs compiland))
         (maxargs (compiland-maxargs compiland))
@@ -1951,6 +1952,10 @@
       (p2-compiland compiland)
       (setq code *code*))
     (cond (*closure-vars*
+;;            (mumble "closure vars:~%")
+;;            (dolist (var *closure-vars*)
+;;              (describe var))
+;;            (mumble "-- end closure vars --~%")
            (cond (compile-file-p
                   (dump-top-level-form
                    `(multiple-value-bind (final-code final-constants)
@@ -1978,7 +1983,21 @@
                   (push ctf (compiland-constants (compiland-parent compiland)))
                   (emit-move-immediate ctf :rdi)))
            (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :rsi)
-           (emit-call "RT_make_compiled_closure"))
+           (let ((write-p (dolist (var *closure-vars*)
+                            (when (memq compiland (var-writers var))
+                              (return t))))
+                 (read-p (dolist (var *closure-vars*)
+                            (when (memq compiland (var-readers var))
+                              (return t)))))
+             (mumble "write-p = ~S read-p = ~S~%" write-p read-p)
+             (cond ((or write-p (not read-p))
+                    (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
+                    (emit-call "RT_make_compiled_closure"))
+                   (t
+                    (inst :mov (length *closure-vars*) :rdx)
+                    (mumble "p2-closure emitting call to RT_make_compiled_closure_2~%")
+                    (emit-call "RT_make_compiled_closure_2"))))
+           )
           (t
            ;; no closure vars
            (cond (compile-file-p

@@ -104,6 +104,8 @@
   (writes 0 :type fixnum)
   refs
   used-non-locally-p
+  readers ; a list of compilands
+  writers ; a list of compilands
   (compiland-id (compiland-id *current-compiland*))
   constant-p
   constant-value
@@ -552,12 +554,10 @@
                            (var-name var)))
                         (push ref (var-refs var))
                         (incf (var-reads var))
-                        (cond ((eq (var-compiland-id var) (compiland-id *current-compiland*))
-;;                                (mumble "p1: read ~S~%" form)
-                               )
-                              (t
-                               (setf (var-used-non-locally-p var) t)
-                               (pushnew var *closure-vars*))))
+                        (pushnew *current-compiland* (var-readers var))
+                        (unless (eq (var-compiland-id var) (compiland-id *current-compiland*))
+                          (setf (var-used-non-locally-p var) t)
+                          (pushnew var *closure-vars*)))
                       ref))))))
         ((atom form)
          form)
@@ -1459,12 +1459,10 @@ for special variables."
                 "Variable ~S is assigned even though it was declared to be ignored."
                 (var-name var)))
              (incf (var-writes var))
-             (cond ((eq (var-compiland-id var) (compiland-id *current-compiland*))
-                    ;; nothing to do
-                    )
-                   (t
-                    (setf (var-used-non-locally-p var) t)
-                    (pushnew var *closure-vars*)))))
+             (pushnew *current-compiland* (var-writers var))
+             (unless (eq (var-compiland-id var) (compiland-id *current-compiland*))
+               (setf (var-used-non-locally-p var) t)
+               (pushnew var *closure-vars*))))
       ;; REVIEW
       (when (consp arg2)
         (let ((op (%car arg2)))
