@@ -105,3 +105,16 @@
   (format stream "Name: ~12T~S~%" (pathname-name object))
   (format stream "Type: ~12T~S~%" (pathname-type object))
   (format stream "Version: ~12T~S~%" (pathname-version object)))
+
+(defmethod describe-object ((object structure-object) stream)
+  (let* ((*print-structure* nil)
+         (class (class-of object))
+         (slots (class-slots class)))
+    (format stream "#S(~S" (class-name class))
+    (dolist (slot slots)
+      (format stream " :~A ~S" (slot-name slot) (structure-ref object (slot-index slot))))
+    (format stream ")~%");
+    (format stream "Type: ~S~%" (type-of object))
+    (format stream "Class: ~S~%" (class-of object))
+    (dolist (slot slots)
+      (format stream "~A: ~S~%" (slot-name slot) (structure-ref object (slot-index slot))))))
