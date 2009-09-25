@@ -116,6 +116,8 @@ static Value truename(Value arg, bool require_directory_p, bool errorp)
       char * buffer = (char *) malloc(PATH_MAX);
       memset(buffer, 0, PATH_MAX);
       char * canonical_path = realpath(namestring->as_c_string(), buffer);
+      if (!canonical_path)
+        free(buffer);
 #else
       // Linux
       // canonicalize_file_name() is a GNU extension
