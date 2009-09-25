@@ -1,6 +1,6 @@
 // machine.cpp
 //
-// Copyright (C) 2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2007-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ Value CL_machine_type()
 #endif
 }
 
-// ### machine_version
+// ### machine-version
 Value CL_machine_version()
 {
   String * s = new String();
