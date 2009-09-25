@@ -1168,7 +1168,6 @@
          (dolist (subform subforms)
            (let ((op (and (consp subform) (%car subform))))
              (cond ((eq op 'EQ)
-                    (mumble "p2-if-and EQ case~%")
                     (%p2-test-eq subform nil LABEL1))
                    (t
                     (process-1-arg subform :eax t)
@@ -1959,41 +1958,56 @@
       (p2-compiland compiland)
       (setq code *code*))
     (cond (*closure-vars*
-           (cond (compile-file-p
-                  (dump-top-level-form
-                   `(multiple-value-bind (final-code final-constants)
-                        (generate-code-vector ',code ',(compiland-constants compiland))
-                      (set-fdefinition ',(compiland-name compiland)
-                                       (make-closure-template-function
-                                        ',(compiland-name compiland)
-                                        final-code
-                                        ,minargs
-                                        ,maxargs
-                                        final-constants)))
-                   *compile-file-output-stream*)
-                  (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :eax)
-                  (inst :push :eax)
-                  (emit-move-function-to-register (compiland-name compiland) :eax)
-                  (inst :push :eax)
-                  (emit-call "RT_make_compiled_closure")
-                  (emit-adjust-stack-after-call 2))
-                 (t
-                  (multiple-value-bind (final-code final-constants)
-                      (generate-code-vector code (compiland-constants compiland))
-                    (setq ctf (make-closure-template-function
-                               (compiland-name compiland)
-                               final-code
-                               minargs
-                               maxargs
-                               final-constants))
-                    (aver (compiland-child-p compiland))
-                    (push ctf (compiland-constants (compiland-parent compiland))))
-                  ;; push args right to left!
-                  (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :eax)
-                  (inst :push :eax)
-                  (emit-push-immediate ctf)
-                  (emit-call "RT_make_compiled_closure")
-                  (emit-adjust-stack-after-call 2))))
+           (let ((write-p (dolist (var *closure-vars*)
+                            (when (memq compiland (var-writers var))
+                              (return t))))
+                 (read-p (dolist (var *closure-vars*)
+                           (when (memq compiland (var-readers var))
+                             (return t)))))
+             (mumble "write-p = ~S read-p = ~S~%" write-p read-p)
+             (cond (compile-file-p
+                    (dump-top-level-form
+                     `(multiple-value-bind (final-code final-constants)
+                          (generate-code-vector ',code ',(compiland-constants compiland))
+                        (set-fdefinition ',(compiland-name compiland)
+                                         (make-closure-template-function
+                                          ',(compiland-name compiland)
+                                          final-code
+                                          ,minargs
+                                          ,maxargs
+                                          final-constants)))
+                     *compile-file-output-stream*)
+                    (unless (or write-p (not read-p))
+                      (inst :push (length *closure-vars*)))
+                    (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :eax)
+                    (inst :push :eax)
+                    (emit-move-function-to-register (compiland-name compiland) :eax)
+                    (inst :push :eax))
+                   (t
+                    (multiple-value-bind (final-code final-constants)
+                        (generate-code-vector code (compiland-constants compiland))
+                      (setq ctf (make-closure-template-function
+                                 (compiland-name compiland)
+                                 final-code
+                                 minargs
+                                 maxargs
+                                 final-constants))
+                      (aver (compiland-child-p compiland))
+                      (push ctf (compiland-constants (compiland-parent compiland))))
+                    ;; push args right to left!
+                    (unless (or write-p (not read-p))
+                      (inst :push (length *closure-vars*)))
+                    (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :eax)
+                    (inst :push :eax)
+                    (emit-push-immediate ctf)))
+;;            (emit-call "RT_make_compiled_closure")
+;;            (emit-adjust-stack-after-call 2))
+             (cond ((or write-p (not read-p))
+                    (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
+                    (emit-call-2 "RT_make_compiled_closure" :eax))
+                   (t
+                    (mumble "p2-closure emitting call to RT_make_compiled_closure_2~%")
+                    (emit-call-3 "RT_make_compiled_closure_2" :eax)))))
           (t
            ;; no closure vars
            (cond (compile-file-p
