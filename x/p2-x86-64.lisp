@@ -1719,7 +1719,6 @@
       (cond ((local-function-ctf local-function)
              (mumble "p2-flet case 1~%")
              (aver var)
-;;              (aver (var-closure-index var))
              (cond ((var-closure-index var)
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
                       (aver (fixnump closure-data-index))
@@ -1729,52 +1728,34 @@
                       (emit-move-local-to-register closure-data-index :rcx)
                       (emit-move-register-to-relative :rax
                                                       :rcx
-                                                      (var-closure-index var))
-                      (clear-register-contents) ; FIXME
-                      ))
+                                                      (var-closure-index var))))
                    (t
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
                       (aver (fixnump closure-data-index))
                       (emit-move-local-to-register closure-data-index :rsi)
                       (p2-constant (local-function-ctf local-function) :rdi)
                       (emit-call "RT_make_compiled_closure")
-;;                       (emit-move-local-to-register closure-data-index :rcx)
-;;                       (emit-move-register-to-relative :rax
-;;                                                       :rcx
-;;                                                       (var-closure-index var))
-                      (inst :mov :rax var)
-                      (clear-register-contents) ; FIXME
-                    ))))
+                      (inst :mov :rax var)))))
             ((local-function-ctf-name local-function)
              (mumble "p2-flet case 2~%")
              (aver var)
-;;              (aver (var-closure-index var))
              (cond ((var-closure-index var)
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
                       (aver (fixnump closure-data-index))
                       (emit-move-local-to-register closure-data-index :rsi)
-;;                       (emit-move-function-to-register (local-function-ctf-name local-function) :rdi)
                       (inst :move-immediate (list :function (local-function-ctf-name local-function)) :rdi)
                       (emit-call "RT_make_compiled_closure")
                       (emit-move-local-to-register closure-data-index :rcx)
                       (emit-move-register-to-relative :rax
                                                       :rcx
-                                                      (var-closure-index var))
-                      (clear-register-contents) ; FIXME
-                      ))
+                                                      (var-closure-index var))))
                    (t
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
                       (aver (fixnump closure-data-index))
                       (emit-move-local-to-register closure-data-index :rsi)
                       (emit-move-function-to-register (local-function-ctf-name local-function) :rdi)
                       (emit-call "RT_make_compiled_closure")
-;;                       (emit-move-local-to-register closure-data-index :rcx)
-;;                       (emit-move-register-to-relative :rax
-;;                                                       :rcx
-;;                                                       (var-closure-index var))
-                      (inst :mov :rax var)
-                      (clear-register-contents) ; FIXME
-                      ))))
+                      (inst :mov :rax var)))))
             ((local-function-function local-function)
              (mumble "p2-flet case 3~%")
              (cond ((var-closure-index var)
