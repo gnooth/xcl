@@ -28,6 +28,7 @@
 #include "HashTable.hpp"
 #include "UnboundVariable.hpp"
 #include "UndefinedFunction.hpp"
+#include "ValueCell.hpp"
 
 static HashTable * ht_names;
 
@@ -680,6 +681,21 @@ Value RT_make_compiled_closure_2(Value template_function, Value * data, unsigned
   return make_compiled_closure(template_function, copy);
 }
 
+ValueCell * RT_make_value_cell()
+{
+  return new ValueCell(NIL);
+}
+
+Value RT_value_cell_value(ValueCell * value_cell)
+{
+  return value_cell->value();
+}
+
+void RT_set_value_cell_value(ValueCell * value_cell, Value value)
+{
+  value_cell->set_value(value);
+}
+
 Value RT_restify(Value args[], int start, int end)
 {
   Value result = NIL;
@@ -1162,6 +1178,15 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_make_compiled_closure_2"),
                 make_number((unsigned long)RT_make_compiled_closure_2));
+
+  ht_names->put(make_simple_string("RT_make_value_cell"),
+                make_number((unsigned long)RT_make_value_cell));
+
+  ht_names->put(make_simple_string("RT_value_cell_value"),
+                make_number((unsigned long)RT_value_cell_value));
+
+  ht_names->put(make_simple_string("RT_set_value_cell_value"),
+                make_number((unsigned long)RT_set_value_cell_value));
 
   ht_names->put(make_simple_string("RT_restify"),
                 make_number((unsigned long)RT_restify));
