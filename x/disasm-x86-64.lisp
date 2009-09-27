@@ -120,21 +120,28 @@
                                           :register :rdx
                                           :data 0)
                    operand2 (make-register-operand :rax)))
+
             ((eql mod #b00)
-             (let ((source (register reg)))
-               (cond ((eql rm #b001)
-                      (let* ((displacement (mref-32 start (+ offset 2)))
-                             (absolute-address (ldb (byte 32 0) (+ start offset 5 displacement))))
-                        (setq length 6
-                              operand1 (make-register-operand source)
-                              operand2 (make-absolute-operand absolute-address))))
-                     ((eql rm #b101)
-                      (let* ((displacement (mref-32 start (+ offset 2))))
-                        (setq length 6
-                              operand1 (make-operand :kind :relative
-                                                     :register :rip
-                                                     :data displacement)
-                              operand2 (make-register-operand (register reg prefix-byte))))))))
+;;              (let ((source (register reg)))
+;;                (cond ((eql rm #b001)
+;;                       (let* ((displacement (mref-32 start (+ offset 2)))
+;;                              (absolute-address (ldb (byte 32 0) (+ start offset 5 displacement))))
+;;                         (setq length 6
+;;                               operand1 (make-register-operand source)
+;;                               operand2 (make-absolute-operand absolute-address))))
+;;                      ((eql rm #b101)
+;;                       (let* ((displacement (mref-32 start (+ offset 2))))
+;;                         (setq length 6
+;;                               operand1 (make-operand :kind :relative
+;;                                                      :register :rip
+;;                                                      :data displacement)
+;;                               operand2 (make-register-operand (register reg prefix-byte)))))))
+             (setq length 2
+                   operand1 (make-operand :kind :relative
+                                          :register (register reg prefix-byte)
+                                          :data 0)
+                   operand2 (make-register-operand (register rm prefix-byte)))
+             )
             ((eql mod #b01)
              ;; 1-byte displacement
              (cond ((eql rm #b100)
@@ -1074,7 +1081,7 @@
                                   :annotation annotation)))
 ;;         (format t "~%instruction = ~s~%" instruction)
         (cond (instruction
-;;               (print-instruction instruction)
+;;                (print-instruction instruction)
                (push instruction *instructions*)
 ;;                (incf offset (instruction-length instruction))
                (setq offset
