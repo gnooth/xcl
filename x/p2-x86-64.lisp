@@ -1966,20 +1966,35 @@
                   (push ctf (compiland-constants (compiland-parent compiland)))
                   (emit-move-immediate ctf :rdi)))
            (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :rsi)
-           (let ((write-p (dolist (var *closure-vars*)
-                            (when (memq compiland (var-writers var))
-                              (return t))))
-                 (read-p (dolist (var *closure-vars*)
-                            (when (memq compiland (var-readers var))
-                              (return t)))))
-             (mumble "write-p = ~S read-p = ~S~%" write-p read-p)
-             (cond ((or write-p (not read-p))
-                    (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
-                    (emit-call "RT_make_compiled_closure"))
-                   (t
-                    (inst :mov (length *closure-vars*) :rdx)
-                    (mumble "p2-closure emitting call to RT_make_compiled_closure_2~%")
-                    (emit-call "RT_make_compiled_closure_2"))))
+;;            (let ((write-p (dolist (var *closure-vars*)
+;;                             (when (memq compiland (var-writers var))
+;;                               (return t))))
+;;                  (read-p (dolist (var *closure-vars*)
+;;                             (when (memq compiland (var-readers var))
+;;                               (return t)))))
+;;              (mumble "write-p = ~S read-p = ~S~%" write-p read-p)
+;;              (cond ((or write-p (not read-p))
+;;                     (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
+;;                     (emit-call "RT_make_compiled_closure"))
+;;                    (t
+;;                     (inst :mov (length *closure-vars*) :rdx)
+;;                     (mumble "p2-closure emitting call to RT_make_compiled_closure_2~%")
+;;                     (emit-call "RT_make_compiled_closure_2"))))
+
+           (inst :push :rdi)
+           (inst :push :rsi)
+           (inst :mov :rsi :rdi) ; data vector pointer in rdi
+           (inst :mov (length *closure-vars*) :rsi) ; length in rsi
+           (emit-call "RT_copy_closure_data_vector") ; copy in rax
+           (inst :pop :rsi)
+           (inst :pop :rdi)
+
+;;            (inst :mov (length *closure-vars*) :rdx)
+;;            (mumble "p2-closure emitting call to RT_make_compiled_closure_2~%")
+;;            (emit-call "RT_make_compiled_closure_2")
+           (inst :mov :rax :rsi)
+           (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
+           (emit-call "RT_make_compiled_closure");
            )
           (t
            ;; no closure vars
