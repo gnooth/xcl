@@ -696,6 +696,21 @@ void RT_set_value_cell_value(ValueCell * value_cell, Value value)
   value_cell->set_value(value);
 }
 
+Value * RT_copy_closure_data_vector(Value * data, unsigned int data_length)
+{
+  INDEX size = data_length * sizeof(Value);
+  Value * copy = (Value *) GC_malloc(size);
+  memcpy(copy, data, size);
+  return copy;
+}
+
+void RT_unshare_variable(unsigned long index, ValueCell * data[])
+{
+  ValueCell * old = data[index];
+  Value value = old->value();
+  data[index] = new ValueCell(value);
+}
+
 Value RT_restify(Value args[], int start, int end)
 {
   Value result = NIL;
@@ -1187,6 +1202,12 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_set_value_cell_value"),
                 make_number((unsigned long)RT_set_value_cell_value));
+
+  ht_names->put(make_simple_string("RT_copy_closure_data_vector"),
+                make_number((unsigned long)RT_copy_closure_data_vector));
+
+  ht_names->put(make_simple_string("RT_unshare_variable"),
+                make_number((unsigned long)RT_unshare_variable));
 
   ht_names->put(make_simple_string("RT_restify"),
                 make_number((unsigned long)RT_restify));
