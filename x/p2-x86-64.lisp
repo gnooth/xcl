@@ -1285,6 +1285,7 @@
 ;;   (emit-move-register-to-relative reg :rcx (var-closure-index var))
   (inst :add (* (var-closure-index var) +bytes-per-word+) :rcx)
   (inst :mov :rcx :rdi)
+  (inst :mov '(:rdi) :rdi)
   (inst :mov reg :rsi)
   (mumble "calling RT_set_value_cell_value~%")
   (emit-call "RT_set_value_cell_value")
@@ -1305,6 +1306,7 @@
 ;;   (emit-move-relative-to-register :rcx (var-closure-index var) reg)
   (inst :add (* (var-closure-index var) +bytes-per-word+) :rcx)
   (inst :mov :rcx :rdi)
+  (inst :mov '(:rdi) :rdi)
   (mumble "calling RT_value_cell_value~%")
   (emit-call "RT_value_cell_value")
   (unless (eq reg :rax)
@@ -5411,15 +5413,15 @@
 
     #+nil
     (progn
-      (inst :mov :rax :rdi)
       (inst :push :rax)
+      (inst :mov :rax :rdi)
       (dotimes (i numvars)
         (inst :push :rdi)
         (mumble "calling RT_make_value_cell~%")
         (emit-call "RT_make_value_cell")
         (inst :pop :rdi)
         (inst :mov :rax `(,(* i +bytes-per-word+) :rdi)))
-      (inst :pop :rdi))
+      (inst :pop :rax))
 
     (dolist (reg (reverse regs))
       (inst :pop reg))))
