@@ -176,6 +176,12 @@
     b))
 (aver (equal (multiple-value-list (test71 502599338405798365 6157215579643 -1423245011 8)) '(0)))
 
+(defun-compile-file test72 ()
+  (let ((x 42))
+    (funcall (lambda () (setq x 17)))
+    x))
+(aver (equal (multiple-value-list (test72)) '(17)))
+
 (defun-compile-file fact (n)
   (labels
     ((fact1 (n m)
