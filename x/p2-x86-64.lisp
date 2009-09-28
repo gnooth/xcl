@@ -1270,6 +1270,11 @@
        (let ((new-form `(or ,(%car args) (or ,@(%cdr args)))))
          (p2-or new-form target))))))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (pushnew :use-value-cells *features*)
+  (mumble "~S = ~S~%" '*features* *features*))
+
+#-use-value-cells
 (defun emit-move-register-to-closure-var (reg var compiland)
   (aver (neq reg :rcx))
   (aver (fixnump (compiland-closure-data-index compiland)))
@@ -1277,9 +1282,10 @@
   (emit-move-register-to-relative reg :rcx (var-closure-index var))
   (clear-register-contents))
 
-#+nil
+#+use-value-cells
 (defun emit-move-register-to-closure-var (reg var compiland)
   (aver (neq reg :rcx))
+  (aver (neq reg :rdi))
   (aver (fixnump (compiland-closure-data-index compiland)))
   (emit-move-local-to-register (compiland-closure-data-index compiland) :rcx)
 ;;   (emit-move-register-to-relative reg :rcx (var-closure-index var))
@@ -1291,6 +1297,7 @@
   (emit-call "RT_set_value_cell_value")
   (clear-register-contents))
 
+#-use-value-cells
 (defun emit-move-closure-var-to-register (var reg compiland)
   (aver (neq reg :rcx))
   (aver (fixnump (compiland-closure-data-index compiland)))
@@ -1298,7 +1305,7 @@
   (emit-move-relative-to-register :rcx (var-closure-index var) reg)
   (clear-register-contents))
 
-#+nil
+#+use-value-cells
 (defun emit-move-closure-var-to-register (var reg compiland)
   (aver (neq reg :rcx))
   (aver (fixnump (compiland-closure-data-index compiland)))
@@ -1493,7 +1500,7 @@
     (emit-call "RT_thread_get_values")
     ;; pointer to values array is now in rax
     (let ((base-reg :rax)
-          (value-reg :rdi)
+          (value-reg :rdx)
           (index 0))
       (unless (eq base-reg :rax)
         (inst :mov :rax base-reg))
@@ -1505,7 +1512,8 @@
         (incf index +bytes-per-word+)
         (cond ((var-special-p var)
                (inst :push base-reg)
-               (inst :mov value-reg :rdx)
+               (unless (eq value-reg :rdx)
+                 (inst :mov value-reg :rdx))
                (p2-constant (var-name var) :rsi)
                (inst :mov thread-reg :rdi)
                (emit-call "RT_thread_bind_special")
@@ -5411,7 +5419,7 @@
     (when (oddp stack-used)
       (inst :add +bytes-per-word+ :rsp))
 
-    #+nil
+    #+use-value-cells
     (progn
       (inst :push :rax)
       (inst :mov :rax :rdi)
