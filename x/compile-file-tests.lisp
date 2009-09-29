@@ -182,6 +182,16 @@
     x))
 (aver (equal (multiple-value-list (test72)) '(17)))
 
+(defun-compile-file test73 ()
+  (let ((vector (make-array 4)))
+    (flet ((bar (i) (let ((index i))
+                      (setf (aref vector i)
+                            (lambda () index)))))
+      (dotimes (x 4)
+        (bar x)))
+    (mapcar #'funcall (coerce vector 'LIST))))
+(aver (equal (test73) '(0 1 2 3)))
+
 (defun-compile-file fact (n)
   (labels
     ((fact1 (n m)
