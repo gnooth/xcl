@@ -1986,6 +1986,18 @@
            (inst :mov :rsi :rdi) ; data vector pointer in rdi
            (inst :mov (length *closure-vars*) :rsi) ; length in rsi
            (emit-call "RT_copy_closure_data_vector") ; copy in rax
+
+           (dolist (var *closure-vars*)
+             (unless (or (memq compiland (var-writers var))
+                         (memq *current-compiland* (var-writers var)))
+               (inst :push :rax)
+               (inst :mov :rax :rsi)
+               (inst :mov (var-closure-index var) :rdi)
+               (mumble "p2-closure emitting call to RT_unshare_variable for ~S~%"
+                       (var-name var))
+               (emit-call "RT_unshare_variable")
+               (inst :pop :rax)))
+
            (inst :pop :rsi)
            (inst :pop :rdi)
 
