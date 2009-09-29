@@ -1354,6 +1354,13 @@
           ((zerop (var-reads var))
            (p2 initform nil))
           ((var-closure-index var)
+           ;; each new binding gets a new value cell
+           (mumble "bind-var emitting call to RT_make_value_cell~%")
+           (emit-call "RT_make_value_cell")
+           (aver (fixnump (compiland-closure-data-index *current-compiland*)))
+           (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :rdi)
+           (inst :add (* (var-closure-index var) +bytes-per-word+) :rdi)
+           (inst :mov :rax '(:rdi))
            (p2 initform :rax)
            (emit-move-register-to-closure-var :rax var *current-compiland*))
           (t
@@ -1528,6 +1535,15 @@
                (inst :pop base-reg))
               ((var-closure-index var)
                (inst :push base-reg)
+               ;; each new binding gets a new value cell
+               (inst :push value-reg)
+               (mumble "p2-m-v-b emitting call to RT_make_value_cell~%")
+               (emit-call "RT_make_value_cell")
+               (aver (fixnump (compiland-closure-data-index *current-compiland*)))
+               (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :rdi)
+               (inst :add (* (var-closure-index var) +bytes-per-word+) :rdi)
+               (inst :mov :rax '(:rdi))
+               (inst :pop value-reg)
                (emit-move-register-to-closure-var value-reg var *current-compiland*)
                (inst :pop base-reg))
               (t
@@ -1996,13 +2012,14 @@
            (emit-call "RT_copy_closure_data_vector") ; copy in rax
 
            (dolist (var *closure-vars*)
-             (unless (or (memq compiland (var-writers var))
-                         (memq *current-compiland* (var-writers var)))
+;;              (unless (or (memq compiland (var-writers var))
+;;                          (memq *current-compiland* (var-writers var)))
+             (when (zerop (var-writes var))
                (inst :push :rax)
                (inst :mov :rax :rsi)
                (inst :mov (var-closure-index var) :rdi)
-               (mumble "p2-closure emitting call to RT_unshare_variable for ~S~%"
-                       (var-name var))
+;;                (mumble "p2-closure emitting call to RT_unshare_variable for ~S~%"
+;;                        (var-name var))
                (emit-call "RT_unshare_variable")
                (inst :pop :rax)))
 
@@ -2013,7 +2030,7 @@
 ;;            (mumble "p2-closure emitting call to RT_make_compiled_closure_2~%")
 ;;            (emit-call "RT_make_compiled_closure_2")
            (inst :mov :rax :rsi)
-           (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
+;;            (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
            (emit-call "RT_make_compiled_closure");
            )
           (t
