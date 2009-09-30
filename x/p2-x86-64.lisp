@@ -1270,19 +1270,6 @@
        (let ((new-form `(or ,(%car args) (or ,@(%cdr args)))))
          (p2-or new-form target))))))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (pushnew :use-value-cells *features*)
-  (mumble "~S = ~S~%" '*features* *features*))
-
-#-use-value-cells
-(defun emit-move-register-to-closure-var (reg var compiland)
-  (aver (neq reg :rcx))
-  (aver (fixnump (compiland-closure-data-index compiland)))
-  (emit-move-local-to-register (compiland-closure-data-index compiland) :rcx)
-  (emit-move-register-to-relative reg :rcx (var-closure-index var))
-  (clear-register-contents))
-
-#+use-value-cells
 (defun emit-move-register-to-closure-var (reg var compiland)
 ;;   (aver (neq reg :rcx))
   (aver (neq reg :rdi))
@@ -1301,15 +1288,6 @@
   (set-register-contents reg var)
   )
 
-#-use-value-cells
-(defun emit-move-closure-var-to-register (var reg compiland)
-  (aver (neq reg :rcx))
-  (aver (fixnump (compiland-closure-data-index compiland)))
-  (emit-move-local-to-register (compiland-closure-data-index compiland) :rcx)
-  (emit-move-relative-to-register :rcx (var-closure-index var) reg)
-  (clear-register-contents))
-
-#+use-value-cells
 (defun emit-move-closure-var-to-register (var reg compiland)
 ;;   (aver (neq reg :rcx))
 ;;   (aver (neq reg :rdi))
@@ -1355,7 +1333,6 @@
            (p2 initform nil))
           ((var-closure-index var)
            ;; each new binding gets a new value cell
-           (mumble "bind-var emitting call to RT_make_value_cell~%")
            (emit-call "RT_make_value_cell")
            (aver (fixnump (compiland-closure-data-index *current-compiland*)))
            (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :rdi)
@@ -1537,7 +1514,6 @@
                (inst :push base-reg)
                ;; each new binding gets a new value cell
                (inst :push value-reg)
-               (mumble "p2-m-v-b emitting call to RT_make_value_cell~%")
                (emit-call "RT_make_value_cell")
                (aver (fixnump (compiland-closure-data-index *current-compiland*)))
                (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :rdi)
@@ -4359,7 +4335,6 @@
                        (move-result-to-target target)
                        t)
                       (thread-register
-                       (mumble "p2-funcall RT_thread_funcall_0 case~%")
                        (process-1-arg (cadr form) :rsi nil)
                        (inst :mov thread-register :rdi)
                        (emit-call "RT_thread_funcall_0")
@@ -5455,7 +5430,6 @@
 
 (defknown allocate-closure-data-vector (t t) t)
 (defun allocate-closure-data-vector (compiland numvars stack-used)
-  (mumble "allocate-closure-data-vector~%")
   ;; the call to RT_malloc may trash all the argument registers!
   (let ((regs +call-argument-registers+)
         (arity (compiland-arity compiland)))
@@ -5471,17 +5445,14 @@
     (when (oddp stack-used)
       (inst :add +bytes-per-word+ :rsp))
 
-    #+use-value-cells
-    (progn
-      (inst :push :rax)
-      (inst :mov :rax :rdi)
-      (dotimes (i numvars)
-        (inst :push :rdi)
-        (mumble "calling RT_make_value_cell~%")
-        (emit-call "RT_make_value_cell")
-        (inst :pop :rdi)
-        (inst :mov :rax `(,(* i +bytes-per-word+) :rdi)))
-      (inst :pop :rax))
+    (inst :push :rax)
+    (inst :mov :rax :rdi)
+    (dotimes (i numvars)
+      (inst :push :rdi)
+      (emit-call "RT_make_value_cell")
+      (inst :pop :rdi)
+      (inst :mov :rax `(,(* i +bytes-per-word+) :rdi)))
+    (inst :pop :rax)
 
     (dolist (reg (reverse regs))
       (inst :pop reg))))
@@ -5551,7 +5522,6 @@
                   (inst :push :r8)
                   (inst :push :r9)
                   (inst :mov (var-arg-register var) :rax)
-                  (mumble "p2-child-function-prolog 1 calling emit-move-register-to-closure-var~%")
                   (emit-move-register-to-closure-var :rax var compiland)
                   (inst :pop :r9)
                   (inst :pop :r8)
@@ -5601,17 +5571,10 @@
                    (when (var-index var)
                      (aver (not 2)))
                    (cond ((var-closure-index var)
-;;                           (inst :push :rbx)
-;;                           (emit-move-local-to-register (compiland-closure-data-index compiland) :rbx)
-;;                           (emit-move-relative-to-register :rcx (var-arg-index var) :rax)
-;;                           (emit-move-register-to-relative :rax :rbx (var-closure-index var))
-;;                           (inst :pop :rbx)
                           (emit-move-relative-to-register :rcx (var-arg-index var) :rax)
                           (inst :push :rcx)
-                          (mumble "p2-child-function-prolog 2 calling emit-move-register-to-closure-var~%")
                           (emit-move-register-to-closure-var :rax var compiland)
-                          (inst :pop :rcx)
-                          )
+                          (inst :pop :rcx))
                          (t
                           (setf (var-index var) (- base (var-arg-index var))))))))
               ((null (compiland-arity compiland))
@@ -5677,8 +5640,7 @@
                         (inst :push (var-arg-register var))
                         (incf stack-used)
                         (set-register-contents (var-arg-register var) var)
-                        (setf (var-arg-register var) nil)
-                        )
+                        (setf (var-arg-register var) nil))
                        ((eq (var-kind var) :required)
                         (unless (var-closure-index var)
                           (aver (not (null (var-arg-index var))))

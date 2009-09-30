@@ -474,7 +474,6 @@
                   (compiland *current-compiland*))
              (declare (type compiland compiland))
              (when local-function
-               (mumble "local function ~S called~%" (local-function-name local-function))
                (when (inline-p name)
                  (let ((expansion (local-function-inline-expansion local-function)))
                    (when expansion
