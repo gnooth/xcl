@@ -331,6 +331,23 @@
     (inst :mov :eax (compiland-thread-var compiland)))
   t)
 
+(defun allocate-closure-data-vector (numvars)
+  (inst :push (* numvars +bytes-per-word+))
+  (emit-call-1 "RT_malloc" :eax)
+
+  #+use-value-cells
+  (progn
+    (inst :push :eax)
+    (inst :mov :eax :edx)
+    (dotimes (i numvars)
+      (inst :push :edx)
+      (mumble "calling RT_make_value_cell~%")
+      (emit-call-0 "RT_make_value_cell" :eax)
+      (inst :pop :edx)
+      (inst :mov :eax `(,(* i +bytes-per-word+) :edx)))
+    (inst :pop :eax))
+  )
+
 (defun p2-function-prolog (compiland)
   (declare (type compiland compiland))
   (let ((arity (compiland-arity compiland)))
@@ -355,8 +372,11 @@
 
   (let ((index -1)) ; first local is at -4(%ebp)
     (when (and *closure-vars* (null (compiland-parent compiland))) ; top-level compiland
-      (inst :push (* (length *closure-vars*) +bytes-per-word+))
-      (emit-call-1 "RT_malloc" :stack) ; the first local is the closure variable vector
+;;       (inst :push (* (length *closure-vars*) +bytes-per-word+))
+;;       (emit-call-1 "RT_malloc" :stack) ; the first local is the closure variable vector
+      (allocate-closure-data-vector (length *closure-vars*)) ; leaves address in eax
+      ; the first local is the closure variable vector
+      (inst :push :eax)
       (setf (compiland-closure-data-index compiland) index)
       (decf index)
       (dolist (var (compiland-arg-vars compiland))
@@ -1252,6 +1272,11 @@
        (let ((new-form `(or ,(%car args) (or ,@(%cdr args)))))
          (p2-or new-form target))))))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (pushnew :use-value-cells *features*)
+  (mumble "~S = ~S~%" '*features* *features*))
+
+#-use-value-cells
 (defun emit-move-register-to-closure-var (reg var compiland)
   (aver (neq reg :ecx))
   (aver (fixnump (compiland-closure-data-index compiland)))
@@ -1261,6 +1286,23 @@
   (clear-var-registers var)
   (set-register-contents reg var))
 
+#+use-value-cells
+(defun emit-move-register-to-closure-var (reg var compiland)
+  (aver (neq reg :ecx))
+;;   (aver (neq reg :edi))
+  (aver (fixnump (compiland-closure-data-index compiland)))
+  (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
+  ;;   (emit-move-register-to-relative reg :rcx (var-closure-index var))
+  (inst :add (* (var-closure-index var) +bytes-per-word+) :ecx)
+;;   (inst :mov :rcx :rdi)
+  (inst :mov '(:ecx) :ecx)
+;;   (inst :mov reg :rsi)
+  (inst :push reg)
+  (inst :push :ecx)
+  (mumble "calling RT_set_value_cell_value~%")
+  (emit-call-2 "RT_set_value_cell_value" nil))
+
+#-use-value-cells
 (defun emit-move-closure-var-to-register (var reg compiland)
   (aver (neq reg :ecx))
   (aver (fixnump (compiland-closure-data-index compiland)))
@@ -1268,6 +1310,21 @@
   (clear-register-contents :ecx)
   (emit-move-relative-to-register :ecx (var-closure-index var) reg)
   (set-register-contents reg var))
+
+#+use-value-cells
+(defun emit-move-closure-var-to-register (var reg compiland)
+  (aver (neq reg :ecx))
+  (aver (fixnump (compiland-closure-data-index compiland)))
+  (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
+  ;;   (emit-move-relative-to-register :rcx (var-closure-index var) reg)
+  (inst :add (* (var-closure-index var) +bytes-per-word+) :ecx)
+;;   (inst :mov :rcx :rdi)
+  (inst :mov '(:ecx) :ecx)
+  (inst :push :ecx)
+  (mumble "calling RT_value_cell_value~%")
+  (emit-call-1 "RT_value_cell_value" :eax)
+  (unless (eq reg :eax)
+    (inst :mov :eax reg)))
 
 (defknown bind-var (var) t)
 (defun bind-var (var)
@@ -1873,13 +1930,13 @@
       (p2-compiland compiland)
       (setq code *code*))
     (cond (*closure-vars*
-           (let ((write-p (dolist (var *closure-vars*)
-                            (when (memq compiland (var-writers var))
-                              (return t))))
-                 (read-p (dolist (var *closure-vars*)
-                           (when (memq compiland (var-readers var))
-                             (return t)))))
-             (mumble "write-p = ~S read-p = ~S~%" write-p read-p)
+;;            (let ((write-p (dolist (var *closure-vars*)
+;;                             (when (memq compiland (var-writers var))
+;;                               (return t))))
+;;                  (read-p (dolist (var *closure-vars*)
+;;                            (when (memq compiland (var-readers var))
+;;                              (return t)))))
+;;              (mumble "write-p = ~S read-p = ~S~%" write-p read-p)
              (cond (compile-file-p
                     (dump-top-level-form
                      `(multiple-value-bind (final-code final-constants)
@@ -1892,8 +1949,8 @@
                                           ,maxargs
                                           final-constants)))
                      *compile-file-output-stream*)
-                    (unless (or write-p (not read-p))
-                      (inst :push (length *closure-vars*)))
+;;                     (unless (or write-p (not read-p))
+;;                       (inst :push (length *closure-vars*)))
                     (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :eax)
                     (inst :push :eax)
                     (emit-move-function-to-register (compiland-name compiland) :eax)
@@ -1910,19 +1967,60 @@
                       (aver (compiland-child-p compiland))
                       (push ctf (compiland-constants (compiland-parent compiland))))
                     ;; push args right to left!
-                    (unless (or write-p (not read-p))
-                      (inst :push (length *closure-vars*)))
+;;                     (unless (or write-p (not read-p))
+;;                       (inst :push (length *closure-vars*)))
                     (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :eax)
                     (inst :push :eax)
                     (emit-push-immediate ctf)))
 ;;            (emit-call "RT_make_compiled_closure")
 ;;            (emit-adjust-stack-after-call 2))
-             (cond ((or write-p (not read-p))
-                    (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
-                    (emit-call-2 "RT_make_compiled_closure" :eax))
-                   (t
-                    (mumble "p2-closure emitting call to RT_make_compiled_closure_2~%")
-                    (emit-call-3 "RT_make_compiled_closure_2" :eax)))))
+;;              (cond ((or write-p (not read-p))
+;;                     (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
+;;                     (emit-call-2 "RT_make_compiled_closure" :eax))
+;;                    (t
+;;                     (mumble "p2-closure emitting call to RT_make_compiled_closure_2~%")
+;;                     (emit-call-3 "RT_make_compiled_closure_2" :eax)))
+;;              )
+;;            (inst :push :rdi)
+;;            (inst :push :rsi)
+;;            (inst :mov :rsi :rdi) ; data vector pointer in rdi
+;;            (inst :mov (length *closure-vars*) :rsi) ; length in rsi
+;;            (emit-call "RT_copy_closure_data_vector") ; copy in rax
+           (inst :pop :edx) ; ctf
+           (inst :pop :eax) ; closure data vector
+           (inst :push :edx)
+           (inst :push (length *closure-vars*))
+           (inst :push :eax) ; closure data vector
+           (mumble "p2-closure emitting call to RT_copy_closure_data_vector~%")
+           (emit-call-2 "RT_copy_closure_data_vector" :eax) ; copy in eax
+
+;;            (dolist (var *closure-vars*)
+;;              ;;              (unless (or (memq compiland (var-writers var))
+;;              ;;                          (memq *current-compiland* (var-writers var)))
+;;              (when (zerop (var-writes var))
+;;                (inst :push :rax)
+;;                (inst :mov :rax :rsi)
+;;                (inst :mov (var-closure-index var) :rdi)
+;;                ;;                (mumble "p2-closure emitting call to RT_unshare_variable for ~S~%"
+;;                ;;                        (var-name var))
+;;                (emit-call "RT_unshare_variable")
+;;                (inst :pop :rax))
+;;              )
+
+;;            (inst :pop :rsi)
+;;            (inst :pop :rdi)
+
+;;            ;;            (inst :mov (length *closure-vars*) :rdx)
+;;            ;;            (mumble "p2-closure emitting call to RT_make_compiled_closure_2~%")
+;;            ;;            (emit-call "RT_make_compiled_closure_2")
+;;            (inst :mov :rax :rsi)
+;;            ;;            (mumble "p2-closure emitting call to RT_make_compiled_closure~%")
+           (inst :pop :edx) ; ctf
+           (inst :push :eax) ; closure data vector
+           (inst :push :edx) ; ctf
+           (emit-call-2 "RT_make_compiled_closure" :eax)
+
+           )
           (t
            ;; no closure vars
            (cond (compile-file-p
