@@ -1293,9 +1293,13 @@
 ;;   (aver (neq reg :rdi))
   (aver (fixnump (compiland-closure-data-index compiland)))
   (emit-move-local-to-register (compiland-closure-data-index compiland) :rdi)
-  (inst :add (* (var-closure-index var) +bytes-per-word+) :rdi)
-;;   (inst :mov :rcx :rdi)
-  (inst :mov '(:rdi) :rdi)
+
+;;   (unless (zerop (var-closure-index var))
+;;     (inst :add (* (var-closure-index var) +bytes-per-word+) :rdi))
+;;   (inst :mov '(:rdi) :rdi)
+
+  (inst :mov `(,(* (var-closure-index var) +bytes-per-word+) :rdi) :rdi)
+
 ;;   (mumble "calling RT_value_cell_value~%")
 ;;   (emit-call "RT_value_cell_value")
 ;;   (unless (eq reg :rax)

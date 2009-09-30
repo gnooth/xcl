@@ -137,10 +137,11 @@
 ;;                                                      :data displacement)
 ;;                               operand2 (make-register-operand (register reg prefix-byte)))))))
              (setq length 2
-                   operand1 (make-operand :kind :relative
-                                          :register (register reg prefix-byte)
-                                          :data 0)
-                   operand2 (make-register-operand (register rm prefix-byte)))
+;;                    operand1 (make-operand :kind :relative
+;;                                           :register (register reg prefix-byte)
+;;                                           :data 0)
+                   operand1 (make-indirect-operand (register rm prefix-byte))
+                   operand2 (make-register-operand (register reg prefix-byte)))
              )
             ((eql mod #b01)
              ;; 1-byte displacement

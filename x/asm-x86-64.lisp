@@ -183,7 +183,12 @@
                     (setq prefix-byte (logior prefix-byte rex.b)))
                   (when (extended-register-p reg2)
                     (setq prefix-byte (logior prefix-byte rex.r)))
-                  (cond ((typep displacement '(signed-byte 8))
+                  (cond ((zerop displacement)
+                         (let ((modrm-byte (make-modrm-byte #xb00
+                                                            (register-number reg2)
+                                                            (register-number reg1))))
+                           (emit-bytes prefix-byte #x8b modrm-byte)))
+                        ((typep displacement '(signed-byte 8))
                          (let* ((displacement-byte (ldb (byte 8 0) displacement))
                                 (mod #b01)
                                 (reg (register-number reg2))
