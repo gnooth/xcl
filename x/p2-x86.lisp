@@ -202,15 +202,9 @@
       (when (var-used-non-locally-p var)
         (aver (fixnump (var-closure-index var)))
         (when (var-index var)
-;;           (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-;;           (emit-move-local-to-register (var-index var) :eax)
-;; ;;           (inst :mov var :eax)
-;;           (setf (var-index var) nil)
-;;           (emit-move-register-to-relative :eax :ecx (var-closure-index var))
           (emit-move-local-to-register (var-index var) :eax)
           (setf (var-index var) nil)
-          (emit-move-register-to-closure-var :eax var compiland)
-          )))
+          (emit-move-register-to-closure-var :eax var compiland))))
 
     (let ((lambda-list (cadr (compiland-lambda-expression compiland))))
       (cond ((or (memq '&optional lambda-list)
@@ -242,33 +236,14 @@
                         (aver (fixnump (var-arg-index var)))
                         (aver (fixnump (var-closure-index var)))
                         (emit-move-relative-to-register :ecx (var-arg-index var) :eax)
-;;                         (inst :push :ebx)
-;;                         (emit-move-local-to-register (compiland-closure-data-index compiland) :ebx)
-;;                         ;;                       (emit-move-relative-to-register :rcx (var-arg-index var) :rax)
-;;                         ;;                       (emit-bytes #x8b #x43) ; mov n(%ebx),%eax
-;;                         ;;                       ;; FIXME call-arguments-limit
-;;                         ;;                       (emit-byte (* (var-arg-index var) 4))
-;;                         (emit-move-register-to-relative :eax :ebx (var-closure-index var))
-;;                         (inst :pop :ebx)
                         (inst :push :ecx)
                         (emit-move-register-to-closure-var :eax var compiland)
-                        (inst :pop :ecx)
-                        )
+                        (inst :pop :ecx))
                        (t
                         (aver (var-arg-index var))
                         (aver (null (var-index var)))
                         (aver (null (var-closure-index var)))
-                        ;;                       (emit-bytes #x8b #x43) ; mov n(%ebx),%eax
-                        ;;                       ;; FIXME call-arguments-limit
-                        ;;                       (emit-byte (* (var-arg-index var) 4))
-                        ;;                       (inst :push :eax)
-                        ;;                       (setf (var-index var) index)
-                        (setf (var-index var) (+ base (var-arg-index var)))
-                        ;;                       (decf index)
-                        ))))
-             ;;              ;; restore ebx
-             ;;              (inst :mov :edx :ebx))
-             )
+                        (setf (var-index var) (+ base (var-arg-index var))))))))
             ((null (compiland-arity compiland))
              ;; restvar case, with or without required args
              (when (dolist (var (compiland-arg-vars compiland))
@@ -285,14 +260,9 @@
                   (aver (null (var-index var)))
                   (emit-move-relative-to-register :ecx (var-arg-index var) :eax)
                   (cond ((var-closure-index var)
-;;                          (inst :push :ebx)
-;;                          (emit-move-local-to-register (compiland-closure-data-index compiland) :ebx)
-;;                          (emit-move-register-to-relative :eax :ebx (var-closure-index var))
-;;                          (inst :pop :ebx)
                          (inst :push :ecx)
                          (emit-move-register-to-closure-var :eax var compiland)
-                         (inst :pop :ecx)
-                         )
+                         (inst :pop :ecx))
                         (t
                          (setf (var-index var) index)
                          (decf index)
@@ -328,12 +298,7 @@
                (emit-call-3 "RT_restify" :eax)
                (cond ((var-closure-index restvar)
                       (mumble "P2-CHILD-FUNCTION-PROLOG (var-closure-index restvar) case~%")
-;;                       (inst :push :ebx)
-;;                       (emit-move-local-to-register closure-data-index :ebx)
-;;                       (emit-move-register-to-relative :eax :ebx (var-closure-index restvar))
-;;                       (inst :pop :ebx)
-                      (emit-move-register-to-closure-var :eax restvar compiland)
-                      )
+                      (emit-move-register-to-closure-var :eax restvar compiland))
                      (t
                       (inst :mov :eax restvar)))))
             ((> arity 6)
@@ -399,16 +364,9 @@
         (when (var-used-non-locally-p var)
           (aver (fixnump (var-closure-index var)))
           (when (var-index var)
-;;             (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-;;             (emit-move-local-to-register (var-index var) :eax)
-;;             (setf (var-index var) nil)
-;;             (emit-move-register-to-relative :eax :ecx (var-closure-index var))
             (emit-move-local-to-register (var-index var) :eax)
             (setf (var-index var) nil)
-;;             (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-;;             (emit-move-register-to-relative :eax :ecx (var-closure-index var))
-            (emit-move-register-to-closure-var :eax var compiland)
-            ))))
+            (emit-move-register-to-closure-var :eax var compiland)))))
 
     (let ((lambda-list (cadr (compiland-lambda-expression compiland))))
       (cond ((or (memq '&optional lambda-list)
@@ -440,30 +398,14 @@
                         (aver (fixnump (var-arg-index var)))
                         (aver (fixnump (var-closure-index var)))
                         (emit-move-relative-to-register :ecx (var-arg-index var) :eax)
-;;                         (inst :push :ebx)
-;;                         (emit-move-local-to-register (compiland-closure-data-index compiland) :ebx)
-;;                         ;;                       (emit-move-relative-to-register :rcx (var-arg-index var) :rax)
-;;                         ;;                       (emit-bytes #x8b #x43) ; mov n(%ebx),%eax
-;;                         ;;                       ;; FIXME call-arguments-limit
-;;                         ;;                       (emit-byte (* (var-arg-index var) 4))
-;;                         (emit-move-register-to-relative :eax :ebx (var-closure-index var))
-;;                         (inst :pop :ebx)
                         (inst :push :ecx)
                         (emit-move-register-to-closure-var :eax var compiland)
-                        (inst :pop :ecx)
-                        )
+                        (inst :pop :ecx))
                        (t
                         (aver (var-arg-index var))
                         (aver (null (var-index var)))
                         (aver (null (var-closure-index var)))
-                        ;;                       (emit-bytes #x8b #x43) ; mov n(%ebx),%eax
-                        ;;                       ;; FIXME call-arguments-limit
-                        ;;                       (emit-byte (* (var-arg-index var) 4))
-;;                         (inst :push :eax)
-;;                         (setf (var-index var) index)
-                        (setf (var-index var) (+ base (var-arg-index var)))
-;;                         (decf index)
-                        )))))
+                        (setf (var-index var) (+ base (var-arg-index var))))))))
             ((null (compiland-arity compiland))
              ;; restvar case, with or without required args
              (when (dolist (var (compiland-arg-vars compiland))
@@ -480,14 +422,9 @@
                   (aver (null (var-index var)))
                   (emit-move-relative-to-register :ecx (var-arg-index var) :eax)
                   (cond ((var-closure-index var)
-;;                          (inst :push :ebx)
-;;                          (emit-move-local-to-register (compiland-closure-data-index compiland) :ebx)
-;;                          (emit-move-register-to-relative :eax :ebx (var-closure-index var))
-;;                          (inst :pop :ebx)
                          (inst :push :ecx)
                          (emit-move-register-to-closure-var :eax var compiland)
-                         (inst :pop :ecx)
-                         )
+                         (inst :pop :ecx))
                         (t
                          (setf (var-index var) index)
                          (decf index)
@@ -522,14 +459,7 @@
                (inst :push :eax)
                (emit-call-3 "RT_restify" :eax)
                (cond ((var-closure-index restvar)
-                      (mumble "p2-function-prolog (var-closure-index restvar) case~%")
-;;                       (inst :push :ebx)
-;;                       (aver (fixnump (compiland-closure-data-index compiland)))
-;;                       (emit-move-local-to-register (compiland-closure-data-index compiland) :ebx)
-;;                       (emit-move-register-to-relative :eax :ebx (var-closure-index restvar))
-;;                       (inst :pop :ebx)
-                      (emit-move-register-to-closure-var :eax restvar compiland)
-                      )
+                      (emit-move-register-to-closure-var :eax restvar compiland))
                      (t
                       (inst :mov :eax restvar)))))))
     (allocate-locals compiland index))
@@ -1374,13 +1304,7 @@
            (p2 initform nil))
           ((var-closure-index var)
            (p2 initform :eax)
-;;            (aver (fixnump (compiland-closure-data-index *current-compiland*)))
-;;            (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :ecx)
-;;            (emit-move-register-to-relative :eax :ecx (var-closure-index var))
-;;            ;; REVIEW
-;;            (clear-register-contents)
-           (emit-move-register-to-closure-var :eax var *current-compiland*)
-           )
+           (emit-move-register-to-closure-var :eax var *current-compiland*))
           (t
            (let ((derived-type (derive-type initform))
                  reg)
@@ -1541,22 +1465,16 @@
         (clear-register-contents value-reg)
         (incf index +bytes-per-word+)
         (cond ((var-special-p var)
-               (inst :push base-reg) ; save base-reg
+               (inst :push base-reg)
                (inst :push value-reg)
                (p2-constant (var-name var) :stack)
                (inst :push thread-var)
                (emit-call-3 "RT_thread_bind_special" nil)
-               (inst :pop base-reg) ; restore base-reg
-               )
+               (inst :pop base-reg))
               ((var-closure-index var)
-;;                (aver (fixnump (compiland-closure-data-index compiland)))
-;;                (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-;;                (emit-move-register-to-relative value-reg :ecx (var-closure-index var))
-;;                (clear-register-contents) ; REVIEW
                (inst :push base-reg)
                (emit-move-register-to-closure-var value-reg var compiland)
-               (inst :pop base-reg)
-               )
+               (inst :pop base-reg))
               (t
                (inst :mov value-reg var)
                (set-register-contents value-reg var)))
@@ -1805,14 +1723,7 @@
                       (inst :push :eax)
                       (p2-constant (local-function-ctf local-function) :stack)
                       (emit-call-2 "RT_make_compiled_closure" :eax)
-;;                       (emit-move-local-to-register closure-data-index :ecx)
-;;                       (emit-move-register-to-relative :eax
-;;                                                       :ecx
-;;                                                       (var-closure-index var))
-;;                       (clear-register-contents) ; FIXME
-                      (emit-move-register-to-closure-var :eax var compiland)
-                      )
-                    )
+                      (emit-move-register-to-closure-var :eax var compiland)))
                    (t
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
                       (aver (fixnump closure-data-index))
@@ -1833,13 +1744,7 @@
                       (emit-move-function-to-register (local-function-ctf-name local-function) :eax)
                       (inst :push :eax)
                       (emit-call-2 "RT_make_compiled_closure" :eax)
-;;                       (emit-move-local-to-register closure-data-index :ecx)
-;;                       (emit-move-register-to-relative :eax
-;;                                                       :ecx
-;;                                                       (var-closure-index (local-function-var local-function)))
-;;                       (clear-register-contents) ; FIXME
-                      (emit-move-register-to-closure-var :eax var compiland)
-                      )
+                      (emit-move-register-to-closure-var :eax var compiland))
                     )
                    (t
                     (let* ((closure-data-index (compiland-closure-data-index compiland)))
@@ -1855,15 +1760,8 @@
              (mumble "p2-flet case 3~%")
              (aver (local-function-var local-function))
              (cond ((var-closure-index var)
-                    (let* ((closure-data-index (compiland-closure-data-index compiland)))
-                      (p2-constant (local-function-function local-function) :eax)
-;;                       (emit-move-local-to-register closure-data-index :ecx)
-;;                       (emit-move-register-to-relative :eax
-;;                                                       :ecx
-;;                                                       (var-closure-index var))
-;;                       (clear-register-contents) ; FIXME
-                      (emit-move-register-to-closure-var :eax var compiland)
-                      ))
+                    (p2-constant (local-function-function local-function) :eax)
+                    (emit-move-register-to-closure-var :eax var compiland))
                    (t
                     ;; nothing to do
                     )))
@@ -1872,16 +1770,9 @@
              (aver (local-function-callable-name local-function))
              (aver (local-function-var local-function))
              (cond ((var-closure-index var)
-                    (let* ((closure-data-index (compiland-closure-data-index compiland)))
-                      (p2-constant (local-function-callable-name local-function) :stack)
-                      (emit-call-1 'SYMBOL-FUNCTION :eax)
-;;                       (emit-move-local-to-register closure-data-index :ecx)
-;;                       (emit-move-register-to-relative :eax
-;;                                                       :ecx
-;;                                                       (var-closure-index var))
-;;                       (clear-register-contents) ; FIXME
-                      (emit-move-register-to-closure-var :eax var compiland)
-                      ))
+                    (p2-constant (local-function-callable-name local-function) :stack)
+                    (emit-call-1 'SYMBOL-FUNCTION :eax)
+                    (emit-move-register-to-closure-var :eax var compiland))
                     (t
                      (mumble "p2-flet case 4b~%")
                      ;; nothing to do
@@ -1890,7 +1781,7 @@
       (push local-function *local-functions*))
     (multiple-value-bind (body declarations)
         (parse-body (cddr form))
-      (declare (ignore declarations)) ; REVIEW
+      (declare (ignore declarations)) ; FIXME
       (p2-progn-body body target))))
 
 (defknown p2-labels (t t) t)
@@ -1909,60 +1800,38 @@
              (aver (local-function-var local-function))
              (aver (var-closure-index (local-function-var local-function)))
              (let* ((compiland *current-compiland*)
-                    (closure-data-index
-                     (compiland-closure-data-index compiland)))
+                    (closure-data-index (compiland-closure-data-index compiland)))
                (aver (fixnump closure-data-index))
                (emit-move-local-to-register closure-data-index :eax)
                (inst :push :eax)
                (p2-constant (local-function-ctf local-function) :stack)
                (emit-call-2 "RT_make_compiled_closure" :eax)
-               (emit-move-local-to-register closure-data-index :ecx)
-               (emit-move-register-to-relative :eax
-                                               :ecx
-                                               (var-closure-index (local-function-var local-function)))
-               (clear-register-contents) ; FIXME
+               (emit-move-register-to-closure-var :eax (local-function-var local-function) compiland)
                ))
             ((local-function-ctf-name local-function)
              (aver (local-function-var local-function))
              (aver (var-closure-index (local-function-var local-function)))
              (let* ((compiland *current-compiland*)
-                    (closure-data-index
-                     (compiland-closure-data-index compiland)))
+                    (closure-data-index (compiland-closure-data-index compiland)))
                (aver (fixnump closure-data-index))
                (emit-move-local-to-register closure-data-index :eax)
                (inst :push :eax)
                (emit-move-function-to-register (local-function-ctf-name local-function) :eax)
                (inst :push :eax)
                (emit-call-2 "RT_make_compiled_closure" :eax)
-               (emit-move-local-to-register closure-data-index :ecx)
-               (emit-move-register-to-relative :eax
-                                               :ecx
-                                               (var-closure-index (local-function-var local-function)))
-               (clear-register-contents) ; FIXME
+               (emit-move-register-to-closure-var :eax (local-function-var local-function) compiland)
                ))
             ((local-function-function local-function)
-             (let* ((compiland *current-compiland*)
-                    (closure-data-index
-                     (compiland-closure-data-index compiland)))
+             (let* ((compiland *current-compiland*))
                (p2-constant (local-function-function local-function) :eax)
-               (emit-move-local-to-register closure-data-index :ecx)
-               (emit-move-register-to-relative :eax
-                                               :ecx
-                                               (var-closure-index (local-function-var local-function)))
-               (clear-register-contents) ; FIXME
+               (emit-move-register-to-closure-var :eax (local-function-var local-function) compiland)
                ))
             (t
              (aver (local-function-callable-name local-function))
-             (let* ((compiland *current-compiland*)
-                    (closure-data-index
-                     (compiland-closure-data-index compiland)))
+             (let* ((compiland *current-compiland*))
                (p2-constant (local-function-callable-name local-function) :stack)
-               (emit-call-1 'symbol-function :eax)
-               (emit-move-local-to-register closure-data-index :ecx)
-               (emit-move-register-to-relative :eax
-                                               :ecx
-                                               (var-closure-index (local-function-var local-function)))
-               (clear-register-contents) ; FIXME
+               (emit-call-1 'SYMBOL-FUNCTION :eax)
+               (emit-move-register-to-closure-var :eax (local-function-var local-function) compiland)
                )))
       )
     (multiple-value-bind (body declarations)
