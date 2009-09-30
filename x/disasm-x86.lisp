@@ -649,8 +649,14 @@
                                 operand1 (make-operand :kind :relative
                                                        :register :eax
                                                        :data 0)
-                                operand2 (make-register-operand :eax))
-                          )
+                                operand2 (make-register-operand :eax)))
+                         ((eql modrm-byte #x09)
+                          (setq length 2
+                                mnemonic :mov
+                                operand1 (make-operand :kind :relative
+                                                       :register :ecx
+                                                       :data 0)
+                                operand2 (make-register-operand :ecx)))
                          ((eql mod #b00)
                           (let ((source (register reg)))
                             (cond ((eql rm #b001)
