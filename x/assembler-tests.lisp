@@ -18,6 +18,8 @@
     ((:add -128 :edx)           #(#x83 #xc2 #x80))
     ((:add -129 :edx)           #(#x81 #xc2 #x7f #xff #xff #xff))
     ((:mov (-4 :ebp) :eax)      #(#x8b #x45 #xfc))
+    ((:mov :eax (:edx))         #(#x89 #x02))
+    ((:mov :edx (:edx))         #(#x89 #x12))
     ((:mov :eax (-4 :ebp))      #(#x89 #x45 #xfc))
     ((:mov :eax (0 :esp))       #(#x89 #x04 #x24))
     ((:mov :edx (0 :esp))       #(#x89 #x14 #x24))

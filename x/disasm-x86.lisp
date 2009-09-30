@@ -571,11 +571,13 @@
                 (#x89
                  ;; /r move dword register to r/m dword
                  (with-modrm-byte (mref-8 block-start (1+ offset))
-                   (cond ((eql modrm-byte #x01)
+                   (cond #+nil
+                         ((eql modrm-byte #x01)
                           (setq length 2
                                 mnemonic :mov
                                 operand1 (make-register-operand :eax)
                                 operand2 (make-indirect-operand :ecx)))
+                         #+nil
                          ((eql modrm-byte #x03)
                           (setq length 2
                                 mnemonic :mov
@@ -633,8 +635,12 @@
                                ;;                          (= reg #b010)
                                ;;                          (= rm  #b100)
                                )
-                          (setq length 3 ; REVIEW
-                                mnemonic :mov
+                          (cond ((and (eql modrm-byte #x04)
+                                      (eql (mref-8 block-start (+ offset 2)) #x24))
+                                 (setq length 3))
+                                (t
+                                 (setq length 2)))
+                          (setq mnemonic :mov
                                 operand1 (make-register-operand (register reg))
                                 operand2 (make-indirect-operand (register rm))))
                          (t

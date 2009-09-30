@@ -186,6 +186,17 @@
                          (modrm-byte (make-modrm-byte mod reg rm)))
                     (emit-bytes #x89 modrm-byte)
                     (emit-raw displacement))))))
+        ((and (consp operand2)
+              (length-eql operand2 1)
+              (reg32-p (first operand2))
+              (reg32-p operand1))
+         (let* ((reg1 operand1)
+                (reg2 (first operand2))
+                (mod #b00)
+                (reg (register-number reg1))
+                (rm  (register-number reg2))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x89 modrm-byte)))
         (t
          (unsupported))))
 
