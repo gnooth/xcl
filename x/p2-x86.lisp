@@ -1273,27 +1273,19 @@
 
 (defun emit-move-register-to-closure-var (reg var compiland)
   (aver (neq reg :ecx))
-  (aver (fixnump (compiland-closure-data-index compiland)))
   (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-  (inst :add (* (var-closure-index var) +bytes-per-word+) :ecx)
-  (inst :mov '(:ecx) :ecx)
-;;   (inst :push reg)
-;;   (inst :push :ecx)
-;;   (emit-call-2 "RT_set_value_cell_value" nil)
+  (clear-var-registers var)
+  (inst :mov `(,(* (var-closure-index var) +bytes-per-word+) :ecx) :ecx)
   (inst :mov reg '(:ecx))
-  )
+  (clear-register-contents :ecx)
+  (set-register-contents reg var))
 
 (defun emit-move-closure-var-to-register (var reg compiland)
-  (aver (neq reg :ecx))
-  (aver (fixnump (compiland-closure-data-index compiland)))
   (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-  (inst :add (* (var-closure-index var) +bytes-per-word+) :ecx)
-  (inst :mov '(:ecx) :ecx)
-;;   (inst :push :ecx)
-;;   (emit-call-1 "RT_value_cell_value" :eax)
-;;   (unless (eq reg :eax)
-;;     (inst :mov :eax reg))
-  (inst :mov '(:ecx) reg))
+  (clear-register-contents :ecx)
+  (inst :mov `(,(* (var-closure-index var) +bytes-per-word+) :ecx) :ecx)
+  (inst :mov '(:ecx) reg)
+  (set-register-contents reg var))
 
 (defknown bind-var (var) t)
 (defun bind-var (var)
@@ -3079,10 +3071,8 @@
            t)
           ((length-eql args 2)
            (process-2-args args '(:eax :edx) t)
-;;            (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
            (inst :test +fixnum-tag-mask+ :al)
            (emit-jmp-short :nz FULL-CALL)
-;;            (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
            (inst :test +fixnum-tag-mask+ :dl)
            (emit-jmp-short :nz FULL-CALL)
            ;; falling through, both args are fixnums
@@ -3239,7 +3229,6 @@
                (inst :mov :eax :edx)
                (clear-register-contents :edx)
                (unless (fixnum-type-p type1)
-;;                  (emit-bytes #xa8 #x03)               ; test $0x3,%al
                  (inst :test +fixnum-tag-mask+ :al)
                  (emit-jmp-short :nz FULL-CALL))
                ;; falling through, arg1 is a fixnum
@@ -3344,11 +3333,9 @@
                    (process-2-args args '(:eax :edx) t)
                    ;; arg1 in eax, arg2 in edx
                    (unless (fixnum-type-p type1)
-;;                      (emit-bytes #xa8 #x03)               ; test $0x3,%al
                      (inst :test +fixnum-tag-mask+ :al)
                      (emit-jmp-short :nz FULL-CALL))
                    (unless (fixnum-type-p type2)
-;;                      (emit-bytes #xf6 #xc2 #x03)          ; test $0x3,%dl
                      (inst :test +fixnum-tag-mask+ :dl)
                      (emit-jmp-short :nz FULL-CALL))
                    ;; falling through, both args are fixnums
@@ -3388,11 +3375,9 @@
         (let ((FULL-CALL (make-label))
               (EXIT (make-label)))
           (unless (fixnum-type-p type1)
-;;             (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
             (inst :test +fixnum-tag-mask+ :al)
             (emit-jmp-short :nz FULL-CALL))
           (unless (fixnum-type-p type2)
-;;             (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
             (inst :test +fixnum-tag-mask+ :dl)
             (emit-jmp-short :nz FULL-CALL))
           ;; falling through, both args are fixnums
@@ -3539,7 +3524,6 @@
                           (< shift 0)
                           (> shift -32)
                           (flushable arg2))
-;;                       (mumble "p2-ash unsigned-byte 32 case (optimized)~%")
                       (let ((LABEL1 (make-label))
                             (LABEL2 (make-label)))
                         (process-1-arg arg1 :eax t)
@@ -3635,11 +3619,9 @@
                (process-2-args args '(:eax :edx) t)
                ;; arg1 in eax, arg2 in edx
                (unless (fixnum-type-p type1)
-;;                  (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
                  (inst :test +fixnum-tag-mask+ :al)
                  (emit-jmp-short :nz FULL-CALL))
                (unless (fixnum-type-p type2)
-;;                  (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
                  (inst :test +fixnum-tag-mask+ :dl)
                  (emit-jmp-short :nz FULL-CALL))
                ;; falling through, both args are fixnums
@@ -3704,7 +3686,6 @@
           (let ((FULL-CALL (make-label))
                 (EXIT (make-label)))
             (process-1-arg arg1 :eax t)
-;;             (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
             (inst :test +fixnum-tag-mask+ :al)
             (emit-jmp-short :nz FULL-CALL)
             (cond ((eq target :return)
