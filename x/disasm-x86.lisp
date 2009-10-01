@@ -664,22 +664,28 @@
                                                        :data 0)
                                 operand2 (make-register-operand :ecx)))
                          ((eql mod #b00)
-                          (let ((source (register reg)))
-                            (cond ((eql rm #b001)
-                                   (let* ((displacement (mref-32 block-start (+ offset 2)))
-                                          (absolute-address (ldb (byte 32 0) (+ block-start offset 5 displacement))))
-                                     (setq length 6
-                                           mnemonic :mov
-                                           operand1 (make-register-operand source)
-                                           operand2 (make-absolute-operand absolute-address))))
-                                  ((eql rm #b101)
-                                   (let* ((displacement (mref-32 block-start (+ offset 2))))
-                                     (setq length 6
-                                           mnemonic :mov
-                                           operand1 (make-operand :kind :relative
-                                                                  :register :rip
-                                                                  :data displacement)
-                                           operand2 (make-register-operand (register reg))))))))
+                          (setq length 2
+                                mnemonic :mov
+                                operand1 (make-indirect-operand (register rm))
+                                operand2 (make-register-operand (register reg)))
+                          )
+;;                          ((eql mod #b00)
+;;                           (let ((source (register reg)))
+;;                             (cond ((eql rm #b001)
+;;                                    (let* ((displacement (mref-32 block-start (+ offset 2)))
+;;                                           (absolute-address (ldb (byte 32 0) (+ block-start offset 5 displacement))))
+;;                                      (setq length 6
+;;                                            mnemonic :mov
+;;                                            operand1 (make-register-operand source)
+;;                                            operand2 (make-absolute-operand absolute-address))))
+;;                                   ((eql rm #b101)
+;;                                    (let* ((displacement (mref-32 block-start (+ offset 2))))
+;;                                      (setq length 6
+;;                                            mnemonic :mov
+;;                                            operand1 (make-operand :kind :relative
+;;                                                                   :register :rip
+;;                                                                   :data displacement)
+;;                                            operand2 (make-register-operand (register reg))))))))
                          ((eql mod #b01)
                           (let ((displacement (mref-8-signed block-start (+ offset 2))))
                             (setq length 3

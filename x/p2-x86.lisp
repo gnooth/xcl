@@ -18,10 +18,6 @@
 
 (in-package "COMPILER")
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (pushnew :use-value-cells *features*)
-  (mumble "~S = ~S~%" '*features* *features*))
-
 (defknown emit-call-n (t t t) t)
 (defun emit-call-n (address target n)
   (emit-call address)
@@ -338,19 +334,15 @@
 (defun allocate-closure-data-vector (numvars)
   (inst :push (* numvars +bytes-per-word+))
   (emit-call-1 "RT_malloc" :eax)
-
-  #+use-value-cells
   (progn
     (inst :push :eax)
     (inst :mov :eax :edx)
     (dotimes (i numvars)
       (inst :push :edx)
-      (mumble "calling RT_make_value_cell~%")
       (emit-call-0 "RT_make_value_cell" :eax)
       (inst :pop :edx)
       (inst :mov :eax `(,(* i +bytes-per-word+) :edx)))
-    (inst :pop :eax))
-  )
+    (inst :pop :eax)))
 
 (defun p2-function-prolog (compiland)
   (declare (type compiland compiland))
@@ -862,13 +854,14 @@
              (process-2-args args '(:eax :edx) t)
              ;; arg1 in eax, arg2 in edx
              (unless (fixnum-type-p type1)
-               (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
+;;                (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
+               (inst :test +fixnum-tag-mask+ :al)
                (emit-jmp-short :nz FULL-CALL))
              (unless (fixnum-type-p type2)
-               (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
+;;                (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
+               (inst :test +fixnum-tag-mask+ :dl)
                (emit-jmp-short :nz FULL-CALL))
              ;; falling through, both args are fixnums
-;;              (emit-bytes #x39 #xd0) ; cmp %edx,%eax
              (inst :cmp :edx :eax)
              (emit-jmp-short (ecase op
                                (two-arg-<  :nl)
@@ -1278,60 +1271,36 @@
        (let ((new-form `(or ,(%car args) (or ,@(%cdr args)))))
          (p2-or new-form target))))))
 
-#-use-value-cells
 (defun emit-move-register-to-closure-var (reg var compiland)
   (aver (neq reg :ecx))
   (aver (fixnump (compiland-closure-data-index compiland)))
   (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-  (clear-register-contents :ecx)
-  (emit-move-register-to-relative reg :ecx (var-closure-index var))
-  (clear-var-registers var)
-  (set-register-contents reg var))
-
-#+use-value-cells
-(defun emit-move-register-to-closure-var (reg var compiland)
-  (aver (neq reg :ecx))
-;;   (aver (neq reg :edi))
-  (aver (fixnump (compiland-closure-data-index compiland)))
-  (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-  ;;   (emit-move-register-to-relative reg :rcx (var-closure-index var))
   (inst :add (* (var-closure-index var) +bytes-per-word+) :ecx)
-;;   (inst :mov :rcx :rdi)
   (inst :mov '(:ecx) :ecx)
-;;   (inst :mov reg :rsi)
-  (inst :push reg)
-  (inst :push :ecx)
-  (mumble "calling RT_set_value_cell_value~%")
-  (emit-call-2 "RT_set_value_cell_value" nil))
+;;   (inst :push reg)
+;;   (inst :push :ecx)
+;;   (emit-call-2 "RT_set_value_cell_value" nil)
+  (inst :mov reg '(:ecx))
+  )
 
-#-use-value-cells
 (defun emit-move-closure-var-to-register (var reg compiland)
   (aver (neq reg :ecx))
   (aver (fixnump (compiland-closure-data-index compiland)))
   (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-  (clear-register-contents :ecx)
-  (emit-move-relative-to-register :ecx (var-closure-index var) reg)
-  (set-register-contents reg var))
-
-#+use-value-cells
-(defun emit-move-closure-var-to-register (var reg compiland)
-  (aver (neq reg :ecx))
-  (aver (fixnump (compiland-closure-data-index compiland)))
-  (emit-move-local-to-register (compiland-closure-data-index compiland) :ecx)
-  ;;   (emit-move-relative-to-register :rcx (var-closure-index var) reg)
   (inst :add (* (var-closure-index var) +bytes-per-word+) :ecx)
-;;   (inst :mov :rcx :rdi)
   (inst :mov '(:ecx) :ecx)
-  (inst :push :ecx)
-  (mumble "calling RT_value_cell_value~%")
-  (emit-call-1 "RT_value_cell_value" :eax)
-  (unless (eq reg :eax)
-    (inst :mov :eax reg)))
+;;   (inst :push :ecx)
+;;   (emit-call-1 "RT_value_cell_value" :eax)
+;;   (unless (eq reg :eax)
+;;     (inst :mov :eax reg))
+  (inst :mov '(:ecx) reg))
 
 (defknown bind-var (var) t)
 (defun bind-var (var)
   (declare (type var var))
-  (let ((initform (var-initform var)))
+  (let ((compiland *current-compiland*)
+        (initform (var-initform var)))
+    (declare (type compiland compiland))
     (cond ((var-constant-p var)
            ; nothing to do
            )
@@ -1342,7 +1311,7 @@
                           (eq (var-name var-ref-var) (var-name var)))
                  (note "BIND-VAR: binding special to current value~%")
                  (p2-symbol (var-name var) :stack)
-                 (let ((thread-var (compiland-thread-var *current-compiland*)))
+                 (let ((thread-var (compiland-thread-var compiland)))
                    (cond (thread-var
                           (inst :push thread-var)
                           (emit-call-2 "RT_thread_bind_special_to_current_value" nil))
@@ -1352,7 +1321,7 @@
                  (return-from bind-var))))
            (p2 initform :stack)
            (p2-constant (var-name var) :stack)
-           (let ((thread-var (compiland-thread-var *current-compiland*)))
+           (let ((thread-var (compiland-thread-var compiland)))
              (cond (thread-var
                     (inst :push thread-var)
                     (emit-call-3 "RT_thread_bind_special" nil))
@@ -1361,19 +1330,14 @@
                     (emit-call-2 "RT_current_thread_bind_special" nil)))))
           ((zerop (var-reads var))
            (p2 initform nil))
-;;           ((var-closure-index var)
-;;            (p2 initform :eax)
-;;            (emit-move-register-to-closure-var :eax var *current-compiland*))
           ((var-closure-index var)
            ;; each new binding gets a new value cell
-           (mumble "bind-var emitting call to RT_make_value_cell~%")
            (emit-call-0 "RT_make_value_cell" :eax)
-           (aver (fixnump (compiland-closure-data-index *current-compiland*)))
-           (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :edx)
+           (emit-move-local-to-register (compiland-closure-data-index compiland) :edx)
            (inst :add (* (var-closure-index var) +bytes-per-word+) :edx)
            (inst :mov :eax '(:edx))
            (p2 initform :eax)
-           (emit-move-register-to-closure-var :eax var *current-compiland*))
+           (emit-move-register-to-closure-var :eax var compiland))
           (t
            (let ((derived-type (derive-type initform))
                  reg)
@@ -1495,11 +1459,8 @@
              (p2-progn-body body target))))))
 
 (defun p2-m-v-b (form target)
-  (aver (eq (car form) 'MULTIPLE-VALUE-BIND))
-  (aver (eql (length form) 2))
-  (aver (block-p (cadr form)))
   (let* ((*visible-variables* *visible-variables*)
-         (block (cadr form))
+         (block (second form))
          (values-form (third (block-form block)))
          (vars (block-vars block))
          (body (block-body block))
@@ -1540,22 +1501,16 @@
                (inst :push thread-var)
                (emit-call-3 "RT_thread_bind_special" nil)
                (inst :pop base-reg))
-;;               ((var-closure-index var)
-;;                (inst :push base-reg)
-;;                (emit-move-register-to-closure-var value-reg var compiland)
-;;                (inst :pop base-reg))
               ((var-closure-index var)
                (inst :push base-reg)
-               ;; each new binding gets a new value cell
                (inst :push value-reg)
-               (mumble "p2-m-v-b emitting call to RT_make_value_cell~%")
+               ;; each new binding gets a new value cell
                (emit-call-0 "RT_make_value_cell" :eax)
-               (aver (fixnump (compiland-closure-data-index *current-compiland*)))
-               (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :edx)
+               (emit-move-local-to-register (compiland-closure-data-index compiland) :edx)
                (inst :add (* (var-closure-index var) +bytes-per-word+) :edx)
                (inst :mov :eax '(:edx))
                (inst :pop value-reg)
-               (emit-move-register-to-closure-var value-reg var *current-compiland*)
+               (emit-move-register-to-closure-var value-reg var compiland)
                (inst :pop base-reg))
               (t
                (inst :mov value-reg var)
@@ -1966,12 +1921,7 @@
                                           ,minargs
                                           ,maxargs
                                           final-constants)))
-                     *compile-file-output-stream*)
-;;                     (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :eax)
-;;                     (inst :push :eax)
-;;                     (emit-move-function-to-register (compiland-name compiland) :eax)
-;;                     (inst :push :eax)
-                    )
+                     *compile-file-output-stream*))
                    (t
                     (multiple-value-bind (final-code final-constants)
                         (generate-code-vector code (compiland-constants compiland))
@@ -1982,51 +1932,19 @@
                                  maxargs
                                  final-constants))
                       (aver (compiland-child-p compiland))
-                      (push ctf (compiland-constants (compiland-parent compiland))))
-;;                     ;; push args right to left!
-;;                     (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :eax)
-;;                     (inst :push :eax)
-;;                     (emit-push-immediate ctf)
-                    ))
-
+                      (push ctf (compiland-constants (compiland-parent compiland))))))
            (inst :push (length *closure-vars*))
-;;            (inst :push :eax) ; closure data vector
            (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :eax)
            (inst :push :eax)
-           (mumble "p2-closure emitting call to RT_copy_closure_data_vector~%")
-           (emit-call-2 "RT_copy_closure_data_vector" :eax) ; copy in eax
-
-           #+nil
-           (dolist (var *closure-vars*)
-             (when (zerop (var-writes var))
-               (inst :push :eax)
-;;                (inst :mov :rax :rsi)
-               (inst :push :eax)
-;;                (inst :mov (var-closure-index var) :rdi)
-               (inst :push (var-closure-index var))
-               ;;                (mumble "p2-closure emitting call to RT_unshare_variable for ~S~%"
-               ;;                        (var-name var))
-               (emit-call-2 "RT_unshare_variable" nil)
-               (inst :pop :eax))
-             )
-
-;;            (inst :pop :rsi)
-;;            (inst :pop :rdi)
-
-;;            (inst :pop :edx) ; ctf
+           (emit-call-2 "RT_copy_closure_data_vector" :eax) ; copy of closure data vector in eax
            (inst :push :eax) ; copy of closure data vector
-;;            (inst :push :edx) ; ctf
            (cond (compile-file-p
                   (emit-move-function-to-register (compiland-name compiland) :eax)
                   (inst :push :eax))
                  (t
                   (aver ctf)
                   (emit-push-immediate ctf)))
-
-
-           (emit-call-2 "RT_make_compiled_closure" :eax)
-
-           )
+           (emit-call-2 "RT_make_compiled_closure" :eax))
           (t
            ;; no closure vars
            (cond (compile-file-p
@@ -3161,9 +3079,11 @@
            t)
           ((length-eql args 2)
            (process-2-args args '(:eax :edx) t)
-           (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
+;;            (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
+           (inst :test +fixnum-tag-mask+ :al)
            (emit-jmp-short :nz FULL-CALL)
-           (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
+;;            (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
+           (inst :test +fixnum-tag-mask+ :dl)
            (emit-jmp-short :nz FULL-CALL)
            ;; falling through, both args are fixnums
            (inst :cmp :edx :eax)
@@ -3319,7 +3239,8 @@
                (inst :mov :eax :edx)
                (clear-register-contents :edx)
                (unless (fixnum-type-p type1)
-                 (emit-bytes #xa8 #x03)               ; test $0x3,%al
+;;                  (emit-bytes #xa8 #x03)               ; test $0x3,%al
+                 (inst :test +fixnum-tag-mask+ :al)
                  (emit-jmp-short :nz FULL-CALL))
                ;; falling through, arg1 is a fixnum
                (let ((n (ash arg2 +fixnum-shift+)))
@@ -3394,7 +3315,6 @@
              (arg2 (%cadr args)))
         (when (and (numberp arg1)
                    (numberp arg2))
-          (mumble "p2-two-arg-* numberp case~%")
           (p2-constant (two-arg-* arg1 arg2) target)
           (return-from p2-two-arg-* t))
         (when (numberp arg1)
@@ -3408,14 +3328,12 @@
                       (integer-constant-value type2)
                       (flushable arg1)
                       (flushable arg2))
-                 (mumble "p2-two-arg-* integer-constant-value case~%")
                  (p2-constant (two-arg-* (integer-constant-value type1) (integer-constant-value type2))
                               target)
                  (return-from p2-two-arg-* t))
                 ((or (float-type-p type1)
                      (float-type-p type2))
                  ;; full call
-                 (mumble "p2-two-arg-* float case~%")
                  (process-2-args args :stack t)
                  (emit-call-2 'two-arg-* target)
                  (return-from p2-two-arg-* t)))
@@ -3423,14 +3341,15 @@
                  (FULL-CALL (make-label))
                  (EXIT (make-label)))
             (cond (t
-                   (mumble "p2-two-arg-* default case type1 = ~S type2 = ~S~%" type1 type2)
                    (process-2-args args '(:eax :edx) t)
                    ;; arg1 in eax, arg2 in edx
                    (unless (fixnum-type-p type1)
-                     (emit-bytes #xa8 #x03)               ; test $0x3,%al
+;;                      (emit-bytes #xa8 #x03)               ; test $0x3,%al
+                     (inst :test +fixnum-tag-mask+ :al)
                      (emit-jmp-short :nz FULL-CALL))
                    (unless (fixnum-type-p type2)
-                     (emit-bytes #xf6 #xc2 #x03)          ; test $0x3,%dl
+;;                      (emit-bytes #xf6 #xc2 #x03)          ; test $0x3,%dl
+                     (inst :test +fixnum-tag-mask+ :dl)
                      (emit-jmp-short :nz FULL-CALL))
                    ;; falling through, both args are fixnums
                    (inst :mov :eax :ecx) ; we're about to trash :eax
@@ -3454,8 +3373,7 @@
                    (emit-adjust-stack-after-call 2)
                    (label EXIT)
                    (move-result-to-target target)
-                   t)
-                  )))))))
+                   t))))))))
 
 (defun p2-min/max (form target)
   (let* ((op (car form))
@@ -3470,10 +3388,12 @@
         (let ((FULL-CALL (make-label))
               (EXIT (make-label)))
           (unless (fixnum-type-p type1)
-            (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
+;;             (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
+            (inst :test +fixnum-tag-mask+ :al)
             (emit-jmp-short :nz FULL-CALL))
           (unless (fixnum-type-p type2)
-            (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
+;;             (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
+            (inst :test +fixnum-tag-mask+ :dl)
             (emit-jmp-short :nz FULL-CALL))
           ;; falling through, both args are fixnums
           (inst :cmp :edx :eax)
@@ -3784,7 +3704,8 @@
           (let ((FULL-CALL (make-label))
                 (EXIT (make-label)))
             (process-1-arg arg1 :eax t)
-            (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
+;;             (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
+            (inst :test +fixnum-tag-mask+ :al)
             (emit-jmp-short :nz FULL-CALL)
             (cond ((eq target :return)
                    (inst :exit))
