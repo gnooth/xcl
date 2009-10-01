@@ -20,6 +20,10 @@
 #include <limits.h>     // PATH_MAX
 #endif
 
+#if defined(__NetBSD__)
+#include <sys/param.h>  // realpath()
+#endif
+
 #if !defined(WIN32)
 #include <stdlib.h>     // canonicalize_file_name(), realpath()
 #endif
@@ -111,8 +115,7 @@ static Value truename(Value arg, bool require_directory_p, bool errorp)
             }
         }
 #else
-#if defined(__FreeBSD__)
-      // REVIEW
+#if defined(__NetBSD__) || defined(__FreeBSD__)
       char * buffer = (char *) malloc(PATH_MAX);
       memset(buffer, 0, PATH_MAX);
       char * canonical_path = realpath(namestring->as_c_string(), buffer);

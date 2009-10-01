@@ -1,6 +1,6 @@
 // Closure.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 
 #if defined(WIN32)
 #include <malloc.h>
-#elif defined(__FreeBSD__)
+#elif defined(__NetBSD__) || defined(__FreeBSD__)
 #include <stdlib.h>
 #else
 #include <alloca.h>

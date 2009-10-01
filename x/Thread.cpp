@@ -18,7 +18,7 @@
 
 #if defined(WIN32)
 #include <malloc.h>
-#elif defined(__FreeBSD__)
+#elif defined(__NetBSD__) || defined(__FreeBSD__)
 #include <stdlib.h>
 #else
 #include <alloca.h>
