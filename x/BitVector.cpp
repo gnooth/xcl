@@ -19,7 +19,7 @@
 #include "lisp.hpp"
 #include "primitives.hpp"
 
-inline void BitVector::setbit(INDEX index)
+inline void BitVector::set_bit(INDEX index)
 {
   if (_data)
     {
@@ -30,7 +30,7 @@ inline void BitVector::setbit(INDEX index)
     _array->aset(index + _offset, FIXNUM_ONE);
 }
 
-inline void BitVector::clearbit(INDEX index)
+inline void BitVector::clear_bit(INDEX index)
 {
   if (_data)
     {
@@ -41,7 +41,7 @@ inline void BitVector::clearbit(INDEX index)
     _array->aset(index + _offset, FIXNUM_ZERO);
 }
 
-inline BIT BitVector::getbit(INDEX index) const
+inline BIT BitVector::get_bit(INDEX index) const
 {
   if (_data)
     {
@@ -52,13 +52,13 @@ inline BIT BitVector::getbit(INDEX index) const
     return check_bit(_array->aref(index + _offset));
 }
 
-inline void BitVector::setbit(INDEX index, BIT bit)
+inline void BitVector::set_bit(INDEX index, BIT bit)
 {
   assert(bit == 0 || bit == 1);
   if (bit == 0)
-    clearbit(index);
+    clear_bit(index);
   else
-    setbit(index);
+    set_bit(index);
 }
 
 BitVector::BitVector(INDEX capacity, bool has_fill_pointer)
@@ -205,9 +205,9 @@ void BitVector::ensure_capacity(INDEX required_capacity)
             {
               BIT bit = check_bit(_array->aref(i + _offset));
               if (bit)
-                setbit(i);
+                set_bit(i);
               else
-                clearbit(i);
+                clear_bit(i);
             }
           _capacity = required_capacity;
           _array = NULL;
@@ -220,7 +220,7 @@ void BitVector::fill(Value value)
 {
   const BIT bit = check_bit(value);
   for (INDEX i = _capacity; i-- > 0;)
-    setbit(i, bit);
+    set_bit(i, bit);
 }
 
 // "AREF ignores fill pointers. It is permissible to use AREF to access any
@@ -229,14 +229,14 @@ Value BitVector::aref(unsigned long i) const
 {
   if (i >= _capacity)
     return bad_index(i, 0, _capacity);
-  return make_fixnum(getbit(i));
+  return make_fixnum(get_bit(i));
 }
 
 Value BitVector::aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
     return bad_index(i, 0, _capacity);
-  setbit(i, check_bit(new_value));
+  set_bit(i, check_bit(new_value));
   return new_value;
 }
 
@@ -244,7 +244,7 @@ Value BitVector::elt(INDEX i) const
 {
   if (i >= length())
     return bad_index(i, 0, length());
-  return make_fixnum(getbit(i));
+  return make_fixnum(get_bit(i));
 }
 
 Value BitVector::push(Value new_element)
@@ -253,7 +253,7 @@ Value BitVector::push(Value new_element)
   if (_fill_pointer < _capacity)
     {
       unsigned long old_length = _fill_pointer;
-      setbit(_fill_pointer++, check_bit(new_element));
+      set_bit(_fill_pointer++, check_bit(new_element));
       return make_fixnum(old_length);
     }
   else
@@ -267,7 +267,7 @@ Value BitVector::push_extend(Value new_element, unsigned long extension)
     ensure_capacity(_fill_pointer + extension);
   assert(_fill_pointer < _capacity);
   unsigned long old_length = _fill_pointer;
-  setbit(_fill_pointer++, check_bit(new_element));
+  set_bit(_fill_pointer++, check_bit(new_element));
   return make_fixnum(old_length);
 }
 
@@ -275,7 +275,7 @@ Value BitVector::pop()
 {
   check_fill_pointer();
   if (_fill_pointer > 0)
-    return make_fixnum(getbit(--_fill_pointer));
+    return make_fixnum(get_bit(--_fill_pointer));
   else
     return signal_lisp_error("There is nothing left to pop.");
 }
@@ -286,7 +286,7 @@ Value BitVector::reverse() const
   SimpleBitVector * result = new SimpleBitVector(len);
   unsigned long i, j;
   for (i = 0, j = len - 1; i < len; i++, j--)
-    result->setbit(i, getbit(j));
+    result->set_bit(i, get_bit(j));
   return make_value(result);
 }
 
@@ -299,9 +299,9 @@ Value BitVector::nreverse()
       unsigned long j = len - 1;
       while (i < j)
         {
-          unsigned long temp = getbit(i);
-          setbit(i, getbit(j));
-          setbit(j, temp);
+          unsigned long temp = get_bit(i);
+          set_bit(i, get_bit(j));
+          set_bit(j, temp);
           ++i;
           --j;
         }
@@ -321,7 +321,7 @@ AbstractVector * BitVector::adjust_vector(unsigned long new_capacity,
         ++size;
       _data = (unsigned int *) GC_malloc_atomic(size * sizeof(unsigned int));
       for (unsigned long i = 0; i < _capacity; i++)
-        setbit(i, check_bit(_array->aref(_offset + i)));
+        set_bit(i, check_bit(_array->aref(_offset + i)));
       _array = NULL;
       _offset = 0;
     }
@@ -336,7 +336,7 @@ AbstractVector * BitVector::adjust_vector(unsigned long new_capacity,
           Value list = initial_contents;
           for (unsigned long i = 0; i < new_capacity; i++)
             {
-              setbit(i, check_bit(car(list)));
+              set_bit(i, check_bit(car(list)));
               list = xcdr(list);
             }
         }
@@ -344,7 +344,7 @@ AbstractVector * BitVector::adjust_vector(unsigned long new_capacity,
         {
           AbstractVector * v = the_vector(initial_contents);
           for (unsigned long i = 0; i < new_capacity; i++)
-            setbit(i, check_bit(v->aref(i)));
+            set_bit(i, check_bit(v->aref(i)));
         }
       else
         signal_type_error(initial_contents, S_sequence);
@@ -365,10 +365,10 @@ AbstractVector * BitVector::adjust_vector(unsigned long new_capacity,
           unsigned long bit = check_bit(initial_element);
           if (bit)
             for (unsigned long i = _capacity; i < new_capacity; i++)
-              setbit(i);
+              set_bit(i);
           else
             for (unsigned long i = _capacity; i < new_capacity; i++)
-              clearbit(i);
+              clear_bit(i);
         }
     }
   _capacity = new_capacity;

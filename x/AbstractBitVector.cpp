@@ -31,7 +31,7 @@ unsigned long AbstractBitVector::hash()
   if (limit > 64)
     limit = 64;
   for (unsigned long i = 0; i < limit; i++)
-    hashcode = hashcode * 31 + getbit(i);
+    hashcode = hashcode * 31 + get_bit(i);
   return hashcode & MOST_POSITIVE_FIXNUM;
 }
 
@@ -41,10 +41,10 @@ Value AbstractBitVector::subseq(unsigned long start, unsigned long end) const
   SimpleBitVector * vector = new SimpleBitVector(end - start);
   unsigned long i = start, j = 0;
   while (i < end)
-    if (getbit(i++) == 0)
-      vector->clearbit(j++);
+    if (get_bit(i++) == 0)
+      vector->clear_bit(j++);
     else
-      vector->setbit(j++);
+      vector->set_bit(j++);
   return make_value(vector);
 }
 
@@ -60,7 +60,7 @@ bool AbstractBitVector::equal(Value value) const
   unsigned long capacity = _capacity;
   for (unsigned long i = 0; i < capacity; i++)
     {
-      if (getbit(i) != bv->getbit(i))
+      if (get_bit(i) != bv->get_bit(i))
         return false;
     }
   return true;
@@ -77,7 +77,7 @@ AbstractString * AbstractBitVector::write_to_string()
       s->fast_set_char_at(0, '#');
       s->fast_set_char_at(1, '*');
       for (INDEX i = 0; i < len; i++)
-        s->fast_set_char_at(i + 2, getbit(i) ? '1' : '0');
+        s->fast_set_char_at(i + 2, get_bit(i) ? '1' : '0');
       return s;
     }
   else

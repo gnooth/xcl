@@ -491,7 +491,7 @@ static void invert(String * string, BitVector * escapes)
   for (INDEX i = 0; i < len; i++)
     {
       // we only care about unescaped characters
-      if (escapes != NULL && escapes->getbit(i))
+      if (escapes != NULL && escapes->get_bit(i))
         continue;
       BASE_CHAR c = string->fast_char_at(i);
       if (isupper(c))
@@ -511,7 +511,7 @@ static void invert(String * string, BitVector * escapes)
   for (INDEX i = 0; i < len; i++)
     {
       BASE_CHAR c = string->fast_char_at(i);
-      if (escapes != NULL && escapes->getbit(i))
+      if (escapes != NULL && escapes->get_bit(i))
         ; // escaped, no change
       else if (isupper(c))
         string->fast_set_char_at(i, tolower(c));
@@ -542,7 +542,7 @@ BitVector * Stream::read_token(unsigned char c1, Readtable * rt, Thread * thread
         }
       string->append_char((BASE_CHAR)n);
       escapes = new BitVector(1, false);
-      escapes->setbit(0);
+      escapes->set_bit(0);
     }
   else
     {
@@ -581,7 +581,7 @@ BitVector * Stream::read_token(unsigned char c1, Readtable * rt, Thread * thread
           else
             escapes->ensure_capacity(string->length());
           for (INDEX i = begin; i < end; i++)
-            escapes->setbit(i);
+            escapes->set_bit(i);
           continue;
         }
       if (syntax == SYNTAX_TYPE_SINGLE_ESCAPE)
@@ -598,7 +598,7 @@ BitVector * Stream::read_token(unsigned char c1, Readtable * rt, Thread * thread
             escapes = new BitVector(string->length(), false);
           else
             escapes->ensure_capacity(string->length());
-          escapes->setbit(string->length() - 1);
+          escapes->set_bit(string->length() - 1);
           continue;
         }
       rt->check_invalid(c, this);
@@ -686,7 +686,7 @@ Value Stream::read_atom(BASE_CHAR c1, Readtable * rt, Thread * thread)
   for (INDEX i = 0; i < len; i++)
     {
       BASE_CHAR c = data[i];
-      if (c == ':' && (escapes == NULL || escapes->getbit(i) == 0))
+      if (c == ':' && (escapes == NULL || escapes->get_bit(i) == 0))
         {
           // unescaped colon
           if (i == 0)
@@ -697,7 +697,7 @@ Value Stream::read_atom(BASE_CHAR c1, Readtable * rt, Thread * thread)
               else
                 return PACKAGE_KEYWORD->intern(string->substring(1), true);
             }
-          if (i < len - 1 && data[i + 1] == ':' && (escapes == NULL || escapes->getbit(i + 1) == 0))
+          if (i < len - 1 && data[i + 1] == ':' && (escapes == NULL || escapes->get_bit(i + 1) == 0))
             {
               // double colon
               SimpleString * package_name = string->substring(0, i);

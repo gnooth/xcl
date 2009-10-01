@@ -20,22 +20,22 @@
 #include "primitives.hpp"
 #include "ProgramError.hpp"
 
-void SimpleBitVector::setbit(INDEX index)
+void SimpleBitVector::set_bit(INDEX index)
 {
   inline_setbit(index);
 }
 
-void SimpleBitVector::clearbit(INDEX index)
+void SimpleBitVector::clear_bit(INDEX index)
 {
   inline_clearbit(index);
 }
 
-BIT SimpleBitVector::getbit(INDEX index) const
+BIT SimpleBitVector::get_bit(INDEX index) const
 {
   return inline_getbit(index);
 }
 
-void SimpleBitVector::setbit(INDEX index, BIT bit)
+void SimpleBitVector::set_bit(INDEX index, BIT bit)
 {
   inline_setbit(index, bit);
 }

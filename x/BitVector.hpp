@@ -38,10 +38,10 @@ public:
 
   void ensure_capacity(INDEX required_capacity);
 
-  virtual void setbit(INDEX index);
-  virtual void clearbit(INDEX index);
-  virtual BIT getbit(INDEX index) const;
-  virtual void setbit(INDEX index, BIT bit);
+  virtual void set_bit(INDEX index);
+  virtual void clear_bit(INDEX index);
+  virtual BIT get_bit(INDEX index) const;
+  virtual void set_bit(INDEX index, BIT bit);
 
   virtual bool has_fill_pointer() const
   {

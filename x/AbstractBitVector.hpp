@@ -36,10 +36,10 @@ protected:
   }
 
 public:
-  virtual void setbit(INDEX index) = 0;
-  virtual void clearbit(INDEX index) = 0;
-  virtual BIT getbit(INDEX index) const = 0;
-  virtual void setbit(INDEX index, BIT bit) = 0;
+  virtual void set_bit(INDEX index) = 0;
+  virtual void clear_bit(INDEX index) = 0;
+  virtual BIT get_bit(INDEX index) const = 0;
+  virtual void set_bit(INDEX index, BIT bit) = 0;
 
   virtual Value class_of() const;
 
