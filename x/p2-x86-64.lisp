@@ -1991,6 +1991,7 @@
            (inst :mov (length *closure-vars*) :rsi) ; length in rsi
            (emit-call "RT_copy_closure_data_vector") ; copy in rax
 
+           #+nil
            (dolist (var *closure-vars*)
 ;;              (unless (or (memq compiland (var-writers var))
 ;;                          (memq *current-compiland* (var-writers var)))
