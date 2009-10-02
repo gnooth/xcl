@@ -1,6 +1,6 @@
 // SimpleString.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -84,13 +84,15 @@ public:
 
   virtual unsigned long hash();
 
+  virtual unsigned long equalp_hash();
+
   // not virtual
   BASE_CHAR xchar_at(INDEX i) const
   {
     if (i < _capacity)
       return _chars[i];
     signal_lisp_error("bad index");
-    // Not reached.
+    // not reached
     return 0;
   }
 
@@ -214,7 +216,7 @@ inline SimpleString * check_simple_string(Value value)
   if (simple_string_p(value))
     return the_simple_string(value);
   signal_type_error(value, S_simple_string);
-  // Not reached.
+  // not reached
   return NULL;
 }
 

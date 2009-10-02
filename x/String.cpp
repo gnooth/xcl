@@ -265,6 +265,35 @@ unsigned long String::hash()
   return hashcode & MOST_POSITIVE_FIXNUM;
 }
 
+unsigned long String::equalp_hash()
+{
+  long hashcode = 0;
+  const INDEX len = length();
+  if (_chars)
+    {
+      for (INDEX i = 0; i < len; i++)
+        {
+          hashcode += toupper(_chars[i]);
+          hashcode += (hashcode << 10);
+          hashcode ^= (hashcode >> 6);
+        }
+    }
+  else
+    {
+      // displaced
+      for (INDEX i = 0; i < len; i++)
+        {
+          hashcode += toupper(char_at(i));
+          hashcode += (hashcode << 10);
+          hashcode ^= (hashcode >> 6);
+        }
+    }
+  hashcode += (hashcode << 3);
+  hashcode ^= (hashcode >> 11);
+  hashcode += (hashcode << 15);
+  return hashcode & MOST_POSITIVE_FIXNUM;
+}
+
 bool String::equal(Value value) const
 {
   if (!stringp(value))

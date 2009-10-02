@@ -155,6 +155,21 @@ unsigned long SimpleString::hash()
   return hashcode & MOST_POSITIVE_FIXNUM;
 }
 
+unsigned long SimpleString::equalp_hash()
+{
+  long hashcode = 0;
+  for (INDEX i = 0; i < _capacity; i++)
+    {
+      hashcode += toupper(_chars[i]);
+      hashcode += (hashcode << 10);
+      hashcode ^= (hashcode >> 6);
+    }
+  hashcode += (hashcode << 3);
+  hashcode ^= (hashcode >> 11);
+  hashcode += (hashcode << 15);
+  return hashcode & MOST_POSITIVE_FIXNUM;
+}
+
 bool SimpleString::equal(Value value) const
 {
   if (!stringp(value))
@@ -237,7 +252,7 @@ BASE_CHAR SimpleString::char_at(INDEX i) const
   if (i < _capacity)
     return _chars[i];
   signal_lisp_error("bad index");
-  // Not reached.
+  // not reached
   return 0;
 }
 

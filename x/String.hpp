@@ -89,6 +89,8 @@ public:
 
   virtual unsigned long hash();
 
+  virtual unsigned long equalp_hash();
+
   virtual BASE_CHAR char_at(INDEX i) const;
   virtual void set_char_at(INDEX i, BASE_CHAR c);
 
