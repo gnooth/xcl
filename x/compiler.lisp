@@ -696,12 +696,10 @@
               (return-from p1-funcall (p1 new-form)))
             ))
         )))
-  ;; Otherwise...
+  ;; otherwise...
   (p1-function-call form))
 
 (defun p1-function (form)
-;;   (mumble "p1-function form = ~S~%" form)
-;;   (mumble "p1-function *visible-variables* = ~S~%" *visible-variables*)
   (unless (length-eql form 2)
     (error 'simple-error
            :format-control "Wrong number of arguments for special operator ~A (expected 1, but received ~D)."
