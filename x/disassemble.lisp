@@ -396,6 +396,14 @@
           (disassemble-function constant))))))
 
 (defun disassemble (arg)
+  (unless (or (symbolp arg)
+              (functionp arg)
+              (setf-function-name-p arg)
+              (lambda-expression-p arg))
+    (error 'type-error
+           :datum arg
+           :expected-type
+           '(or symbol function (satisfies setf-function-name-p) (satisfies lambda-expression-p))))
   (setq *lambda-name* (if (symbolp arg) arg nil))
   (when (and (symbolp arg) (autoloadp arg))
     (resolve arg))
