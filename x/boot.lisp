@@ -540,3 +540,8 @@
 ;; REVIEW
 (when (probe-file "grovel.xcl")
   (make-thread #'sys:grovel-cpp-definitions))
+
+;; REVIEW
+(let ((initialization-file (merge-pathnames ".xclrc" (user-homedir-pathname))))
+  (when (probe-file initialization-file)
+    (load initialization-file)))
