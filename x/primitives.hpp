@@ -576,6 +576,7 @@ extern Value SYS_intersection_eql(Value list1, Value list2);
 extern Value SYS_iref(Value arg1, Value arg2);
 extern Value SYS_iset(Value arg1, Value arg2, Value arg3);
 extern Value SYS_kernel_function_p(Value arg);
+extern Value SYS_lambda_expression_p(Value arg);
 extern Value SYS_lambda_list_names(Value arg);
 extern Value SYS_last1(Value arg);
 extern Value SYS_layout_class(Value arg);

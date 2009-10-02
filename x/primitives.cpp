@@ -1495,6 +1495,20 @@ Value SYS_fdefinition_block_name(Value arg)
   return signal_type_error(arg, FUNCTION_NAME);
 }
 
+// ### lambda-expression-p
+Value SYS_lambda_expression_p(Value arg)
+{
+  if (!consp(arg))
+    return NIL;
+  if (xcar(arg) != S_lambda)
+    return NIL;
+  if (!consp(xcdr(arg)))
+    return NIL;
+  if (!listp(xcadr(arg)))
+    return NIL;
+  return T;
+}
+
 // ### make-keyword symbol => keyword
 Value SYS_make_keyword(Value arg)
 {

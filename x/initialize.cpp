@@ -599,6 +599,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_iset, SYS_iset, 3, 3);
   ADD_PRIMITIVE(S_kernel_function_p, SYS_kernel_function_p, 1, 1);
   ADD_PRIMITIVE(S_lambda_list_names, SYS_lambda_list_names, 1, 1);
+  ADD_PRIMITIVE(S_lambda_expression_p, SYS_lambda_expression_p, 1, 1);
   ADD_PRIMITIVE(S_last1, SYS_last1, 1, 1);
   ADD_PRIMITIVE(S_layout_class, SYS_layout_class, 1, 1);
   ADD_PRIMITIVE(S_layout_invalid_p, SYS_layout_invalid_p, 1, 1);
