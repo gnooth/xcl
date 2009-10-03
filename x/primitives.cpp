@@ -2298,8 +2298,8 @@ static BYTE * check_address(Value address)
         return reinterpret_cast<unsigned char *>(mpz_get_ui(b->_z));
     }
   signal_type_error(address, list3(S_integer, list1(FIXNUM_ZERO),
-                               make_number(0xffffffff)));
-  // Not reached.
+                                   make_number(0xffffffff)));
+  // not reached
   return NULL;
 }
 
