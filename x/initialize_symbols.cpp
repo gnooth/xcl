@@ -221,16 +221,6 @@ void initialize_symbols()
 
   the_symbol(S_simple_vector_widetag)->initialize_constant(make_number(WIDETAG_SIMPLE_VECTOR));
 
-#ifdef WIN32
-  the_symbol(S_features)->initialize_special(list5(K_xcl, K_x86, K_windows, K_ansi_cl, K_common_lisp));
-#else
-# ifdef __x86_64
-  the_symbol(S_features)->initialize_special(list4(K_xcl, K_x86_64, K_ansi_cl, K_common_lisp));
-# else
-  the_symbol(S_features)->initialize_special(list4(K_xcl, K_x86, K_ansi_cl, K_common_lisp));
-# endif
-#endif
-
   the_symbol(S_modules)->initialize_special(NIL);
 
   UNBOUND_VALUE = make_value(new UnboundMarker());

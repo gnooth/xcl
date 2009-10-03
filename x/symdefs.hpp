@@ -1674,7 +1674,7 @@ DEFINE_SYMBOL(writer_method_class, PACKAGE_MOP, "WRITER-METHOD-CLASS");
 // top-level
 DEFINE_SYMBOL(top_level_read_eval_print_loop, PACKAGE_TPL, "*TOP-LEVEL-READ-EVAL-PRINT-LOOP*");
 
-// Keywords
+// keywords
 DEFINE_KEYWORD(abort, "ABORT");
 DEFINE_KEYWORD(absolute, "ABSOLUTE");
 DEFINE_KEYWORD(active, "ACTIVE");
@@ -1682,6 +1682,9 @@ DEFINE_KEYWORD(allow_other_keys, "ALLOW-OTHER-KEYS");
 DEFINE_KEYWORD(ansi_cl, "ANSI-CL");
 DEFINE_KEYWORD(append, "APPEND");
 DEFINE_KEYWORD(back, "BACK");
+#if defined(__FreeBSD__) || defined(__NetBSD)
+DEFINE_KEYWORD(bsd, "BSD");
+#endif
 DEFINE_KEYWORD(capitalize, "CAPITALIZE");
 DEFINE_KEYWORD(case, "CASE");
 DEFINE_KEYWORD(common, "COMMON");
@@ -1699,6 +1702,9 @@ DEFINE_KEYWORD(expected_type, "EXPECTED-TYPE");
 DEFINE_KEYWORD(external, "EXTERNAL");
 DEFINE_KEYWORD(format_arguments, "FORMAT-ARGUMENTS");
 DEFINE_KEYWORD(format_control, "FORMAT-CONTROL");
+#ifdef __FreeBSD__
+DEFINE_KEYWORD(freebsd, "FREEBSD");
+#endif
 DEFINE_KEYWORD(host, "HOST");
 DEFINE_KEYWORD(inherited, "INHERITED");
 DEFINE_KEYWORD(initial_element, "INITIAL-ELEMENT");
@@ -1708,8 +1714,15 @@ DEFINE_KEYWORD(internet, "INTERNET");
 DEFINE_KEYWORD(input, "INPUT");
 DEFINE_KEYWORD(invert, "INVERT");
 DEFINE_KEYWORD(io, "IO");
+#ifdef __linux__
+DEFINE_KEYWORD(linux, "LINUX");
+#endif
+DEFINE_KEYWORD(little_endian, "LITTLE-ENDIAN");
 DEFINE_KEYWORD(local, "LOCAL");
 DEFINE_KEYWORD(name, "NAME");
+#ifdef __NetBSD__
+DEFINE_KEYWORD(netbsd, "NETBSD");
+#endif
 DEFINE_KEYWORD(new_version, "NEW-VERSION");
 DEFINE_KEYWORD(newest, "NEWEST");
 DEFINE_KEYWORD(object, "OBJECT");
@@ -1725,6 +1738,9 @@ DEFINE_KEYWORD(start, "START");
 DEFINE_KEYWORD(stream, "STREAM");
 DEFINE_KEYWORD(supersede, "SUPERSEDE");
 DEFINE_KEYWORD(type, "TYPE");
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__)
+DEFINE_KEYWORD(unix, "UNIX");
+#endif
 DEFINE_KEYWORD(unspecific, "UNSPECIFIC");
 DEFINE_KEYWORD(up, "UP");
 DEFINE_KEYWORD(upcase, "UPCASE");

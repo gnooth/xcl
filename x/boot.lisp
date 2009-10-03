@@ -484,13 +484,6 @@
 
 (autoload '(query-readline y-or-n-p yes-or-no-p) "query")
 
-(let ((software-type (software-type)))
-  (cond ((equal software-type "Linux")
-         (pushnew :linux *features*)
-         (pushnew :unix *features*))
-        ((equal software-type "Windows")
-         (pushnew :windows *features*))))
-
 (load-system-file "epsilons.lisp")
 
 (in-package "EXTENSIONS")

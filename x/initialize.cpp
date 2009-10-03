@@ -68,6 +68,39 @@ static void mp_free(void *ptr, size_t size)
 {
 }
 
+static void initialize_features()
+{
+  Symbol * features = the_symbol(S_features);
+  features->initialize_special(list4(K_xcl, K_ansi_cl, K_common_lisp, K_little_endian));
+
+#ifdef __x86_64__
+  features->set_value(make_cons(K_x86_64, features->value()));
+#else
+  features->set_value(make_cons(K_x86, features->value()));
+#endif
+
+#ifdef WIN32
+  features->set_value(make_cons(K_windows, features->value()));
+#endif
+
+#ifdef __FreeBSD__
+  features->set_value(make_cons(K_freebsd, features->value()));
+  features->set_value(make_cons(K_bsd, features->value()));
+  features->set_value(make_cons(K_unix, features->value()));
+#endif
+
+#ifdef __NetBSD__
+  features->set_value(make_cons(K_netbsd, features->value()));
+  features->set_value(make_cons(K_bsd, features->value()));
+  features->set_value(make_cons(K_unix, features->value()));
+#endif
+
+#ifdef __linux__
+  features->set_value(make_cons(K_linux, features->value()));
+  features->set_value(make_cons(K_unix, features->value()));
+#endif
+}
+
 void initialize_lisp()
 {
   mp_set_memory_functions(mp_alloc, mp_realloc, mp_free);
@@ -88,6 +121,8 @@ void initialize_lisp()
 //   PACKAGE_CL->add_external_symbol(the_symbol(NIL));
 
   initialize_symbols();
+
+  initialize_features();
 
   initialize_packages_2();
 

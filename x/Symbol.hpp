@@ -84,9 +84,15 @@ public:
     _flags = flags;
   }
 
-  Value value() { return _value; }
+  Value value()
+  {
+    return _value;
+  }
 
-  void set_value(Value value) { _value = value; }
+  void set_value(Value value)
+  {
+    _value = value;
+  }
 
   void set_constant_value(Value value)
   {
