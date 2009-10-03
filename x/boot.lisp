@@ -343,12 +343,8 @@
 
 (autoload 'compile "load-compiler")
 
-;; FIXME
-(defmacro defgeneric (&rest args))
-(defmacro defmethod (&rest args))
 (load-system-file "defvar")
 (load-system-file "defconstant")
-(defmacro define-condition (&rest args))
 
 (autoload 'assign-setf-macro "defsetf")
 (load-system-file "initialize-classes")
@@ -372,7 +368,7 @@
 (load-system-file "define-compiler-macro")
 
 (autoload-macro 'defclass)
-(autoload-macro '(defgeneric defmethod) "clos")
+(autoload-macro '(defgeneric defmethod define-condition) "clos")
 (autoload '(ensure-class documentation) "clos")
 (autoload 'gentemp)
 (autoload 'mismatch)
