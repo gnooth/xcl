@@ -5026,7 +5026,7 @@
                (inst :compare-immediate nil :rax)
                (emit-jmp-short :e FAIL)
                (inst :push :rax)
-               (inst :and +lowtag-mask+ :eax)
+               (inst :and +lowtag-mask+ :al)
                (inst :cmp +list-lowtag+ :al)
                (inst :pop :rax)
                (emit-jmp-short :ne FAIL)
