@@ -20,7 +20,8 @@
 
 (export '(canonicalize-type deftype-expander))
 
-(defconstant +canonical-types+ (make-hash-table :test 'equal))
+;; FIXME defglobal
+(defparameter *canonical-types* (make-hash-table :test 'equal))
 
 (eval-when (:compile-toplevel)
   (declaim (inline deftype-expander)))
@@ -29,7 +30,7 @@
 
 (defun set-deftype-expander (name expander)
   (put name 'deftype-expander expander)
-  (clrhash +canonical-types+))
+  (clrhash *canonical-types*))
 
 (assign-setf-inverse 'deftype-expander 'set-deftype-expander)
 
@@ -59,24 +60,30 @@
 ;;          '(or (simple-array character (*)) (simple-array base-char (*)) (simple-array nil (*))))
 
 (defun expand-deftype (type)
-  (let (name i)
+  (let (name args)
     (loop
       (if (consp type)
           (setq name (%car type)
-                i    (%cdr type))
+                args (%cdr type))
           (setq name type
-                i    nil))
+                args nil))
       (let ((expander (and (symbolp name) (deftype-expander name))))
         (if expander
-            (setq type (apply expander i))
+            (setq type (apply expander args))
             (return)))))
   type)
 
 (defun canonicalize-and-type (type)
   (declare (type cons type))
-  (when (eql (length type) 3)
+  (when (length-eql type 3)
     (let ((type1 (canonicalize-type (%cadr type)))
           (type2 (canonicalize-type (%caddr type))))
+      (when (and (eq type1 'SYMBOL)
+                 (eq type2 'LIST))
+        (return-from canonicalize-and-type 'NULL))
+      (when (and (eq type1 'LIST)
+                 (eq type2 'SYMBOL))
+        (return-from canonicalize-and-type 'NULL))
       (when (and (consp type1) (eq (%car type1) 'INTEGER))
         (when (and (consp type2) (eq (%car type2) 'INTEGER))
           (let ((low1  (%cadr  type1))
@@ -162,11 +169,24 @@
 
 (defun canonicalize-eql-type (type)
   (declare (type list type))
-  (when (eql (length type) 2)
+  (when (length-eql type 2)
     (let ((object (%cadr type)))
       (when (integerp object)
         (return-from canonicalize-eql-type (list 'INTEGER object object)))))
   type)
+
+(defun canonicalize-or-type (type)
+  (declare (type cons type))
+  (when (length-eql type 3)
+    (let ((type1 (%cadr type))
+          (type2 (%caddr type)))
+      (when (and (eq type1 'CONS)
+                 (eq type2 'NULL))
+        (return-from canonicalize-or-type 'LIST))
+      (when (and (eq type1 'NULL)
+                 (eq type2 'CONS))
+        (return-from canonicalize-or-type 'LIST))))
+  (list* (%car type) (mapcar '%canonicalize-type (%cdr type))))
 
 (defun %canonicalize-type (type)
   (cond ((classp type)
@@ -178,7 +198,7 @@
          (cond ((eq (%car type) 'AND)
                 (return-from %canonicalize-type (canonicalize-and-type type)))
                ((eq (%car type) 'OR)
-                (return-from %canonicalize-type (list* (%car type) (mapcar '%canonicalize-type (%cdr type)))))
+                (return-from %canonicalize-type (canonicalize-or-type type)))
                ((eq (%car type) 'MOD)
                 (return-from %canonicalize-type (list 'INTEGER 0 (1- (cadr type)))))
                ((eq (%car type) 'EQL)
@@ -186,145 +206,145 @@
                (t
                 (return-from %canonicalize-type type)))))
   ;; fall through...
-  (let (tp i)
+  (let (name args)
     (loop
       (if (consp type)
-          (setq tp (%car type)
-                i  (%cdr type))
-          (setq tp type
-                i  nil))
-      (let ((expander (and (symbolp tp) (deftype-expander tp))))
+          (setq name (%car type)
+                args (%cdr type))
+          (setq name type
+                args nil))
+      (let ((expander (and (symbolp name) (deftype-expander name))))
         (if expander
-            (setq type (apply expander i))
+            (setq type (apply expander args))
             (return))))
-    (case tp
+    (case name
       (INTEGER
-       (if i
-           (let ((low (%car i))
-                 (high (if (endp (%cdr i)) '* (%cadr i))))
+       (if args
+           (let ((low (%car args))
+                 (high (if (endp (%cdr args)) '* (%cadr args))))
              (when (consp low)
                (setq low (1+ (%car low))))
              (when (consp high)
                (setq high (1- (%car high))))
-             (return-from %canonicalize-type (list tp low high)))
-           (return-from %canonicalize-type tp)))
+             (return-from %canonicalize-type (list name low high)))
+           (return-from %canonicalize-type name)))
       (CONS
-       (let* ((len (length i))
-              (car-typespec (if (> len 0) (%car i) t))
-              (cdr-typespec (if (> len 1) (%cadr i) t)))
+       (let* ((len (length args))
+              (car-typespec (if (> len 0) (%car args) t))
+              (cdr-typespec (if (> len 1) (%cadr args) t)))
          (unless (and car-typespec cdr-typespec)
            (return-from %canonicalize-type nil))
          (when (eq car-typespec '*)
            (setq car-typespec t))
          (when (eq cdr-typespec '*)
            (setq cdr-typespec t))
-         (return-from %canonicalize-type (cons tp (list car-typespec cdr-typespec)))))
+         (return-from %canonicalize-type (cons name (list car-typespec cdr-typespec)))))
       (SIGNED-BYTE
-       (if (or (null i) (eq (car i) '*))
+       (if (or (null args) (eq (car args) '*))
            (return-from %canonicalize-type '(integer * *))
            (return-from %canonicalize-type
                         (list 'integer
-                              (- (expt 2 (1- (%car i))))
-                              (1- (expt 2 (1- (%car i))))))))
+                              (- (expt 2 (1- (%car args))))
+                              (1- (expt 2 (1- (%car args))))))))
       (UNSIGNED-BYTE
-       (if (or (null i) (eq (car i) '*))
+       (if (or (null args) (eq (car args) '*))
            (return-from %canonicalize-type '(integer 0 *)))
-           (return-from %canonicalize-type (list 'integer 0 (1- (expt 2 (%car i))))))
+           (return-from %canonicalize-type (list 'integer 0 (1- (expt 2 (%car args))))))
       ((ARRAY SIMPLE-ARRAY)
-       (unless i
-         (return-from %canonicalize-type (list tp '* '*)))
-       (when (eql (length i) 1)
-         (setq i (append i '(*))))
-       (setf (car i) (%canonicalize-type (car i)))
-       (return-from %canonicalize-type (cons tp i)))
+       (unless args
+         (return-from %canonicalize-type (list name '* '*)))
+       (when (eql (length args) 1)
+         (setq args (append args '(*))))
+       (setf (car args) (%canonicalize-type (car args)))
+       (return-from %canonicalize-type (cons name args)))
       (VECTOR
-       (case (length i)
+       (case (length args)
          (0
           (return-from %canonicalize-type '(array * (*))))
          (1
-          (%setcar i (%canonicalize-type (%car i)))
-          (return-from %canonicalize-type (list 'array (%car i) '(*))))
+          (%setcar args (%canonicalize-type (%car args)))
+          (return-from %canonicalize-type (list 'array (%car args) '(*))))
          (2
-          (%setcar i (%canonicalize-type (%car i)))
-          (return-from %canonicalize-type (list 'array (%car i) (list (%cadr i)))))
+          (%setcar args (%canonicalize-type (%car args)))
+          (return-from %canonicalize-type (list 'array (%car args) (list (%cadr args)))))
          (t
           (error "Invalid type specifier ~S." type))))
       (SIMPLE-VECTOR
-       (case (length i)
+       (case (length args)
          (0
           (return-from %canonicalize-type '(simple-array t (*))))
          (1
-          (return-from %canonicalize-type (list 'simple-array t (list (%car i)))))
+          (return-from %canonicalize-type (list 'simple-array t (list (%car args)))))
          (t
           (error "Invalid type specifier ~S." type))))
       (BIT-VECTOR
-       (case (length i)
+       (case (length args)
          (0
           (return-from %canonicalize-type '(array (integer 0 1) (*))))
          (1
-          (return-from %canonicalize-type (list 'array '(integer 0 1) (list (%car i)))))
+          (return-from %canonicalize-type (list 'array '(integer 0 1) (list (%car args)))))
          (t
           (error "Invalid type specifier ~S." type))))
       (SIMPLE-BIT-VECTOR
-       (case (length i)
+       (case (length args)
          (0
           (return-from %canonicalize-type '(simple-array (integer 0 1) *)))
          (1
-          (return-from %canonicalize-type (list 'simple-array '(integer 0 1) (list (%car i)))))
+          (return-from %canonicalize-type (list 'simple-array '(integer 0 1) (list (%car args)))))
          (t
           (error "Invalid type specifier ~S." type))))
       (STRING
-       (if i
+       (if args
            (return-from %canonicalize-type
                         (list 'or
-                              (list 'array 'character (list (car i)))
-                              (list 'array 'base-char (list (%car i)))
-                              (list 'array nil        (list (%car i)))))
+                              (list 'array 'character (list (car args)))
+                              (list 'array 'base-char (list (%car args)))
+                              (list 'array nil        (list (%car args)))))
            (return-from %canonicalize-type
                         (list 'or
                               '(array character (*))
                               '(array base-char (*))
                               '(array nil (*))))))
       (SIMPLE-STRING
-       (if i
+       (if args
            (return-from %canonicalize-type
                         (list 'or
-                              (list 'simple-array 'character (list (car i)))
-                              (list 'simple-array 'base-char (list (%car i)))
-                              (list 'simple-array nil        (list (%car i)))))
+                              (list 'simple-array 'character (list (car args)))
+                              (list 'simple-array 'base-char (list (%car args)))
+                              (list 'simple-array nil        (list (%car args)))))
            (return-from %canonicalize-type
                         (list 'or
                               '(simple-array character (*))
                               '(simple-array base-char (*))
                               '(simple-array nil       (*))))))
       (BASE-STRING
-       (if i
-           (return-from %canonicalize-type (list 'array 'base-char (list (car i))))
+       (if args
+           (return-from %canonicalize-type (list 'array 'base-char (list (car args))))
            (return-from %canonicalize-type '(array base-char (*)))))
       (SIMPLE-BASE-STRING
-       (if i
-           (return-from %canonicalize-type (list 'simple-array 'base-char (list (car i))))
+       (if args
+           (return-from %canonicalize-type (list 'simple-array 'base-char (list (car args))))
            (return-from %canonicalize-type '(simple-array base-char (*)))))
       (SHORT-FLOAT
-       (setq tp 'single-float))
+       (setq name 'single-float))
       (LONG-FLOAT
-       (setq tp 'double-float))
+       (setq name 'double-float))
       (COMPLEX
-        (cond ((null i)
+        (cond ((null args)
                (return-from %canonicalize-type 'complex))
-              ((eq (car i) 'short-float)
+              ((eq (car args) 'short-float)
                (return-from %canonicalize-type '(complex single-float)))
-              ((eq (car i) 'long-float)
+              ((eq (car args) 'long-float)
                (return-from %canonicalize-type '(complex double-float))))))
-    (if i (cons tp i) tp)))
+    (if args (cons name args) name)))
 
 (defun canonicalize-type (type)
-  (let ((canonical-type (gethash2-1 type +canonical-types+)))
+  (let ((canonical-type (gethash2-1 type *canonical-types*)))
     (unless canonical-type
       (setq canonical-type (%canonicalize-type type))
       (when canonical-type
         ;; We don't want to put EQL or MEMBER type specifiers in an EQUAL hashtable!
         ;; (subtypep.eql.1, subtypep.eql.2, subtypep.member.18)
-        (unless (and (consp canonical-type) (memq (%car canonical-type) '(eql member)))
-          (setf (gethash type +canonical-types+) canonical-type))))
+        (unless (and (consp canonical-type) (memq (%car canonical-type) '(EQL MEMBER)))
+          (setf (gethash type *canonical-types*) canonical-type))))
     canonical-type))

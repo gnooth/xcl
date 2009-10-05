@@ -881,6 +881,16 @@
 
 (aver (subtypep (type-of 42) (class-of 42)))
 
+(aver (subtypep 'list '(or cons null)))
+(aver (subtypep '(or cons null) 'list))
+(aver (subtypep 'list '(or null cons)))
+(aver (subtypep 'list '(or cons null)))
+
+(aver (subtypep 'null '(and symbol list)))
+(aver (subtypep '(and symbol list) 'null))
+(aver (subtypep 'null '(and list symbol)))
+(aver (subtypep '(and list symbol) 'null))
+
 ;; nil vectors
 #-abcl
 (progn
