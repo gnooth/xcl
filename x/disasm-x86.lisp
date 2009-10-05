@@ -156,7 +156,7 @@
                   (let ((index (/ displacement 4)))
                     (setq annotation (cdr (assoc index *locals*)))))))
              ((eql mod #b10)
-              (let ((displacement (mref-32-signed block-start (+ offset 2))))
+              (let ((displacement (mref-32-signed start 2)))
                 (setq length 6
                       mnemonic :mov
                       operand1 (make-operand :kind :relative
