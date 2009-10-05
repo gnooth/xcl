@@ -5562,10 +5562,11 @@
                         (aver (not (null (var-arg-index var))))
                         (aver (null (var-index var)))
                         ;; reserve space for rest var
-                        (inst :push :rax)
-                        (incf stack-used)
-                        (setf (var-index var) index)
-                        (incf index))
+                        (unless (var-closure-index var)
+                          (inst :push :rax)
+                          (incf stack-used)
+                          (setf (var-index var) index)
+                          (incf index)))
                        (t
                         (compiler-unsupported "unsupported var-kind ~S" (var-kind var)))))
 
@@ -5578,9 +5579,11 @@
                       (incf start))
                      (:rest
                       (setq restvar var)
-                      (aver (var-index restvar))
+                      (aver (or (var-index restvar)
+                                (var-closure-index restvar)))
                       (return))))
                  (when (> start 2)
+                   ;; FIXME what's this about?
                    (compiler-unsupported "P2-CHILD-FUNCTION-PROLOG too many required args"))
                  ;; closure data is in rdi, numargs is in rsi, arg vector is in rdx
                  (inst :mov :rdx :rdi) ; arg vector
@@ -5588,7 +5591,11 @@
                  (emit-move-immediate-dword-to-register start :rsi)
                  ;; REVIEW do we need to make sure the stack is aligned for this call?
                  (emit-call "RT_restify")
-                 (emit-move-register-to-local :rax (var-index restvar))))
+                 (cond ((var-index restvar)
+                        (emit-move-register-to-local :rax (var-index restvar)))
+                       (t
+                        (aver (fixnump (var-closure-index restvar)))
+                        (emit-move-register-to-closure-var :rax restvar compiland)))))
               (t
                (dolist (var (compiland-arg-vars compiland))
                  (declare (type var var))
