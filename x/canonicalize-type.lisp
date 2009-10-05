@@ -22,6 +22,8 @@
 
 (defconstant +canonical-types+ (make-hash-table :test 'equal))
 
+(eval-when (:compile-toplevel)
+  (declaim (inline deftype-expander)))
 (defun deftype-expander (name)
   (get name 'deftype-expander))
 
@@ -57,14 +59,14 @@
 ;;          '(or (simple-array character (*)) (simple-array base-char (*)) (simple-array nil (*))))
 
 (defun expand-deftype (type)
-  (let (tp i)
+  (let (name i)
     (loop
       (if (consp type)
-          (setq tp (%car type)
-                i  (%cdr type))
-          (setq tp type
-                i  nil))
-      (let ((expander (and (symbolp tp) (deftype-expander tp))))
+          (setq name (%car type)
+                i    (%cdr type))
+          (setq name type
+                i    nil))
+      (let ((expander (and (symbolp name) (deftype-expander name))))
         (if expander
             (setq type (apply expander i))
             (return)))))
