@@ -190,10 +190,20 @@ Value EXT_file_directory_p(Value arg)
 {
   Pathname * pathname = the_pathname(coerce_to_pathname(arg));
   AbstractString * namestring = pathname->namestring();
+#ifdef WIN32
+  const DWORD attributes = GetFileAttributes(namestring->as_c_string());
+  if (attributes != INVALID_FILE_ATTRIBUTES)
+    {
+      if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+        return T;
+    }
+  return NIL;
+#else
   struct stat statbuf;
   // stat() follows symlinks; lstat() does not
   return (stat(namestring->as_c_string(), &statbuf) == 0
           && S_ISDIR(statbuf.st_mode)) ? T : NIL;
+#endif
 }
 
 // ### file-write-date

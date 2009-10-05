@@ -1,6 +1,6 @@
 // list-directory.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -68,7 +68,16 @@ Value SYS_list_directory(Value arg)
       if (is_directory)
         s->append_char(SEPARATOR_CHAR);
 #else
+#ifdef WIN32
+      const DWORD attributes = GetFileAttributes(s->as_c_string());
+      if (attributes != INVALID_FILE_ATTRIBUTES)
+        {
+          if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+            s->append_char(SEPARATOR_CHAR);
+        }
+#else
       // FIXME
+#endif
 #endif
       result = make_cons(make_value(new Pathname(s)), result);
     }
