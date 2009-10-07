@@ -3086,7 +3086,6 @@
                   (emit-move-immediate (local-function-function local-function) op-register)
                   (clear-register-contents op-register))
                  ((local-function-var local-function)
-                  ;;            (mumble "p2-local-function-call var ref case~%")
                   (aver (local-function-var local-function))
                   (p2-var-ref (make-var-ref (local-function-var local-function)) :rax)
                   (inst :push :rax)
@@ -5459,36 +5458,67 @@
                nil)))
 
       (when (compiland-arg-vars compiland)
-          (when (dolist (var (compiland-arg-vars compiland))
-                  (declare (type var var))
-                  (when (and (var-used-non-locally-p var)
-                             (var-arg-register var))
-                    (return t)))
-            ;; address of closure data vector is in rdi
-            (dolist (var (compiland-arg-vars compiland))
-              (declare (type var var))
-              (when (var-used-non-locally-p var)
-                ;; var's closure index was assigned at the end of P1-COMPILAND
-                (aver (fixnump (var-closure-index var)))
-                (when (var-arg-register var)
-                  (aver (null (var-index var)))
-;;                   (emit-move-register-to-relative (var-arg-register var) :rdi (var-closure-index var))
-                  ;; FIXME efficiency
-                  (inst :push :rdi)
-                  (inst :push :rsi)
-                  (inst :push :rdx)
-                  (inst :push :rcx)
-                  (inst :push :r8)
-                  (inst :push :r9)
-                  (inst :mov (var-arg-register var) :rax)
-                  (emit-move-register-to-closure-var :rax var compiland)
-                  (inst :pop :r9)
-                  (inst :pop :r8)
-                  (inst :pop :rcx)
-                  (inst :pop :rdx)
-                  (inst :pop :rsi)
-                  (inst :pop :rdi)
-                  (setf (var-arg-register var) nil))))))
+
+        (when (some 'var-used-non-locally-p (compiland-arg-vars compiland))
+          (mumble "p2-child-function-prolog: at least one arg-var is used non-locally~%")
+          (inst :push :rsi)
+          (inst :push :rdx)
+          (inst :push :rcx)
+          (inst :push :r8)
+          (inst :push :r9)
+          (inst :mov (length *closure-vars*) :rsi) ; length in rsi
+          ;; address of closure data vector is already in rdi
+          (emit-call "RT_copy_closure_data_vector") ; returns copy of data vector in rax
+          (emit-move-register-to-local :rax (compiland-closure-data-index compiland))
+          (inst :mov :rax :rdi)
+          (inst :pop :r9)
+          (inst :pop :r8)
+          (inst :pop :rcx)
+          (inst :pop :rdx)
+          (inst :pop :rsi))
+
+        (when (dolist (var (compiland-arg-vars compiland))
+                (declare (type var var))
+                (when (and (var-used-non-locally-p var)
+                           (var-arg-register var))
+                  (return t)))
+          ;; address of closure data vector is in rdi
+          (dolist (var (compiland-arg-vars compiland))
+            (declare (type var var))
+            (when (var-used-non-locally-p var)
+              ;; var's closure index was assigned at the end of P1-COMPILAND
+              (aver (fixnump (var-closure-index var)))
+              (when (var-arg-register var)
+                (aver (null (var-index var)))
+                ;; FIXME efficiency
+                (inst :push :rdi)
+                (inst :push :rsi)
+                (inst :push :rdx)
+                (inst :push :rcx)
+                (inst :push :r8)
+                (inst :push :r9)
+
+                (inst :push (var-arg-register var))
+
+                ;; each new binding gets a new value cell
+                (emit-call "RT_make_value_cell")
+                (aver (fixnump (compiland-closure-data-index compiland)))
+                (emit-move-local-to-register (compiland-closure-data-index compiland) :rdi)
+                (inst :add (* (var-closure-index var) +bytes-per-word+) :rdi)
+                (inst :mov :rax '(:rdi))
+
+                (inst :pop (var-arg-register var))
+
+                (inst :mov (var-arg-register var) :rax)
+                (emit-move-register-to-closure-var :rax var compiland)
+
+                (inst :pop :r9)
+                (inst :pop :r8)
+                (inst :pop :rcx)
+                (inst :pop :rdx)
+                (inst :pop :rsi)
+                (inst :pop :rdi)
+                (setf (var-arg-register var) nil))))))
 
       (let ((lambda-list (cadr (compiland-lambda-expression compiland))))
         (cond ((or (memq '&optional lambda-list)
