@@ -197,11 +197,48 @@
       (aver (eql numargs-index 3))
       (aver (eql argument-vector-index 4)))
 
+    (when (some 'var-used-non-locally-p (compiland-arg-vars compiland))
+      (mumble "p2-child-function-prolog: at least one arg-var is used non-locally~%")
+;;       (inst :push :rsi)
+;;       (inst :push :rdx)
+;;       (inst :push :rcx)
+;;       (inst :push :r8)
+;;       (inst :push :r9)
+;;       (inst :mov (length *closure-vars*) :rsi) ; length in rsi
+;;       ;; address of closure data vector is already in rdi
+;;       (emit-call "RT_copy_closure_data_vector") ; returns copy of data vector in rax
+;;       (emit-move-register-to-local :rax (compiland-closure-data-index compiland))
+;;       (inst :mov :rax :rdi)
+;;       (inst :pop :r9)
+;;       (inst :pop :r8)
+;;       (inst :pop :rcx)
+;;       (inst :pop :rdx)
+;;       (inst :pop :rsi))
+      (inst :push (length *closure-vars*))
+      (inst :push `(,(index-displacement closure-data-index) :ebp))
+      (emit-call-2 "RT_copy_closure_data_vector" :eax) ; returns copy of data vector in eax
+;;       (emit-move-register-to-local :eax closure-data-index)
+      (inst :mov :eax `(,(index-displacement closure-data-index) :ebp)))
+
     (dolist (var (compiland-arg-vars compiland))
       (declare (type var var))
       (when (var-used-non-locally-p var)
         (aver (fixnump (var-closure-index var)))
         (when (var-index var)
+;;           ;; each new binding gets a new value cell
+;;           (emit-call "RT_make_value_cell")
+;;           (aver (fixnump (compiland-closure-data-index compiland)))
+;;           (emit-move-local-to-register (compiland-closure-data-index compiland) :rdi)
+;;           (inst :add (* (var-closure-index var) +bytes-per-word+) :rdi)
+;;           (inst :mov :rax '(:rdi))
+
+          ;; each new binding gets a new value cell
+          (mumble "p2-child-function-prolog making value cell for ~S~%" (var-name var))
+          (emit-call-0 "RT_make_value_cell" :eax)
+          (emit-move-local-to-register closure-data-index :edx)
+;;           (inst :add (* (var-closure-index var) +bytes-per-word+) :edx)
+          (inst :mov :eax `(,(* (var-closure-index var) +bytes-per-word+) :edx))
+
           (emit-move-local-to-register (var-index var) :eax)
           (setf (var-index var) nil)
           (emit-move-register-to-closure-var :eax var compiland))))
