@@ -5457,8 +5457,6 @@
                ;; no register, nothing to do
                nil)))
 
-      (when (compiland-arg-vars compiland)
-
         (when (some 'var-used-non-locally-p (compiland-arg-vars compiland))
           (mumble "p2-child-function-prolog: at least one arg-var is used non-locally~%")
           (inst :push :rsi)
@@ -5475,13 +5473,8 @@
           (inst :pop :r8)
           (inst :pop :rcx)
           (inst :pop :rdx)
-          (inst :pop :rsi))
+          (inst :pop :rsi)
 
-        (when (dolist (var (compiland-arg-vars compiland))
-                (declare (type var var))
-                (when (and (var-used-non-locally-p var)
-                           (var-arg-register var))
-                  (return t)))
           ;; address of closure data vector is in rdi
           (dolist (var (compiland-arg-vars compiland))
             (declare (type var var))
@@ -5518,7 +5511,7 @@
                 (inst :pop :rdx)
                 (inst :pop :rsi)
                 (inst :pop :rdi)
-                (setf (var-arg-register var) nil))))))
+                (setf (var-arg-register var) nil)))))
 
       (let ((lambda-list (cadr (compiland-lambda-expression compiland))))
         (cond ((or (memq '&optional lambda-list)
