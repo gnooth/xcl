@@ -158,12 +158,12 @@ endif
 x.objdump: x
 	objdump -t -C x | grep " g     F .text" > x.objdump
 
-xcl_home.h:
-ifeq ($(PLATFORM), mingw)
-	echo "#define XCL_HOME \"`pwd -W`\"" > xcl_home.h
-else
-	echo "#define XCL_HOME \"`pwd`\"" > xcl_home.h
-endif
+# xcl_home.h:
+# ifeq ($(PLATFORM), mingw)
+# 	echo "#define XCL_HOME \"`pwd -W`\"" > xcl_home.h
+# else
+# 	echo "#define XCL_HOME \"`pwd`\"" > xcl_home.h
+# endif
 
 .PHONY: clean
 clean:

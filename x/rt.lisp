@@ -255,9 +255,9 @@ does not improperly introduce sharing during constant folding."
   `(if *should-always-be-true* ,form ,default-form))
 
 #+xcl
-(sys:load-system-file "universe.lisp")
+(sys:load-system-file "x/universe.lisp")
 #-xcl
-(load "universe.lisp")
+(load "x/universe.lisp")
 (compile-and-load "ansi-aux.lsp")
 (compile-and-load "char-aux.lsp")
 (compile-and-load "cl-symbol-names.lsp")

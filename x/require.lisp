@@ -1,6 +1,6 @@
 ;;; require.lisp
 ;;;
-;;; Copyright (C) 2003-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -28,5 +28,5 @@
                (dolist (x pathnames)
                  (load x)))
               (t
-               (load-system-file (string-downcase module-name))))
+               (load-system-file (concatenate 'string "x/" (string-downcase module-name)))))
         (set-difference *modules* saved-modules)))))

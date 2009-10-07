@@ -25,7 +25,7 @@ ifeq ($(PLATFORM), mingw)
 # 	cd x && $(MAKE) all
 # ./x/xcl.dll: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
 # 	cd x && $(MAKE) xcl.dll
-./x/x: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+./x/x: ./x/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
 	cd x && $(MAKE) all
 else
   ifeq ($(MACHINE_TYPE), x86_64)
@@ -36,11 +36,18 @@ else
 # 	cd x && $(MAKE) all
 # ./x/libxcl.so: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
 # 	cd x && $(MAKE) libxcl.so
-./x/x: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+./x/x: ./x/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
 	cd x && $(MAKE) all
   endif
 endif
 
+
+./x/xcl_home.h:
+ifeq ($(PLATFORM), mingw)
+	echo "#define XCL_HOME \"`pwd -W`\"" > ./x/xcl_home.h
+else
+	echo "#define XCL_HOME \"`pwd`\"" > ./x/xcl_home.h
+endif
 
 ./gc/gc.a:
 	cd gc && $(MAKE) gc.a c++

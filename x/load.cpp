@@ -1,6 +1,6 @@
 // load.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,6 +23,7 @@
 #include "FileStream.hpp"
 #include "Pathname.hpp"
 #include "FaslReadtable.hpp"
+#include "xcl_home.h"
 
 // ### load-stream
 Value SYS_load_stream(Value streamarg, Value filespec, Value verbose, Value print)
@@ -135,6 +136,7 @@ Value SYS_load_system_file(Value arg)
     the_pathname(coerce_to_pathname(thread->symbol_value(S_xcl_home)));
   Pathname * pathname =
     merge_pathnames(the_pathname(coerce_to_pathname(arg)), defaults, K_newest);
+//   printf("load-system-file %s\n", pathname->namestring()->as_c_string());
   if (pathname->type() == NIL)
     {
       pathname = new Pathname(NIL,

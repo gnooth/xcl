@@ -1,6 +1,6 @@
 // Autoload.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 #include "primitives.hpp"
 #include "Package.hpp"
 #include "Pathname.hpp"
+#include "xcl_home.h"
 
 Autoload::Autoload(Value name)
   : Function(WIDETAG_AUTOLOAD, name), _filename(NULL)
@@ -34,8 +35,13 @@ Autoload::Autoload(Value name, AbstractString * filename)
 void Autoload::load()
 {
   Thread * const thread = current_thread();
-  Pathname * defaults =
-    the_pathname(coerce_to_pathname(thread->symbol_value(S_xcl_home)));
+
+//   Pathname * defaults =
+//     the_pathname(coerce_to_pathname(thread->symbol_value(S_xcl_home)));
+  String * prefix = new String(XCL_HOME);
+  prefix->append("/x/");
+  Pathname * defaults = check_pathname(parse_namestring(prefix));
+
   Value device = defaults->device();
   Value directory = defaults->directory();
   Value name;
@@ -186,8 +192,7 @@ Value EXT_autoload(unsigned int numargs, Value args[])
         }
       else if (symbolp(args[0]))
         {
-          the_symbol(args[0])->set_autoload(new Autoload(args[0],
-                                                         check_string(args[1])));
+          the_symbol(args[0])->set_autoload(new Autoload(args[0], check_string(args[1])));
           return T;
         }
       else
