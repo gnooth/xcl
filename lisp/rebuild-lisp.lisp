@@ -19,15 +19,13 @@
 (in-package "SYSTEM")
 
 (defun rebuild-lisp ()
-  (let ((*default-pathname-defaults* (merge-pathnames "lisp/" *xcl-home*)))
-    (dolist (file (directory "*.xcl"))
-      (delete-file file)))
-  (let ((*default-pathname-defaults* (merge-pathnames "compiler/" *xcl-home*)))
-    (dolist (file (directory "*.xcl"))
-      (delete-file file)))
+  (dolist (dir '("lisp/" "compiler/" #+x86 "compiler/x86/" #+x86-64 "compiler/x86-64/"))
+    (let ((*default-pathname-defaults* (merge-pathnames dir *xcl-home*)))
+      (dolist (file (directory "*.xcl"))
+        (delete-file file))))
+  (load-system-file "lisp/load-compiler.lisp")
   (with-compilation-unit ()
     (let ((*default-pathname-defaults* *xcl-home*))
-      (load "lisp/load-compiler.lisp")
       (load (compile-file "lisp/precompiler.lisp"))
       (load (compile-file "lisp/dump-form.lisp"))
       (load (compile-file "lisp/instruction.lisp"))
@@ -42,30 +40,32 @@
       (load (compile-file "lisp/x86.lisp"))
       #+x86-64
       (load (compile-file "lisp/x86-64.lisp"))
-      (load (compile-file "lisp/derive-type.lisp"))
-      (load (compile-file "lisp/ir2-defs.lisp"))
-      (load (compile-file "lisp/p2.lisp"))
+      (load (compile-file "compiler/derive-type.lisp"))
+      (load (compile-file "compiler/ir2-defs.lisp"))
+      (load (compile-file "compiler/p2.lisp"))
       #+x86
       (load (compile-file "compiler/x86/p2-x86.lisp"))
       #+x86-64
       (load (compile-file "compiler/x86-64/p2-x86-64.lisp"))
       #+x86
-      (load (compile-file "lisp/p3-x86.lisp"))
+      (load (compile-file "compiler/x86/p3-x86.lisp"))
       #+x86-64
-      (load (compile-file "lisp/p3-x86-64.lisp"))
+      (load (compile-file "compiler/x86-64/p3-x86-64.lisp"))
       (load (compile-file "compiler/assembler.lisp"))
       #+x86
       (load (compile-file "compiler/x86/asm-x86.lisp"))
       #+x86-64
       (load (compile-file "compiler/x86-64/asm-x86-64.lisp"))
-      (load (compile-file "lisp/source-transforms.lisp"))
-      (load (compile-file "lisp/compiler.lisp"))
+      (load (compile-file "compiler/known-functions.lisp"))
+      (load (compile-file "compiler/source-transforms.lisp"))
+      (load (compile-file "compiler/compiler.lisp"))
       (load (compile-file "lisp/compile-file.lisp"))
       (load (compile-file "lisp/backquote.lisp"))
       (load (compile-file "lisp/find.lisp"))
       (load (compile-file "lisp/coerce.lisp"))
       (load (compile-file "lisp/delete.lisp"))
       (load (compile-file "lisp/with-compilation-unit.lisp"))
+      (load (compile-file "lisp/subtypep.lisp"))
       (load (compile-file "lisp/format.lisp")))
     (let ((*default-pathname-defaults* (merge-pathnames "lisp/" *xcl-home*)))
       (dolist (filespec '("acos"
@@ -152,10 +152,8 @@
                           "initialize-classes"
                           "inline-expansion"
                           "inspect"
-                          "install-p2-handlers"
                           "intersection"
                           "invoke-debugger"
-                          "known-functions"
                           "late-setf"
                           "lcm"
                           "ldb"
@@ -263,7 +261,6 @@
                           "subst-if"
                           "subst-if-not"
                           "substitute"
-                          "subtypep"
                           "tailp"
                           "tanh"
                           "time"
@@ -298,6 +295,8 @@
                           "disassemble"
                           #+x86 "disasm-x86"
                           #+x86-64 "disasm-x86-64"
-                          )
-                        t)
-        (compile-file filespec)))))
+                          ))
+        (compile-file filespec)))
+    (let ((*default-pathname-defaults* (merge-pathnames "compiler/" *xcl-home*)))
+      (compile-file "install-p2-handlers"))
+    t))

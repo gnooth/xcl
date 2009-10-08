@@ -20,9 +20,9 @@
 
 (require "CLOS")
 
-(require 'with-compilation-unit)
+(require "WITH-COMPILATION-UNIT")
 
-(load-system-file "lisp/known-functions")
+(load-system-file "compiler/known-functions")
 
 (declaim (type (integer 0 3) *speed* *space* *safety* *debug* *compilation-speed*))
 
@@ -48,27 +48,27 @@
                            #+x86    "X86"
                            #+x86-64 "X86-64"))))
 
-(load-system-file "lisp/derive-type")
+(load-system-file "compiler/derive-type")
 
-(load-system-file "lisp/ir2-defs")
+(load-system-file "compiler/ir2-defs")
 
-(load-system-file "lisp/p2")
+(load-system-file "compiler/p2")
 
 #+x86
 (progn
   (load-system-file "compiler/x86/p2-x86")
-  (load-system-file "lisp/p3-x86"))
+  (load-system-file "compiler/x86/p3-x86"))
 
 #+x86-64
 (progn
   (load-system-file "compiler/x86-64/p2-x86-64")
-  (load-system-file "lisp/p3-x86-64"))
+  (load-system-file "compiler/x86-64/p3-x86-64"))
 
-(load-system-file "lisp/install-p2-handlers")
+(load-system-file "compiler/install-p2-handlers")
 
-(load-system-file "lisp/source-transforms")
+(load-system-file "compiler/source-transforms")
 
-(load-system-file "lisp/compiler")
+(load-system-file "compiler/compiler")
 
 ;; (dolist (sym '(allocate-instance
 ;;                make-instance
