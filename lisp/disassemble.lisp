@@ -480,6 +480,6 @@
   (let ((*print-base* 16)) (format t "#x~X" n)))
 
 #+x86
-(load-system-file "x/disasm-x86.lisp")
+(load-system-file "lisp/disasm-x86.lisp")
 #+x86-64
-(load-system-file "x/disasm-x86-64.lisp")
+(load-system-file "lisp/disasm-x86-64.lisp")

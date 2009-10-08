@@ -488,7 +488,7 @@
 
 (in-package "EXTENSIONS")
 (export 'dump-ir2)
-(autoload 'dump-ir2 "x/load-compiler")
+(autoload 'dump-ir2 "lisp/load-compiler")
 (export 'with-mutex)
 (autoload-macro 'with-mutex)
 
@@ -501,7 +501,7 @@
 (defun run-ansi-tests (&key (compile-tests t) (mumble t))
 ;;   (declaim (optimize speed))
   (let* ((ansi-tests-directory
-          (pathname (directory-namestring (merge-pathnames "ansi-tests/" #.*load-pathname*))))
+          (pathname (directory-namestring (merge-pathnames "ansi-tests/" *xcl-home*))))
          (*default-pathname-defaults* ansi-tests-directory)
          (*print-structure* t)
          (sys:*mumble* mumble))
