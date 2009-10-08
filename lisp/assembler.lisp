@@ -98,8 +98,8 @@
 ;;   (list 'QUOTE instructions))
 
 #+x86
-(load-system-file "x/asm-x86")
+(load-system-file "lisp/asm-x86")
 #+x86-64
-(load-system-file "x/asm-x86-64")
+(load-system-file "lisp/asm-x86-64")
 
 (provide "ASSEMBLER")

@@ -22,10 +22,10 @@
 (setq *load-verbose*     nil)
 (setq *autoload-verbose* nil)
 
-(load-system-file "x/backquote.lisp")
-(load-system-file "x/early-macros.lisp")
-(load-system-file "x/featurep.lisp")
-(load-system-file "x/read-conditional.lisp")
+(load-system-file "lisp/backquote.lisp")
+(load-system-file "lisp/early-macros.lisp")
+(load-system-file "lisp/featurep.lisp")
+(load-system-file "lisp/read-conditional.lisp")
 
 (defun caaaar (list) (car (car (car (car list)))))
 (defun caaadr (list) (car (car (car (cdr list)))))
@@ -84,14 +84,14 @@
 (defun (setf ext:charpos) (new-value stream)
   (%stream-set-charpos stream new-value))
 
-(load-system-file "x/defmacro.lisp")
+(load-system-file "lisp/defmacro.lisp")
 
-(load-system-file "x/defconstant.lisp")
+(load-system-file "lisp/defconstant.lisp")
 
 (defconstant +nil-symbol-name+ "NIL")
 (export '+nil-symbol-name+)
 
-(load-system-file "x/defparameter.lisp")
+(load-system-file "lisp/defparameter.lisp")
 
 (autoload-macro 'destructuring-bind)
 
@@ -105,7 +105,7 @@
   (set-macro-function 'defmacro x))
 
 (defun ansi-loop (exps)
-  (load-system-file "x/loop")
+  (load-system-file "lisp/loop")
   (fmakunbound 'ansi-loop)
   `(loop ,@exps))
 
@@ -123,10 +123,10 @@
 (%defconstant 'lambda-list-keywords
   '(&optional &rest &key &aux &body &whole &allow-other-keys &environment))
 
-(load-system-file "x/inline-expansion.lisp")
-(load-system-file "x/setf.lisp")
-(load-system-file "x/compiler-error.lisp")
-(load-system-file "x/precompiler.lisp")
+(load-system-file "lisp/inline-expansion.lisp")
+(load-system-file "lisp/setf.lisp")
+(load-system-file "lisp/compiler-error.lisp")
+(load-system-file "lisp/precompiler.lisp")
 
 (defun make-thread (function &key name)
   (%make-thread function name))
@@ -142,70 +142,70 @@
 (autoload-macro 'typecase)
 (autoload-macro 'etypecase)
 
-(load-system-file "x/member.lisp")
+(load-system-file "lisp/member.lisp")
 
 (autoload-macro 'apply-key)
 
 ;; needed for reader.lisp
-(load-system-file "x/make-hash-table.lisp")
+(load-system-file "lisp/make-hash-table.lisp")
 
 ;; needed for reader.lisp
-(load-system-file "x/canonicalize-type.lisp")
+(load-system-file "lisp/canonicalize-type.lisp")
 
 ;; needed for reader.lisp
-(load-system-file "x/typep.lisp")
+(load-system-file "lisp/typep.lisp")
 
 ;; needed for reader.lisp
-(load-system-file "x/apply-key.lisp")
-(load-system-file "x/find.lisp")
+(load-system-file "lisp/apply-key.lisp")
+(load-system-file "lisp/find.lisp")
 
-(load-system-file "x/reader.lisp")
+(load-system-file "lisp/reader.lisp")
 
-(load-system-file "x/adjoin.lisp")
-(load-system-file "x/pushnew.lisp")
+(load-system-file "lisp/adjoin.lisp")
+(load-system-file "lisp/pushnew.lisp")
 
-(load-system-file "x/ldb.lisp")
-(load-system-file "x/typecase.lisp")
-(load-system-file "x/etypecase.lisp")
-(load-system-file "x/defknown.lisp")
-(load-system-file "x/instruction.lisp")
-(load-system-file "x/local-variable-information.lisp")
+(load-system-file "lisp/ldb.lisp")
+(load-system-file "lisp/typecase.lisp")
+(load-system-file "lisp/etypecase.lisp")
+(load-system-file "lisp/defknown.lisp")
+(load-system-file "lisp/instruction.lisp")
+(load-system-file "lisp/local-variable-information.lisp")
 
-(maybe-load-system-file "x/ldb.xcl")
-(maybe-load-system-file "x/defknown.xcl")
-(maybe-load-system-file "x/instruction.xcl")
-(maybe-load-system-file "x/local-variable-information.xcl")
-(maybe-load-system-file "x/inline-expansion.xcl")
-(maybe-load-system-file "x/setf.xcl")
-(maybe-load-system-file "x/compiler-error.xcl")
-(maybe-load-system-file "x/precompiler.xcl")
-(maybe-load-system-file "x/canonicalize-type.xcl")
-(maybe-load-system-file "x/typep.xcl")
-(maybe-load-system-file "x/find.xcl")
-(maybe-load-system-file "x/defmacro.xcl")
-(maybe-load-system-file "x/defconstant.xcl")
-(maybe-load-system-file "x/defparameter.xcl")
-(maybe-load-system-file "x/backquote.xcl")
-(maybe-load-system-file "x/featurep.xcl")
-(maybe-load-system-file "x/read-conditional.xcl")
-(maybe-load-system-file "x/adjoin.xcl")
-(maybe-load-system-file "x/pushnew.xcl")
-(maybe-load-system-file "x/member.xcl")
-(maybe-load-system-file "x/make-hash-table.xcl")
+(maybe-load-system-file "lisp/ldb.xcl")
+(maybe-load-system-file "lisp/defknown.xcl")
+(maybe-load-system-file "lisp/instruction.xcl")
+(maybe-load-system-file "lisp/local-variable-information.xcl")
+(maybe-load-system-file "lisp/inline-expansion.xcl")
+(maybe-load-system-file "lisp/setf.xcl")
+(maybe-load-system-file "lisp/compiler-error.xcl")
+(maybe-load-system-file "lisp/precompiler.xcl")
+(maybe-load-system-file "lisp/canonicalize-type.xcl")
+(maybe-load-system-file "lisp/typep.xcl")
+(maybe-load-system-file "lisp/find.xcl")
+(maybe-load-system-file "lisp/defmacro.xcl")
+(maybe-load-system-file "lisp/defconstant.xcl")
+(maybe-load-system-file "lisp/defparameter.xcl")
+(maybe-load-system-file "lisp/backquote.xcl")
+(maybe-load-system-file "lisp/featurep.xcl")
+(maybe-load-system-file "lisp/read-conditional.xcl")
+(maybe-load-system-file "lisp/adjoin.xcl")
+(maybe-load-system-file "lisp/pushnew.xcl")
+(maybe-load-system-file "lisp/member.xcl")
+(maybe-load-system-file "lisp/make-hash-table.xcl")
 
-(maybe-load-system-file "x/typecase.xcl")
-(maybe-load-system-file "x/etypecase.xcl")
+(maybe-load-system-file "lisp/typecase.xcl")
+(maybe-load-system-file "lisp/etypecase.xcl")
 
-(maybe-load-system-file "x/early-macros.xcl")
-(maybe-load-system-file "x/apply-key.xcl")
+(maybe-load-system-file "lisp/early-macros.xcl")
+(maybe-load-system-file "lisp/apply-key.xcl")
 
 (autoload-macro 'defsetf)
 
-(load-system-file "x/invoke-debugger")
-(load-system-file "x/signal")
-(load-system-file "x/concatenate")
+(load-system-file "lisp/invoke-debugger")
+(load-system-file "lisp/signal")
+(load-system-file "lisp/concatenate")
 (autoload '(make-array adjust-array))
-(load-system-file "x/copy-seq")
+(load-system-file "lisp/copy-seq")
 
 (autoload 'parse-lambda-list)
 (autoload-macro 'defstruct)
@@ -233,7 +233,7 @@
 (autoload 'upgraded-array-element-type)
 (autoload '(%subtypep subtypep) "subtypep")
 
-(load-system-file "x/require-type")
+(load-system-file "lisp/require-type")
 
 (autoload 'make-iterator)
 (autoload-macro 'do-subsequence)
@@ -242,19 +242,19 @@
 (autoload 'notevery)
 (autoload '(some notany) "some")
 
-(load-system-file "x/late-setf")
+(load-system-file "lisp/late-setf")
 
 (autoload '(dpb %dpb) "dpb")
 
 (autoload-macro 'psetq)
 (autoload-macro '(make-string-output-stream with-output-to-string))
 
-;; (load-system-file "x/find.lisp")
+;; (load-system-file "lisp/find.lisp")
 ;; (autoload '(position position-if position-if-not find find-if find-if-not
 ;;             list-find* vector-find*)
 ;;           "find")
 
-;; (load-system-file "x/assoc.lisp")
+;; (load-system-file "lisp/assoc.lisp")
 (autoload '(assoc assoc-if assoc-if-not rassoc rassoc-if rassoc-if-not
             pairlis copy-alist)
           "assoc")
@@ -332,7 +332,7 @@
 (autoload '(open write-byte read-byte write-sequence read-sequence))
 (autoload-macro 'with-open-file)
 
-(load-system-file "x/define-modify-macro")
+(load-system-file "lisp/define-modify-macro")
 
 (autoload-macro 'with-hash-table-iterator)
 (autoload 'hash-table-iterator-function "with-hash-table-iterator")
@@ -343,14 +343,14 @@
 
 (autoload 'compile "load-compiler")
 
-(load-system-file "x/defvar")
-(load-system-file "x/defconstant")
+(load-system-file "lisp/defvar")
+(load-system-file "lisp/defconstant")
 
 (autoload 'assign-setf-macro "defsetf")
-(load-system-file "x/initialize-classes")
+(load-system-file "lisp/initialize-classes")
 
-(load-system-file "x/restart")
-(load-system-file "x/top-level")
+(load-system-file "lisp/restart")
+(load-system-file "lisp/top-level")
 
 (export '(coerce-list-to-vector coerce-vector-to-list))
 (autoload '(coerce coerce-list-to-vector coerce-vector-to-list) "coerce")
@@ -365,7 +365,7 @@
 (autoload '(set-exclusive-or nset-exclusive-or))
 (autoload 'check-type-error "check-type")
 (autoload-macro '(ccase ctypecase check-type))
-(load-system-file "x/define-compiler-macro")
+(load-system-file "lisp/define-compiler-macro")
 
 (autoload-macro 'defclass)
 (autoload-macro '(defgeneric defmethod define-condition) "clos")
@@ -443,7 +443,7 @@
 
 (autoload-macro 'assert)
 
-;; (load-system-file "x/reader.lisp")
+;; (load-system-file "lisp/reader.lisp")
 
 (make-package "XP" :use '("CL"))
 
@@ -462,13 +462,13 @@
 
 (in-package "SYSTEM")
 
-(load-system-file "x/loop")
-(load-system-file "x/print")
-(load-system-file "x/defstruct") ; needed for pprint.xcl
-(load-system-file "x/pprint") ; REVIEW
+(load-system-file "lisp/loop")
+(load-system-file "lisp/print")
+(load-system-file "lisp/defstruct") ; needed for pprint.xcl
+(load-system-file "lisp/pprint") ; REVIEW
 
-(load-system-file "x/open")
-(load-system-file "x/load")
+(load-system-file "lisp/open")
+(load-system-file "lisp/load")
 
 (autoload 'apropos)
 (autoload 'describe)
@@ -484,7 +484,7 @@
 
 (autoload '(query-readline y-or-n-p yes-or-no-p) "query")
 
-(load-system-file "x/epsilons.lisp")
+(load-system-file "lisp/epsilons.lisp")
 
 (in-package "EXTENSIONS")
 (export 'dump-ir2)

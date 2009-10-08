@@ -149,7 +149,7 @@ int __main(int argc, char * argv[])
       if (!boot_loaded_p)
         {
           boot_loaded_p = true; // Only try once!
-          if (SYS_load_system_file(make_simple_string("x/boot.lisp")) != NIL)
+          if (SYS_load_system_file(make_simple_string("lisp/boot.lisp")) != NIL)
             {
               s = new String("Startup completed in ");
               s->append(uptime_as_string());

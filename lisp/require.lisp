@@ -28,5 +28,5 @@
                (dolist (x pathnames)
                  (load x)))
               (t
-               (load-system-file (concatenate 'string "x/" (string-downcase module-name)))))
+               (load-system-file (concatenate 'string "lisp/" (string-downcase module-name)))))
         (set-difference *modules* saved-modules)))))

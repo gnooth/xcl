@@ -39,7 +39,7 @@ void Autoload::load()
 //   Pathname * defaults =
 //     the_pathname(coerce_to_pathname(thread->symbol_value(S_xcl_home)));
   String * prefix = new String(XCL_HOME);
-  prefix->append("/x/");
+  prefix->append("/lisp/");
   Pathname * defaults = check_pathname(parse_namestring(prefix));
 
   Value device = defaults->device();
