@@ -128,9 +128,9 @@ all: static
 
 include $(OBJS:.o=.d)
 
-x: xcl_home.h $(OBJS) $(LIBS)
-	g++ $(OBJS) $(LIBS) -o x
-	date > build
+# x: xcl_home.h $(OBJS) $(LIBS)
+# 	g++ $(OBJS) $(LIBS) -o x
+# 	date > build
 
 libxcl.so: xcl_home.h $(LIBOBJS) $(LIBS)
 # 	g++ -shared -Wl,-soname,libxcl.so -o libxcl.so $(LIBOBJS) $(LIBS)
@@ -141,30 +141,30 @@ xcl.dll: xcl_home.h $(LIBOBJS) $(LIBS)
 
 .PHONY: static
 static: xcl_home.h $(OBJS) $(LIBS)
-	g++ $(OBJS) $(LIBS) -o x
+	g++ $(OBJS) $(LIBS) -o ../xcl
 	date > build
 
-.PHONY: shared
-ifeq ($(PLATFORM), mingw)
-shared: xcl_home.h main.o xcl.dll
-	g++ -o x main.o -L./ -lxcl
-	date > build
-else
-shared: xcl_home.h main.o libxcl.so
-	g++ -Wl,-rpath,$(CURDIR) -o x main.o -L. libxcl.so
-	date > build
-endif
-
-x.objdump: x
-	objdump -t -C x | grep " g     F .text" > x.objdump
-
-# xcl_home.h:
+# .PHONY: shared
 # ifeq ($(PLATFORM), mingw)
-# 	echo "#define XCL_HOME \"`pwd -W`\"" > xcl_home.h
+# shared: xcl_home.h main.o xcl.dll
+# 	g++ -o x main.o -L./ -lxcl
+# 	date > build
 # else
-# 	echo "#define XCL_HOME \"`pwd`\"" > xcl_home.h
+# shared: xcl_home.h main.o libxcl.so
+# 	g++ -Wl,-rpath,$(CURDIR) -o x main.o -L. libxcl.so
+# 	date > build
 # endif
+
+# x.objdump: x
+# 	objdump -t -C x | grep " g     F .text" > x.objdump
+
+xcl_home.h:
+ifeq ($(PLATFORM), mingw)
+	cd .. && echo "#define XCL_HOME \"`pwd -W`\"" > kernel/xcl_home.h
+else
+	cd .. && echo "#define XCL_HOME \"`pwd`\"" > kernel/xcl_home.h
+endif
 
 .PHONY: clean
 clean:
-	-rm -f x libxcl.so x.exe xcl.dll $(OBJS)
+	-rm -f ../xcl ../xcl.exe x libxcl.so x.exe xcl.dll $(OBJS)

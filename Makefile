@@ -18,35 +18,36 @@ else
   MACHINE_TYPE := i686
 endif
 
-all: ./x/x
+# all: ./x/x
+all: xcl
 
 ifeq ($(PLATFORM), mingw)
 # ./x/x: ./x/xcl.dll
 # 	cd x && $(MAKE) all
 # ./x/xcl.dll: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
 # 	cd x && $(MAKE) xcl.dll
-./x/x: ./x/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
-	cd x && $(MAKE) all
+xcl: ./kernel/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+	cd kernel && $(MAKE) all
 else
   ifeq ($(MACHINE_TYPE), x86_64)
-./x/x: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
-	cd x && $(MAKE) all
+xcl: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+	cd kernel && $(MAKE) all
   else
 # ./x/x: ./x/libxcl.so
 # 	cd x && $(MAKE) all
 # ./x/libxcl.so: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
 # 	cd x && $(MAKE) libxcl.so
-./x/x: ./x/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
-	cd x && $(MAKE) all
+xcl: ./kernel/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+	cd kernel && $(MAKE) all
   endif
 endif
 
 
-./x/xcl_home.h:
+./kernel/xcl_home.h:
 ifeq ($(PLATFORM), mingw)
-	echo "#define XCL_HOME \"`pwd -W`\"" > ./x/xcl_home.h
+	echo "#define XCL_HOME \"`pwd -W`\"" > ./kernel/xcl_home.h
 else
-	echo "#define XCL_HOME \"`pwd`\"" > ./x/xcl_home.h
+	echo "#define XCL_HOME \"`pwd`\"" > ./kernel/xcl_home.h
 endif
 
 ./gc/gc.a:
@@ -66,11 +67,12 @@ endif
 	cd gmp && $(MAKE)
 
 clean:
+	-rm -f x x.exe
 	cd gc && $(MAKE) clean
 	if [ -f gmp/Makefile ]; then \
 	  cd gmp && $(MAKE) clean; \
 	fi
-	cd x && $(MAKE) clean
+	cd kernel && $(MAKE) clean
 
 dist:
 	-rm -f xcl.tar.gz && \
