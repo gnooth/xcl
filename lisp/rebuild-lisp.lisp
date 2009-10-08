@@ -46,18 +46,18 @@
       (load (compile-file "lisp/ir2-defs.lisp"))
       (load (compile-file "lisp/p2.lisp"))
       #+x86
-      (load (compile-file "compiler/p2-x86.lisp"))
+      (load (compile-file "compiler/x86/p2-x86.lisp"))
       #+x86-64
-      (load (compile-file "compiler/p2-x86-64.lisp"))
+      (load (compile-file "compiler/x86-64/p2-x86-64.lisp"))
       #+x86
       (load (compile-file "lisp/p3-x86.lisp"))
       #+x86-64
       (load (compile-file "lisp/p3-x86-64.lisp"))
-      (load (compile-file "lisp/assembler.lisp"))
+      (load (compile-file "compiler/assembler.lisp"))
       #+x86
-      (load (compile-file "lisp/asm-x86.lisp"))
+      (load (compile-file "compiler/x86/asm-x86.lisp"))
       #+x86-64
-      (load (compile-file "lisp/asm-x86-64.lisp"))
+      (load (compile-file "compiler/x86-64/asm-x86-64.lisp"))
       (load (compile-file "lisp/source-transforms.lisp"))
       (load (compile-file "lisp/compiler.lisp"))
       (load (compile-file "lisp/compile-file.lisp"))

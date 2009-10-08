@@ -56,12 +56,12 @@
 
 #+x86
 (progn
-  (load-system-file "compiler/p2-x86")
+  (load-system-file "compiler/x86/p2-x86")
   (load-system-file "lisp/p3-x86"))
 
 #+x86-64
 (progn
-  (load-system-file "compiler/p2-x86-64")
+  (load-system-file "compiler/x86-64/p2-x86-64")
   (load-system-file "lisp/p3-x86-64"))
 
 (load-system-file "lisp/install-p2-handlers")

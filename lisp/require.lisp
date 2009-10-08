@@ -18,15 +18,25 @@
 
 (in-package "SYSTEM")
 
+(defparameter *defined-modules* (make-hash-table :test 'equal))
+
+(defun define-module (module-name path)
+  (setf (gethash module-name *defined-modules*) path))
+
+(define-module "ASSEMBLER" "compiler/assembler")
+
 (defun require (module &optional pathnames)
   (let ((module-name (string module)))
     (unless (member module-name *modules* :test #'string=)
-      (let ((saved-modules (copy-list *modules*)))
+      (let ((saved-modules (copy-list *modules*))
+            path)
         (cond (pathnames
                (unless (listp pathnames)
                  (setq pathnames (list pathnames)))
                (dolist (x pathnames)
                  (load x)))
+              ((setq path (gethash module-name *defined-modules*))
+               (load-system-file path))
               (t
                (load-system-file (concatenate 'string "lisp/" (string-downcase module-name)))))
         (set-difference *modules* saved-modules)))))
