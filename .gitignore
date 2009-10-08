@@ -101,10 +101,23 @@ mpfr/mparam.h
 mpfr/tests/.deps/
 mpfr/tests/Makefile
 
-FILE-THAT-WAS-RENAMED.TXT
+ansi-tests/compile-file-test-lp.lsp
+ansi-tests/file-that-was-renamed.txt
+ansi-tests/foo.fasl
+ansi-tests/foo.lsp
+ansi-tests/foo.txt
+ansi-tests/foo.ufsl
+ansi-tests/ldtest.lsp
+ansi-tests/scratch/
+ansi-tests/temp.dat
+ansi-tests/tmp.dat
+ansi-tests/tmp.txt
+ansi-tests/tmp2.dat
 ansi-tests/tmp.dat.bak
+
+FILE-THAT-WAS-RENAMED.TXT
+
 build
 tags
-x
 xcl_home.h
 xcl
