@@ -42,7 +42,7 @@ else
   CFLAGS := $(CFLAGS) -march=i686 -m32
 endif
 
-LIBOBJS = lisp.o getpid.o SlimeInputStream.o SlimeOutputStream.o \
+LIBOBJS = lisp.o xcl_home.o getpid.o SlimeInputStream.o SlimeOutputStream.o \
         initialize.o initialize_symbols.o SimpleBitVector.o Thread.o Symbol.o \
 	peek-char.o documentation.o LogicalPathname.o parse-namestring.o merge-pathnames.o \
 	FaslReadtable.o \
@@ -142,7 +142,7 @@ xcl.dll: xcl_home.h $(LIBOBJS) $(LIBS)
 .PHONY: static
 static: xcl_home.h $(OBJS) $(LIBS)
 	g++ $(OBJS) $(LIBS) -o ../xcl
-	date > build
+	date > ../build
 
 # .PHONY: shared
 # ifeq ($(PLATFORM), mingw)

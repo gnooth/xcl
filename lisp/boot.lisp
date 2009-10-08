@@ -527,7 +527,7 @@
                  (load arg))))))))
 
 ;; REVIEW
-(when (probe-file "x/grovel.xcl")
+(when (probe-file (merge-pathnames "lisp/grovel.xcl" *xcl-home*))
   (make-thread #'sys:grovel-cpp-definitions))
 
 ;; REVIEW

@@ -95,7 +95,7 @@ the file system."
                          (run-program "j" (list (format nil "+~D" line-number)
                                                 (format nil "~S" file))))))
                   ((not (null *xcl-home*))
-                   (let ((tagfile (merge-pathnames "tags" *xcl-home*)))
+                   (let ((tagfile (merge-pathnames "kernel/tags" *xcl-home*)))
                      (when (and tagfile (probe-file tagfile))
                        (with-open-file (s tagfile)
                          (loop
@@ -103,7 +103,7 @@ the file system."
                              (cond ((eq text s)
                                     (return))
                                    ((eq what (read-from-string text nil nil))
-                                    ;; Found it!
+                                    ;; found it!
                                     (with-input-from-string (string-stream text)
                                       (let* ((symbol (read string-stream text nil nil)) ; Ignored.
                                              (file (read string-stream text nil nil))

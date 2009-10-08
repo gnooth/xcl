@@ -22,7 +22,7 @@
 #include <math.h>
 
 #include "lisp.hpp"
-#include "xcl_home.h"
+#include "xcl_home.hpp"
 #include "primitives.hpp"
 #include "FaslReadtable.hpp"
 #include "HashTable.hpp"
@@ -37,16 +37,6 @@
 #include "documentation.hpp"
 
 Value S_nil;
-
-static Value get_xcl_home()
-{
-  char * xcl_home = getenv("XCL_HOME");
-  String * s = new String(xcl_home ? xcl_home : XCL_HOME);
-  const long len = s->length();
-  if (len == 0 || !is_separator_char(s->char_at(len - 1)))
-    s->append_char(SEPARATOR_CHAR);
-  return make_value(new Pathname(s));
-}
 
 static Value add_keyword(const char * name)
 {
@@ -202,7 +192,7 @@ void initialize_symbols()
 
   the_symbol(S_default_pathname_defaults)->initialize_special(get_current_directory());
 
-  the_symbol(S_xcl_home)->initialize_special(get_xcl_home());
+  the_symbol(S_xcl_home)->initialize_special(make_value(xcl_home_pathname()));
 
   the_symbol(S_top_level_read_eval_print_loop)->initialize_special(NIL);
 

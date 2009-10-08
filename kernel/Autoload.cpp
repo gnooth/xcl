@@ -20,7 +20,7 @@
 #include "primitives.hpp"
 #include "Package.hpp"
 #include "Pathname.hpp"
-#include "xcl_home.h"
+#include "xcl_home.hpp"
 
 Autoload::Autoload(Value name)
   : Function(WIDETAG_AUTOLOAD, name), _filename(NULL)
@@ -35,13 +35,9 @@ Autoload::Autoload(Value name, AbstractString * filename)
 void Autoload::load()
 {
   Thread * const thread = current_thread();
-
-//   Pathname * defaults =
-//     the_pathname(coerce_to_pathname(thread->symbol_value(S_xcl_home)));
-  String * prefix = new String(XCL_HOME);
+  String * prefix = new String(xcl_home());
   prefix->append("/lisp/");
   Pathname * defaults = check_pathname(parse_namestring(prefix));
-
   Value device = defaults->device();
   Value directory = defaults->directory();
   Value name;

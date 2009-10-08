@@ -23,7 +23,7 @@
 #include "FileStream.hpp"
 #include "Pathname.hpp"
 #include "FaslReadtable.hpp"
-#include "xcl_home.h"
+#include "xcl_home.hpp"
 
 // ### load-stream
 Value SYS_load_stream(Value streamarg, Value filespec, Value verbose, Value print)
@@ -132,11 +132,10 @@ Value CL_load(Value arg)
 Value SYS_load_system_file(Value arg)
 {
   Thread * thread = current_thread();
-  Pathname * defaults =
-    the_pathname(coerce_to_pathname(thread->symbol_value(S_xcl_home)));
-  Pathname * pathname =
-    merge_pathnames(the_pathname(coerce_to_pathname(arg)), defaults, K_newest);
-//   printf("load-system-file %s\n", pathname->namestring()->as_c_string());
+  Pathname * defaults = xcl_home_pathname();
+  Pathname * pathname = merge_pathnames(the_pathname(coerce_to_pathname(arg)),
+                                        defaults,
+                                        K_newest);
   if (pathname->type() == NIL)
     {
       pathname = new Pathname(NIL,
@@ -160,10 +159,10 @@ Value SYS_load_system_file(Value arg)
 Value SYS_maybe_load_system_file(Value arg)
 {
   Thread * thread = current_thread();
-  Pathname * defaults =
-    the_pathname(coerce_to_pathname(thread->symbol_value(S_xcl_home)));
-  Pathname * pathname =
-    merge_pathnames(the_pathname(coerce_to_pathname(arg)), defaults, K_newest);
+  Pathname * defaults = xcl_home_pathname();
+  Pathname * pathname = merge_pathnames(the_pathname(coerce_to_pathname(arg)),
+                                        defaults,
+                                        K_newest);
   if (CL_probe_file(make_value(pathname)) != NIL)
     return RT_thread_call_symbol_1(thread, S_load, make_value(pathname));
   return NIL;

@@ -20,7 +20,7 @@
 #include "Frame.hpp"
 #include "primitives.hpp"
 #include "call_depth_limit.hpp"
-#include "xcl_home.h"
+#include "xcl_home.hpp"
 #include "Pathname.hpp"
 #include "Readtable.hpp"
 
@@ -52,30 +52,22 @@ extern Frame * primordial_frame;
 
 SimpleString * build_date()
 {
-  Value xcl_home = current_thread()->symbol_value(S_xcl_home);
-  if (pathnamep(xcl_home))
+  String * s = new String(xcl_home_pathname()->namestring());
+  s->append("build");
+  long fd = OPEN(s->as_c_string(), O_RDONLY);
+  if (fd >= 0)
     {
-      xcl_home = CL_namestring(xcl_home);
-      if (stringp(xcl_home))
+      char buf[256];
+      long n = READ(fd, buf, sizeof(buf));
+      CLOSE(fd);
+      if (n > 0)
         {
-          String * s = new String(the_string(xcl_home));
-          s->append("build");
-          long fd = OPEN(s->as_c_string(), O_RDONLY);
-          if (fd >= 0)
+          for (unsigned long i = 0; i < sizeof(buf); i++)
             {
-              char buf[256];
-              long n = READ(fd, buf, sizeof(buf));
-              CLOSE(fd);
-              if (n > 0)
+              if (buf[i] < ' ')
                 {
-                  for (unsigned long i = 0; i < sizeof(buf); i++)
-                    {
-                      if (buf[i] < ' ')
-                        {
-                          buf[i] = 0;
-                          return new_simple_string(buf);
-                        }
-                    }
+                  buf[i] = 0;
+                  return new_simple_string(buf);
                 }
             }
         }
@@ -148,7 +140,7 @@ int __main(int argc, char * argv[])
 
       if (!boot_loaded_p)
         {
-          boot_loaded_p = true; // Only try once!
+          boot_loaded_p = true; // only try once!
           if (SYS_load_system_file(make_simple_string("lisp/boot.lisp")) != NIL)
             {
               s = new String("Startup completed in ");
