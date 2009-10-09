@@ -35,30 +35,31 @@ Autoload::Autoload(Value name, AbstractString * filename)
 void Autoload::load()
 {
   Thread * const thread = current_thread();
-  String * prefix = new String(xcl_home());
-  prefix->append("/lisp/");
-  Pathname * defaults = check_pathname(parse_namestring(prefix));
-  Value device = defaults->device();
-  Value directory = defaults->directory();
-  Value name;
-  if (_filename)
-    name = make_value(new_simple_string(_filename));
-  else
-    name = make_value(the_symbol(operator_name())->name()->downcase());
-  Value type = make_simple_string("xcl");
-  Pathname * pathname = new Pathname(NIL, device, directory, name, type, NIL);
-  if (CL_probe_file(make_value(pathname)) == NIL)
-    {
-      type = make_simple_string("lisp");
-      pathname = new Pathname(NIL, device, directory, name, type, NIL);
-    }
-  AbstractString * namestring = pathname->namestring();
   void * last_special_binding = thread->last_special_binding();
   thread->bind_special(S_current_readtable, thread->symbol_value(S_standard_readtable));
   thread->bind_special(S_current_package, make_value(PACKAGE_SYS));
   thread->bind_special(S_read_base, FIXNUM_TEN);
   if (thread->symbol_value(S_autoload_verbose) != NIL)
     {
+      String * prefix = new String(xcl_home());
+      if (!_filename)
+        prefix->append("/lisp/");
+      Pathname * defaults = check_pathname(parse_namestring(prefix));
+      Value device = defaults->device();
+      Value directory = defaults->directory();
+      Value name;
+      if (_filename)
+        name = make_value(new_simple_string(_filename));
+      else
+        name = make_value(the_symbol(operator_name())->name()->downcase());
+      Value type = make_simple_string("xcl");
+      Pathname * pathname = new Pathname(NIL, device, directory, name, type, NIL);
+      if (CL_probe_file(make_value(pathname)) == NIL)
+        {
+          type = make_simple_string("lisp");
+          pathname = new Pathname(NIL, device, directory, name, type, NIL);
+        }
+      AbstractString * namestring = pathname->namestring();
       Stream * out = check_stream(thread->symbol_value(S_standard_output));
       String * message = new String("; Autoloading ");
       message->append(namestring);
@@ -72,8 +73,16 @@ void Autoload::load()
       out->fresh_line();
       out->write_string(message);
     }
+  else if (_filename)
+    {
+      SYS_load_system_file(make_value(_filename));
+    }
   else
-    CL_load(make_value(namestring));
+    {
+      String * namestring = new String("lisp/");
+      namestring->append(the_symbol(operator_name())->name()->downcase());
+      SYS_load_system_file(make_value(namestring));
+    }
   thread->set_last_special_binding(last_special_binding);
 }
 

@@ -26,6 +26,7 @@
 (load-system-file "lisp/early-macros.lisp")
 (load-system-file "lisp/featurep.lisp")
 (load-system-file "lisp/read-conditional.lisp")
+(load-system-file "lisp/autoloads.lisp")
 
 (defun caaaar (list) (car (car (car (car list)))))
 (defun caaadr (list) (car (car (car (cdr list)))))
@@ -53,10 +54,6 @@
 
 (defun mapcan (function &rest lists)
   (apply #'nconc (apply #'mapcar function lists)))
-
-(autoload 'make-list)
-
-(autoload 'make-string)
 
 (defun make-package (package-name &key nicknames use)
   (%make-package package-name nicknames use))
@@ -92,8 +89,6 @@
 (export '+nil-symbol-name+)
 
 (load-system-file "lisp/defparameter.lisp")
-
-(autoload-macro 'destructuring-bind)
 
 ;; (set-symbol-function 'defmacro (macro-function 'defmacro))
 ;; (set-symbol-plist 'defmacro nil)
@@ -138,13 +133,7 @@
   (apply #'append (apply #'mapcar function lists)))
 (export 'mapappend)
 
-(autoload-macro 'ecase)
-(autoload-macro 'typecase)
-(autoload-macro 'etypecase)
-
 (load-system-file "lisp/member.lisp")
-
-(autoload-macro 'apply-key)
 
 ;; needed for reader.lisp
 (load-system-file "lisp/make-hash-table.lisp")
@@ -199,29 +188,10 @@
 (maybe-load-system-file "lisp/early-macros.xcl")
 (maybe-load-system-file "lisp/apply-key.xcl")
 
-(autoload-macro 'defsetf)
-
 (load-system-file "lisp/invoke-debugger")
 (load-system-file "lisp/signal")
 (load-system-file "lisp/concatenate")
-(autoload '(make-array adjust-array))
 (load-system-file "lisp/copy-seq")
-
-(autoload 'parse-lambda-list)
-(autoload-macro 'defstruct)
-
-(export '(source-transform define-source-transform expand-source-transform))
-(autoload-macro 'define-source-transform "define-source-transform")
-(autoload '(source-transform set-source-transform expand-source-transform)
-          "define-source-transform")
-
-(autoload 'proclaim)
-(autoload-macro 'declaim)
-
-(autoload '(string= string/= string< string<= string> string>= string-equal
-            string-not-equal string-greaterp string-not-greaterp string-lessp
-            string-not-lessp)
-          "strings")
 
 (defun complement (f)
   #'(lambda (&rest x) (not (apply f x))))
@@ -229,25 +199,9 @@
 (defun constantly (x)
   #'(lambda (&rest args) (declare (ignore args)) x))
 
-(autoload 'revappend)
-(autoload 'upgraded-array-element-type)
-(autoload '(%subtypep subtypep) "subtypep")
-
 (load-system-file "lisp/require-type")
 
-(autoload 'make-iterator)
-(autoload-macro 'do-subsequence)
-
-(autoload '(every every2) "every")
-(autoload 'notevery)
-(autoload '(some notany) "some")
-
 (load-system-file "lisp/late-setf")
-
-(autoload '(dpb %dpb) "dpb")
-
-(autoload-macro 'psetq)
-(autoload-macro '(make-string-output-stream with-output-to-string))
 
 ;; (load-system-file "lisp/find.lisp")
 ;; (autoload '(position position-if position-if-not find find-if find-if-not
@@ -255,193 +209,33 @@
 ;;           "find")
 
 ;; (load-system-file "lisp/assoc.lisp")
-(autoload '(assoc assoc-if assoc-if-not rassoc rassoc-if rassoc-if-not
-            pairlis copy-alist)
-          "assoc")
-
-(autoload 'subsetp)
-(autoload 'list-length)
-(autoload 'ldiff)
-(autoload 'mapl)
-
 ;; REVIEW
 (defun shrink-vector (vector new-size)
   (subseq vector 0 new-size))
 
-(autoload 'make-sequence-of-type)
-
 ;; (defmacro make-sequence-like (sequence length)
 ;;   `(make-sequence-of-type (type-of ,sequence) ,length))
 
-(autoload-macro 'deftype)
-(autoload 'make-sequence)
-(autoload '(set-difference nset-difference))
-(autoload '(remove-duplicates delete-duplicates))
-(autoload '(intersection nintersection))
-(autoload-macro '(psetf shiftf rotatef))
-(autoload '(sort stable-sort merge))
-(autoload 'replace)
-(autoload '(string-trim string-right-trim string-left-trim))
-(autoload '(delete delete-if delete-if-not) "delete")
-(autoload '(remove remove-if remove-if-not) "remove")
-(autoload 'reduce)
-(autoload 'map)
-(autoload 'enough-namestring)
-(autoload 'parse-namestring)
-(autoload 'pathname-match-p)
-(autoload 'directory)
-(autoload '(string-downcase string-upcase nstring-downcase nstring-upcase
-            string-capitalize nstring-capitalize))
-(autoload 'disassemble)
-(autoload '(provide require))
-(autoload '(count count-if count-if-not) "count")
-(autoload 'search)
-(autoload '(sublis nsublis))
-(autoload '(subst nsubst subst-if subst-if-not nsubst-if nsubst-if-not))
-(autoload 'bit)
-(autoload '(sbit set-sbit) "sbit")
-(autoload '(butlast nbutlast))
-(autoload '(union nunion))
-(autoload 'parse-integer)
-;; (autoload 'mod)
-(autoload 'gcd)
-(autoload '(two-arg-lcm lcm) "lcm")
-(autoload '(mask-field deposit-field))
-(autoload 'round)
-(autoload 'conjugate)
-(autoload-macro '(trace untrace) "trace")
-
-(autoload '%print-unreadable-object "print-unreadable-object")
-(autoload-macro 'print-unreadable-object)
-(autoload-macro 'with-standard-io-syntax)
-
-(autoload 'read-from-string)
-(autoload-macro 'with-input-from-string)
-
-(autoload-macro 'and)
-(autoload-macro 'or)
-(autoload-macro 'case)
-(autoload-macro 'cond)
-(autoload-macro '(do do*) "do")
-(autoload-macro '(dolist dotimes))
-(autoload-macro 'multiple-value-list)
-
-(autoload-macro 'aver)
-(autoload '%failed-aver "aver")
-
-(autoload '(open write-byte read-byte write-sequence read-sequence))
-(autoload-macro 'with-open-file)
-
 (load-system-file "lisp/define-modify-macro")
-
-(autoload-macro 'with-hash-table-iterator)
-(autoload 'hash-table-iterator-function "with-hash-table-iterator")
 
 (defvar *mumble* t)
 (export '(*mumble* mumble))
-(autoload 'mumble "mumble")
-
-(autoload 'compile "load-compiler")
 
 (load-system-file "lisp/defvar")
 (load-system-file "lisp/defconstant")
 
-(autoload 'assign-setf-macro "defsetf")
 (load-system-file "lisp/initialize-classes")
 
 (load-system-file "lisp/restart")
 (load-system-file "lisp/top-level")
 
-(export '(coerce-list-to-vector coerce-vector-to-list))
-(autoload '(coerce coerce-list-to-vector coerce-vector-to-list) "coerce")
-(autoload 'delete-package)
-(autoload-macro 'defpackage)
-(autoload-macro 'do-external-symbols)
-(autoload 'find-all-symbols)
-(autoload-macro 'do-symbols)
-(autoload-macro 'do-all-symbols)
-(autoload 'package-iterator-function "with-package-iterator")
-(autoload-macro 'with-package-iterator)
-(autoload '(set-exclusive-or nset-exclusive-or))
-(autoload 'check-type-error "check-type")
-(autoload-macro '(ccase ctypecase check-type))
 (load-system-file "lisp/define-compiler-macro")
-
-(autoload-macro 'defclass)
-(autoload-macro '(defgeneric defmethod define-condition) "clos")
-(autoload '(ensure-class documentation) "clos")
-(autoload 'gentemp)
-(autoload 'mismatch)
-(autoload '(substitute substitute-if substitute-if-not) "substitute")
-(autoload-macro 'with-slots)
-(autoload '(write-string write-line))
-(autoload 'compile-file-pathname)
-(autoload-macro '(prog prog*) "prog")
-(autoload-macro 'multiple-value-bind)
-(autoload '(bit-array-same-dimensions-p require-same-dimensions pick-result-array
-            bit-and bit-ior bit-xor bit-eqv bit-nand bit-nor
-            bit-andc1 bit-andc2 bit-orc1 bit-orc2 bit-not)
-          "bit-array-ops")
-(autoload-macro 'remf)
-(autoload-macro 'with-open-stream)
-(autoload-macro 'deftype)
-(autoload 'boole)
-(autoload '(member-if member-if-not))
-(autoload 'tailp)
-(autoload 'tree-equal)
-(autoload '(map-into maplist mapcon))
-(autoload '(nsubstitute nsubstitute-if nsubstitute-if-not))
-(autoload 'fill)
-(autoload-macro 'with-accessors)
-;; (autoload 'write)
-(autoload 'write-to-string)
-(autoload 'copy-symbol)
-
-(autoload 'ext:make-socket)
-(autoload 'inspect)
-(autoload '(compile-file compile-file-if-needed) "compile-file")
-(autoload-macro 'with-compilation-unit)
-(autoload '%with-compilation-unit "with-compilation-unit")
-(autoload 'copy-file)
-(autoload '(ftruncate ffloor fceiling fround))
-(autoload '(decode-universal-time get-decoded-time encode-universal-time) "universal-time")
-(autoload-macro 'time)
-(autoload '%time "time")
-
-(autoload '(phase scale-float))
-
-(export 'grovel-cpp-definitions)
-(autoload 'grovel-cpp-definitions "grovel")
-
-(autoload 'rebuild-lisp)
 
 (export '(dump-form dump-top-level-form)) ; REVIEW also in dump-form.lisp
 (autoload '(dump-form dump-top-level-form) "dump-form")
 
 ;; (autoload-macro 'defknown "known-functions")
 ;; (autoload '%defknown "known-functions")
-
-(autoload '(source source-pathname source-file-position) "source")
-
-(autoload 'ed)
-
-(autoload 'make-load-form-saving-slots)
-
-(autoload '(asin complex-asin) "asin")
-(autoload '(acos complex-acos) "acos")
-
-(autoload '(sinh cosh tanh))
-
-(autoload '(asinh complex-asinh) "asinh")
-(autoload '(acosh complex-acosh) "acosh")
-(autoload '(atanh complex-atanh) "atanh")
-
-(autoload 'file-author)
-(autoload 'upgraded-complex-part-type)
-(autoload 'dribble)
-(autoload 'ensure-directories-exist)
-
-(autoload-macro 'assert)
 
 ;; (load-system-file "lisp/reader.lisp")
 
@@ -470,33 +264,21 @@
 (load-system-file "lisp/open")
 (load-system-file "lisp/load")
 
-(autoload 'apropos)
-(autoload 'describe)
-(autoload 'describe-compiler-policy)
-
-(autoload 'logical-pathname)
-(autoload 'translate-pathname)
-(autoload 'translate-logical-pathname)
-(autoload 'logical-pathname-translations)
-(autoload 'load-logical-pathname-translations)
-
-(autoload 'float-precision)
-
-(autoload '(query-readline y-or-n-p yes-or-no-p) "query")
-
 (load-system-file "lisp/epsilons.lisp")
 
-(in-package "EXTENSIONS")
-(export 'dump-ir2)
-(autoload 'dump-ir2 "lisp/load-compiler")
-(export 'with-mutex)
-(autoload-macro 'with-mutex)
+;; (in-package "EXTENSIONS")
+;; (export 'dump-ir2)
+;; (autoload 'dump-ir2 "lisp/load-compiler")
+;; (export 'with-mutex)
+;; (autoload-macro 'with-mutex)
+
+;; (in-package "CL-USER")
+
+;; (autoload '(do-tests do-compiled-tests) "rt")
+;; (autoload 'run-random-tests)
+;; (autoload 'run-other-tests)
 
 (in-package "CL-USER")
-
-(autoload '(do-tests do-compiled-tests) "rt")
-(autoload 'run-random-tests)
-(autoload 'run-other-tests)
 
 (defun run-ansi-tests (&key (compile-tests t) (mumble t))
 ;;   (declaim (optimize speed))

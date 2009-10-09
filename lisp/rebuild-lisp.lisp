@@ -59,7 +59,7 @@
       (load (compile-file "compiler/known-functions.lisp"))
       (load (compile-file "compiler/source-transforms.lisp"))
       (load (compile-file "compiler/compiler.lisp"))
-      (load (compile-file "lisp/compile-file.lisp"))
+      (load (compile-file "compiler/compile-file.lisp"))
       (load (compile-file "lisp/backquote.lisp"))
       (load (compile-file "lisp/find.lisp"))
       (load (compile-file "lisp/coerce.lisp"))
