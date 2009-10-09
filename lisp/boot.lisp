@@ -231,9 +231,6 @@
 
 (load-system-file "lisp/define-compiler-macro")
 
-(export '(dump-form dump-top-level-form)) ; REVIEW also in dump-form.lisp
-(autoload '(dump-form dump-top-level-form) "dump-form")
-
 ;; (autoload-macro 'defknown "known-functions")
 ;; (autoload '%defknown "known-functions")
 
