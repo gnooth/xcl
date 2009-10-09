@@ -708,7 +708,7 @@ Value parse_body(Value forms, bool doc_string_allowed, Thread * thread)
           if (doc_string_allowed)
             {
               doc = form;
-              // Only one doc string is allowed.
+              // only one doc string is allowed
               doc_string_allowed = false;
             }
           else
@@ -854,7 +854,7 @@ Value CL_macrolet(Value args, Environment * env, Thread * thread)
 
 static Value flet_internal(Value args, Environment * env, Thread * thread, bool recursive)
 {
-  // First argument is a list of local function definitions.
+  // first argument is a list of local function definitions
   Value defs = check_list(car(args));
   Value result;
   if (defs != NIL)
@@ -882,14 +882,8 @@ static Value flet_internal(Value args, Environment * env, Thread * thread, bool 
             return signal_type_error(name, FUNCTION_NAME);
           Value rest = xcdr(def);
           Value parameters = car(rest);
-          Value body = xcdr(rest);
-          Value decls = NIL;
-          // FIXME don't ignore special declarations!
-          while (consp(car(body)) && xcar(xcar(body)) == S_declare)
-            {
-              decls = make_cons(xcar(body), decls);
-              body = xcdr(body);
-            }
+          Value body = parse_body(xcdr(rest), true, thread);
+          Value decls = thread->nth_value(1);
           body = make_cons(SYS_fdefinition_block_name(name), body);
           body = make_cons(S_block, body);
           body = make_cons(body, NIL);
