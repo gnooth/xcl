@@ -18,11 +18,15 @@
 
 (in-package "SYSTEM")
 
-(defun rebuild-lisp ()
+(defun clean ()
   (dolist (dir '("lisp/" "compiler/" #+x86 "compiler/x86/" #+x86-64 "compiler/x86-64/"))
     (let ((*default-pathname-defaults* (merge-pathnames dir *xcl-home*)))
       (dolist (file (directory "*.xcl"))
         (delete-file file))))
+  t)
+
+(defun rebuild-lisp ()
+  (clean)
   (load-system-file "lisp/load-compiler.lisp")
   (with-compilation-unit ()
     (let ((*default-pathname-defaults* *xcl-home*))

@@ -71,7 +71,6 @@ void Readtable::initialize()
 
   DispatchTable * dt = new DispatchTable();
 
-//   dt->_functions['$']  = S_fasl_sharp_dollar; // REVIEW fasl-read-uninterned-symbol
   dt->_functions['(']  = S_sharp_left_paren;
   dt->_functions['*']  = S_sharp_star;
   dt->_functions['.']  = S_sharp_dot;

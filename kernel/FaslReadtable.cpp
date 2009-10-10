@@ -71,6 +71,7 @@ void FaslReadtable::initialize()
   DispatchTable * dt = new DispatchTable();
 
   dt->_functions['$']  = S_fasl_sharp_dollar; // REVIEW fasl-read-uninterned-symbol
+  dt->_functions['%']  = S_fasl_sharp_percent;
   dt->_functions['(']  = S_fasl_sharp_left_paren;
   dt->_functions['*']  = S_fasl_sharp_star;
   dt->_functions['.']  = S_fasl_sharp_dot;
@@ -206,6 +207,24 @@ Value SYS_fasl_sharp_dollar(Value streamarg, Value subchar, Value numarg)
   Value sym = check_package(package)->intern(symbol->name(), false);
   the_symbol(sym)->set_package(NIL);
   return sym;
+}
+
+// ### fasl-sharp-percent stream sub-char numarg => value
+Value SYS_fasl_sharp_percent(Value streamarg, Value subchar, Value numarg)
+{
+//   Symbol * symbol = check_symbol(check_stream(streamarg)->read_symbol(FASL_READTABLE));
+//   Thread * thread = current_thread();
+//   Value package = thread->symbol_value(S_fasl_anonymous_package);
+//   if (package == NIL)
+//     {
+//       package = make_value(new Package());
+//       thread->set_symbol_value(S_fasl_anonymous_package, package);
+//     }
+//   Value sym = check_package(package)->intern(symbol->name(), false);
+//   the_symbol(sym)->set_package(NIL);
+//   return sym;
+  INDEX length = check_index(numarg);
+  return check_stream(streamarg)->read_binary_data(length);
 }
 
 // ### fasl-sharp-dot stream sub-char numarg => value

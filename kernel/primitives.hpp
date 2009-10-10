@@ -532,6 +532,7 @@ extern Value SYS_fasl_sharp_illegal(Value streamarg, Value subchar, Value numarg
 extern Value SYS_fasl_sharp_left_paren(Value streamarg, Value subchar, Value numarg);
 extern Value SYS_fasl_sharp_o(Value streamarg, Value subchar, Value numarg);
 extern Value SYS_fasl_sharp_p(Value streamarg, Value subchar, Value numarg);
+extern Value SYS_fasl_sharp_percent(Value streamarg, Value subchar, Value numarg);
 extern Value SYS_fasl_sharp_quote(Value streamarg, Value subchar, Value numarg);
 extern Value SYS_fasl_sharp_r(Value streamarg, Value subchar, Value numarg);
 extern Value SYS_fasl_sharp_s(Value streamarg, Value subchar, Value numarg);

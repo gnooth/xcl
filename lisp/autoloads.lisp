@@ -204,7 +204,8 @@
 (export 'grovel-cpp-definitions)
 (autoload 'grovel-cpp-definitions "lisp/grovel")
 
-(autoload 'rebuild-lisp)
+(export 'clean)
+(autoload '(clean rebuild-lisp) "lisp/rebuild-lisp")
 
 (autoload '(source source-pathname source-file-position) "lisp/source")
 

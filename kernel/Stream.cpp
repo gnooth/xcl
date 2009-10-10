@@ -28,6 +28,7 @@
 #include "ReaderError.hpp"
 #include "Readtable.hpp"
 #include "SimpleArray_T.hpp"
+#include "SimpleArray_UB8_1.hpp"
 #include "ZeroRankArray.hpp"
 #include "keywordp.hpp"
 
@@ -807,6 +808,81 @@ Value Stream::read_bit_vector(long n, Thread * thread, Readtable * rt)
         }
     }
   return make_value(new SimpleBitVector(s));
+}
+
+Value Stream::read_binary_data(INDEX length)
+{
+//   bool suppress = (thread->symbol_value(S_read_suppress) != NIL);
+//   String * s = new String();
+//   while (true)
+//     {
+//       int n = read_char();
+//       if (n < 0)
+//         break;
+//       BASE_CHAR c = (BASE_CHAR) n;
+//       if (c == '0' || c == '1')
+//         s->append_char(c);
+//       else
+//         {
+//           unsigned int syntax = rt->syntax(c);
+//           if (syntax == SYNTAX_TYPE_WHITESPACE || syntax == SYNTAX_TYPE_TERMINATING_MACRO)
+//             {
+//               unread_char(c);
+//               break;
+//             }
+//           else if (!suppress)
+//             {
+//               String * message = new String("Illegal element for bit-vector: #\\");
+//               Value name = CL_char_name(make_character(c));
+//               if (stringp(name))
+//                 message->append(the_string(name));
+//               else
+//                 message->append_char(c);
+//               return signal_lisp_error(new ReaderError(this, message));
+//             }
+//         }
+//     }
+//   if (suppress)
+//     return NIL;
+//   if (n >= 0)
+//     {
+//       // numeric arg was supplied
+//       const long len = s->length();
+//       if (len == 0)
+//         {
+//           if (n > 0)
+//             {
+//               String * message = new String("No element specified for bit vector of length ");
+//               message->append_long(n);
+//               message->append_char('.');
+//               return signal_lisp_error(new ReaderError(this, message));
+//             }
+//         }
+//       if (n > len)
+//         {
+//           const BASE_CHAR c = s->char_at(len - 1);
+//           for (long i = len; i < n; i++)
+//             s->append_char(c);
+//         }
+//       else if (n < len)
+//         {
+//           String * message = new String("Bit vector is longer than specified length: #");
+//           message->append_long(n);
+//           message->append_char('*');
+//           message->append(s);
+//           return signal_lisp_error(new ReaderError(this, message));
+//         }
+      SimpleArray_UB8_1 * array = new_simple_array_ub8_1(length);
+      unsigned char * data = array->data();
+      for (INDEX i = 0; i < length; i++)
+        data[i] = read_byte();
+      return make_value(array);
+//     }
+//   else
+//     {
+//       String * message = new String("No length specified for binary data.");
+//       return signal_lisp_error(new ReaderError(this, message));
+//     }
 }
 
 AbstractString * Stream::read_string(BASE_CHAR terminator, Readtable * rt)

@@ -352,7 +352,7 @@ inline long fixnum_value(Value value)
   if (fixnump(value))
     return value >> FIXNUM_SHIFT;
   signal_type_error(value, S_fixnum);
-  // Not reached.
+  // not reached
   return 0;
 }
 
@@ -399,7 +399,7 @@ inline INDEX check_index(Value value)
     }
   signal_type_error(value, list3(S_integer, make_fixnum(0),
                                  make_fixnum(MOST_POSITIVE_FIXNUM)));
-  // Not reached.
+  // not reached
   return 0;
 }
 
@@ -419,7 +419,7 @@ inline INDEX check_index(Value value, INDEX min, INDEX max)
     }
   signal_type_error(value, list3(S_integer, make_fixnum(min),
                                  make_fixnum(max)));
-  // Not reached.
+  // not reached
   return 0;
 }
 
@@ -430,7 +430,7 @@ inline BIT check_bit(Value value)
   if (value == (1 << FIXNUM_SHIFT))
     return 1;
   signal_type_error(value, S_bit);
-  // Not reached.
+  // not reached
   return 0;
 }
 
@@ -450,7 +450,7 @@ inline BASE_CHAR char_value(Value value)
   if (characterp(value))
       return value >> LOWTAG_BITS;
   signal_type_error(value, S_character);
-  // Not reached.
+  // not reached
   return 0;
 }
 

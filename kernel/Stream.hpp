@@ -186,6 +186,8 @@ public:
 
   virtual long read_byte();
 
+  Value read_binary_data(INDEX length);
+
   // not virtual
   void inline_write_byte(BYTE b)
   {

@@ -584,6 +584,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_fasl_sharp_left_paren, SYS_fasl_sharp_left_paren, 3, 3);
   ADD_PRIMITIVE(S_fasl_sharp_o, SYS_fasl_sharp_o, 3, 3);
   ADD_PRIMITIVE(S_fasl_sharp_p, SYS_fasl_sharp_p, 3, 3);
+  ADD_PRIMITIVE(S_fasl_sharp_percent, SYS_fasl_sharp_percent, 3, 3);
   ADD_PRIMITIVE(S_fasl_sharp_quote, SYS_fasl_sharp_quote, 3, 3);
   ADD_PRIMITIVE(S_fasl_sharp_r, SYS_fasl_sharp_r, 3, 3);
   ADD_PRIMITIVE(S_fasl_sharp_s, SYS_fasl_sharp_s, 3, 3);
