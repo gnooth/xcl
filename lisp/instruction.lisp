@@ -166,99 +166,107 @@
                                               (emit (ldb (byte 8 16) ,var))
                                               (emit (ldb (byte 8 24) ,var))))))
        (dolist (instruction instructions)
-         (case (instruction-kind instruction)
-           (:dead
-            )
-           (:byte
-            (setf (aref code-vector i) (instruction-data instruction))
-            (incf i))
-           (:bytes
-            (dolist (byte (instruction-data instruction))
-              (setf (aref code-vector i) byte)
-              (incf i)))
-           (:constant
-            (let* ((form (instruction-data instruction))
-                   (x (value-to-ub32 form)))
-              (unless (and (symbolp form)
-                           (eq (symbol-package (truly-the symbol form)) +common-lisp-package+))
-                (pushnew form constants :test 'eq))
-              (emit (ldb (byte 8  0) x))
-              (emit (ldb (byte 8  8) x))
-              (emit (ldb (byte 8 16) x))
-              (emit (ldb (byte 8 24) x))))
-           (:function                                           ; REVIEW
-            (let* ((symbol (instruction-data instruction))
-                   (function (symbol-function symbol))
-                   (x (value-to-ub32 function)))
-              (unless (kernel-function-p function)
-                (pushnew function constants :test 'eq))
-              (emit (ldb (byte 8  0) x))
-              (emit (ldb (byte 8  8) x))
-              (emit (ldb (byte 8 16) x))
-              (emit (ldb (byte 8 24) x))))
-           (:call
-            (let* ((here (+ (vector-data code-vector) i))
-                   (what (instruction-data instruction))
-                   (address (etypecase what
-                              (integer what)
-                              (string
-                               (or (gethash2-1 what *runtime-names*)
-                                   (error "Unknown runtime name ~S." what)))
-                              (symbol
-                               (cond ((symbol-package (truly-the symbol what))
-                                      (function-code (symbol-function what)))
-                                     ;; an uninterned symbol is a label
-                                     (t
-                                      (+ (vector-data code-vector) (symbol-global-value what)))))))
-                   (displacement (- address (+ here 5))))
-              (emit #xe8)
-              (emit-32bit-displacement displacement)))
-           (:recurse
-            (let* ((displacement (- 0 (+ i 5))))
-              (emit #xe8)
-              (emit-32bit-displacement displacement)))
-           (:exit
-;;             (when (eql (instruction-size instruction) 2)
-;;               (emit #xc9)) ; leave
-;;             (emit #xc3)
-            (dolist (byte (instruction-data instruction))
-              (setf (aref code-vector i) byte)
-              (incf i)))
-           ((:jmp :jmp-short)
-            (let* ((short (eq (instruction-kind instruction) :jmp-short))
-                   (here (+ (vector-data code-vector) i))
-                   (args (instruction-data instruction))
-                   (test (car args))
-                   (label (cadr args))
-                   (size (instruction-size instruction))
-                   (displacement (- (+ (vector-data code-vector) (symbol-global-value label)) (+ here size))))
-              (aver (eql (length args) 2))
-              (aver (or (keywordp test) (eq test t)))
-              (when short
-                (when (or (< displacement -128) (> displacement 127))
-                  ;; displacement is out of range for short jump
-                  (set-instruction-kind instruction :jmp)
-                  (set-instruction-size instruction (if (eq test t) 5 6))
-                  (go top))) ; start over
-              (cond ((or (eq test t) ; unconditional jump
-                         (eq test :jump-table))
-                     (emit (if short #xeb #xe9)))
-                    (t
-                     (let ((byte (opcode-for-test test)))
-                       (declare (type (unsigned-byte 8) byte))
-                       (cond (short
-                              (emit byte))
-                             (t
-                              (emit #x0f)
-                              (emit (+ byte #x10)))))))
-              (cond (short
-                     (emit (ldb (byte 8 0) displacement)))
-                    (t
-                     (emit-32bit-displacement displacement)))))
-           (:label
-            )
-           (t
-            (error "unsupported")))))
+         (if (instruction-p instruction)
+             (case (instruction-kind instruction)
+               (:dead
+                )
+               (:byte
+                (setf (aref code-vector i) (instruction-data instruction))
+                (incf i))
+               (:bytes
+                (dolist (byte (instruction-data instruction))
+                  (setf (aref code-vector i) byte)
+                  (incf i)))
+               (:constant
+                (let* ((form (instruction-data instruction))
+                       (x (value-to-ub32 form)))
+                  (unless (and (symbolp form)
+                               (eq (symbol-package (truly-the symbol form)) +common-lisp-package+))
+                    (pushnew form constants :test 'eq))
+                  (emit (ldb (byte 8  0) x))
+                  (emit (ldb (byte 8  8) x))
+                  (emit (ldb (byte 8 16) x))
+                  (emit (ldb (byte 8 24) x))))
+               (:function                                           ; REVIEW
+                (let* ((symbol (instruction-data instruction))
+                       (function (symbol-function symbol))
+                       (x (value-to-ub32 function)))
+                  (unless (kernel-function-p function)
+                    (pushnew function constants :test 'eq))
+                  (emit (ldb (byte 8  0) x))
+                  (emit (ldb (byte 8  8) x))
+                  (emit (ldb (byte 8 16) x))
+                  (emit (ldb (byte 8 24) x))))
+               (:call
+                (let* ((here (+ (vector-data code-vector) i))
+                       (what (instruction-data instruction))
+                       (address (etypecase what
+                                  (integer what)
+                                  (string
+                                   (or (gethash2-1 what *runtime-names*)
+                                       (error "Unknown runtime name ~S." what)))
+                                  (symbol
+                                   (cond ((symbol-package (truly-the symbol what))
+                                          (function-code (symbol-function what)))
+                                         ;; an uninterned symbol is a label
+                                         (t
+                                          (+ (vector-data code-vector) (symbol-global-value what)))))))
+                       (displacement (- address (+ here 5))))
+                  (emit #xe8)
+                  (emit-32bit-displacement displacement)))
+               (:recurse
+                (let* ((displacement (- 0 (+ i 5))))
+                  (emit #xe8)
+                  (emit-32bit-displacement displacement)))
+               (:exit
+                ;;             (when (eql (instruction-size instruction) 2)
+                ;;               (emit #xc9)) ; leave
+                ;;             (emit #xc3)
+                (dolist (byte (instruction-data instruction))
+                  (setf (aref code-vector i) byte)
+                  (incf i)))
+               ((:jmp :jmp-short)
+                (let* ((short (eq (instruction-kind instruction) :jmp-short))
+                       (here (+ (vector-data code-vector) i))
+                       (args (instruction-data instruction))
+                       (test (car args))
+                       (label (cadr args))
+                       (size (instruction-size instruction))
+                       (displacement (- (+ (vector-data code-vector) (symbol-global-value label)) (+ here size))))
+                  (aver (eql (length args) 2))
+                  (aver (or (keywordp test) (eq test t)))
+                  (when short
+                    (when (or (< displacement -128) (> displacement 127))
+                      ;; displacement is out of range for short jump
+                      (set-instruction-kind instruction :jmp)
+                      (set-instruction-size instruction (if (eq test t) 5 6))
+                      (go top))) ; start over
+                  (cond ((or (eq test t) ; unconditional jump
+                             (eq test :jump-table))
+                         (emit (if short #xeb #xe9)))
+                        (t
+                         (let ((byte (opcode-for-test test)))
+                           (declare (type (unsigned-byte 8) byte))
+                           (cond (short
+                                  (emit byte))
+                                 (t
+                                  (emit #x0f)
+                                  (emit (+ byte #x10)))))))
+                  (cond (short
+                         (emit (ldb (byte 8 0) displacement)))
+                        (t
+                         (emit-32bit-displacement displacement)))))
+               (:label
+                )
+               (t
+                (error "unsupported")))
+             (progn
+               ;;(aver (not (instruction-p instruction)))
+               ;;(aver (typep instruction '(simple-array (unsigned-byte 8) 1)))
+               ;; binary data
+               (dotimes (j (length instruction))
+                 (emit (aref instruction j))))
+             )))
      (aver (eql i length))
      (return-from generate-code-vector (values code-vector constants)))))
 
