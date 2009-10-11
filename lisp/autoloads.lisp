@@ -244,7 +244,7 @@
 (autoload '(query-readline y-or-n-p yes-or-no-p) "lisp/query")
 
 (export '(dump-form dump-top-level-form)) ; REVIEW also in dump-form.lisp
-(autoload '(dump-form dump-top-level-form) "lisp/dump-form")
+(autoload '(dump-form dump-top-level-form) "compiler/dump-form")
 
 (in-package "EXTENSIONS")
 (export 'dump-ir2)

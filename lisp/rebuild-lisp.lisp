@@ -31,7 +31,7 @@
   (with-compilation-unit ()
     (let ((*default-pathname-defaults* *xcl-home*))
       (load (compile-file "lisp/precompiler.lisp"))
-      (load (compile-file "lisp/dump-form.lisp"))
+      (load (compile-file "compiler/dump-form.lisp"))
       (load (compile-file "lisp/instruction.lisp"))
       (load (compile-file "lisp/local-variable-information.lisp"))
       (load (compile-file "lisp/canonicalize-type.lisp"))
