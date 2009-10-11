@@ -281,7 +281,11 @@
   (when (length-eql form 3)
     (let* ((type-arg (%caddr form)))
       (when (quoted-form-p type-arg)
-        (return-from derive-type-coerce (canonicalize-type (%cadr type-arg))))))
+        (let ((type (canonicalize-type (%cadr type-arg))))
+          (unless (or (eq type 'COMPLEX) ; since (type-of (coerce 1 'complex)) => bit
+                      (and (consp type)
+                           (eq (%car type) 'COMPLEX)))
+            (return-from derive-type-coerce type))))))
   :unknown)
 
 (defknown derive-type-concatenate (t) t)
