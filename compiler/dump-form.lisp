@@ -1,6 +1,6 @@
 ;;; dump-form.lisp
 ;;;
-;;; Copyright (C) 2004-2007 Peter Graves
+;;; Copyright (C) 2004-2009 Peter Graves
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -16,9 +16,9 @@
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-(in-package "SYSTEM")
+(in-package "COMPILER")
 
-(export '(dump-form dump-top-level-form)) ; REVIEW also in boot.lisp
+(export '(dump-form dump-top-level-form))
 
 (defknown dump-cons (cons stream) t)
 (defun dump-cons (object stream)
