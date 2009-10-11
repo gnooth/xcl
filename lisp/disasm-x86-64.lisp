@@ -326,7 +326,15 @@
                                   operand2 (make-register-operand (register reg prefix-byte)))))
                          ((eql byte2 #xb6)
                           (let ((byte3 (mref-8 block-start (+ offset 2))))
-                            (cond ((and (eql byte3 #x02)
+                            (cond ((and (eql byte3 #x00)
+                                        (eql prefix-byte #x48))
+                                   (setq length 3
+                                         mnemonic :movzbq
+                                         operand1 (make-operand :kind :relative
+                                                                :register :rax
+                                                                :data 0)
+                                         operand2 (make-register-operand :rax)))
+                                  ((and (eql byte3 #x02)
                                         (eql prefix-byte #x48))
                                    (setq length 3
                                          mnemonic :movzbq
