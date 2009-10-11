@@ -153,8 +153,17 @@ Value SYS_fasl_read_quote(Value streamarg, Value ignored)
 // ### fasl-read-right-paren stream character => value
 Value SYS_fasl_read_right_paren(Value streamarg, Value ignored)
 {
+  Stream * stream = check_stream(streamarg);
+  Value position = stream->file_position();
+  String * message = new String("Unmatched right parenthesis");
+  if (position != NIL)
+    {
+      message->append(" at offset ");
+      message->append(::write_to_string(position));
+    }
+  message->append(".");
   return signal_lisp_error(new ReaderError(check_stream(streamarg),
-                                           "Unmatched right parenthesis."));
+                                           message));
 }
 
 // ### fasl-read-string stream character => value
