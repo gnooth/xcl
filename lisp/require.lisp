@@ -26,7 +26,7 @@
 (define-module "ASSEMBLER"             "compiler/assembler")
 (define-module "DUMP-FORM"             "compiler/dump-form")
 (define-module "CLOS"                  "lisp/clos")
-(define-module "WITH-COMPILATION-UNIT" "lisp/with-compilation-unit")
+(define-module "WITH-COMPILATION-UNIT" "compiler/with-compilation-unit")
 (define-module "X86"                   "lisp/x86")
 (define-module "X86-64"                "lisp/x86-64")
 

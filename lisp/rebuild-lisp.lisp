@@ -68,7 +68,7 @@
       (load (compile-file "lisp/find.lisp"))
       (load (compile-file "lisp/coerce.lisp"))
       (load (compile-file "lisp/delete.lisp"))
-      (load (compile-file "lisp/with-compilation-unit.lisp"))
+      (load (compile-file "compiler/with-compilation-unit.lisp"))
       (load (compile-file "lisp/subtypep.lisp"))
       (load (compile-file "lisp/format.lisp")))
     (let ((*default-pathname-defaults* (merge-pathnames "lisp/" *xcl-home*)))
