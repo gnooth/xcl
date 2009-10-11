@@ -442,6 +442,7 @@
 (defknown check-fixnum-bounds (t t t) fixnum)
 (defknown classp (t) boolean (:safe))
 (defknown coerce-to-function (t) function)
+(defknown coerce-list-to-simple-vector (list) simple-vector)
 (defknown complexp (t) boolean (:safe))
 (defknown concatenate (*) sequence)
 (defknown conditionp (t) boolean (:safe))

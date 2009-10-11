@@ -144,8 +144,8 @@
 
 (autoload 'assign-setf-macro "lisp/defsetf")
 
-(export '(coerce-list-to-vector coerce-vector-to-list))
-(autoload '(coerce coerce-list-to-vector coerce-vector-to-list) "lisp/coerce")
+(export '(coerce-list-to-simple-vector coerce-vector-to-list))
+(autoload '(coerce coerce-list-to-simple-vector coerce-vector-to-list) "lisp/coerce")
 (autoload 'delete-package)
 (autoload-macro 'defpackage)
 (autoload-macro 'do-external-symbols)

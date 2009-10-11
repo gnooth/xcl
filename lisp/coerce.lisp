@@ -18,7 +18,7 @@
 
 (in-package "SYSTEM")
 
-(defun coerce-list-to-vector (list)
+(defun coerce-list-to-simple-vector (list)
   (let* ((length (length list))
          (result (make-simple-vector length)))
     (dotimes (i length)
@@ -53,7 +53,7 @@
          object)
         ((and (listp object)
               (memq result-type '(VECTOR SIMPLE-VECTOR)))
-         (coerce-list-to-vector object))
+         (coerce-list-to-simple-vector object))
         ((and (vectorp object)
               (eq result-type 'LIST))
          (coerce-vector-to-list object))
