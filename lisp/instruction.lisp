@@ -168,8 +168,7 @@
        (dolist (instruction instructions)
          (if (instruction-p instruction)
              (case (instruction-kind instruction)
-               (:dead
-                )
+               (:dead)
                (:byte
                 (setf (aref code-vector i) (instruction-data instruction))
                 (incf i))
@@ -294,8 +293,7 @@
          ;;              (print-instruction instruction))
          (if (instruction-p instruction)
              (case (instruction-kind instruction)
-               (:dead
-                )
+               (:dead)
                (:byte
                 (setf (aref code-vector i) (instruction-data instruction))
                 (incf i))
@@ -416,12 +414,11 @@
                 )
                (t
                 (error "unsupported")))
-             (progn
-;;                (aver (not (instruction-p instruction)))
-;;                (aver (typep instruction '(simple-array (unsigned-byte 8) 1)))
-               ;; binary data
-               (dotimes (j (length instruction))
-                 (emit (aref instruction j))))
-             )))
+             ;; binary data
+             (let ((bytes instruction))
+               (declare (type (simple-array (unsigned-byte 8) 1) bytes))
+               (dotimes (j (length bytes))
+                 (declare (type index j))
+                 (emit (aref bytes j)))))))
 ;;      (aver (eql i length))
      (return-from generate-code-vector (values code-vector constants)))))

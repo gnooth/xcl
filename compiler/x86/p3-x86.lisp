@@ -161,32 +161,32 @@
                    (t
                     ;; nothing to do
                     ))
-             (add-instruction (assemble-instruction instruction) new-code))
+             (add-instruction (assemble-ir2-instruction instruction) new-code))
             (:push
              (cond ((var-p operand1)
                     (cond ((var-index operand1)
                            (setf (operand1 instruction)
                                  (list (index-displacement (var-index operand1)) :ebp))
-                           (add-instruction (assemble-instruction instruction) new-code))
+                           (add-instruction (assemble-ir2-instruction instruction) new-code))
                           ((var-register operand1)
                            (setf (operand1 instruction) (var-register operand1))
-                           (add-instruction (assemble-instruction instruction) new-code))
+                           (add-instruction (assemble-ir2-instruction instruction) new-code))
                           (t
                            (mumble "p3 :push no var-index for var ~S~%" (var-name operand1))
                            (unsupported))))
                    ((and (consp operand1)
                          (length-eql operand1 2)
                          (eq (%car operand1) :constant))
-                    (add-instruction (make-instruction :byte 1 #x68) new-code)
+                    (add-instruction (make-instruction :bytes 1 '(#x68)) new-code)
                     (add-instruction (make-instruction :constant 4 (%cadr operand1)) new-code))
                    (t
                     ;; nothing to do
-                    (add-instruction (assemble-instruction instruction) new-code))))
+                    (add-instruction (assemble-ir2-instruction instruction) new-code))))
             (:push-immediate
              (cond ((and (consp operand1)
                          (eq (%car operand1) :constant))
                     (aver (length-eql operand1 2))
-                    (add-instruction (make-instruction :byte 1 #x68) new-code)
+                    (add-instruction (make-instruction :bytes 1 '(#x68)) new-code)
                     (add-instruction
                      (make-instruction :constant 4 (%cadr operand1))
                      new-code))
@@ -223,23 +223,11 @@
                           (register operand2))
                       ;; mov imm32, reg
                       (add-instruction
-                       (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                       (make-instruction :bytes 1 (list (+ #xb8 (register-number register))))
                        new-code)
                       (add-instruction
                        (make-instruction :function 4 symbol)
                        new-code)))
-                   ;;                          ((and (consp operand1)
-                   ;;                                (eq (%car operand1) :constant-32))
-                   ;;                           (aver (length-eql operand1 2))
-                   ;;                           (let ((form (%cadr operand1))
-                   ;;                                 (register operand2))
-                   ;;                             ;; mov imm32, reg
-                   ;;                             (add-instruction
-                   ;;                              (make-instruction :byte 1 (+ #xb8 (register-number register)))
-                   ;;                              new-code)
-                   ;;                             (add-instruction
-                   ;;                              (make-instruction :constant-32 4 form)
-                   ;;                              new-code)))
                    ((and (consp operand1)
                          (eq (%car operand1) :constant))
                     (aver (length-eql operand1 2))
@@ -247,7 +235,7 @@
                           (register operand2))
                       (cond ((memq register '(:eax :ebx :ecx :edx :esi :edi))
                              (add-instruction
-                              (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                              (make-instruction :bytes 1 (list (+ #xb8 (register-number register))))
                               new-code))
                             (t
                              (mumble "p3 :move-immediate :constant unsupported case register = ~S~%"
@@ -274,13 +262,13 @@
                       (unsupported)))
                (aver (memq register '(:eax :ebx :ecx :edx :esi :edi)))
                (if (eq register :eax)
-                   (add-instruction (make-instruction :byte 1 #x3d) new-code)
+                   (add-instruction (make-instruction :bytes 1 '(#x3d)) new-code)
                    (add-instruction (make-instruction :bytes 2
                                                          (list #x81 (+ #xf8 (register-number register))))
                                        new-code))
                (add-instruction (make-instruction :constant 4 form) new-code)))
             (:byte
-             (add-instruction (make-instruction :byte 1 operand1) new-code))
+             (add-instruction (make-instruction :bytes 1 (list operand1)) new-code))
             (:bytes
              (let* ((bytes (operand1 instruction))
                     (length (length bytes)))
@@ -288,21 +276,12 @@
             (:recurse
              (add-instruction (make-instruction :recurse 5 nil) new-code))
             (t
-             (add-instruction (assemble-instruction instruction) new-code))))
-        ;;             (when (consp instruction)
-        ;;               (let ((assembled-instruction (assemble-instruction instruction)))
-        ;;                 (setf (svref code i) assembled-instruction)))
-        ;;             (add-instruction instruction new-code)
-        ;;             )
-        ))
+             (add-instruction (assemble-ir2-instruction instruction) new-code))))))
     (when (> (length new-code) initial-size)
       (mumble "p3 initial-size = ~D (length new-code) = ~D~%"
               initial-size
               (length new-code)))
-    (setq *code* (coerce new-code 'simple-vector))
-    ;;       (when leaf-p
-    ;;         (mumble "~S leaf-p = ~S var-ref-count = ~S~%" (compiland-name compiland) leaf-p var-ref-count))
-    ))
+    (setq *code* (coerce new-code 'simple-vector))))
 
 (defun p3 ()
   (finalize-ir2)

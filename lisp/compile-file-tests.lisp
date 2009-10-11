@@ -10,7 +10,7 @@
      (with-open-file (stream *compile-file-test-source-file*
                              :direction :output
                              :if-exists :supersede)
-       (sys:dump-top-level-form
+       (c:dump-top-level-form
         '(defun ,name ,lambda-list ,@body)
         stream))
      (let ((c::*catch-errors* nil))

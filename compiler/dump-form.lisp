@@ -63,6 +63,7 @@
              (sys:%stream-write-char stream (code-char (aref vector i)))))
           ((and (eql length 3)
                 (eq (aref vector 0) :bytes))            ;REVIEW
+           (aver nil)
 ;;            (mumble "dump-vector questionable case~%")
 ;;            (%stream-write-char stream #\#)
 ;;            (%stream-write-object stream length)

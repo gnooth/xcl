@@ -18,6 +18,48 @@
 
 (in-package "COMPILER")
 
+(progn
+  (deftype ir2-instruction () 'cons)
+
+  (declaim (inline ir2-instruction-p))
+  (defun ir2-instruction-p (thing)
+    (and (consp thing)
+         (length-eql thing 3)))
+
+  (declaim (inline make-ir2-instruction))
+  (defun make-ir2-instruction (operator operand1 operand2)
+    (list operator operand1 operand2))
+
+  (declaim (inline operator))
+  (defun operator (instruction)
+    (first instruction))
+
+  (declaim (inline operatand1))
+  (defun operand1 (instruction)
+    (second instruction))
+
+  (declaim (inline operatand2))
+  (defun operand2 (instruction)
+    (third instruction))
+
+  (declaim (inline set-operator))
+  (defun set-operator (instruction operator)
+    (setf (first instruction) operator))
+
+  (declaim (inline set-operand1))
+  (defun set-operand1 (instruction operand1)
+    (setf (second instruction) operand1))
+
+  (declaim (inline set-operand2))
+  (defun set-operand2 (instruction operand2)
+    (setf (third instruction) operand2))
+
+  (assign-setf-inverse 'operator 'set-operator)
+  (assign-setf-inverse 'operand1 'set-operand1)
+  (assign-setf-inverse 'operand2 'set-operand2)
+  )
+
+#+nil
 (defstruct (ir2-instruction
             (:conc-name nil)
             (:constructor make-ir2-instruction (operator operand1 operand2)))

@@ -2173,18 +2173,18 @@ for special variables."
 (defconstant +assemble-instruction-output+
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
 
-(defun assemble-instruction (instruction)
+(defun assemble-ir2-instruction (instruction)
 ;;   (declare (type cons instruction))
   (aver (ir2-instruction-p instruction))
   (case (operator instruction)
     (:label
      (make-instruction :label 0 (operand1 instruction)))
     (:jmp-short
-     (let ((test (operand1 instruction))
+     (let ((test  (operand1 instruction))
            (label (operand2 instruction)))
        (make-instruction :jmp-short 2 (list test label))))
     (:jmp
-     (let ((test (operand1 instruction))
+     (let ((test  (operand1 instruction))
            (label (operand2 instruction)))
        (make-instruction :jmp
                           (if (memq test '(t :jump-table))
@@ -2197,55 +2197,12 @@ for special variables."
      (let ((asm:*output* +assemble-instruction-output+))
        (setf (fill-pointer +assemble-instruction-output+) 0)
 ;;        (asm::assemble-instruction instruction)
-       (asm::assemble-instruction (list (operator instruction) (operand1 instruction) (operand2 instruction)))
+       (if (consp instruction)
+           (asm::assemble-instruction instruction)
+           (asm::assemble-instruction (list (operator instruction)
+                                            (operand1 instruction)
+                                            (operand2 instruction))))
        (make-instruction :bytes (length asm:*output*) (coerce-vector-to-list asm:*output*))))))
-
-;; (defun preoptimize-1 ()
-;;   (mumble "preoptimize-1 called~%")
-;;   (let ((code *code*)
-;;         (changed nil))
-;;     (loop
-;;       (dotimes (i (1- (length code)))
-;;         (let ((instruction-1 (svref code i))
-;;               (instruction-2 (svref code (1+ i))))
-;;           (when (and (consp instruction-2)
-;;                      (eq (first instruction-2) :leave)
-;;                      (consp instruction-1)
-;;                      (eq (first instruction-1) :pop)
-;;                      (reg32-p (second instruction-1)))
-;;             (setf (svref code i) nil)
-;;             (setq changed t))))
-;;       (unless changed
-;;         (return))
-;;       (setq code (delete nil code))
-;;       (setq *code* code))))
-
-;; (defun p3 (code)
-;;   (declare (type simple-vector code))
-;; ;;   (mumble "p3 called~%")
-;;   (dotimes (i (length code))
-;;     (let ((instruction (svref code i)))
-;;       (when (listp instruction)
-;;         (let ((mnemonic (first instruction))
-;;               (operand1 (second instruction))
-;;               (operand2 (third  instruction)))
-;;           (when (eq mnemonic :mov)
-;;             (cond ((var-p operand1)
-;;                    ;; var ref
-;;                    (cond ((var-index operand1)
-;;                           (setf (second instruction)
-;;                                 (list (index-displacement (var-index operand1)) :rbp)))
-;;                          (t
-;;                           (unsupported))))
-;;                   ((var-p operand2)
-;;                    ;; setq
-;;                    (cond ((var-index operand2)
-;;                           (setf (third instruction)
-;;                                 (list (index-displacement (var-index operand2)) :rbp)))
-;;                          (t
-;;                           (unsupported)))))))
-;;         (let ((assembled-instruction (assemble-instruction instruction)))
-;;           (setf (svref code i) assembled-instruction))))))
 
 (defknown use-fast-call-p () t)
 (defun use-fast-call-p ()

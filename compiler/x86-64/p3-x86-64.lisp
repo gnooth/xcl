@@ -129,19 +129,15 @@
                  (vector-push-extend instruction new-code)))))))
     (setq *code* (coerce new-code 'simple-vector))))
 
-(defparameter *combine-binary-data* t)
-
 (defun add-instruction (instruction code)
-  (when (and *combine-binary-data*
-             (memq (instruction-kind instruction) '(:bytes :byte))
+  (when (and (eq (instruction-kind instruction) ':bytes)
              (plusp (length code)))
     (let ((last-instruction (aref code (1- (length code)))))
       (when (eq (instruction-kind last-instruction) :bytes)
         (let* ((new-size (+ (instruction-size instruction)
                             (instruction-size last-instruction)))
-               (data (instruction-data instruction))
                (new-data (nconc (instruction-data last-instruction)
-                                (if (listp data) data (list data)))))
+                                (instruction-data instruction))))
           (set-instruction-size last-instruction new-size)
           (set-instruction-data last-instruction new-data)
           (return-from add-instruction)))))
@@ -167,13 +163,10 @@
              (cond ((var-p operand1)
                     ;; var ref
                     (cond ((var-index operand1)
-;;                                (set-operand1 instruction
-;;                                              (list (index-displacement (var-index operand1)) :rbp)))
                            (setf (operand1 instruction)
                                  (list (index-displacement (var-index operand1)) :rbp)))
                           ((var-register operand1)
-                           (setf (operand1 instruction)
-                                 (var-register operand1)))
+                           (setf (operand1 instruction) (var-register operand1)))
                           (t
                            (mumble "p3 no var-index for var ~S~%" (var-name operand1))
                            (unsupported))))
@@ -190,7 +183,7 @@
                    (t
                     ;; nothing to do
                     ))
-             (add-instruction (assemble-instruction instruction) new-code))
+             (add-instruction (assemble-ir2-instruction instruction) new-code))
             (:push
              (cond ((var-p operand1)
                     (cond ((var-index operand1)
@@ -204,7 +197,7 @@
                    (t
                     ;; nothing to do
                     ))
-             (add-instruction (assemble-instruction instruction) new-code))
+             (add-instruction (assemble-ir2-instruction instruction) new-code))
             (:exit
              (aver nil)
 ;;                  (let ((instructions nil))
@@ -254,7 +247,7 @@
                           (register operand2))
                       ;; mov imm32, reg
                       (add-instruction
-                       (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                       (make-instruction :bytes 1 (list (+ #xb8 (register-number register))))
                        new-code)
                       (add-instruction
                        (make-instruction :function 4 symbol)
@@ -266,7 +259,7 @@
                           (register operand2))
                       (cond ((memq register '(:eax :ebx :ecx :edx :esi :edi))
                              (add-instruction
-                              (make-instruction :byte 1 (+ #xb8 (register-number register)))
+                              (make-instruction :bytes 1 (list (+ #xb8 (register-number register))))
                               new-code))
                             ((memq register '(:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15))
                              (add-instruction
@@ -304,7 +297,7 @@
                                        new-code))
                (add-instruction (make-instruction :constant-32 4 form) new-code)))
             (:byte
-             (add-instruction (make-instruction :byte 1 operand1) new-code))
+             (add-instruction (make-instruction :bytes 1 (list operand1)) new-code))
             (:bytes
              (let* ((bytes (operand1 instruction))
                     (length (length bytes)))
@@ -312,12 +305,19 @@
             (:recurse
              (add-instruction (make-instruction :recurse 5 nil) new-code))
             (t
-             (add-instruction (assemble-instruction instruction) new-code))))
-        ;;             (vector-push-extend instruction new-code)
-        ;;             )
-        ))
+             (add-instruction (assemble-ir2-instruction instruction) new-code))))))
     (setq *code* (coerce new-code 'simple-vector))))
+
+(defun convert-binary-data ()
+  (let ((code *code*))
+    (declare (type simple-vector code))
+    (dotimes (i (length code))
+      (let ((instruction (aref code i)))
+        (when (eq (instruction-kind instruction) :bytes)
+          (setf (aref code i)
+                (coerce (the list (instruction-data instruction)) '(simple-array (unsigned-byte 8) 1))))))))
 
 (defun p3 ()
   (finalize-ir2)
-  (assemble-ir2))
+  (assemble-ir2)
+  (convert-binary-data))
