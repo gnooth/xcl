@@ -482,8 +482,17 @@ Value SYS_read_quote(Value streamarg, Value ignored)
 // ### read-right-paren stream character => value
 Value SYS_read_right_paren(Value streamarg, Value ignored)
 {
+  Stream * stream = check_stream(streamarg);
+  Value position = stream->file_position();
+  String * message = new String("Unmatched right parenthesis");
+  if (position != NIL)
+    {
+      message->append(" at offset ");
+      message->append(::write_to_string(position));
+    }
+  message->append(".");
   return signal_lisp_error(new ReaderError(check_stream(streamarg),
-                                           "Unmatched right parenthesis."));
+                                           message));
 }
 
 // ### read-string stream character => value
