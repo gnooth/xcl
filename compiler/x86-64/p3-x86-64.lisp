@@ -307,17 +307,3 @@
             (t
              (add-instruction (assemble-ir2-instruction instruction) new-code))))))
     (setq *code* (coerce new-code 'simple-vector))))
-
-(defun convert-binary-data ()
-  (let ((code *code*))
-    (declare (type simple-vector code))
-    (dotimes (i (length code))
-      (let ((instruction (aref code i)))
-        (when (eq (instruction-kind instruction) :bytes)
-          (setf (aref code i)
-                (coerce (the list (instruction-data instruction)) '(simple-array (unsigned-byte 8) 1))))))))
-
-(defun p3 ()
-  (finalize-ir2)
-  (assemble-ir2)
-  (convert-binary-data))

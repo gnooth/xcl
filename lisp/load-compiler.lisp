@@ -54,6 +54,8 @@
 
 (load-system-file "compiler/p2")
 
+(load-system-file "compiler/p3")
+
 #+x86
 (progn
   (load-system-file "compiler/x86/p2-x86")

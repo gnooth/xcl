@@ -51,6 +51,7 @@
       (load (compile-file "compiler/x86/p2-x86.lisp"))
       #+x86-64
       (load (compile-file "compiler/x86-64/p2-x86-64.lisp"))
+      (load (compile-file "compiler/p3.lisp"))
       #+x86
       (load (compile-file "compiler/x86/p3-x86.lisp"))
       #+x86-64

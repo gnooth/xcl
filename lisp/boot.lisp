@@ -231,9 +231,6 @@
 
 (load-system-file "lisp/define-compiler-macro")
 
-;; (autoload-macro 'defknown "known-functions")
-;; (autoload '%defknown "known-functions")
-
 ;; (load-system-file "lisp/reader.lisp")
 
 (make-package "XP" :use '("CL"))
@@ -262,18 +259,6 @@
 (load-system-file "lisp/load")
 
 (load-system-file "lisp/epsilons.lisp")
-
-;; (in-package "EXTENSIONS")
-;; (export 'dump-ir2)
-;; (autoload 'dump-ir2 "lisp/load-compiler")
-;; (export 'with-mutex)
-;; (autoload-macro 'with-mutex)
-
-;; (in-package "CL-USER")
-
-;; (autoload '(do-tests do-compiled-tests) "rt")
-;; (autoload 'run-random-tests)
-;; (autoload 'run-other-tests)
 
 (in-package "CL-USER")
 
