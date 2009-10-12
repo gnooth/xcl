@@ -30,4 +30,5 @@
 (defun p3 ()
   (finalize-ir2)
   (assemble-ir2)
-  (convert-binary-data))
+  (when (compile-file-p)
+    (convert-binary-data)))

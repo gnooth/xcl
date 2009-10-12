@@ -129,8 +129,9 @@
                  (vector-push-extend instruction new-code)))))))
     (setq *code* (coerce new-code 'simple-vector))))
 
-(defun add-instruction (instruction code)
-  (when (and (eq (instruction-kind instruction) ':bytes)
+(defun add-instruction (instruction code compile-file-p)
+  (when (and compile-file-p
+             (eq (instruction-kind instruction) ':bytes)
              (plusp (length code)))
     (let ((last-instruction (aref code (1- (length code)))))
       (when (eq (instruction-kind last-instruction) :bytes)
@@ -150,7 +151,8 @@
          (len (length code))
          ;; make initial size big enough to avoid having to resize the output vector
          (initial-size (max (logand (+ len (ash len -1) 16) (lognot 15)) 64))
-         (new-code (make-array initial-size :fill-pointer 0)))
+         (new-code (make-array initial-size :fill-pointer 0))
+         (compile-file-p (compile-file-p)))
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
@@ -183,7 +185,7 @@
                    (t
                     ;; nothing to do
                     ))
-             (add-instruction (assemble-ir2-instruction instruction) new-code))
+             (add-instruction (assemble-ir2-instruction instruction) new-code compile-file-p))
             (:push
              (cond ((var-p operand1)
                     (cond ((var-index operand1)
@@ -197,7 +199,7 @@
                    (t
                     ;; nothing to do
                     ))
-             (add-instruction (assemble-ir2-instruction instruction) new-code))
+             (add-instruction (assemble-ir2-instruction instruction) new-code compile-file-p))
             (:exit
              (aver nil)
 ;;                  (let ((instructions nil))
@@ -231,13 +233,13 @@
 ;;                      (vector-push-extend instruction new-code)
                  (let ((bytes (assemble instructions)))
                    (add-instruction (make-instruction :exit (length bytes) (coerce bytes 'list))
-                                       new-code))
+                                    new-code compile-file-p))
                  )
-               (add-instruction (make-instruction :jmp 5 (list t target)) new-code)))
+               (add-instruction (make-instruction :jmp 5 (list t target)) new-code compile-file-p)))
             (:call
 ;;                  (setq instruction (make-instruction :call 5 operand1))
 ;;                  (vector-push-extend instruction new-code)
-             (add-instruction (make-instruction :call 5 operand1) new-code)
+             (add-instruction (make-instruction :call 5 operand1) new-code compile-file-p)
              )
             (:move-immediate
              (cond ((and (consp operand1)
@@ -246,33 +248,29 @@
                     (let ((symbol (%cadr operand1))
                           (register operand2))
                       ;; mov imm32, reg
-                      (add-instruction
-                       (make-instruction :bytes 1 (list (+ #xb8 (register-number register))))
-                       new-code)
-                      (add-instruction
-                       (make-instruction :function 4 symbol)
-                       new-code)))
+                      (add-instruction (make-instruction :bytes 1 (list (+ #xb8 (register-number register))))
+                                       new-code compile-file-p)
+                      (add-instruction (make-instruction :function 4 symbol)
+                                       new-code compile-file-p)))
                    ((and (consp operand1)
                          (eq (%car operand1) :constant-32))
                     (aver (length-eql operand1 2))
                     (let ((form (%cadr operand1))
                           (register operand2))
                       (cond ((memq register '(:eax :ebx :ecx :edx :esi :edi))
-                             (add-instruction
-                              (make-instruction :bytes 1 (list (+ #xb8 (register-number register))))
-                              new-code))
+                             (add-instruction (make-instruction :bytes 1 (list (+ #xb8 (register-number register))))
+                                              new-code compile-file-p))
                             ((memq register '(:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15))
-                             (add-instruction
-                              (make-instruction :bytes 3
-                                                (list #x49 #xc7 (+ #xc0 (register-number register))))
-                              new-code))
+                             (add-instruction (make-instruction :bytes 3
+                                                                (list #x49 #xc7
+                                                                      (+ #xc0 (register-number register))))
+                                              new-code compile-file-p))
                             (t
                              (mumble "p3 :move-immediate :constant-32 unsupported case register = ~S~%"
                                      register)
                              (unsupported)))
-                      (add-instruction
-                       (make-instruction :constant-32 4 form)
-                       new-code)))
+                      (add-instruction (make-instruction :constant-32 4 form)
+                                       new-code compile-file-p)))
                    (t
                     (mumble "p3 :move-immediate unsupported case~%")
                     (unsupported))))
@@ -291,19 +289,19 @@
                       (unsupported)))
                (aver (memq register '(:rax :rbx :rcx :rdx :rsi :rdi)))
                (if (eq register :rax)
-                   (add-instruction (make-instruction :bytes 2 '(#x48 #x3d)) new-code)
+                   (add-instruction (make-instruction :bytes 2 '(#x48 #x3d)) new-code compile-file-p)
                    (add-instruction (make-instruction :bytes 3
                                                          (list #x48 #x81 (+ #xf8 (register-number register))))
-                                       new-code))
-               (add-instruction (make-instruction :constant-32 4 form) new-code)))
+                                       new-code compile-file-p))
+               (add-instruction (make-instruction :constant-32 4 form) new-code compile-file-p)))
             (:byte
-             (add-instruction (make-instruction :bytes 1 (list operand1)) new-code))
+             (add-instruction (make-instruction :bytes 1 (list operand1)) new-code compile-file-p))
             (:bytes
              (let* ((bytes (operand1 instruction))
                     (length (length bytes)))
-               (add-instruction (make-instruction :bytes length bytes) new-code)))
+               (add-instruction (make-instruction :bytes length bytes) new-code compile-file-p)))
             (:recurse
-             (add-instruction (make-instruction :recurse 5 nil) new-code))
+             (add-instruction (make-instruction :recurse 5 nil) new-code compile-file-p))
             (t
-             (add-instruction (assemble-ir2-instruction instruction) new-code))))))
+             (add-instruction (assemble-ir2-instruction instruction) new-code compile-file-p))))))
     (setq *code* (coerce new-code 'simple-vector))))
