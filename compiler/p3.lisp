@@ -18,6 +18,21 @@
 
 (in-package "COMPILER")
 
+(defun add-instruction (instruction code compile-file-p)
+  (when (and compile-file-p
+             (eq (instruction-kind instruction) ':bytes)
+             (plusp (length code)))
+    (let ((last-instruction (aref code (1- (length code)))))
+      (when (eq (instruction-kind last-instruction) :bytes)
+        (let* ((new-size (+ (instruction-size instruction)
+                            (instruction-size last-instruction)))
+               (new-data (nconc (instruction-data last-instruction)
+                                (instruction-data instruction))))
+          (set-instruction-size last-instruction new-size)
+          (set-instruction-data last-instruction new-data)
+          (return-from add-instruction)))))
+  (vector-push-extend instruction code))
+
 (defun convert-binary-data ()
   (let ((code *code*))
     (declare (type simple-vector code))
@@ -25,7 +40,8 @@
       (let ((instruction (aref code i)))
         (when (eq (instruction-kind instruction) :bytes)
           (setf (aref code i)
-                (coerce (the list (instruction-data instruction)) '(simple-array (unsigned-byte 8) 1))))))))
+                (coerce (the list (instruction-data instruction))
+                        '(simple-array (unsigned-byte 8) 1))))))))
 
 (defun p3 ()
   (finalize-ir2)

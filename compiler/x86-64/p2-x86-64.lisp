@@ -4457,7 +4457,7 @@
          (arg2 (second args))
          (type2 (derive-type arg2))
          (numargs (length args))
-         (thread-register (compiland-thread-register *current-compiland*)))
+         thread-register)
     (cond ((and (eq type2 :unknown)
                 (not (zerop *safety*)))
            nil)
@@ -4470,7 +4470,7 @@
                  (process-2-args args :default t)
                  (emit-call-2 '%gethash2-1 target))
                 (gethash2
-                 (cond (thread-register
+                 (cond ((setq thread-register (compiland-thread-register *current-compiland*))
                         (process-2-args args '(:rsi :rdx) t)
                         (inst :mov thread-register :rdi)
                         (emit-call-3 "RT_gethash2" target))
@@ -4479,7 +4479,7 @@
                         (emit-call-2 op target)))))
               t)
              (3
-              (cond (thread-register
+              (cond ((setq thread-register (compiland-thread-register *current-compiland*))
                      (process-3-args args '(:rsi :rdx :rcx) t)
                      (inst :mov thread-register :rdi)
                      (emit-call-4 "RT_gethash3" target))

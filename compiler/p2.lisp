@@ -139,9 +139,7 @@
 
 (defknown emit-byte (t) t)
 (defun emit-byte (byte)
-;;   (emit (make-ir2-instruction :byte byte nil))
-  (emit (make-ir2-instruction :bytes (list byte) nil))
-  )
+  (emit (make-ir2-instruction :bytes (list byte) nil)))
 
 (defknown emit-bytes (*) t)
 (defun emit-bytes (&rest bytes)

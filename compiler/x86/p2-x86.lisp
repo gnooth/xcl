@@ -3441,29 +3441,39 @@
          (args (cdr form))
          (arg2 (second args))
          (type2 (derive-type arg2))
-         (numargs (length args)))
-    (cond ((eq type2 :unknown)
-           (mumble "p2-gethash type2 is unknown~%")
+         (numargs (length args))
+         thread-var)
+    (cond ((and (eq type2 :unknown)
+                (not (zerop *safety*)))
            nil)
-          ((subtypep type2 'HASH-TABLE)
+          ((or (zerop *safety*)
+               (subtypep type2 'HASH-TABLE))
            (case numargs
              (2
-              (aver (memq op '(gethash2 gethash2-1)))
-              (when (eq op 'gethash2-1)
-                (setq op '%gethash2-1))
-              (process-2-args args :default t)
-              (emit-call-2 op target)
+              (process-2-args args :stack t)
+              (ecase op
+                (gethash2-1
+                 (emit-call-2 '%gethash2-1 target))
+                (gethash2
+                 (cond ((setq thread-var (compiland-thread-var *current-compiland*))
+                        (inst :push thread-var)
+                        (emit-call-3 "RT_gethash2" target))
+                       (t
+                        (emit-call-2 op target)))))
               t)
              (3
-              (aver (eq op 'gethash3))
-              (process-3-args args :default t)
-              (emit-call-3 op target)
+              (process-3-args args :stack t)
+              (cond ((setq thread-var (compiland-thread-var *current-compiland*))
+                     (inst :push thread-var)
+                     (emit-call-4 "RT_gethash3" target))
+                    (t
+                     (emit-call-3 'gethash3 target)))
               t)
              (t
-              (mumble "p2-gethash shouldn't happen~%")
+              ;; wrong number of arguments
               nil)))
           (t
-           (mumble "p2-gethash type2 is ~S~%" type2)
+           ;; error
            nil))))
 
 (defun p2-ash (form target)

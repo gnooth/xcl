@@ -129,21 +129,6 @@
                  (vector-push-extend instruction new-code)))))))
     (setq *code* (coerce new-code 'simple-vector))))
 
-(defun add-instruction (instruction code compile-file-p)
-  (when (and compile-file-p
-             (eq (instruction-kind instruction) ':bytes)
-             (plusp (length code)))
-    (let ((last-instruction (aref code (1- (length code)))))
-      (when (eq (instruction-kind last-instruction) :bytes)
-        (let* ((new-size (+ (instruction-size instruction)
-                            (instruction-size last-instruction)))
-               (new-data (nconc (instruction-data last-instruction)
-                                (instruction-data instruction))))
-          (set-instruction-size last-instruction new-size)
-          (set-instruction-data last-instruction new-data)
-          (return-from add-instruction)))))
-  (vector-push-extend instruction code))
-
 ;; converts IR2 into bytes
 (defun assemble-ir2 ()
   (let* ((compiland *current-compiland*)
@@ -201,21 +186,7 @@
                     ))
              (add-instruction (assemble-ir2-instruction instruction) new-code compile-file-p))
             (:exit
-             (aver nil)
-;;                  (let ((instructions nil))
-;;                    (unless (compiland-omit-frame-pointer compiland)
-;;                      (push '(:leave) instructions))
-;;                    (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
-;;                      (push `(:pop ,reg) instructions))
-;;                    (when (compiland-needs-thread-var-p compiland)
-;;                      (push '(:pop :r12) instructions))
-;;                    (push '(:ret) instructions)
-;;                    (setq instructions (nreverse instructions))
-;;                    (let ((bytes (assemble instructions)))
-;;                      (setq instruction
-;;                            (make-instruction :exit (length bytes) (coerce bytes 'list)))))
-;;                  (vector-push-extend instruction new-code)
-                 )
+             (aver nil))
             (:tail-call
              (let ((target operand1)
                    (instructions nil))
@@ -227,20 +198,13 @@
                  (push '(:pop :r12) instructions))
                (when instructions
                  (setq instructions (nreverse instructions))
-;;                      (let ((bytes (assemble instructions)))
-;;                        (setq instruction
-;;                              (make-instruction :exit (length bytes) (coerce bytes 'list))))
-;;                      (vector-push-extend instruction new-code)
                  (let ((bytes (assemble instructions)))
                    (add-instruction (make-instruction :exit (length bytes) (coerce bytes 'list))
                                     new-code compile-file-p))
                  )
                (add-instruction (make-instruction :jmp 5 (list t target)) new-code compile-file-p)))
             (:call
-;;                  (setq instruction (make-instruction :call 5 operand1))
-;;                  (vector-push-extend instruction new-code)
-             (add-instruction (make-instruction :call 5 operand1) new-code compile-file-p)
-             )
+             (add-instruction (make-instruction :call 5 operand1) new-code compile-file-p))
             (:move-immediate
              (cond ((and (consp operand1)
                          (eq (%car operand1) :function))
