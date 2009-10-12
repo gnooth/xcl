@@ -155,7 +155,7 @@
    (let* ((length (calculate-code-vector-length instructions))
           (code-vector (make-code-vector length))
           (i 0))
-     (declare (type index i))
+     (declare (type (unsigned-byte 24) i)) ; REVIEW how long can a code vector be?
      (macrolet ((emit (x)
                       `(progn (setf (aref code-vector i) ,x) (incf i)))
                 (emit-32bit-displacement (x)
@@ -277,7 +277,7 @@
    (let* ((length (calculate-code-vector-length instructions))
           (code-vector (make-code-vector length))
           (i 0))
-     (declare (type index i))
+     (declare (type (unsigned-byte 24) i)) ; REVIEW how long can a code vector be?
      (macrolet ((emit (x)
                       `(progn (setf (aref code-vector i) ,x) (incf i)))
                 (emit-32bit-displacement (x)

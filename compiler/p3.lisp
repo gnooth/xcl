@@ -18,6 +18,10 @@
 
 (in-package "COMPILER")
 
+(declaim (inline add-ir2-instruction))
+(defun add-ir2-instruction (instruction code)
+  (vector-push-extend instruction code))
+
 (defun add-instruction (instruction code compile-file-p)
   (when (and compile-file-p
              (eq (instruction-kind instruction) ':bytes)
