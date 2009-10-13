@@ -3050,7 +3050,6 @@
          (numargs (length args))
          (compiland *current-compiland*)
          (thread-register (compiland-thread-register compiland))
-         (closure-data-index (compiland-closure-data-index compiland))
          (local-function (find-local-function op))
          (use-fast-call-p (use-fast-call-p))
          op-register
@@ -3059,95 +3058,48 @@
     (declare (type compiland compiland))
     (declare (type local-function local-function))
     (aver thread-register)
-;;     (aver local-function)
-;;     (unless (<= 0 numargs 4)
-;;       (compiler-unsupported "P2-LOCAL-FUNCTION-CALL numargs = ~D not supported" numargs))
     (cond ((<= 0 numargs 4)
            (cond (use-fast-call-p
                   (setq op-register   (first  +call-argument-registers+)) ; rdi
                   (setq arg-registers (subseq +call-argument-registers+ 1 (+ 1 numargs)))
                   (setq runtime-name  (format nil "RT_fast_call_function_~D" numargs)))
                  (t
-                  ;; rdi is used for thread
+                  ;; rdi is reserved for thread
                   (setq op-register   (second +call-argument-registers+)) ; rsi
                   (setq arg-registers (subseq +call-argument-registers+ 2 (+ 2 numargs)))
                   (setq runtime-name  (format nil "RT_thread_call_function_~D" numargs))))
+           (aver (memq op-register '(:rdi :rsi)))
            (cond ((local-function-callable-name local-function)
                   ;; COMPILE-FILE, no closure vars
                   (mumble "p2-local-function-call local-function-callable-name case~%")
-                  (cond (args
-                         (emit-move-function-to-register (local-function-callable-name local-function) :rax)
-                         (inst :push :rax)
-                         (clear-register-contents :rax)
-                         (process-args args arg-registers use-fast-call-p)
-                         (inst :pop op-register))
-                        ((reg64-p op-register)
-                         (emit-move-function-to-register (local-function-callable-name local-function)
-                                                         op-register))
-                        (t
-                         (unsupported)))
-                  (clear-register-contents op-register))
+                  (emit-move-function-to-register (local-function-callable-name local-function)
+                                                  op-register)
+                  (clear-register-contents op-register)
+                  (when args
+                    (inst :push op-register)
+                    (process-args args arg-registers use-fast-call-p)
+                    (inst :pop op-register)
+                    (clear-register-contents op-register)))
                  ((local-function-function local-function)
                   ;; COMPILE, no closure vars
                   (mumble "p2-local-function-call local-function-function case~%")
                   (process-args args arg-registers use-fast-call-p)
                   (emit-move-immediate (local-function-function local-function) op-register)
                   (clear-register-contents op-register))
-                 ((local-function-var local-function)
+                 (t
                   (mumble "p2-local-function-call local-function-var case~%")
                   (p2-var-ref (make-var-ref (local-function-var local-function)) :rax)
                   (inst :push :rax)
                   (process-args args arg-registers use-fast-call-p)
                   (inst :pop op-register)
-                  (clear-register-contents op-register)
-                  )
-                 ;;           ((local-function-callable-name local-function)
-                 ;;            (p2-constant (local-function-callable-name local-function) :rdi)
-                 ;;            (emit-call 'symbol-function)
-                 ;;            (inst :push :rax)
-                 ;;            (process-args args arg-registers use-fast-call-p)
-                 ;;            (inst :pop op-register))
-                 ((compile-file-p)
-                  (mumble "p2-local-function-call compile-file-p case~%")
-                  (aver nil)
-                  (cond ((local-function-ctf-name local-function)
-                         (emit-move-function-to-register (local-function-ctf-name local-function) :rdi)
-                         (emit-move-local-to-register closure-data-index :rsi)
-                         (emit-call "RT_make_compiled_closure")
-                         (cond (args
-                                (inst :push :rax)
-                                (process-args args arg-registers use-fast-call-p)
-                                (inst :pop op-register))
-                               (t
-                                (inst :mov :rax op-register))))
-                        (t
-                         (aver (not (null (local-function-callable-name local-function))))
-                         (process-args args arg-registers use-fast-call-p)
-                         (emit-move-function-to-register (local-function-callable-name local-function) op-register))))
-                 ;; COMPILE, not COMPILE-FILE
-                 ;;           ((local-function-ctf local-function)
-                 ;;            (emit-move-immediate (local-function-ctf local-function) :rdi)
-                 ;;            (emit-move-local-to-register closure-data-index :rsi)
-                 ;;            (emit-call "RT_make_compiled_closure")
-                 ;;            (cond (args
-                 ;;                   (inst :push :rax)
-                 ;;                   (process-args args arg-registers use-fast-call-p)
-                 ;;                   (inst :pop op-register))
-                 ;;                  (t
-                 ;;                   (emit-move :rax op-register))))
-                 (t
-                  (aver nil)
-                  (process-args args arg-registers use-fast-call-p)
-                  (aver (local-function-function local-function))
-                  (emit-move-immediate (local-function-function local-function) op-register)))
+                  (clear-register-contents op-register)))
            (unless use-fast-call-p
              (inst :mov thread-register :rdi))
            (emit-call runtime-name)
            (move-result-to-target target))
           (t
            ;; more than 4 arguments
-           (compiler-unsupported "P2-LOCAL-FUNCTION-CALL numargs = ~D not supported" numargs)
-           ))))
+           (compiler-unsupported "P2-LOCAL-FUNCTION-CALL numargs = ~D not supported" numargs)))))
 
 (defknown p2-symbol-global-value (t t) t)
 (defun p2-symbol-global-value (form target)
