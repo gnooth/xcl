@@ -70,6 +70,7 @@
 (defmacro push (item place)
   `(setq ,place (cons ,item ,place)))
 
+;; redefined in precompiler.lisp
 (defun ext:precompile (name &optional definition)
   (or name definition))
 
@@ -259,6 +260,8 @@
 (load-system-file "lisp/load")
 
 (load-system-file "lisp/epsilons.lisp")
+
+(defvar ext:*load-path* nil)
 
 (in-package "CL-USER")
 
