@@ -14,3 +14,6 @@
 (dolist (entry (directory "c:\\cl\\systems\\*"))
   (when (file-directory-p entry)
     (pushnew entry asdf:*central-registry*)))
+#-windows
+(when (probe-directory #p"/home/peter/cl/systems/")
+  (pushnew #p"/home/peter/cl/systems/" asdf::*central-registry*))
