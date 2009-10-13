@@ -3097,9 +3097,77 @@
              (inst :mov thread-register :rdi))
            (emit-call runtime-name)
            (move-result-to-target target))
+          ((eql numargs 5)
+           (p2-local-function-call-5 op args target))
           (t
            ;; more than 4 arguments
            (compiler-unsupported "P2-LOCAL-FUNCTION-CALL numargs = ~D not supported" numargs)))))
+
+(defknown p2-local-function-call-5 (t t t) t)
+(defun p2-local-function-call-5 (op args target)
+  (let* ((compiland *current-compiland*)
+         (thread-register (compiland-thread-register compiland))
+         (local-function (find-local-function op))
+         (use-fast-call-p (use-fast-call-p))
+         (op-register (if use-fast-call-p :rdi :rsi))
+         )
+    (declare (type compiland compiland))
+    (declare (type local-function local-function))
+    (aver thread-register)
+    (cond ((local-function-callable-name local-function)
+           ;; COMPILE-FILE, no closure vars
+           (mumble "p2-local-function-call local-function-callable-name case~%")
+           (unsupported)
+           (emit-move-function-to-register (local-function-callable-name local-function)
+                                           op-register)
+           (clear-register-contents op-register)
+           (when args
+             (inst :push op-register)
+             (process-args args arg-registers use-fast-call-p)
+             (inst :pop op-register)
+             (clear-register-contents op-register)))
+          ((local-function-function local-function)
+           ;; COMPILE, no closure vars
+           (cond (use-fast-call-p
+                  (mumble "p2-local-function-call local-function-function use-fast-call-p case~%")
+                  (process-5-args args '(:rsi :rdx :rcx :r8 :r9) t)
+                  (inst :push :rax) ; arg5 is passed on the stack
+                  (emit-move-immediate (local-function-function local-function) op-register)
+                  (emit-call "RT_fast_call_function_5")
+                  )
+                 (t
+                  (mumble "p2-local-function-call local-function-function default case~%")
+                  (process-5-args args '(:rdx :rcx :r8 :r9 :rax) nil)
+                  (inst :push :rax) ; arg5 is passed on the stack
+                  (emit-move-immediate (local-function-function local-function) op-register)
+                  (inst :mov thread-register :rdi)
+                  (emit-call "RT_thread_call_function_5")
+                  )))
+          (t
+           (mumble "p2-local-function-call local-function-var case~%")
+           (unsupported)
+           (p2-var-ref (make-var-ref (local-function-var local-function)) :rax)
+           (inst :push :rax)
+           (process-args args arg-registers use-fast-call-p)
+           (inst :pop op-register)
+           (clear-register-contents op-register)))
+;;     (cond (use-fast-call-p
+;;            (process-5-args args '(:rsi :rdx :rcx :r8 :r9) t)
+;;            (p2-symbol op :rdi)
+;;            (emit-call "RT_fast_call_symbol_5")
+;;            )
+;;           ((setq thread-register (compiland-thread-register compiland))
+;;            ;; not use-fast-call-p
+;;            (process-5-args args '(:rdx :rcx :r8 :r9 :rax) nil)
+;;            (inst :push :rax)
+;;            (inst :sub (* +bytes-per-word+ 2) :rsp) ; stack alignment
+;;            (p2-symbol op :rsi)
+;;            (inst :mov thread-register :rdi)
+;;            (emit-call "RT_thread_call_symbol_5")
+;;            (inst :add (* +bytes-per-word+ 2) :rsp))
+;;           )
+  )
+  (move-result-to-target target))
 
 (defknown p2-symbol-global-value (t t) t)
 (defun p2-symbol-global-value (form target)
