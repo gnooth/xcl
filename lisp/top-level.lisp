@@ -215,23 +215,22 @@
     (when (and *load-path*
                (listp *load-path*))
       (dolist (dir *load-path*)
-        (probe dir)))))
+        (when (file-directory-p dir)
+          (probe dir))))))
 
 (defun load-one-file (file)
-  (setq file (merge-pathnames file))
-  (let ((the-file nil)
-        (result nil))
-    (cond ((setq the-file (probe-file file))
-           (setq result (load the-file)))
-          ((null (pathname-type file))
-           (let ((file.lisp (merge-pathnames (make-pathname :type "lisp"
-                                                            :defaults file))))
-             (when (setq the-file (probe-file file.lisp))
-               (setq result (load the-file))))))
+  (declare (type string file))
+  (let* ((truename (probe-candidate file))
+         (result (and truename
+                      (load truename))))
     (cond (result
-           (format t "; Loaded ~A~%" (namestring (truename the-file))))
-          ((null the-file)
-           (format t "File not found.~%")))))
+           (format t "; Loaded ~A~%" (namestring truename)))
+          ((null truename)
+           (cond ((pathname-type file)
+                  (format t "No file ~S found in load path." file))
+                 (t
+                  (let ((file.lisp (concatenate 'string file ".lisp")))
+                    (format t "No file ~S or ~S found in load path." file file.lisp))))))))
 
 (defun ld-command (args)
   (let ((files (if args (tokenize args) *last-files-loaded*)))
@@ -240,22 +239,7 @@
           (t
            (setq *last-files-loaded* files)
            (dolist (file files)
-;;              (setq file (merge-pathnames file))
-;;              (let ((loaded-file nil)
-;;                    (result nil))
-;;                (cond ((setq loaded-file (probe-file file))
-;;                       (setq result (load loaded-file)))
-;;                      ((null (pathname-type file))
-;;                       (let ((file.lisp (merge-pathnames (make-pathname :type "lisp"
-;;                                                                        :defaults file))))
-;;                         (when (setq loaded-file (probe-file file.lisp))
-;;                           (setq result (load loaded-file))))))
-;;                (cond (result
-;;                       (format t "; Loaded ~A~%" (namestring (truename loaded-file))))
-;;                      ((null loaded-file)
-;;                       (format t "File not found.~%"))))
-             (load-one-file file)
-             )))))
+             (load-one-file file))))))
 
 (defun cf-command (args)
 ;;   (let ((files (tokenize args)))
