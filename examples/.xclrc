@@ -1,0 +1,16 @@
+; -*- Mode: Lisp -*-
+(setq *load-path*
+      (mapcar (lambda (dirname)
+                (merge-pathnames dirname *xcl-home*))
+              (list "lisp/"
+                    "compiler/"
+                    #+x86
+                    "compiler/x86/"
+                    #+x86-64
+                    "compiler/x86-64/")))
+
+(require "ASDF")
+#+windows
+(dolist (entry (directory "c:\\cl\\systems\\*"))
+  (when (file-directory-p entry)
+    (pushnew entry asdf:*central-registry*)))
