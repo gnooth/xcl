@@ -1,5 +1,7 @@
 (in-package "CL-USER")
 
+(require "DUMP-FORM")
+
 (defparameter *compile-file-test-source-file*
   (merge-pathnames "compile-file-test-source.lisp" *load-truename*))
 

@@ -378,15 +378,12 @@
                                                                                 ,maxargs
                                                                                 final-constants))))))
                    (t
-;;                     (let ((callable-name (local-function-callable-name local-function)))
                     (let ((callable-name
                            (gensym (concatenate 'string
                                                 (write-to-string (labels-debug-name compiland))
                                                 "-"))))
                       (setf (local-function-callable-name local-function) callable-name)
-;;                       (aver (not (null callable-name)))
                       (push callable-name (compiland-constants (compiland-parent compiland)))
-;;                       (setf (local-function-callable-name local-function) callable-name)
                       (setq form
                             `(multiple-value-bind (final-code final-constants)
                                  (generate-code-vector ',*code*

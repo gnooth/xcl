@@ -2897,7 +2897,10 @@
         (kernel-function-p (kernel-function-p op))
         (use-fast-call-p (use-fast-call-p))
         thread-register)
-    (inst :sub #x30 :rsp)
+    ;; We're only going to store five values on the stack, but we want to keep
+    ;; the stack aligned, so we make room for six.
+    (inst :sub (* 6 +bytes-per-word+) :rsp)
+    ;; evaluate args left to right
     (p2 arg1 :rax)
     (emit-move-register-to-relative :rax :rsp 5)
     (p2 arg2 :rax)
@@ -2908,6 +2911,7 @@
     (emit-move-register-to-relative :rax :rsp 2)
     (p2 arg5 :rax)
     (emit-move-register-to-relative :rax :rsp 1)
+    ;; leave arg6 in rax
     (p2 arg6 :rax)
     (when use-fast-call-p
       (dolist (arg args)
@@ -2961,6 +2965,7 @@
                   (inst :call "RT_thread_call_symbol_6")))
            (inst :add (* +bytes-per-word+ 2) :rsp))
           (t
+           ;; no thread register
            (inst :add +bytes-per-word+ :rsp)
            (inst :pop :r9)
            (inst :pop :r8)
@@ -3059,14 +3064,16 @@
 ;;       (compiler-unsupported "P2-LOCAL-FUNCTION-CALL numargs = ~D not supported" numargs))
     (cond ((<= 0 numargs 4)
            (cond (use-fast-call-p
-                  (setq op-register   (first  +call-argument-registers+))
+                  (setq op-register   (first  +call-argument-registers+)) ; rdi
                   (setq arg-registers (subseq +call-argument-registers+ 1 (+ 1 numargs)))
                   (setq runtime-name  (format nil "RT_fast_call_function_~D" numargs)))
                  (t
-                  (setq op-register   (second +call-argument-registers+))
+                  ;; rdi is used for thread
+                  (setq op-register   (second +call-argument-registers+)) ; rsi
                   (setq arg-registers (subseq +call-argument-registers+ 2 (+ 2 numargs)))
                   (setq runtime-name  (format nil "RT_thread_call_function_~D" numargs))))
            (cond ((local-function-callable-name local-function)
+                  ;; COMPILE-FILE, no closure vars
                   (mumble "p2-local-function-call local-function-callable-name case~%")
                   (cond (args
                          (emit-move-function-to-register (local-function-callable-name local-function) :rax)
@@ -3081,12 +3088,13 @@
                          (unsupported)))
                   (clear-register-contents op-register))
                  ((local-function-function local-function)
+                  ;; COMPILE, no closure vars
                   (mumble "p2-local-function-call local-function-function case~%")
                   (process-args args arg-registers use-fast-call-p)
                   (emit-move-immediate (local-function-function local-function) op-register)
                   (clear-register-contents op-register))
                  ((local-function-var local-function)
-                  (aver (local-function-var local-function))
+                  (mumble "p2-local-function-call local-function-var case~%")
                   (p2-var-ref (make-var-ref (local-function-var local-function)) :rax)
                   (inst :push :rax)
                   (process-args args arg-registers use-fast-call-p)
@@ -3100,6 +3108,8 @@
                  ;;            (process-args args arg-registers use-fast-call-p)
                  ;;            (inst :pop op-register))
                  ((compile-file-p)
+                  (mumble "p2-local-function-call compile-file-p case~%")
+                  (aver nil)
                   (cond ((local-function-ctf-name local-function)
                          (emit-move-function-to-register (local-function-ctf-name local-function) :rdi)
                          (emit-move-local-to-register closure-data-index :rsi)
