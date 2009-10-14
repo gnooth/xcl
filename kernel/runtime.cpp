@@ -696,7 +696,16 @@ void RT_set_value_cell_value(ValueCell * value_cell, Value value)
   value_cell->set_value(value);
 }
 
-Value * RT_copy_closure_data_vector(Value * data, unsigned int data_length)
+ValueCell * * RT_allocate_closure_data_vector(INDEX data_length)
+{
+  INDEX size = data_length * sizeof(ValueCell *);
+  ValueCell * * data = (ValueCell * *) GC_malloc(size);
+  for (INDEX i = 0; i < data_length; i++)
+    data[i] = new ValueCell(NIL);
+  return data;
+}
+
+Value * RT_copy_closure_data_vector(Value * data, INDEX data_length)
 {
   INDEX size = data_length * sizeof(Value);
   Value * copy = (Value *) GC_malloc(size);
@@ -1202,6 +1211,9 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_set_value_cell_value"),
                 make_number((unsigned long)RT_set_value_cell_value));
+
+  ht_names->put(make_simple_string("RT_allocate_closure_data_vector"),
+                make_number((unsigned long)RT_allocate_closure_data_vector));
 
   ht_names->put(make_simple_string("RT_copy_closure_data_vector"),
                 make_number((unsigned long)RT_copy_closure_data_vector));
