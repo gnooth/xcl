@@ -16,6 +16,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+#include <alloca.h>
+
 #include "lisp.hpp"
 #include "primitives.hpp"
 #include "runtime.h"
@@ -343,7 +345,7 @@ Value CL_aref(unsigned int numargs, Value args[])
         AbstractArray * array = check_array(args[0]);
         int nsubs = numargs - 1;
         unsigned long * subscripts =
-          (unsigned long *) GC_malloc_atomic(nsubs * sizeof(unsigned long));
+          (unsigned long *) alloca(nsubs * sizeof(unsigned long));
         for (int i = nsubs; i-- > 0;)
           subscripts[i] = fixnum_value(args[i + 1]);
         return array->aref(array->row_major_index(nsubs, subscripts));
@@ -376,7 +378,7 @@ Value SYS_aset(unsigned int numargs, Value args[])
         AbstractArray * array = check_array(args[0]);
         int nsubs = numargs - 2;
         unsigned long * subscripts =
-          (unsigned long *) GC_malloc_atomic(nsubs * sizeof(unsigned long));
+          (unsigned long *) alloca(nsubs * sizeof(unsigned long));
         for (int i = nsubs; i-- > 0;)
           subscripts[i] = fixnum_value(args[i + 1]);
         return array->aset(array->row_major_index(nsubs, subscripts),
