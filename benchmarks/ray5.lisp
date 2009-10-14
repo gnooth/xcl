@@ -1,6 +1,9 @@
 ;; http://www.ffconsultancy.com/languages/ray_tracer/benchmark.html
 ;; http://www.ffconsultancy.com/languages/ray_tracer/code/5/ray.lisp
 
+;; (main 9 "image.pgm" 512)
+;; 718b12aa77a7d2fd9e038f3edef81487  image.pgm
+
 (declaim (inline vec intersect sintersect ray-trace ray-sphere sray-sphere))
 
 (defconstant infinity most-positive-double-float)
@@ -221,5 +224,3 @@
                                     (unitise/values dx dy (float n 0d0)))
                               (incf g (ray-trace neg-light zero dir scene))))
                   (write-byte (round (* 255.0d0 (/ g (* ss ss)))) s))))))
-
-; (main 9 "image.pgm" 512)

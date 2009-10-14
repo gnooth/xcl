@@ -471,6 +471,18 @@
     (mapcar #'funcall (coerce vector 'LIST))))
 (aver (equal (test73) '(0 1 2 3)))
 
+(defun-compile test74 (x)
+  (flet ((bar (a b c d e)
+              (list a b c d e)))
+    (bar 1 2 3 4 x)))
+(aver (equal (test74 42) '(1 2 3 4 42)))
+
+(defun-compile test75 (x)
+  (flet ((bar (a b c d e)
+              (list a b c d e x)))
+    (bar 1 2 3 4 5)))
+(aver (equal (test75 42) '(1 2 3 4 5 42)))
+
 (defun-compile fact (n)
   (labels
     ((fact1 (n m)
