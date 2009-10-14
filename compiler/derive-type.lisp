@@ -178,6 +178,8 @@
          'SIMPLE-STRING)
         ((stringp form)
          'STRING)
+        ((simple-bit-vector-p form)
+         'SIMPLE-BIT-VECTOR)
         ((var-ref-p form)
 ;;          (let ((derived-type (derive-type-var-ref form)))
 ;;            (cond ((neq derived-type :unknown)
