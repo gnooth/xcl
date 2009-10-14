@@ -370,18 +370,7 @@
 
 (defun allocate-closure-data-vector (numvars)
   (inst :push (* numvars +bytes-per-word+))
-;;   (emit-call-1 "RT_malloc" :eax)
-;;   (progn
-;;     (inst :push :eax)
-;;     (inst :mov :eax :edx)
-;;     (dotimes (i numvars)
-;;       (inst :push :edx)
-;;       (emit-call-0 "RT_make_value_cell" :eax)
-;;       (inst :pop :edx)
-;;       (inst :mov :eax `(,(* i +bytes-per-word+) :edx)))
-;;     (inst :pop :eax))
-  (emit-call-1 "RT_allocate_closure_data_vector")
-  )
+  (emit-call-1 "RT_allocate_closure_data_vector" :eax))
 
 (defun p2-function-prolog (compiland)
   (declare (type compiland compiland))
