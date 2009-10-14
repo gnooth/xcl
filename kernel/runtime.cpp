@@ -16,9 +16,11 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#if defined(__NetBSD__) || defined(__FreeBSD__)
+#if defined(WIN32)
+#include <malloc.h>
+#elif defined(__NetBSD__) || defined(__FreeBSD__)
 #include <stdlib.h>
-#elif !defined(WIN32)
+#else
 #include <alloca.h>
 #endif
 
@@ -830,11 +832,7 @@ inline Value fast_apply_function_2(TypedObject * function, Value arg2)
   if (listp(arg2))
     {
       INDEX numargs = length(arg2);
-#ifdef WIN32
-      Value * args = (Value *) GC_malloc(numargs * sizeof(Value));
-#else
       Value * args = (Value *) alloca(numargs * sizeof(Value));
-#endif
       for (INDEX i = 0; i < numargs; i++)
         {
           args[i] = car(arg2);

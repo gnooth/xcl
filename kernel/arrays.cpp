@@ -16,7 +16,13 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+#if defined(WIN32)
+#include <malloc.h>
+#elif defined(__NetBSD__) || defined(__FreeBSD__)
+#include <stdlib.h>
+#else
 #include <alloca.h>
+#endif
 
 #include "lisp.hpp"
 #include "primitives.hpp"
