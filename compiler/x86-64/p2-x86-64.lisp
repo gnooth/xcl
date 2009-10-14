@@ -5422,31 +5422,16 @@
   t)
 
 (defknown allocate-closure-data-vector (t t) t)
-(defun allocate-closure-data-vector (compiland numvars stack-used)
-  ;; the call to RT_malloc may trash all the argument registers!
+(defun allocate-closure-data-vector (compiland numvars)
+  ;; preserve argument registers around call!
   (let ((regs +call-argument-registers+)
         (arity (compiland-arity compiland)))
     (when (and arity (< arity 6))
       (setq regs (subseq regs 0 arity)))
     (dolist (reg regs)
-      (inst :push reg)
-      (incf stack-used))
+      (inst :push reg))
     (emit-move-immediate-dword-to-register (* numvars +bytes-per-word+) :rdi)
-    (when (oddp stack-used)
-      (inst :sub +bytes-per-word+ :rsp))
-    (emit-call "RT_malloc")
-    (when (oddp stack-used)
-      (inst :add +bytes-per-word+ :rsp))
-
-    (inst :push :rax)
-    (inst :mov :rax :rdi)
-    (dotimes (i numvars)
-      (inst :push :rdi)
-      (emit-call "RT_make_value_cell")
-      (inst :pop :rdi)
-      (inst :mov :rax `(,(* i +bytes-per-word+) :rdi)))
-    (inst :pop :rax)
-
+    (emit-call "RT_allocate_closure_data_vector")
     (dolist (reg (reverse regs))
       (inst :pop reg))))
 
@@ -5731,8 +5716,8 @@
 
     (let ((index 0))
       (when (and *closure-vars* (null (compiland-parent compiland))) ; top-level compiland
-        (allocate-closure-data-vector compiland (length *closure-vars*) stack-used) ; leaves address in rax
-        (inst :push :rax) ; address returned by RT_malloc
+        (allocate-closure-data-vector compiland (length *closure-vars*)) ; leaves address in rax
+        (inst :push :rax) ; address of closure data vector
         (incf stack-used)
         (setf (compiland-closure-data-index compiland) index)
         (incf index)
