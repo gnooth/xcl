@@ -1008,6 +1008,9 @@
   (let ((vars nil))
     (dolist (varspec varlist)
       (cond ((consp varspec)
+             (when (> (length varspec) 2)
+               (error "The LET binding specification ~S is invalid."
+                      varspec))
              (let ((name (%car varspec))
                    (initform (p1 (cadr varspec))))
                (push (make-var :name name :kind :local :initform initform) vars)))
@@ -1024,8 +1027,7 @@
   (let ((vars nil))
     (dolist (varspec varlist)
       (cond ((consp varspec)
-             ;; FIXME Currently this error is signalled by the precompiler.
-             (unless (length-eql varspec 2)
+             (when (> (length varspec) 2)
                (error "The LET* binding specification ~S is invalid."
                       varspec))
              (let* ((name (%car varspec))
