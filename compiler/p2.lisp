@@ -1093,6 +1093,17 @@
             (t
              nil)))))
 
+(defknown p2-sbit1 (t t) t)
+(defun p2-sbit1 (form target)
+  (when (length-eql form 3)
+    (let* ((vector-arg (%cadr form))
+           (index-arg (%caddr form))
+           (vector-type (derive-type vector-arg))
+           (index-type (derive-type index-arg)))
+      (mumble "p2-sbit1 vector-type = ~S index-type = ~S~%" vector-type index-type)))
+  (p2-function-call form target)
+  t)
+
 (defknown p2-sxhash (t t) t)
 (defun p2-sxhash (form target)
   (when (check-arg-count form 1)

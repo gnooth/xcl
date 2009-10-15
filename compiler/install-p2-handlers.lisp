@@ -129,7 +129,6 @@
 (install-p2-handler 'reverse                    'p2-reverse/nreverse)
 (install-p2-handler 'rplaca                     'p2-rplaca)
 (install-p2-handler 'rplacd                     'p2-rplacd)
-#+x86-64
 (install-p2-handler 'sbit1                      'p2-sbit1)
 (install-p2-handler 'schar                      'p2-schar)
 (install-p2-handler 'setcar                     'p2-setcar)
