@@ -1552,6 +1552,19 @@
           (t
            (p2-progn-body body target)))))
 
+(defun p2-m-v-c (form target)
+  (declare (ignore form target))
+  (compiler-unsupported "p2-m-v-c needs code!~%")
+  ;;   (aver (length-eql form 2))
+  ;;   (aver (eq (%car form) 'MULTIPLE-VALUE-CALL))
+  ;;   (let* ((node (%cadr form))
+  ;;          (function-form (%cadr (m-v-c-node-form node)))
+  ;;          (forms (cddr (node-form node))))
+  ;;     (process-1-arg function-form :rax t)
+  ;;     (inst :mov :rax (m-v-c-node-function-var node)))
+
+  )
+
 (defun p2-progv (form target)
   (declare (type cons form))
   (aver (eq (car form) 'PROGV))
