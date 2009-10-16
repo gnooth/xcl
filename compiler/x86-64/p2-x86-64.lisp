@@ -1471,8 +1471,8 @@
 
 (defun p2-m-v-b (form target)
   (declare (type cons form))
-  (aver (eq (car form) 'MULTIPLE-VALUE-BIND))
   (aver (length-eql form 2))
+  (aver (eq (%car form) 'MULTIPLE-VALUE-BIND))
   (let* ((*visible-variables* *visible-variables*)
          (block (cadr form))
          (last-special-binding-var (block-last-special-binding-var block))
@@ -1543,6 +1543,19 @@
            (move-result-to-target target))
           (t
            (p2-progn-body body target)))))
+
+(defun p2-m-v-c (form target)
+  (declare (ignore form target))
+  (compiler-unsupported "p2-m-v-c needs code!~%")
+;;   (aver (length-eql form 2))
+;;   (aver (eq (%car form) 'MULTIPLE-VALUE-CALL))
+;;   (let* ((node (%cadr form))
+;;          (function-form (%cadr (m-v-c-node-form node)))
+;;          (forms (cddr (node-form node))))
+;;     (process-1-arg function-form :rax t)
+;;     (inst :mov :rax (m-v-c-node-function-var node)))
+
+  )
 
 (defun p2-progv (form target)
   (declare (type cons form))
@@ -2129,17 +2142,10 @@
                     (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
                     (clear-register-contents :rax :rdx)
                     (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
-
                     ;; index is in rdx
-                    ;; get rid of the fixnum shift
-                    ;; (emit-bytes #x48 #xc1 #xfa +fixnum-shift+)         ; sar $0x2,%rdx
-
-                    ;; multiply by 8 to get the offset in bytes
-                    ;; (emit-bytes #x48 #xc1 #xe2 #x03)                   ; shl $0x3,%rdx
-
-                    ;; which nets out to:
-                    (inst :shl :rdx)
-
+                    ;; unbox it
+                    (unbox-fixnum :rdx)
+                    (inst :shl 3 :rdx) ; multiply by 8 to get byte offset
                     (inst :add :rdx :rax)
                     (cond ((reg64-p target)
                            (inst :mov '(:rax) target))
@@ -2366,9 +2372,17 @@
            (arg1 (%car args))
            (arg2 (%cadr args))
            (arg3 (%caddr args))
-           (type1 (derive-type arg1)))
-      (cond ((zerop *safety*)
-             (process-3-args args '(:rax :rdx :rcx) t) ; vector in rax, index in rsi, new element in rcx
+           (type1 (derive-type arg1))
+           (type2 (derive-type arg2))
+           size)
+      (cond ((or (zerop *safety*)
+                 (and (integer-type-p type2)
+                      (subtypep type1 'SIMPLE-VECTOR)
+                      (setq size (derive-vector-size type1))
+                      (subtypep type2 (list 'INTEGER 0 (1- size)))))
+             (mumble "p2-svset optimized case safety = ~S~%" *safety*)
+             (process-3-args args '(:rax :rdx :rcx) t) ; vector in rax, index in rdx, new element in rcx
+             (clear-register-contents :rax :rdx)
              (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
              ;; index is in rdx
              ;; unbox it
@@ -2381,9 +2395,11 @@
              ;; store it in the array
              (inst :mov :rcx '(:rax))
              ;; return value
-             (when target
-               (inst :pop :rax))
-             (move-result-to-target target)
+             (cond ((reg64-p target)
+                    (inst :pop target))
+                   (target
+                    (inst :pop :rax)
+                    (move-result-to-target target)))
              t)
             ((and (neq type1 :unknown)
                   (subtypep type1 'SIMPLE-VECTOR))
@@ -5112,6 +5128,7 @@
              (p2 arg1 target))
             ((and (fixnump arg2)
                   (fixnump arg3)
+                  (neq type1 :unknown)
                   (subtypep type1 (list 'INTEGER arg2 arg3)))
              (p2 arg1 target))
             ((and (fixnump arg2)

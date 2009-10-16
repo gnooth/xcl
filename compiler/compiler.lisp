@@ -244,10 +244,24 @@
              *register-contents*))
   (mumble "end register contents~%"))
 
-(defstruct (cblock (:conc-name block-) (:constructor make-block) (:predicate block-p))
+(defstruct node
   name
-  (compiland *current-compiland*)
   form
+  )
+
+(defstruct (m-v-c-node (:include node))
+  function-var
+  values-addr-var
+  values-length-var
+  )
+
+(defstruct (cblock (:conc-name block-)
+                   (:include node)
+                   (:constructor make-block)
+                   (:predicate block-p))
+;;   name
+  (compiland *current-compiland*)
+;;   form
   vars
   body
   return-p              ; is there a return from this block?
@@ -1299,6 +1313,20 @@ for special variables."
               (setf (block-last-special-binding-var block) var)))
           (list 'MULTIPLE-VALUE-BIND block))))))
 
+(defun p1-m-v-c (form)
+  (let ((node (make-m-v-c-node :form (p1-default form))))
+    (let ((var (make-var :name (gensym "FUNCTION-") :kind :local)))
+      (push var *local-variables*)
+      (setf (m-v-c-node-function-var node) var))
+    (let ((var (make-var :name (gensym "VALUES-ADDR-") :kind :local)))
+      (push var *local-variables*)
+      (setf (m-v-c-node-values-addr-var node) var))
+    (let ((var (make-var :name (gensym "VALUES-LENGTH-") :kind :local)))
+      (push var *local-variables*)
+      (setf (m-v-c-node-values-length-var node) var))
+    (setf (compiland-needs-thread-var-p *current-compiland*) t)
+    (list 'MULTIPLE-VALUE-CALL node)))
+
 (defknown maybe-rewrite-progv (t) cons)
 (defun maybe-rewrite-progv (form)
   (declare (type cons form))
@@ -1672,6 +1700,7 @@ for special variables."
 (install-p1-handler 'load-time-value            'p1-load-time-value)
 (install-p1-handler 'locally                    'p1-locally)
 (install-p1-handler 'multiple-value-bind        'p1-m-v-b)
+(install-p1-handler 'multiple-value-call        'p1-default)
 (install-p1-handler 'multiple-value-list        'p1-default)
 (install-p1-handler 'multiple-value-prog1       'p1-multiple-value-prog1)
 (install-p1-handler 'or                         'p1-default)

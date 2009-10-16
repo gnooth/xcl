@@ -36,6 +36,7 @@
 (install-p2-handler 'load-time-value            'p2-load-time-value)
 (install-p2-handler 'locally                    'p2-locally)
 (install-p2-handler 'multiple-value-bind        'p2-m-v-b)
+(install-p2-handler 'multiple-value-call        'p2-m-v-c)
 (install-p2-handler 'multiple-value-list        'p2-m-v-l)
 (install-p2-handler 'multiple-value-prog1       'p2-multiple-value-prog1)
 (install-p2-handler 'or                         'p2-or)
