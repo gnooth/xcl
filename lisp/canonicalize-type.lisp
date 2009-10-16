@@ -20,8 +20,10 @@
 
 (export '(canonicalize-type deftype-expander))
 
-;; FIXME defglobal
-(defparameter *canonical-types* (make-hash-table :test 'equal))
+;; REVIEW defglobal
+(defconstant +canonical-types+ (make-hash-table :test 'equal))
+(eval-when (:compile-toplevel)
+  (declaim (type hash-table +canonical-types+)))
 
 (eval-when (:compile-toplevel)
   (declaim (inline deftype-expander)))
@@ -30,7 +32,7 @@
 
 (defun set-deftype-expander (name expander)
   (put name 'deftype-expander expander)
-  (clrhash *canonical-types*))
+  (clrhash +canonical-types+))
 
 (assign-setf-inverse 'deftype-expander 'set-deftype-expander)
 
@@ -253,7 +255,7 @@
       ((ARRAY SIMPLE-ARRAY)
        (unless args
          (return-from %canonicalize-type (list name '* '*)))
-       (when (eql (length args) 1)
+       (when (length-eql args 1)
          (setq args (append args '(*))))
        (setf (car args) (%canonicalize-type (car args)))
        (return-from %canonicalize-type (cons name args)))
@@ -339,12 +341,12 @@
     (if args (cons name args) name)))
 
 (defun canonicalize-type (type)
-  (let ((canonical-type (gethash2-1 type *canonical-types*)))
+  (let ((canonical-type (gethash2-1 type +canonical-types+)))
     (unless canonical-type
       (setq canonical-type (%canonicalize-type type))
       (when canonical-type
         ;; We don't want to put EQL or MEMBER type specifiers in an EQUAL hashtable!
         ;; (subtypep.eql.1, subtypep.eql.2, subtypep.member.18)
         (unless (and (consp canonical-type) (memq (%car canonical-type) '(EQL MEMBER)))
-          (setf (gethash type *canonical-types*) canonical-type))))
+          (setf (gethash type +canonical-types+) canonical-type))))
     canonical-type))
