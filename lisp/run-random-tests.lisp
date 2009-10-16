@@ -4,7 +4,7 @@
 
 (defun run-random-tests (size nvars count)
   (let* ((ansi-tests-directory
-          (pathname (directory-namestring (merge-pathnames "ansi-tests/" #.*load-pathname*)))))
+          (pathname (directory-namestring (merge-pathnames "ansi-tests/" *xcl-home*)))))
     (let ((*default-pathname-defaults* ansi-tests-directory))
       (load "gclload1.lsp")
       (load "random-int-form.lsp")
