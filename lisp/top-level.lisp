@@ -227,10 +227,10 @@
            (format t "; Loaded ~A~%" (namestring truename)))
           ((null truename)
            (cond ((pathname-type file)
-                  (format t "No file ~S found in load path." file))
+                  (format t "~&No file ~S found in load path." file))
                  (t
                   (let ((file.lisp (concatenate 'string file ".lisp")))
-                    (format t "No file ~S or ~S found in load path." file file.lisp))))))))
+                    (format t "~&No file ~S or ~S found in load path." file file.lisp))))))))
 
 (defun ld-command (args)
   (let ((files (if args (tokenize args) *last-files-loaded*)))
