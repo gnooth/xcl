@@ -42,7 +42,7 @@
   (load "notes.lsp")
 ;;   )
 
-(setq *compile-verbose* nil
-      *compile-print* nil
-      *load-verbose* nil)
+;; (setq *compile-verbose* nil
+;;       *compile-print* nil
+;;       *load-verbose* nil)
 
