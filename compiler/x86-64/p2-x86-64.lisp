@@ -5512,8 +5512,7 @@
               (emit-call "RT_make_value_cell")
               (aver (fixnump (compiland-closure-data-index compiland)))
               (emit-move-local-to-register (compiland-closure-data-index compiland) :rdi)
-              (inst :add (* (var-closure-index var) +bytes-per-word+) :rdi)
-              (inst :mov :rax '(:rdi))
+              (inst :mov :rax `(,(* (var-closure-index var) +bytes-per-word+) :rdi))
 
               (inst :pop (var-arg-register var))
 
