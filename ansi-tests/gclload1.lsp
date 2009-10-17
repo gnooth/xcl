@@ -17,10 +17,11 @@
 
 #+clisp (setq custom::*warn-on-floating-point-contagion* nil)
 
-(let (*load-verbose* *load-print* *compile-verbose* *compile-print*)
-  (load "compile-and-load.lsp"))
+;; (let (*load-verbose* *load-print* *compile-verbose* *compile-print*)
+  (load "compile-and-load.lsp")
+;;   )
 
-(let (*load-verbose* *load-print* *compile-verbose* *compile-print*)
+;; (let (*load-verbose* *load-print* *compile-verbose* *compile-print*)
   (load "rt-package.lsp")
   (compile-and-load "rt.lsp")
   ;; (unless (probe-file "rt.o") (compile-file "rt.lsp"))
@@ -36,9 +37,10 @@
   (compile-and-load "ansi-aux.lsp")
   ;; (unless (probe-file "ansi-aux.o") (compile-file "ansi-aux.lsp"))
   ;; (load "ansi-aux.o")
-  
+
   (load "cl-symbol-names.lsp")
-  (load "notes.lsp"))
+  (load "notes.lsp")
+;;   )
 
 (setq *compile-verbose* nil
       *compile-print* nil
