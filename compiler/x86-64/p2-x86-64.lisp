@@ -107,39 +107,41 @@
   (declare (type fixnum index))
   (let ((displacement (index-displacement index)))
     (aver (minusp displacement))
-    (cond ((>= displacement -128)
-           (let ((displacement-byte (ldb (byte 8 0) displacement)))
-             (case to
-               (:r8
-                (emit-bytes #x4c #x8b #x45 displacement-byte))
-               (:r9
-                (emit-bytes #x4c #x8b #x4d displacement-byte))
-               (:r12
-                (emit-bytes #x4c #x8b #x65 displacement-byte))
-               (t
-                (let* ((mod #b01)
-                       (reg (register-number to))
-                       (rm  (register-number :rbp))
-                       (modrm-byte (make-modrm-byte mod reg rm)))
-                  (emit-bytes #x48 #x8b modrm-byte displacement-byte))))))
-          (t
-           (case to
-             (:r8
-              (emit-bytes #x4c #x8b #x85)
-              (emit-raw-dword displacement))
-             (:r9
-              (emit-bytes #x4c #x8b #x8d)
-              (emit-raw-dword displacement))
-             (:r12
-              (emit-bytes #x4c #x8b #xa5)
-              (emit-raw-dword displacement))
-             (t
-              (let* ((mod #b10)
-                     (reg (register-number to))
-                     (rm  (register-number :rbp))
-                     (modrm-byte (make-modrm-byte mod reg rm)))
-                (emit-bytes #x48 #x8b modrm-byte)
-                (emit-raw-dword displacement))))))))
+;;     (cond ((>= displacement -128)
+;;            (let ((displacement-byte (ldb (byte 8 0) displacement)))
+;;              (case to
+;;                (:r8
+;;                 (emit-bytes #x4c #x8b #x45 displacement-byte))
+;;                (:r9
+;;                 (emit-bytes #x4c #x8b #x4d displacement-byte))
+;;                (:r12
+;;                 (emit-bytes #x4c #x8b #x65 displacement-byte))
+;;                (t
+;;                 (let* ((mod #b01)
+;;                        (reg (register-number to))
+;;                        (rm  (register-number :rbp))
+;;                        (modrm-byte (make-modrm-byte mod reg rm)))
+;;                   (emit-bytes #x48 #x8b modrm-byte displacement-byte))))))
+;;           (t
+;;            (case to
+;;              (:r8
+;;               (emit-bytes #x4c #x8b #x85)
+;;               (emit-raw-dword displacement))
+;;              (:r9
+;;               (emit-bytes #x4c #x8b #x8d)
+;;               (emit-raw-dword displacement))
+;;              (:r12
+;;               (emit-bytes #x4c #x8b #xa5)
+;;               (emit-raw-dword displacement))
+;;              (t
+;;               (let* ((mod #b10)
+;;                      (reg (register-number to))
+;;                      (rm  (register-number :rbp))
+;;                      (modrm-byte (make-modrm-byte mod reg rm)))
+;;                 (emit-bytes #x48 #x8b modrm-byte)
+;;                 (emit-raw-dword displacement))))))
+    (inst :mov `(,displacement :rbp) to)
+    ))
 
 (defknown emit-move-register-to-local (t t) t)
 (defun emit-move-register-to-local (from index)
@@ -1269,22 +1271,14 @@
          (p2-or new-form target))))))
 
 (defun emit-move-register-to-closure-var (reg var compiland)
-;;   (aver (neq reg :rcx))
-  (aver (neq reg :rdi))
+;;   (aver (neq reg :rdi))
   (aver (fixnump (compiland-closure-data-index compiland)))
-  (emit-move-local-to-register (compiland-closure-data-index compiland) :rdi)
-;;   (inst :add (* (var-closure-index var) +bytes-per-word+) :rdi)
-;;   (inst :mov '(:rdi) :rdi)
-  (inst :mov `(,(* (var-closure-index var) +bytes-per-word+) :rdi) :rdi)
-;;   (inst :mov reg :rsi)
-;;   (mumble "calling RT_set_value_cell_value~%")
-;;   (emit-call "RT_set_value_cell_value")
-;;   (clear-register-contents)
-  (inst :mov reg '(:rdi))
-  (clear-register-contents :rdi)
+  (emit-move-local-to-register (compiland-closure-data-index compiland) :r11)
+  (inst :mov `(,(* (var-closure-index var) +bytes-per-word+) :r11) :r11)
+  (inst :mov reg '(:r11))
+;;   (clear-register-contents :rdi)
   (clear-var-registers var)
-  (set-register-contents reg var)
-  )
+  (set-register-contents reg var))
 
 (defun emit-move-closure-var-to-register (var reg compiland)
 ;;   (aver (neq reg :rcx))
@@ -5770,7 +5764,7 @@
                  (emit-call "RT_process_args")
                  (incf index n))
 
-               ;; address of args array is now in rax
+               ;; address of values vector is now in rax
                (when (some #'var-used-non-locally-p (compiland-arg-vars compiland))
                  (inst :mov :rax :rcx)) ; address of args array in rcx
                (let ((base (1- index)))
