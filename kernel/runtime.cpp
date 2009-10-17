@@ -688,6 +688,11 @@ ValueCell * RT_make_value_cell()
   return new ValueCell(NIL);
 }
 
+ValueCell * RT_make_value_cell_1(Value value)
+{
+  return new ValueCell(value);
+}
+
 Value RT_value_cell_value(ValueCell * value_cell)
 {
   return value_cell->value();
@@ -1203,6 +1208,9 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_make_value_cell"),
                 make_number((unsigned long)RT_make_value_cell));
+
+  ht_names->put(make_simple_string("RT_make_value_cell_1"),
+                make_number((unsigned long)RT_make_value_cell_1));
 
   ht_names->put(make_simple_string("RT_value_cell_value"),
                 make_number((unsigned long)RT_value_cell_value));
