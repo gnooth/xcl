@@ -199,25 +199,9 @@
 
     (when (some 'var-used-non-locally-p (compiland-arg-vars compiland))
       (mumble "p2-child-function-prolog: at least one arg-var is used non-locally~%")
-;;       (inst :push :rsi)
-;;       (inst :push :rdx)
-;;       (inst :push :rcx)
-;;       (inst :push :r8)
-;;       (inst :push :r9)
-;;       (inst :mov (length *closure-vars*) :rsi) ; length in rsi
-;;       ;; address of closure data vector is already in rdi
-;;       (emit-call "RT_copy_closure_data_vector") ; returns copy of data vector in rax
-;;       (emit-move-register-to-local :rax (compiland-closure-data-index compiland))
-;;       (inst :mov :rax :rdi)
-;;       (inst :pop :r9)
-;;       (inst :pop :r8)
-;;       (inst :pop :rcx)
-;;       (inst :pop :rdx)
-;;       (inst :pop :rsi))
       (inst :push (length *closure-vars*))
       (inst :push `(,(index-displacement closure-data-index) :ebp))
       (emit-call-2 "RT_copy_closure_data_vector" :eax) ; returns copy of data vector in eax
-;;       (emit-move-register-to-local :eax closure-data-index)
       (inst :mov :eax `(,(index-displacement closure-data-index) :ebp)))
 
     (dolist (var (compiland-arg-vars compiland))
@@ -225,23 +209,13 @@
       (when (var-used-non-locally-p var)
         (aver (fixnump (var-closure-index var)))
         (when (var-index var)
-;;           ;; each new binding gets a new value cell
-;;           (emit-call "RT_make_value_cell")
-;;           (aver (fixnump (compiland-closure-data-index compiland)))
-;;           (emit-move-local-to-register (compiland-closure-data-index compiland) :rdi)
-;;           (inst :add (* (var-closure-index var) +bytes-per-word+) :rdi)
-;;           (inst :mov :rax '(:rdi))
-
           ;; each new binding gets a new value cell
-          (mumble "p2-child-function-prolog making value cell for ~S~%" (var-name var))
-          (emit-call-0 "RT_make_value_cell" :eax)
-          (emit-move-local-to-register closure-data-index :edx)
-;;           (inst :add (* (var-closure-index var) +bytes-per-word+) :edx)
-          (inst :mov :eax `(,(* (var-closure-index var) +bytes-per-word+) :edx))
-
           (emit-move-local-to-register (var-index var) :eax)
+          (inst :push :eax)
           (setf (var-index var) nil)
-          (emit-move-register-to-closure-var :eax var compiland))))
+          (emit-call-1 "RT_make_value_cell_1" :eax)
+          (emit-move-local-to-register closure-data-index :edx)
+          (inst :mov :eax `(,(* (var-closure-index var) +bytes-per-word+) :edx)))))
 
     (let ((lambda-list (cadr (compiland-lambda-expression compiland))))
       (cond ((or (memq '&optional lambda-list)
@@ -358,7 +332,7 @@
                   (aver (null (var-index var)))
                   (aver (null (var-closure-index var)))
                   ;; initialize rest var to zero for the moment
-                  (emit-bytes #x31 #xc0)  ; xor %eax,%eax
+                  (inst :xor :eax :eax)
                   (inst :push :eax)
                   (setf (var-index var) index)
                   (decf index)))))))
@@ -377,9 +351,7 @@
   (let ((arity (compiland-arity compiland)))
     (when (and arity
                (<= arity 6)
-               (null *closure-vars*)
-;;                (not (compiland-child-p compiland))
-               )
+               (null *closure-vars*))
 ;;       (return-from p2-function-prolog (p2-trivial-function-prolog compiland))
       (return-from p2-function-prolog t)
       ))
@@ -3050,12 +3022,6 @@
                   (emit-call-2 "RT_current_thread_set_symbol_value" :eax))))
           ((var-closure-index var)
            (process-1-arg value-form :eax t)
-;;            (aver (fixnump (compiland-closure-data-index *current-compiland*)))
-;;            (emit-move-local-to-register (compiland-closure-data-index *current-compiland*) :ecx)
-;;            (clear-register-contents :ecx)
-;;            (emit-move-register-to-relative :eax :ecx (var-closure-index var))
-;;            (clear-var-registers var)
-;;            (set-register-contents :eax var)
            (inst :push :eax)
            (emit-move-register-to-closure-var :eax var *current-compiland*)
            (inst :pop :eax))
