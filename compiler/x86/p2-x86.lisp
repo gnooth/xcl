@@ -1352,12 +1352,10 @@
            (p2 initform nil))
           ((var-closure-index var)
            ;; each new binding gets a new value cell
-           (emit-call-0 "RT_make_value_cell" :eax)
+           (p2 initform :stack)
+           (emit-call-1 "RT_make_value_cell_1" :eax)
            (emit-move-local-to-register (compiland-closure-data-index compiland) :edx)
-           (inst :add (* (var-closure-index var) +bytes-per-word+) :edx)
-           (inst :mov :eax '(:edx))
-           (p2 initform :eax)
-           (emit-move-register-to-closure-var :eax var compiland))
+           (inst :mov :eax `(,(* (var-closure-index var) +bytes-per-word+) :edx)))
           (t
            (let ((derived-type (derive-type initform))
                  reg)
