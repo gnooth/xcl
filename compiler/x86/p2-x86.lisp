@@ -1521,14 +1521,12 @@
                (inst :pop base-reg))
               ((var-closure-index var)
                (inst :push base-reg)
-               (inst :push value-reg)
                ;; each new binding gets a new value cell
-               (emit-call-0 "RT_make_value_cell" :eax)
+               (mumble "p2-m-v-b new code~%")
+               (inst :push value-reg)
+               (emit-call-1 "RT_make_value_cell_1" :eax)
                (emit-move-local-to-register (compiland-closure-data-index compiland) :edx)
-               (inst :add (* (var-closure-index var) +bytes-per-word+) :edx)
-               (inst :mov :eax '(:edx))
-               (inst :pop value-reg)
-               (emit-move-register-to-closure-var value-reg var compiland)
+               (inst :mov :eax `(,(* (var-closure-index var) +bytes-per-word+) :edx))
                (inst :pop base-reg))
               (t
                (inst :mov value-reg var)
