@@ -251,7 +251,7 @@
 
 (defstruct (m-v-c-node (:include node))
   function-var
-  values-addr-var
+  values-address-var
   values-length-var
   )
 
@@ -1318,9 +1318,9 @@ for special variables."
     (let ((var (make-var :name (gensym "FUNCTION-") :kind :local)))
       (push var *local-variables*)
       (setf (m-v-c-node-function-var node) var))
-    (let ((var (make-var :name (gensym "VALUES-ADDR-") :kind :local)))
+    (let ((var (make-var :name (gensym "VALUES-ADDRESS-") :kind :local)))
       (push var *local-variables*)
-      (setf (m-v-c-node-values-addr-var node) var))
+      (setf (m-v-c-node-values-address-var node) var))
     (let ((var (make-var :name (gensym "VALUES-LENGTH-") :kind :local)))
       (push var *local-variables*)
       (setf (m-v-c-node-values-length-var node) var))
@@ -1700,7 +1700,7 @@ for special variables."
 (install-p1-handler 'load-time-value            'p1-load-time-value)
 (install-p1-handler 'locally                    'p1-locally)
 (install-p1-handler 'multiple-value-bind        'p1-m-v-b)
-(install-p1-handler 'multiple-value-call        'p1-default)
+(install-p1-handler 'multiple-value-call        'p1-m-v-c)
 (install-p1-handler 'multiple-value-list        'p1-default)
 (install-p1-handler 'multiple-value-prog1       'p1-multiple-value-prog1)
 (install-p1-handler 'or                         'p1-default)

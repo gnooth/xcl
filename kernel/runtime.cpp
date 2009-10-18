@@ -740,6 +740,23 @@ Value * RT_process_args(unsigned int numargs, Value args[], Value closure, Value
   return check_closure(closure)->process_args(numargs, args, vals);
 }
 
+Value RT_thread_multiple_value_call(Thread * thread, Value callable, Value args[], unsigned int numargs)
+{
+  printf("callable = %s\n", prin1_to_string(callable)->as_c_string());
+  printf("numargs = %u\n", numargs);
+  for (unsigned int i = 0; i < numargs; i++)
+    printf("args[%u] = %s\n", i, prin1_to_string(args[i])->as_c_string());
+  if (symbolp(callable))
+    {
+      Function * function = reinterpret_cast<Function *>(the_symbol(callable)->function());
+      if (!function)
+        return signal_lisp_error(new UndefinedFunction(callable));
+      Value result = funcall(function, numargs, args, thread);
+      printf("result = %s\n", prin1_to_string(result)->as_c_string());
+    }
+  return NIL;
+}
+
 Value RT_multiple_value_list(Value result)
 {
   Thread * thread = current_thread();
@@ -1232,6 +1249,9 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_process_args"),
                 make_number((unsigned long)RT_process_args));
+
+  ht_names->put(make_simple_string("RT_thread_multiple_value_call"),
+                make_number((unsigned long)RT_thread_multiple_value_call));
 
   ht_names->put(make_simple_string("RT_multiple_value_list"),
                 make_number((unsigned long)RT_multiple_value_list));

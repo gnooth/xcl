@@ -1493,7 +1493,6 @@
               ((var-closure-index var)
                (inst :push base-reg)
                ;; each new binding gets a new value cell
-               (mumble "p2-m-v-b new code~%")
                (inst :mov value-reg :rdi)
                (emit-call "RT_make_value_cell_1")
                (aver (fixnump (compiland-closure-data-index compiland)))
@@ -1521,17 +1520,57 @@
            (p2-progn-body body target)))))
 
 (defun p2-m-v-c (form target)
-  (declare (ignore form target))
-  (compiler-unsupported "p2-m-v-c needs code!")
-;;   (aver (length-eql form 2))
-;;   (aver (eq (%car form) 'MULTIPLE-VALUE-CALL))
-;;   (let* ((node (%cadr form))
-;;          (function-form (%cadr (m-v-c-node-form node)))
-;;          (forms (cddr (node-form node))))
-;;     (process-1-arg function-form :rax t)
-;;     (inst :mov :rax (m-v-c-node-function-var node)))
-
-  )
+;;   (declare (ignore form target)
+  (compiler-unsupported "P2-M-V-C: MULTIPLE-VALUE-CALL is not supported yet")
+  (mumble "p2-m-v-c form = ~S~%" form)
+  (aver (length-eql form 2))
+  (aver (eq (%car form) 'MULTIPLE-VALUE-CALL))
+  (let* ((node (%cadr form))
+         (function-form (%cadr (m-v-c-node-form node)))
+         (values-producing-forms (cddr (node-form node)))
+         (thread-register (compiland-thread-register *current-compiland*))
+         (function-var (m-v-c-node-function-var node))
+         (address-var (m-v-c-node-values-address-var node))
+         (length-var (m-v-c-node-values-length-var node))
+         (size (* multiple-values-limit (length values-producing-forms) +bytes-per-word+))
+         )
+    (aver (eq thread-register :r12))
+    (mumble "p2-m-v-c size = ~D~%" size)
+    (process-1-arg function-form :rax t)
+    (inst :mov :rax function-var)
+    (inst :sub size :rsp)
+    (inst :mov :rsp address-var)
+    (inst :xor :eax :eax)
+    (inst :mov :rax length-var)
+    (clear-register-contents)
+    (dolist (values-producing-form values-producing-forms)
+      (p2 values-producing-form :rax)
+      (clear-register-contents)
+      ;; for now, take primary return value only
+;;       (inst :push :rax)
+;;       ;; increment length
+;;       (inst :mov length-var :rax)
+;;       (inst :add 1 :rax)
+;;       (inst :mov :rax length-var)
+      (inst :mov length-var :rdx)
+      (inst :shl 3 :rdx) ; multiply by 8
+      (inst :add :rsp :rdx)
+      (inst :mov :rax '(:rdx))
+      ;; increment length
+      (inst :mov length-var :rax)
+      (inst :add 1 :rax)
+      (inst :mov :rax length-var)
+      )
+    ;; done evaluating values-producing forms
+    ;; RT_thread_multiple_value_call(thread, callable, vector-address, vector-length)
+    (inst :mov length-var :rcx) ; length
+    (inst :mov address-var :rdx) ; address
+    (inst :mov function-var :rsi) ; function designator
+    (inst :mov thread-register :rdi) ; thread
+    (emit-call "RT_thread_multiple_value_call")
+;;     (inst :mov address-var :rsp)
+    (inst :add size :rsp)
+    (move-result-to-target target)))
 
 (defun p2-progv (form target)
   (declare (type cons form))
@@ -1995,7 +2034,6 @@
         local-function)
     (cond ((symbolp arg) ; #'foo
            (cond ((setq local-function (find-local-function arg))
-;;                   (compiler-unsupported "P2-FUNCTION: local functions are not supported yet")
                   (mumble "p2-function local function case~%")
                   (cond ((local-function-callable-name local-function)
                          (emit-move-function-to-register (local-function-callable-name local-function) :rax)
