@@ -471,7 +471,7 @@
               (type1 (derive-type arg1)))
           (unless (eq type1 :unknown)
             (cond ((subtypep type1 output-type)
-                   (p2 arg1 target))
+                   (process-1-arg arg1 target t))
                   ((and (eq output-type 'SIMPLE-STRING)
                         (subtypep type1 'STRING))
                    (process-1-arg arg1 :default t)
