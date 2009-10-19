@@ -740,21 +740,40 @@ Value * RT_process_args(unsigned int numargs, Value args[], Value closure, Value
   return check_closure(closure)->process_args(numargs, args, vals);
 }
 
+INDEX RT_accumulate_values(Thread * thread, Value result, Value values[], INDEX index)
+{
+  int len = thread->values_length();
+  if (len < 0 || len == 1)
+    values[index++] = result;
+  else if (len > 1)
+    {
+      Value * new_values = thread->values();
+      for (int i = 0; i < len; i++)
+        values[index++] = new_values[i];
+    }
+  thread->clear_values();
+  return index;
+}
+
 Value RT_thread_multiple_value_call(Thread * thread, Value callable, Value args[], unsigned int numargs)
 {
-  printf("callable = %s\n", prin1_to_string(callable)->as_c_string());
-  printf("numargs = %u\n", numargs);
-  for (unsigned int i = 0; i < numargs; i++)
-    printf("args[%u] = %s\n", i, prin1_to_string(args[i])->as_c_string());
+//   printf("callable = %s\n", prin1_to_string(callable)->as_c_string());
+//   printf("numargs = %u\n", numargs);
+//   for (unsigned int i = 0; i < numargs; i++)
+//     printf("args[%u] = %s\n", i, prin1_to_string(args[i])->as_c_string());
+  if (functionp(callable))
+    return funcall(the_function(callable), numargs, args, thread);
   if (symbolp(callable))
     {
       Function * function = reinterpret_cast<Function *>(the_symbol(callable)->function());
       if (!function)
         return signal_lisp_error(new UndefinedFunction(callable));
-      Value result = funcall(function, numargs, args, thread);
-      printf("result = %s\n", prin1_to_string(result)->as_c_string());
+//       Value result = funcall(function, numargs, args, thread);
+//       printf("result = %s\n", prin1_to_string(result)->as_c_string());
+//       return result;
+      return funcall(function, numargs, args, thread);
     }
-  return NIL;
+  return signal_type_error(callable, S_function_designator);
 }
 
 Value RT_multiple_value_list(Value result)
@@ -1252,6 +1271,9 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_thread_multiple_value_call"),
                 make_number((unsigned long)RT_thread_multiple_value_call));
+
+  ht_names->put(make_simple_string("RT_accumulate_values"),
+                make_number((unsigned long)RT_accumulate_values));
 
   ht_names->put(make_simple_string("RT_multiple_value_list"),
                 make_number((unsigned long)RT_multiple_value_list));

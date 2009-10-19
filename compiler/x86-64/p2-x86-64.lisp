@@ -1521,8 +1521,8 @@
 
 (defun p2-m-v-c (form target)
 ;;   (declare (ignore form target)
-  (compiler-unsupported "P2-M-V-C: MULTIPLE-VALUE-CALL is not supported yet")
-  (mumble "p2-m-v-c form = ~S~%" form)
+;;   (compiler-unsupported "P2-M-V-C: MULTIPLE-VALUE-CALL is not supported yet")
+;;   (mumble "p2-m-v-c form = ~S~%" form)
   (aver (length-eql form 2))
   (aver (eq (%car form) 'MULTIPLE-VALUE-CALL))
   (let* ((node (%cadr form))
@@ -1535,7 +1535,7 @@
          (size (* multiple-values-limit (length values-producing-forms) +bytes-per-word+))
          )
     (aver (eq thread-register :r12))
-    (mumble "p2-m-v-c size = ~D~%" size)
+;;     (mumble "p2-m-v-c size = ~D~%" size)
     (process-1-arg function-form :rax t)
     (inst :mov :rax function-var)
     (inst :sub size :rsp)
@@ -1552,13 +1552,12 @@
 ;;       (inst :mov length-var :rax)
 ;;       (inst :add 1 :rax)
 ;;       (inst :mov :rax length-var)
-      (inst :mov length-var :rdx)
-      (inst :shl 3 :rdx) ; multiply by 8
-      (inst :add :rsp :rdx)
-      (inst :mov :rax '(:rdx))
-      ;; increment length
-      (inst :mov length-var :rax)
-      (inst :add 1 :rax)
+
+      (inst :mov length-var :rcx)
+      (inst :mov address-var :rdx)
+      (inst :mov :rax :rsi)
+      (inst :mov thread-register :rdi)
+      (emit-call "RT_accumulate_values")
       (inst :mov :rax length-var)
       )
     ;; done evaluating values-producing forms
