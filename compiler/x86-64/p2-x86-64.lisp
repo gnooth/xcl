@@ -1520,9 +1520,6 @@
            (p2-progn-body body target)))))
 
 (defun p2-m-v-c (form target)
-;;   (declare (ignore form target)
-;;   (compiler-unsupported "P2-M-V-C: MULTIPLE-VALUE-CALL is not supported yet")
-;;   (mumble "p2-m-v-c form = ~S~%" form)
   (aver (length-eql form 2))
   (aver (eq (%car form) 'MULTIPLE-VALUE-CALL))
   (let* ((node (%cadr form))
@@ -1532,10 +1529,8 @@
          (function-var (m-v-c-node-function-var node))
          (address-var (m-v-c-node-values-address-var node))
          (length-var (m-v-c-node-values-length-var node))
-         (size (* multiple-values-limit (length values-producing-forms) +bytes-per-word+))
-         )
+         (size (* multiple-values-limit (length values-producing-forms) +bytes-per-word+)))
     (aver (eq thread-register :r12))
-;;     (mumble "p2-m-v-c size = ~D~%" size)
     (process-1-arg function-form :rax t)
     (inst :mov :rax function-var)
     (inst :sub size :rsp)
@@ -1546,20 +1541,12 @@
     (dolist (values-producing-form values-producing-forms)
       (p2 values-producing-form :rax)
       (clear-register-contents)
-      ;; for now, take primary return value only
-;;       (inst :push :rax)
-;;       ;; increment length
-;;       (inst :mov length-var :rax)
-;;       (inst :add 1 :rax)
-;;       (inst :mov :rax length-var)
-
       (inst :mov length-var :rcx)
       (inst :mov address-var :rdx)
       (inst :mov :rax :rsi)
       (inst :mov thread-register :rdi)
       (emit-call "RT_accumulate_values")
-      (inst :mov :rax length-var)
-      )
+      (inst :mov :rax length-var))
     ;; done evaluating values-producing forms
     ;; RT_thread_multiple_value_call(thread, callable, vector-address, vector-length)
     (inst :mov length-var :rcx) ; length
@@ -1567,7 +1554,6 @@
     (inst :mov function-var :rsi) ; function designator
     (inst :mov thread-register :rdi) ; thread
     (emit-call "RT_thread_multiple_value_call")
-;;     (inst :mov address-var :rsp)
     (inst :add size :rsp)
     (move-result-to-target target)))
 
