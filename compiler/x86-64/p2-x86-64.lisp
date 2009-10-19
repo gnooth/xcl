@@ -426,7 +426,7 @@
               (compiler-unsupported "P2-CONSTANT: unsupported target ~S" target))))
           ((or (numberp form)
                (symbolp form)
-               (vectorp form)
+               (arrayp form)
                (listp form)
                (characterp form)
                (hash-table-p form)
