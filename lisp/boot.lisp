@@ -225,7 +225,7 @@
 (load-system-file "lisp/defvar")
 (load-system-file "lisp/defconstant")
 
-(load-system-file "lisp/initialize-classes")
+(load-system-file "clos/initialize-classes")
 
 (load-system-file "lisp/restart")
 (load-system-file "lisp/top-level")
