@@ -42,8 +42,9 @@ void Autoload::load()
   if (thread->symbol_value(S_autoload_verbose) != NIL)
     {
       String * prefix = new String(xcl_home());
-      if (!_filename)
-        prefix->append("/lisp/");
+      prefix->append_char('/');
+      if (_filename == NULL)
+        prefix->append("lisp/");
       Pathname * defaults = check_pathname(parse_namestring(prefix));
       Value device = defaults->device();
       Value directory = defaults->directory();
