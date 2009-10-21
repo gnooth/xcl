@@ -152,7 +152,6 @@
                           "gcd"
                           "gentemp"
                           "grovel"
-                          "initialize-classes"
                           "inline-expansion"
                           "inspect"
                           "intersection"
@@ -303,6 +302,8 @@
     (let ((*default-pathname-defaults* (merge-pathnames "compiler/" *xcl-home*)))
       (compile-file "install-p2-handlers"))
     (let ((*default-pathname-defaults* (merge-pathnames "clos/" *xcl-home*)))
+      (compile-file "initialize-classes")
       (compile-file "clos")
+      (compile-file "define-method-combination")
       (compile-file "defclass"))
     t))
