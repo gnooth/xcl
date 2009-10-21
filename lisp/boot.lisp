@@ -66,7 +66,7 @@
 (defmacro decf (place &optional (delta 1))
   `(setq ,place (- ,place ,delta)))
 
-;; redefined in push.lisp
+;; redefined in setf.lisp
 (defmacro push (item place)
   `(setq ,place (cons ,item ,place)))
 

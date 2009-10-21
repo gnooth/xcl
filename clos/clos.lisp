@@ -43,31 +43,6 @@
 (defvar *debug-clos* t)
 
 ;;;
-;;; Utilities
-;;;
-
-;;; push-on-end is like push except it uses the other end:
-
-(defmacro push-on-end (value location)
-  `(setf ,location (nconc ,location (list ,value))))
-
-;;; mapappend is like mapcar except that the results are appended together:
-
-;; (defun mapappend (fun &rest args)
-;;   (if (some #'null args)
-;;       ()
-;;       (append (apply fun (mapcar #'car args))
-;;               (apply #'mapappend fun (mapcar #'cdr args)))))
-
-;;; mapplist is mapcar for property lists:
-
-(defun mapplist (fun x)
-  (if (null x)
-      nil
-      (cons (funcall fun (car x) (cadr x))
-            (mapplist fun (cddr x)))))
-
-;;;
 ;;; Standard instances
 ;;;
 
@@ -246,14 +221,14 @@
                                   direct-superclasses
                                   (metaclass +the-class-standard-class+)
                                   &allow-other-keys)
-  ;; Check for duplicate slots.
+  ;; check for duplicate slots
   (let ((slots (getf args :direct-slots)))
     (dolist (s1 slots)
       (let ((name1 (getf s1 :name)))
         (dolist (s2 (cdr (memq s1 slots)))
           (when (eq name1 (getf s2 :name))
             (error 'program-error "Duplicate slot ~S" name1))))))
-  ;; Check for duplicate argument names in :DEFAULT-INITARGS class option.
+  ;; check for duplicate argument names in :DEFAULT-INITARGS class option
   (let ((names nil))
     (dolist (default-initarg (getf args :direct-default-initargs))
       (push (car default-initarg) names))
@@ -284,7 +259,7 @@
                                       (class.direct-superclasses subclass))))
                   (setq class new-class)))
                (t
-                ;; We're redefining the class.
+                ;; we're redefining the class
                 (when (class.layout class)
                   (unless *preserve-layout*
                     (%make-instances-obsolete class)))
@@ -1430,13 +1405,16 @@
           (make-keyword (car arg)))
       (make-keyword arg)))
 
+(defmacro push-on-end (item place)
+  `(setq ,place (nconc ,place (list ,item))))
+
 (defun analyze-lambda-list (lambda-list)
-  (let ((keys nil)            ; Just the keywords
-        (key-args nil)        ; Keywords argument specs
+  (let ((keys nil)            ; just the keywords
+        (key-args nil)        ; keyword argument specs
         (keysp nil)
-        (required-names nil)  ; Just the variable names
-        (required-args nil)   ; Variable names & specializers
-        (specializers nil)    ; Just the specializers
+        (required-names nil)  ; just the variable names
+        (required-args nil)   ; variable names and specializers
+        (specializers nil)    ; just the specializers
         (rest-var nil)
         (optionals nil)
         (auxs nil)
