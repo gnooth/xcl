@@ -1,6 +1,6 @@
 // Autoload.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,8 +27,16 @@ private:
   AbstractString * const _filename;
 
 public:
-  Autoload(Value name);
-  Autoload(Value name, AbstractString * filename);
+  Autoload(Value name)
+    : Function(WIDETAG_AUTOLOAD, name), _filename(NULL)
+  {
+  }
+
+  Autoload(Value name, AbstractString * filename)
+    : Function(WIDETAG_AUTOLOAD, name), _filename(filename)
+  {
+  }
+
 
   virtual ~Autoload() {}
 

@@ -22,16 +22,6 @@
 #include "Pathname.hpp"
 #include "xcl_home.hpp"
 
-Autoload::Autoload(Value name)
-  : Function(WIDETAG_AUTOLOAD, name), _filename(NULL)
-{
-}
-
-Autoload::Autoload(Value name, AbstractString * filename)
-  : Function(WIDETAG_AUTOLOAD, name), _filename(filename)
-{
-}
-
 void Autoload::load()
 {
   Thread * const thread = current_thread();
@@ -63,6 +53,8 @@ void Autoload::load()
       AbstractString * namestring = pathname->namestring();
       Stream * out = check_stream(thread->symbol_value(S_standard_output));
       String * message = new String("; Autoloading ");
+      message->append(::prin1_to_string(operator_name())->as_c_string());
+      message->append(" from ");
       message->append(namestring);
       message->append(" ...\n");
       out->fresh_line();
