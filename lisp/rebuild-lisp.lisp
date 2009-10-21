@@ -19,7 +19,7 @@
 (in-package "SYSTEM")
 
 (defun clean ()
-  (dolist (dir '("lisp/" "compiler/" #+x86 "compiler/x86/" #+x86-64 "compiler/x86-64/"))
+  (dolist (dir '("lisp/" "clos/" "compiler/" #+x86 "compiler/x86/" #+x86-64 "compiler/x86-64/"))
     (let ((*default-pathname-defaults* (merge-pathnames dir *xcl-home*)))
       (dolist (file (directory "*.xcl"))
         (delete-file file))))
@@ -94,7 +94,6 @@
                           "case"
                           "ccase"
                           "check-type"
-                          "clos"
                           "compile-file-pathname"
                           "compiler-error"
                           "concatenate"
@@ -107,7 +106,6 @@
                           "count"
                           "ctypecase"
                           "declaim"
-                          "defclass"
                           "defconstant"
                           "define-compiler-macro"
                           "define-modify-macro"
@@ -304,4 +302,7 @@
         (compile-file filespec)))
     (let ((*default-pathname-defaults* (merge-pathnames "compiler/" *xcl-home*)))
       (compile-file "install-p2-handlers"))
+    (let ((*default-pathname-defaults* (merge-pathnames "clos/" *xcl-home*)))
+      (compile-file "clos")
+      (compile-file "defclass"))
     t))

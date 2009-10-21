@@ -158,9 +158,9 @@
 (autoload '(set-exclusive-or nset-exclusive-or))
 (autoload 'check-type-error "lisp/check-type")
 (autoload-macro '(ccase ctypecase check-type))
-(autoload-macro 'defclass)
-(autoload-macro '(defgeneric defmethod define-condition) "lisp/clos")
-(autoload '(ensure-class documentation) "lisp/clos")
+(autoload-macro 'defclass "clos/defclass")
+(autoload-macro '(defgeneric defmethod define-condition) "clos/clos")
+(autoload '(ensure-class documentation) "clos/clos")
 (autoload 'gentemp)
 (autoload 'mismatch)
 (autoload '(substitute substitute-if substitute-if-not) "lisp/substitute")
@@ -253,4 +253,4 @@
 
 (autoload '(do-tests do-compiled-tests) "lisp/rt")
 (autoload 'run-random-tests)
-(autoload 'run-other-tests)
+(autoload '(run-other-tests run-mop-tests) "lisp/run-other-tests")
