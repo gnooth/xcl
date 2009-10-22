@@ -302,8 +302,10 @@
     (let ((*default-pathname-defaults* (merge-pathnames "compiler/" *xcl-home*)))
       (compile-file "install-p2-handlers"))
     (let ((*default-pathname-defaults* (merge-pathnames "clos/" *xcl-home*)))
-      (compile-file "initialize-classes")
-      (compile-file "clos")
-      (compile-file "define-method-combination")
-      (compile-file "defclass"))
+      (dolist (filespec '("initialize-classes"
+                          "clos"
+                          "define-method-combination"
+                          "defclass"
+                          "defmethod"))
+        (compile-file filespec)))
     t))

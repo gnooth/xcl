@@ -164,6 +164,8 @@
 (autoload '(ensure-class documentation) "clos/clos")
 (autoload-macro 'define-method-combination "clos/define-method-combination")
 (autoload 'make-method-combination "clos/define-method-combination")
+(autoload-macro 'defmethod "clos/defmethod")
+(autoload '(%make-method-lambda compute-method-fast-function) "clos/defmethod")
 
 (autoload 'gentemp)
 (autoload 'mismatch)
