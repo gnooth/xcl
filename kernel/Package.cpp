@@ -1248,7 +1248,7 @@ Value CL_package_shadowing_symbols(Value arg)
   return coerce_to_package(arg)->shadowing_symbols();
 }
 
-// %in-package name => package
+// ### %in-package name => package
 Value SYS_in_package_internal(Value arg)
 {
   Value package = package_map->get(CL_string(arg));
