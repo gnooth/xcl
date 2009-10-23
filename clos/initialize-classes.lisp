@@ -38,8 +38,10 @@
 
 (defconstant +built-in-class-layout+
   (make-layout (find-class-1 'built-in-class)
+               ;; instance slots
                '(direct-methods prototype name layout precedence-list
                  direct-superclasses direct-subclasses)
+               ;; shared slots
                nil))
 
 (defun initialize-built-in-class (class-name direct-superclasses precedence-list)

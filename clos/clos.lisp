@@ -378,7 +378,7 @@
                                           (allocation :instance)
                                     &allow-other-keys)
   (let ((slot (allocate-standard-instance
-               (class.layout (find-class 'standard-direct-slot-definition)))))
+               (class.layout (find-class-1 'standard-direct-slot-definition)))))
     (setf (slot-definition.name slot) name)
     (setf (slot-definition.initargs slot) initargs)
     (setf (slot-definition.initform slot) initform)
@@ -401,7 +401,7 @@
                                             (allocation-class nil)
                                        &allow-other-keys)
   (let ((slot (allocate-standard-instance
-               (class.layout (find-class 'standard-effective-slot-definition)))))
+               (class.layout (find-class-1 'standard-effective-slot-definition)))))
     (setf (slot-definition.name slot) name)
     (setf (slot-definition.initargs slot) initargs)
     (setf (slot-definition.initform slot) initform)
@@ -1560,6 +1560,8 @@
 ;;       `(funcall (coerce-to-function ,(second method)) args) ; REVIEW
 ;;       `(funcall (method-function ,method) args ,next-method-list)))
 
+
+;; FIXME "The METHOD-COMBINATION argument is a method combination metaobject." MOP p.176
 (defun std-compute-effective-method (gf mc methods)
   (let* (;(mc (generic-function-method-combination gf))
          (mc-name (if (atom mc) mc (%car mc)))
@@ -2191,6 +2193,7 @@
                               (generic-function.argument-precedence-order gf)))
 
 ;; MOP p. 176
+;; "The METHOD-COMBINATION argument is a method combination metaobject."
 (defgeneric compute-effective-method (generic-function method-combination methods))
 
 (defmethod compute-effective-method ((generic-function standard-generic-function)

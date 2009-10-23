@@ -339,7 +339,7 @@
                    'define-long-form-method-combination
                    'define-short-form-method-combination) ',name ',args)))
 
-)
+) ; end sacla
 
 (defmacro define-method-combination (&whole form &rest args)
   (declare (ignore args))
