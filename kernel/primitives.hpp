@@ -542,6 +542,7 @@ extern Value SYS_fasl_sharp_x(Value streamarg, Value subchar, Value numarg);
 extern Value SYS_fast_mapc2(Value arg1, Value arg2);
 extern Value SYS_fast_mapcar2(Value arg1, Value arg2);
 extern Value SYS_fdefinition_block_name(Value arg);
+extern Value SYS_find_class_1(Value arg);
 extern Value SYS_find_eql(Value item, Value sequence);
 extern Value SYS_fixnum_typep(Value object, Value low, Value high);
 extern Value SYS_float_string(Value arg);

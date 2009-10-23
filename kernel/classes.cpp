@@ -179,6 +179,21 @@ Value CL_class_of(Value obj)
     }
 }
 
+static Value find_class_not_symbol(Value arg)
+{
+  String * message = new String(::prin1_to_string(arg));
+  message->append(" is not a legal class name.");
+  return signal_lisp_error(message);
+}
+
+static Value find_class_not_found(Value arg)
+{
+  String * message = new String("There is no class named ");
+  message->append(::prin1_to_string(arg));
+  message->append_char('.');
+  return signal_lisp_error(message);
+}
+
 // ### find-class symbol &optional errorp environment => class
 // REVIEW environment argument is ignored
 Value CL_find_class(unsigned int numargs, Value args[])
@@ -187,17 +202,29 @@ Value CL_find_class(unsigned int numargs, Value args[])
     return wrong_number_of_arguments(S_find_class, numargs, 1, 3);
   Value name = args[0];
   if (!symbolp(name))
-    return signal_type_error(name, S_symbol);
+    return find_class_not_symbol(name);
   Value value = map->get(name);
   if (value != NULL_VALUE)
     return value;
   if (numargs < 2 || args[1] != NIL)
-    {
-      String * message = new String(::prin1_to_string(name));
-      message->append(" does not name a class.");
-      return signal_lisp_error(message);
-    }
+//     {
+//       String * message = new String(::prin1_to_string(name));
+//       message->append(" does not name a class.");
+//       return signal_lisp_error(message);
+    return find_class_not_found(name);
+//     }
   return NIL;
+}
+
+// ### find-class-1 symbol => class
+Value SYS_find_class_1(Value arg)
+{
+  if (!symbolp(arg))
+    return find_class_not_symbol(arg);
+  Value value = map->get(arg);
+  if (value != NULL_VALUE)
+    return value;
+  return find_class_not_found(arg);
 }
 
 // ### set-find-class symbol new-class => new-class

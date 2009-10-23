@@ -37,32 +37,32 @@
 (defmacro class.finalized-p                          (arg) `(iref ,arg 11))
 
 (defconstant +built-in-class-layout+
-  (make-layout (find-class 'built-in-class)
+  (make-layout (find-class-1 'built-in-class)
                '(direct-methods prototype name layout precedence-list
                  direct-superclasses direct-subclasses)
                nil))
 
 (defun initialize-built-in-class (class-name direct-superclasses precedence-list)
-  (let ((class (find-class class-name)))
-    (setf (class.direct-superclasses class) (mapcar #'find-class direct-superclasses))
-    (setf (class.precedence-list class) (mapcar #'find-class precedence-list))
+  (let ((class (find-class-1 class-name)))
+    (setf (class.direct-superclasses class) (mapcar #'find-class-1 direct-superclasses))
+    (setf (class.precedence-list class) (mapcar #'find-class-1 precedence-list))
     (setf (std-instance-layout class) +built-in-class-layout+)))
 
 (defconstant +structure-class-layout+
-  (make-layout (find-class 'structure-class)
+  (make-layout (find-class-1 'structure-class)
                '(direct-methods prototype name layout precedence-list
                  direct-superclasses direct-subclasses
                  direct-slots slots)
                nil))
 
 (defun initialize-structure-class (class-name direct-superclasses precedence-list)
-  (let ((class (find-class class-name)))
-    (setf (class.direct-superclasses class) (mapcar #'find-class direct-superclasses))
-    (setf (class.precedence-list class) (mapcar #'find-class precedence-list))
+  (let ((class (find-class-1 class-name)))
+    (setf (class.direct-superclasses class) (mapcar #'find-class-1 direct-superclasses))
+    (setf (class.precedence-list class) (mapcar #'find-class-1 precedence-list))
     (setf (std-instance-layout class) +structure-class-layout+)))
 
 (defconstant +standard-class-layout+
-  (make-layout (find-class 'standard-class)
+  (make-layout (find-class-1 'standard-class)
                '(direct-methods prototype name layout precedence-list
                  direct-superclasses direct-subclasses
                  direct-slots slots
@@ -71,7 +71,7 @@
                nil))
 
 (defconstant +funcallable-standard-class-layout+
-  (make-layout (find-class 'funcallable-standard-class)
+  (make-layout (find-class-1 'funcallable-standard-class)
                '(direct-methods prototype name layout precedence-list
                  direct-superclasses direct-subclasses
                  direct-slots slots
@@ -80,16 +80,16 @@
                nil))
 
 (defun initialize-standard-class (class-name direct-superclasses precedence-list)
-  (let ((class (find-class class-name)))
-    (setf (class.direct-superclasses class) (mapcar #'find-class direct-superclasses))
-    (setf (class.precedence-list class) (mapcar #'find-class precedence-list))
+  (let ((class (find-class-1 class-name)))
+    (setf (class.direct-superclasses class) (mapcar #'find-class-1 direct-superclasses))
+    (setf (class.precedence-list class) (mapcar #'find-class-1 precedence-list))
     (setf (class.finalized-p class) t)
     (setf (std-instance-layout class) +standard-class-layout+)))
 
 (defun initialize-funcallable-standard-class (class-name direct-superclasses precedence-list)
-  (let ((class (find-class class-name)))
-    (setf (class.direct-superclasses class) (mapcar #'find-class direct-superclasses))
-    (setf (class.precedence-list class) (mapcar #'find-class precedence-list))
+  (let ((class (find-class-1 class-name)))
+    (setf (class.direct-superclasses class) (mapcar #'find-class-1 direct-superclasses))
+    (setf (class.precedence-list class) (mapcar #'find-class-1 precedence-list))
     (setf (class.finalized-p class) t)
     (setf (std-instance-layout class) +funcallable-standard-class-layout+)))
 
@@ -275,16 +275,16 @@
 (initialize-condition-class 'undefined-function '(cell-error) '(undefined-function cell-error error serious-condition condition standard-object t))
 (initialize-condition-class 'warning '(condition) '(warning condition standard-object t))
 
-(setf (class.layout        (find-class 'structure-class)) +structure-class-layout+)
-(setf (std-instance-layout (find-class 'structure-class)) +standard-class-layout+)
+(setf (class.layout        (find-class-1 'structure-class)) +structure-class-layout+)
+(setf (std-instance-layout (find-class-1 'structure-class)) +standard-class-layout+)
 
-(setf (class.layout        (find-class 'standard-class)) +standard-class-layout+)
-(setf (std-instance-layout (find-class 'standard-class)) +standard-class-layout+)
+(setf (class.layout        (find-class-1 'standard-class)) +standard-class-layout+)
+(setf (std-instance-layout (find-class-1 'standard-class)) +standard-class-layout+)
 
-(setf (class.layout        (find-class 'funcallable-standard-class)) +funcallable-standard-class-layout+)
-(setf (std-instance-layout (find-class 'funcallable-standard-class)) +standard-class-layout+)
+(setf (class.layout        (find-class-1 'funcallable-standard-class)) +funcallable-standard-class-layout+)
+(setf (std-instance-layout (find-class-1 'funcallable-standard-class)) +standard-class-layout+)
 
-(dolist (class (mapcar #'find-class '(class built-in-class forward-referenced-class)))
+(dolist (class (mapcar #'find-class-1 '(class built-in-class forward-referenced-class)))
   (setf (class.layout class)
         (make-layout class
                      '(direct-methods prototype name layout precedence-list
@@ -292,7 +292,7 @@
                      nil))
   (setf (std-instance-layout class) +standard-class-layout+))
 
-(setf (std-instance-layout (find-class 'standard-object)) +standard-class-layout+)
+(setf (std-instance-layout (find-class-1 'standard-object)) +standard-class-layout+)
 
 ;; REVIEW
 (initialize-funcallable-standard-class 'funcallable-standard-object
@@ -334,14 +334,14 @@
 (defmacro effective-slot-definition.location            (arg) `(iref ,arg 8))
 (defmacro effective-slot-definition.allocation-class    (arg) `(iref ,arg 9))
 
-(let ((class (find-class 'standard-direct-slot-definition)))
+(let ((class (find-class-1 'standard-direct-slot-definition)))
   (setf (class.layout class) (make-layout class
                                           '(name initargs initform initfunction
                                             allocation %type %class %documentation
                                             readers writers)
                                           nil)))
 
-(let ((class (find-class 'standard-effective-slot-definition)))
+(let ((class (find-class-1 'standard-effective-slot-definition)))
   (setf (class.layout class) (make-layout class
                                           '(name initargs initform initfunction
                                             allocation %type %class %documentation

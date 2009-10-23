@@ -500,7 +500,7 @@ void initialize_lisp()
   ADD_TEMPORARY(S_write_char, CL_write_char, 1, 2);
   ADD_PRIMITIVE(S_zerop, CL_zerop, 1, 1);
 
-  // Non-CL primitives
+  // non-CL primitives
   ADD_PRIMITIVE(S_accept_connection, EXT_accept_connection, 1, 1);
   ADD_PRIMITIVE(S_add_2, SYS_add_2, 2, 2);
   ADD_PRIMITIVE(S_address_of, SYS_address_of, 1, 1);
@@ -595,6 +595,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_fast_mapcar2, SYS_fast_mapcar2, 2, 2);
   ADD_PRIMITIVE(S_fdefinition_block_name, SYS_fdefinition_block_name, 1, 1);
   ADD_PRIMITIVE(S_file_directory_p, EXT_file_directory_p, 1, 1);
+  ADD_PRIMITIVE(S_find_class_1, SYS_find_class_1, 1, 1);
   ADD_PRIMITIVE(S_find_eql, SYS_find_eql, 2, 2);
   ADD_PRIMITIVE(S_fixnum_typep, SYS_fixnum_typep, 3, 3);
   ADD_PRIMITIVE(S_fixnump, EXT_fixnump, 1, 1);

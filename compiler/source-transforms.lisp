@@ -161,6 +161,11 @@
       `(last1 ,(%car args))
       form))
 
+(define-source-transform find-class (&whole form &rest args)
+  (if (length-eql args 1)
+      `(find-class-1 ,(%car args))
+      form))
+
 (define-source-transform logand (&whole form &rest args)
   (cond ((> (length args) 2)
          `(logand ,(%car args) (logand ,@(%cdr args))))
@@ -203,42 +208,40 @@
                 (setq ,list (%cdr ,list))))))))
 
 (define-source-transform assoc (&whole form &rest args)
-  (let ((numargs (length args)))
-    (case numargs
-      (2
-       `(assql ,(%car args) ,(%cadr args)))
-      (4
-       (let ((arg3 (third args))
-             (arg4 (fourth args)))
-         (cond ((and (eq arg3 :test)
-                     (member arg4 `(EQ #'EQ ,(list 'FUNCTION 'EQ)) :test #'equal))
-                `(assq ,(%car args) ,(%cadr args)))
-               ((and (eq arg3 :test)
-                     (member arg4 `(EQL #'EQL ,(list 'FUNCTION 'EQL)) :test #'equal))
-                `(assql ,(%car args) ,(%cadr args)))
-               (t
-                form))))
-      (t
-       form))))
+  (case (length args)
+    (2
+     `(assql ,(%car args) ,(%cadr args)))
+    (4
+     (let ((arg3 (third args))
+           (arg4 (fourth args)))
+       (cond ((and (eq arg3 :test)
+                   (member arg4 `(EQ #'EQ ,(list 'FUNCTION 'EQ)) :test #'equal))
+              `(assq ,(%car args) ,(%cadr args)))
+             ((and (eq arg3 :test)
+                   (member arg4 `(EQL #'EQL ,(list 'FUNCTION 'EQL)) :test #'equal))
+              `(assql ,(%car args) ,(%cadr args)))
+             (t
+              form))))
+    (t
+     form)))
 
 (define-source-transform member (&whole form &rest args)
-  (let ((numargs (length args)))
-    (case numargs
-      (2
-       `(memql ,(%car args) ,(%cadr args)))
-      (4
-       (let ((arg3 (third args))
-             (arg4 (fourth args)))
-         (cond ((and (eq arg3 :test)
-                     (member arg4 `(EQ #'EQ ,(list 'FUNCTION 'EQ)) :test #'equal))
-                `(memq ,(%car args) ,(%cadr args)))
-               ((and (eq arg3 :test)
-                     (member arg4 `(EQL #'EQL ,(list 'FUNCTION 'EQL)) :test #'equal))
-                `(memql ,(%car args) ,(%cadr args)))
-               (t
-                form))))
-      (t
-       form))))
+  (case (length args)
+    (2
+     `(memql ,(%car args) ,(%cadr args)))
+    (4
+     (let ((arg3 (third args))
+           (arg4 (fourth args)))
+       (cond ((and (eq arg3 :test)
+                   (member arg4 `(EQ #'EQ ,(list 'FUNCTION 'EQ)) :test #'equal))
+              `(memq ,(%car args) ,(%cadr args)))
+             ((and (eq arg3 :test)
+                   (member arg4 `(EQL #'EQL ,(list 'FUNCTION 'EQL)) :test #'equal))
+              `(memql ,(%car args) ,(%cadr args)))
+             (t
+              form))))
+    (t
+     form)))
 
 (define-source-transform sys::backq-list (&rest args)
   (case (length args)
