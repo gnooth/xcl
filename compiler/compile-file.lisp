@@ -81,6 +81,15 @@
 
 (defknown process-defconstant (t stream) t)
 (defun process-defconstant (form stream)
+  (cond (;;(structure-object-p (third form))
+         (typep (third form) 'structure-object)
+         (multiple-value-bind (creation-form initialization-form)
+             (make-load-form (third form))
+           (declare (ignore initialization-form))
+           (dump-top-level-form `(DEFCONSTANT ,(second form) ,creation-form) stream)))
+        (t
+         (dump-top-level-form form stream)))
+  (%stream-terpri stream)
   ;; "If a DEFCONSTANT form appears as a top level form, the compiler
   ;; must recognize that [the] name names a constant variable. An
   ;; implementation may choose to evaluate the value-form at compile
@@ -88,16 +97,7 @@
   ;; initial-value can be evaluated at compile time (regardless of
   ;; whether or not references to name appear in the file) and that
   ;; it always evaluates to the same value."
-  (eval form)
-  (cond (;;(structure-object-p (third form))
-         (typep (third form) 'structure-object)
-         (multiple-value-bind (creation-form initialization-form)
-             (make-load-form (third form))
-           (declare (ignore initialization-form))
-           (dump-form (list 'DEFCONSTANT (second form) creation-form) stream)))
-        (t
-         (dump-form form stream)))
-  (%stream-terpri stream))
+  (eval form))
 
 (defun convert-toplevel-form (form)
 ;;   (let* ((expr `(lambda () ,form))
@@ -108,7 +108,7 @@
 ;;           (if compiled-function
 ;;               `(funcall (load-compiled-function ,(file-namestring classfile)))
 ;;               (precompile-form form nil))))
-  (format t "converting top-level form~%")
+  (mumble "converting top-level form~%")
   (pprint form)
   (terpri)
 
@@ -148,10 +148,15 @@
   )
 
 (defun process-top-level-form (form stream compile-time-too)
-  (cond ((atom form)
-         (when compile-time-too
-           (eval form)))
-        (t
+  (when (atom form)
+    ;; REVIEW support symbol macros
+    (when compile-time-too
+      (eval form)
+      (return-from process-top-level-form)))
+;;   (cond ((atom form)
+;;          (when compile-time-too
+;;            (eval form)))
+;;         (t
          (let ((operator (%car form)))
            (case operator
              (MACROLET
@@ -160,13 +165,12 @@
              ((IN-PACKAGE %IN-PACKAGE)
               (note-top-level-form form)
               (aver (length-eql form 2))
-              (let ((arg (%cadr form)))
-                (cond ((stringp arg)
-                       (setq form `(%in-package ,arg)))
-                      ((symbolp arg)
-                       (setq form `(%in-package ',arg)))
-                      (t
-                       (setq form `(%in-package ,(string arg))))))
+;;               (let ((arg (%cadr form)))
+;;                 (cond ((stringp arg)
+;;                        (setq form `(%in-package ,arg)))
+;;                       (t
+;;                        (setq form `(%in-package ,(string arg))))))
+              (setq form `(%in-package ,(string (%cadr form))))
               (dump-top-level-form form stream)
               (eval form)
               (return-from process-top-level-form))
@@ -174,23 +178,22 @@
               (note-top-level-form form)
               (setq form (precompile-form form))
               (eval form)
-              ;; force package prefix to be used when dumping form
-;;               (let ((*package* +keyword-package+))
-                (dump-top-level-form form stream)
-;;                 )
+              (dump-top-level-form form stream)
               (return-from process-top-level-form))
              ((DEFVAR DEFPARAMETER)
               (note-top-level-form form)
-              (if compile-time-too
-                  (eval form)
-                  ;; "If a DEFVAR or DEFPARAMETER form appears as a top level form,
-                  ;; the compiler must recognize that the name has been proclaimed
-                  ;; special. However, it must neither evaluate the initial-value
-                  ;; form nor assign the dynamic variable named NAME at compile
-                  ;; time."
-                  (let ((name (second form)))
+              (let ((name (second form)))
+                (setq form (precompile-form form))
+                (dump-top-level-form form stream)
+                (if compile-time-too
+                    (eval form)
+                    ;; "If a DEFVAR or DEFPARAMETER form appears as a top level form,
+                    ;; the compiler must recognize that the name has been proclaimed
+                    ;; special. However, it must neither evaluate the initial-value
+                    ;; form nor assign the dynamic variable named NAME at compile
+                    ;; time."
                     (%defvar name)))
-              (setq form (precompile-form form)))
+              (return-from process-top-level-form))
              (DEFCONSTANT
               (note-top-level-form form)
               (process-defconstant form stream)
@@ -383,7 +386,9 @@
                      (note-top-level-form form)
                      (setq form (precompile-form form))
 ;;                      (setq form (convert-toplevel-form form))
-                     )))))))
+                     )))))
+;;          )
+;;         )
   (when (consp form)
     (dump-top-level-form form stream)))
 
@@ -428,13 +433,10 @@
               (%stream-terpri out)
               (let ((*standard-output* out))
                 (describe-compiler-policy))
-;;               (let ((*package* (find-package '#:cl)))
-;;               (write (list 'init-fasl :version *fasl-version*) :stream out)
+              (%stream-terpri out)
               (let ((*package* +keyword-package+)) ; make sure package prefix is printed
-                (write '(init-fasl nil) :stream out)
-                (%stream-terpri out)
-                (write `(setq *source-file* ,*compile-file-truename*) :stream out)
-                (%stream-terpri out))
+                (dump-top-level-form '(init-fasl nil) out)
+                (dump-top-level-form `(setq *source-file* ,*compile-file-truename*) out))
               (loop
                 (let* ((*source-position* (file-position in))
 ;;                        (jvm::*source-line-number* (stream-line-number in))
