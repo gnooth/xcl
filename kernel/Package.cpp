@@ -1251,11 +1251,12 @@ Value CL_package_shadowing_symbols(Value arg)
 // ### %in-package name => package
 Value SYS_in_package_internal(Value arg)
 {
-  Value package = package_map->get(CL_string(arg));
+  Value package = package_map->get(arg);
   if (package == NULL_VALUE)
     {
+      AbstractString * package_name = check_string(arg);
       String * s = new String("The name ");
-      s->append(prin1_to_string(arg));
+      s->append(package_name);
       s->append(" does not designate a package.");
       return signal_lisp_error(new PackageError(s, arg));
     }
