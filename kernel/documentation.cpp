@@ -43,16 +43,19 @@ Value SYS_set_documentation_internal(Value object, Value doctype, Value new_valu
   if (alist == NULL_VALUE)
     {
       // no alist
-      entry = make_cons(doctype, new_value);
-      alist = make_cons(entry, NIL);
-      DOCUMENTATION_HASH_TABLE->put(object, alist);
+      if (new_value != NIL)
+        {
+          entry = make_cons(doctype, new_value);
+          alist = make_cons(entry, NIL);
+          DOCUMENTATION_HASH_TABLE->put(object, alist);
+        }
     }
   else
     {
       entry = EXT_assq(doctype, alist);
       if (consp(entry))
         the_cons(entry)->setcdr(new_value);
-      else
+      else if (new_value != NIL)
         {
           // no entry
           entry = make_cons(doctype, new_value);
