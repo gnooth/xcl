@@ -18,8 +18,5 @@
 
 (in-package "SYSTEM")
 
-(defmacro defparameter (name initial-value &optional docstring)
-  `(progn
-     (%defparameter ',name ,initial-value)
-     (%set-documentation ',name 'variable ,docstring)
-     ',name))
+(defmacro defparameter (name initial-value &optional (doc nil docp))
+  `(%defparameter ',name ,initial-value ,doc ,docp))
