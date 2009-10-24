@@ -153,242 +153,223 @@
     (when compile-time-too
       (eval form)
       (return-from process-top-level-form)))
-;;   (cond ((atom form)
-;;          (when compile-time-too
-;;            (eval form)))
-;;         (t
-         (let ((operator (%car form)))
-           (case operator
-             (MACROLET
-              (process-top-level-macrolet form stream compile-time-too)
-              (return-from process-top-level-form))
-             ((IN-PACKAGE %IN-PACKAGE)
-              (note-top-level-form form)
-              (aver (length-eql form 2))
-;;               (let ((arg (%cadr form)))
-;;                 (cond ((stringp arg)
-;;                        (setq form `(%in-package ,arg)))
-;;                       (t
-;;                        (setq form `(%in-package ,(string arg))))))
-              (setq form `(%in-package ,(string (%cadr form))))
-              (dump-top-level-form form stream)
-              (eval form)
-              (return-from process-top-level-form))
-             (DEFPACKAGE
-              (note-top-level-form form)
-              (setq form (precompile-form form))
-              (eval form)
-              (dump-top-level-form form stream)
-              (return-from process-top-level-form))
-             ((DEFVAR DEFPARAMETER)
-              (note-top-level-form form)
-              (let ((name (second form)))
-                (setq form (precompile-form form))
-                (dump-top-level-form form stream)
-                (if compile-time-too
-                    (eval form)
-                    ;; "If a DEFVAR or DEFPARAMETER form appears as a top level form,
-                    ;; the compiler must recognize that the name has been proclaimed
-                    ;; special. However, it must neither evaluate the initial-value
-                    ;; form nor assign the dynamic variable named NAME at compile
-                    ;; time."
-                    (%defvar name)))
-              (return-from process-top-level-form))
-             (DEFCONSTANT
-              (note-top-level-form form)
-              (process-defconstant form stream)
-              (return-from process-top-level-form))
-             (DEFUN
-              (note-top-level-form form)
-              (when compile-time-too
-                (eval form))
-              (let* ((name (cadr form))
-                     (block-name (fdefinition-block-name name))
-                     (lambda-list (caddr form))
-                     (*speed* *speed*)
-                     (*space* *space*)
-                     (*safety* *safety*)
-                     (*debug* *debug*))
-                (multiple-value-bind (body declarations doc)
-                    (parse-body (cdddr form))
-                  (declare (ignore doc)) ; FIXME
-                  (let* ((lambda-expression
-                          `(lambda ,lambda-list ,@declarations (block ,block-name ,@body))))
-                    (multiple-value-bind (code minargs maxargs constants l-v-info)
-                        (report-error (c::compile-defun-for-compile-file name lambda-expression))
-                      (cond (code
-                             (setq form
-                                   `(multiple-value-bind (final-code final-constants)
-                                        (c::generate-code-vector ',code ',constants)
-                                      (set-fdefinition ',name
-                                                       (make-compiled-function ',name
-                                                                               final-code
-                                                                               ,minargs
-                                                                               ,maxargs
-                                                                               final-constants))
-                                      (setq *source-position* ,*source-position*)
-                                      (record-source-information ',name)
-                                      (set-local-variable-information #',name ',l-v-info))))
-                            (t
-                             ;; FIXME This should be a warning or error of some sort...
-                             (format t "~&~%; Unable to compile function ~A~%" name)
-                             (let ((precompiled-function (precompile-form lambda-expression)))
-                               (setq form
-                                     `(progn
-                                        (set-fdefinition ',name ,precompiled-function)
-                                        (setq *source-position* ,*source-position*)
-                                        (record-source-information ',name))))))))
-                  (when (inline-p name)
-                    ;; FIXME Need to support SETF functions too!
-                    (set-inline-expansion name
-                                          (generate-inline-expansion block-name
-                                                                     lambda-list
-                                                                     declarations
-                                                                     body))
-                    (dump-form `(set-inline-expansion ',name ',(inline-expansion name)) stream)
-                    (%stream-terpri stream)))
-                (push name *functions-defined-in-current-file*)
-                (note-name-defined name)))
-             (DEFMACRO
-              (note-top-level-form form)
-              (eval form)
-              (let* ((name (second form))
-                     (lambda-expression (function-lambda-expression (macro-function name))))
-                (multiple-value-bind (code minargs maxargs constants l-v-info)
-                    (report-error (c::compile-defun-for-compile-file name lambda-expression))
-                  (cond (code
-                         (setq form
-                               `(multiple-value-bind (final-code final-constants)
-                                    (c::generate-code-vector ',code ',constants)
-                                  (set-macro-function ',name
-                                                      (make-compiled-function ',name
-                                                                              final-code
-                                                                              ,minargs
-                                                                              ,maxargs
-                                                                              final-constants))
-                                  (setq *source-position* ,*source-position*)
-                                  (record-source-information ',name)
-                                  (set-local-variable-information (macro-function ',name) ',l-v-info))))
-                        (t
-                         ;; FIXME This should be a warning or error of some sort...
-                         (format t "~&~%; Unable to compile macro ~A~%" name)
-                         (setq form
-                               `(progn
-                                  (set-macro-function ',name ,lambda-expression)
-                                  (setq *source-position* ,*source-position*)
-                                  (record-source-information ',name))))))))
-             ((DEFGENERIC DEFMETHOD)
-              (note-top-level-form form)
-              (note-name-defined (cadr form))
-              (let ((*compile-print* nil))
-                (process-top-level-form (macroexpand-1 form *compile-file-environment*)
-                                        stream compile-time-too))
-              (return-from process-top-level-form))
-;;              (DEFSTRUCT
-;;               ;; FIXME
-;;               (note-top-level-form form)
-;; ;;               (setq form (precompile-form form))
-;;               (eval form)
-;;               (dump-form form stream)
-;;               (%stream-terpri stream)
-;;               (return-from process-top-level-form))
-             (DEFTYPE
-              (note-top-level-form form)
-              (eval form))
-             (EVAL-WHEN
-              (multiple-value-bind (ct lt e)
-                  (parse-eval-when-situations (cadr form))
-                (let ((new-compile-time-too (or ct
-                                                (and compile-time-too e)))
-                      (body (cddr form)))
-                  (cond (lt
-                         (process-top-level-progn body stream new-compile-time-too))
-                        (new-compile-time-too
-                         (eval `(progn ,@body)))))
-                (return-from process-top-level-form)))
-             (LOCALLY
-              ;; FIXME Need to handle special declarations too!
-              (let ((*speed* *speed*)
-                    (*safety* *safety*)
-                    (*debug* *debug*)
-                    (*space* *space*)
-                    (*inline-declarations* *inline-declarations*))
-                (multiple-value-bind (forms decls)
-                    (parse-body (cdr form) nil)
-                  (process-optimization-declarations decls)
-                  (process-top-level-progn forms stream compile-time-too)
-                  (return-from process-top-level-form))))
-             (PROGN
-              (process-top-level-progn (cdr form) stream compile-time-too)
-              (return-from process-top-level-form))
+  (let ((operator (%car form)))
+    (case operator
+      (MACROLET
+       (process-top-level-macrolet form stream compile-time-too)
+       (return-from process-top-level-form))
+      ((IN-PACKAGE %IN-PACKAGE)
+       (note-top-level-form form)
+       (aver (length-eql form 2))
+       (setq form `(%in-package ,(string (%cadr form))))
+       (dump-top-level-form form stream)
+       (eval form)
+       (return-from process-top-level-form))
+      (DEFPACKAGE
+       (note-top-level-form form)
+       (setq form (precompile-form form))
+       (eval form)
+       (dump-top-level-form form stream)
+       (return-from process-top-level-form))
+      ((DEFVAR DEFPARAMETER)
+       (note-top-level-form form)
+       (let ((name (second form)))
+         (setq form (precompile-form form))
+         (dump-top-level-form form stream)
+         (if compile-time-too
+             (eval form)
+             ;; "If a DEFVAR or DEFPARAMETER form appears as a top level form,
+             ;; the compiler must recognize that the name has been proclaimed
+             ;; special. However, it must neither evaluate the initial-value
+             ;; form nor assign the dynamic variable named NAME at compile
+             ;; time."
+             (%defvar name)))
+       (return-from process-top-level-form))
+      (DEFCONSTANT
+       (note-top-level-form form)
+       (process-defconstant form stream)
+       (return-from process-top-level-form))
+      (DEFUN
+       (note-top-level-form form)
+       (when compile-time-too
+         (eval form))
+       (let* ((name (cadr form))
+              (block-name (fdefinition-block-name name))
+              (lambda-list (caddr form))
+              (*speed* *speed*)
+              (*space* *space*)
+              (*safety* *safety*)
+              (*debug* *debug*))
+         (multiple-value-bind (body declarations doc)
+             (parse-body (cdddr form))
+           (declare (ignore doc)) ; FIXME
+           (let* ((lambda-expression
+                   `(lambda ,lambda-list ,@declarations (block ,block-name ,@body))))
+             (multiple-value-bind (code minargs maxargs constants l-v-info)
+                 (report-error (c::compile-defun-for-compile-file name lambda-expression))
+               (cond (code
+                      (setq form
+                            `(multiple-value-bind (final-code final-constants)
+                                 (c::generate-code-vector ',code ',constants)
+                               (set-fdefinition ',name
+                                                (make-compiled-function ',name
+                                                                        final-code
+                                                                        ,minargs
+                                                                        ,maxargs
+                                                                        final-constants))
+                               (setq *source-position* ,*source-position*)
+                               (record-source-information ',name)
+                               (set-local-variable-information #',name ',l-v-info))))
+                     (t
+                      ;; FIXME This should be a warning or error of some sort...
+                      (format t "~&~%; Unable to compile function ~A~%" name)
+                      (let ((precompiled-function (precompile-form lambda-expression)))
+                        (setq form
+                              `(progn
+                                 (set-fdefinition ',name ,precompiled-function)
+                                 (setq *source-position* ,*source-position*)
+                                 (record-source-information ',name))))))))
+           (when (inline-p name)
+             ;; FIXME Need to support SETF functions too!
+             (set-inline-expansion name
+                                   (generate-inline-expansion block-name
+                                                              lambda-list
+                                                              declarations
+                                                              body))
+             (dump-form `(set-inline-expansion ',name ',(inline-expansion name)) stream)
+             (%stream-terpri stream)))
+         (push name *functions-defined-in-current-file*)
+         (note-name-defined name)))
+      (DEFMACRO
+       (note-top-level-form form)
+       (eval form)
+       (let* ((name (second form))
+              (lambda-expression (function-lambda-expression (macro-function name))))
+         (multiple-value-bind (code minargs maxargs constants l-v-info)
+             (report-error (c::compile-defun-for-compile-file name lambda-expression))
+           (cond (code
+                  (setq form
+                        `(multiple-value-bind (final-code final-constants)
+                             (c::generate-code-vector ',code ',constants)
+                           (set-macro-function ',name
+                                               (make-compiled-function ',name
+                                                                       final-code
+                                                                       ,minargs
+                                                                       ,maxargs
+                                                                       final-constants))
+                           (setq *source-position* ,*source-position*)
+                           (record-source-information ',name)
+                           (set-local-variable-information (macro-function ',name) ',l-v-info))))
+                 (t
+                  ;; FIXME This should be a warning or error of some sort...
+                  (format t "~&~%; Unable to compile macro ~A~%" name)
+                  (setq form
+                        `(progn
+                           (set-macro-function ',name ,lambda-expression)
+                           (setq *source-position* ,*source-position*)
+                           (record-source-information ',name))))))))
+      ((DEFGENERIC DEFMETHOD)
+       (note-top-level-form form)
+       (note-name-defined (cadr form))
+       (let ((*compile-print* nil))
+         (process-top-level-form (macroexpand-1 form *compile-file-environment*)
+                                 stream compile-time-too))
+       (return-from process-top-level-form))
+      (DEFTYPE
+       (note-top-level-form form)
+       (eval form))
+      (EVAL-WHEN
+       (multiple-value-bind (ct lt e)
+           (parse-eval-when-situations (cadr form))
+         (let ((new-compile-time-too (or ct
+                                         (and compile-time-too e)))
+               (body (cddr form)))
+           (cond (lt
+                  (process-top-level-progn body stream new-compile-time-too))
+                 (new-compile-time-too
+                  (eval `(progn ,@body)))))
+         (return-from process-top-level-form)))
+      (LOCALLY
+       ;; FIXME Need to handle special declarations too!
+       (let ((*speed* *speed*)
+             (*safety* *safety*)
+             (*debug* *debug*)
+             (*space* *space*)
+             (*inline-declarations* *inline-declarations*))
+         (multiple-value-bind (forms decls)
+             (parse-body (cdr form) nil)
+           (process-optimization-declarations decls)
+           (process-top-level-progn forms stream compile-time-too)
+           (return-from process-top-level-form))))
+      (PROGN
+       (process-top-level-progn (cdr form) stream compile-time-too)
+       (return-from process-top-level-form))
 ;;              (DECLARE
 ;;               (compiler-style-warn "Misplaced declaration: ~S" form))
-             (t
+      (t
 ;;               (format t "falling through, form = ~S~%" form)
-              (when (and (symbolp operator)
-                         (macro-function operator *compile-file-environment*))
-                (note-top-level-form form)
-                ;; Note that we want MACROEXPAND-1 and not MACROEXPAND here, in
-                ;; case the form being expanded expands into something that needs
-                ;; special handling by PROCESS-TOP-LEVEL-FORM (e.g. DEFMACRO).
-                (let ((*compile-print* nil))
-                  (process-top-level-form (macroexpand-1 form *compile-file-environment*)
-                                         stream compile-time-too))
-                (return-from process-top-level-form))
+       (when (and (symbolp operator)
+                  (macro-function operator *compile-file-environment*))
+         (note-top-level-form form)
+         ;; Note that we want MACROEXPAND-1 and not MACROEXPAND here, in
+         ;; case the form being expanded expands into something that needs
+         ;; special handling by PROCESS-TOP-LEVEL-FORM (e.g. DEFMACRO).
+         (let ((*compile-print* nil))
+           (process-top-level-form (macroexpand-1 form *compile-file-environment*)
+                                   stream compile-time-too))
+         (return-from process-top-level-form))
 
-              (when compile-time-too
-                (eval form))
+       (when compile-time-too
+         (eval form))
 
-              (cond ((eq operator 'QUOTE)
-                     ;;                      (setf form (precompile-form form nil))
-                     (return-from process-top-level-form)
-                     )
-                    ((eq operator 'PUT)
-                     (setq form (precompile-form form)))
-                    ((eq operator 'COMPILER-DEFSTRUCT)
-                     (setq form (precompile-form form)))
-                    ((eq operator 'PROCLAIM)
-                     (setq form (precompile-form form)))
-                    ((and (memq operator '(EXPORT REQUIRE PROVIDE SHADOW))
-                          (or (keywordp (second form))
-                              (and (listp (second form))
-                                   (eq (first (second form)) 'QUOTE))))
-                     (setq form (precompile-form form)))
-                    ((eq operator 'IMPORT)
-                     (setq form (precompile-form form))
-                     ;; make sure package prefix is printed when symbols are imported
-                     (let ((*package* +keyword-package+))
-                       (dump-form form stream))
-                     (%stream-terpri stream)
-                     (return-from process-top-level-form))
-                    ((and (eq operator '%SET-FDEFINITION)
-                          (eq (car (second form)) 'QUOTE)
-                          (consp (third form))
-                          (eq (%car (third form)) 'FUNCTION)
-                          (symbolp (cadr (third form))))
-                     (setq form (precompile-form form)))
-                    ((memq operator '(LET LET*))
-                     (let ((body (cddr form)))
-                       (cond ((dolist (subform body nil)
-                                (when (and (consp subform) (eq (%car subform) 'DEFUN))
-                                  (return t)))
-                              (setq form (convert-toplevel-form form)))
-                             (t
-                              (setq form (precompile-form form))))))
+       (cond ((eq operator 'QUOTE)
+              ;;                      (setf form (precompile-form form nil))
+              (return-from process-top-level-form)
+              )
+             ((eq operator 'PUT)
+              (setq form (precompile-form form)))
+             ((eq operator 'COMPILER-DEFSTRUCT)
+              (setq form (precompile-form form)))
+             ((eq operator 'PROCLAIM)
+              (setq form (precompile-form form)))
+             ((and (memq operator '(EXPORT REQUIRE PROVIDE SHADOW))
+                   (or (keywordp (second form))
+                       (and (listp (second form))
+                            (eq (first (second form)) 'QUOTE))))
+              (setq form (precompile-form form)))
+             ((eq operator 'IMPORT)
+              (setq form (precompile-form form))
+              ;; make sure package prefix is printed when symbols are imported
+              (let ((*package* +keyword-package+))
+                (dump-form form stream))
+              (%stream-terpri stream)
+              (return-from process-top-level-form))
+             ((and (eq operator '%SET-FDEFINITION)
+                   (eq (car (second form)) 'QUOTE)
+                   (consp (third form))
+                   (eq (%car (third form)) 'FUNCTION)
+                   (symbolp (cadr (third form))))
+              (setq form (precompile-form form)))
+             ((memq operator '(LET LET*))
+              (let ((body (cddr form)))
+                (cond ((dolist (subform body nil)
+                         (when (and (consp subform) (eq (%car subform) 'DEFUN))
+                           (return t)))
+                       (setq form (convert-toplevel-form form)))
+                      (t
+                       (setq form (precompile-form form))))))
 ;;                     ((eq operator 'mop::ensure-method)
 ;;                      (setf form (convert-ensure-method form)))
-                    ((and (symbolp operator)
-                          (not (special-operator-p operator))
-                          (null (cdr form)))
-                     (setq form (precompile-form form)))
-                    (t
+             ((and (symbolp operator)
+                   (not (special-operator-p operator))
+                   (null (cdr form)))
+              (setq form (precompile-form form)))
+             (t
 ;;                      (setf form (precompile-form form nil))
-                     (note-top-level-form form)
-                     (setq form (precompile-form form))
+              (note-top-level-form form)
+              (setq form (precompile-form form))
 ;;                      (setq form (convert-toplevel-form form))
-                     )))))
-;;          )
-;;         )
+              )))))
   (when (consp form)
     (dump-top-level-form form stream)))
 
