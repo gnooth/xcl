@@ -99,6 +99,59 @@
   ;; it always evaluates to the same value."
   (eval form))
 
+(defun process-defun (form stream compile-time-too)
+  (note-top-level-form form)
+  (when compile-time-too
+    (eval form))
+  (let* ((name (cadr form))
+         (block-name (fdefinition-block-name name))
+         (lambda-list (caddr form))
+         (*speed* *speed*)
+         (*space* *space*)
+         (*safety* *safety*)
+         (*debug* *debug*))
+    (multiple-value-bind (body declarations doc)
+        (parse-body (cdddr form))
+      (declare (ignore doc)) ; FIXME
+      (let* ((lambda-expression
+              `(lambda ,lambda-list ,@declarations (block ,block-name ,@body))))
+        (multiple-value-bind (code minargs maxargs constants l-v-info)
+            (report-error (c::compile-defun-for-compile-file name lambda-expression))
+          (cond (code
+                 (setq form
+                       `(multiple-value-bind (final-code final-constants)
+                            (c::generate-code-vector ',code ',constants)
+                          (set-fdefinition ',name
+                                           (make-compiled-function ',name
+                                                                   final-code
+                                                                   ,minargs
+                                                                   ,maxargs
+                                                                   final-constants))
+                          (setq *source-position* ,*source-position*)
+                          (record-source-information ',name)
+                          (set-local-variable-information #',name ',l-v-info))))
+                (t
+                 ;; FIXME This should be a warning or error of some sort...
+                 (format t "~&~%; Unable to compile function ~A~%" name)
+                 (let ((precompiled-function (precompile-form lambda-expression)))
+                   (setq form
+                         `(progn
+                            (set-fdefinition ',name ,precompiled-function)
+                            (setq *source-position* ,*source-position*)
+                            (record-source-information ',name))))))))
+      (when (inline-p name)
+        ;; FIXME Need to support SETF functions too!
+        (set-inline-expansion name
+                              (generate-inline-expansion block-name
+                                                         lambda-list
+                                                         declarations
+                                                         body))
+        (dump-form `(set-inline-expansion ',name ',(inline-expansion name)) stream)
+        (%stream-terpri stream)))
+    (push name *functions-defined-in-current-file*)
+    (note-name-defined name))
+  (dump-top-level-form form stream))
+
 (defun convert-toplevel-form (form)
 ;;   (let* ((expr `(lambda () ,form))
 ;;          (classfile-name (next-classfile-name))
@@ -190,56 +243,8 @@
        (process-defconstant form stream)
        (return-from process-top-level-form))
       (DEFUN
-       (note-top-level-form form)
-       (when compile-time-too
-         (eval form))
-       (let* ((name (cadr form))
-              (block-name (fdefinition-block-name name))
-              (lambda-list (caddr form))
-              (*speed* *speed*)
-              (*space* *space*)
-              (*safety* *safety*)
-              (*debug* *debug*))
-         (multiple-value-bind (body declarations doc)
-             (parse-body (cdddr form))
-           (declare (ignore doc)) ; FIXME
-           (let* ((lambda-expression
-                   `(lambda ,lambda-list ,@declarations (block ,block-name ,@body))))
-             (multiple-value-bind (code minargs maxargs constants l-v-info)
-                 (report-error (c::compile-defun-for-compile-file name lambda-expression))
-               (cond (code
-                      (setq form
-                            `(multiple-value-bind (final-code final-constants)
-                                 (c::generate-code-vector ',code ',constants)
-                               (set-fdefinition ',name
-                                                (make-compiled-function ',name
-                                                                        final-code
-                                                                        ,minargs
-                                                                        ,maxargs
-                                                                        final-constants))
-                               (setq *source-position* ,*source-position*)
-                               (record-source-information ',name)
-                               (set-local-variable-information #',name ',l-v-info))))
-                     (t
-                      ;; FIXME This should be a warning or error of some sort...
-                      (format t "~&~%; Unable to compile function ~A~%" name)
-                      (let ((precompiled-function (precompile-form lambda-expression)))
-                        (setq form
-                              `(progn
-                                 (set-fdefinition ',name ,precompiled-function)
-                                 (setq *source-position* ,*source-position*)
-                                 (record-source-information ',name))))))))
-           (when (inline-p name)
-             ;; FIXME Need to support SETF functions too!
-             (set-inline-expansion name
-                                   (generate-inline-expansion block-name
-                                                              lambda-list
-                                                              declarations
-                                                              body))
-             (dump-form `(set-inline-expansion ',name ',(inline-expansion name)) stream)
-             (%stream-terpri stream)))
-         (push name *functions-defined-in-current-file*)
-         (note-name-defined name)))
+       (process-defun form stream compile-time-too)
+       (return-from process-top-level-form))
       (DEFMACRO
        (note-top-level-form form)
        (eval form)
