@@ -30,7 +30,7 @@
 ;;;; files for more information.
 
 ;; (in-package "SYSTEM")
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(cl:eval-when (:compile-toplevel :load-toplevel :execute)
   (sys:%in-package "SYSTEM"))
 
 ;;; The flags passed back by BACKQUOTIFY can be interpreted as follows:
