@@ -99,6 +99,7 @@
   ;; it always evaluates to the same value."
   (eval form))
 
+(defknown process-defun (t t t) t)
 (defun process-defun (form stream compile-time-too)
   (note-top-level-form form)
   (when compile-time-too
@@ -150,7 +151,40 @@
         (%stream-terpri stream)))
     (push name *functions-defined-in-current-file*)
     (note-name-defined name))
-  (dump-top-level-form form stream))
+  (dump-top-level-form form stream)
+  t)
+
+(defknown process-defmacro (t t t) t)
+(defun process-defmacro (form stream)
+  (note-top-level-form form)
+  (eval form)
+  (let* ((name (second form))
+         (lambda-expression (function-lambda-expression (macro-function name))))
+    (multiple-value-bind (code minargs maxargs constants l-v-info)
+        (report-error (c::compile-defun-for-compile-file name lambda-expression))
+      (cond (code
+             (setq form
+                   `(multiple-value-bind (final-code final-constants)
+                        (c::generate-code-vector ',code ',constants)
+                      (set-macro-function ',name
+                                          (make-compiled-function ',name
+                                                                  final-code
+                                                                  ,minargs
+                                                                  ,maxargs
+                                                                  final-constants))
+                      (setq *source-position* ,*source-position*)
+                      (record-source-information ',name)
+                      (set-local-variable-information (macro-function ',name) ',l-v-info))))
+            (t
+             ;; FIXME this should be a warning or error of some sort
+             (format t "~&~%; Unable to compile macro ~A~%" name)
+             (setq form
+                   `(progn
+                      (set-macro-function ',name ,lambda-expression)
+                      (setq *source-position* ,*source-position*)
+                      (record-source-information ',name)))))))
+  (dump-top-level-form form stream)
+  t)
 
 (defun convert-toplevel-form (form)
 ;;   (let* ((expr `(lambda () ,form))
@@ -246,33 +280,8 @@
        (process-defun form stream compile-time-too)
        (return-from process-top-level-form))
       (DEFMACRO
-       (note-top-level-form form)
-       (eval form)
-       (let* ((name (second form))
-              (lambda-expression (function-lambda-expression (macro-function name))))
-         (multiple-value-bind (code minargs maxargs constants l-v-info)
-             (report-error (c::compile-defun-for-compile-file name lambda-expression))
-           (cond (code
-                  (setq form
-                        `(multiple-value-bind (final-code final-constants)
-                             (c::generate-code-vector ',code ',constants)
-                           (set-macro-function ',name
-                                               (make-compiled-function ',name
-                                                                       final-code
-                                                                       ,minargs
-                                                                       ,maxargs
-                                                                       final-constants))
-                           (setq *source-position* ,*source-position*)
-                           (record-source-information ',name)
-                           (set-local-variable-information (macro-function ',name) ',l-v-info))))
-                 (t
-                  ;; FIXME This should be a warning or error of some sort...
-                  (format t "~&~%; Unable to compile macro ~A~%" name)
-                  (setq form
-                        `(progn
-                           (set-macro-function ',name ,lambda-expression)
-                           (setq *source-position* ,*source-position*)
-                           (record-source-information ',name))))))))
+       (process-defmacro form stream)
+       (return-from process-top-level-form))
       ((DEFGENERIC DEFMETHOD)
        (note-top-level-form form)
        (note-name-defined (cadr form))
@@ -282,7 +291,9 @@
        (return-from process-top-level-form))
       (DEFTYPE
        (note-top-level-form form)
-       (eval form))
+       (dump-top-level-form form stream)
+       (eval form)
+       (return-from process-top-level-form))
       (EVAL-WHEN
        (multiple-value-bind (ct lt e)
            (parse-eval-when-situations (cadr form))
