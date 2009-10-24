@@ -1140,21 +1140,23 @@ Value CL_defvar(Value args, Environment * env, Thread * thread)
 }
 
 // ### %defvar name => name
-Value SYS_defvar_internal(Value arg)
+Value SYS_defvar_internal(Value name)
 {
-  check_symbol(arg)->initialize_special();
-  return arg;
+  check_symbol(name)->initialize_special();
+  return name;
 }
 
-// ### %defparameter name initial-value => name
-Value SYS_defparameter_internal(Value name, Value initial_value)
+// ### %defparameter name initial-value doc docp => name
+Value SYS_defparameter_internal(Value name, Value initial_value, Value doc, Value docp)
 {
   check_symbol(name)->initialize_special(initial_value);
+  if (docp != NIL)
+    SYS_set_documentation_internal(name, S_variable, doc);
   return name;
 }
 
 // ### and
-// Should be a macro.
+// should be a macro
 Value CL_and(Value args, Environment * env, Thread * thread)
 {
   Value result = T;
@@ -1165,8 +1167,8 @@ Value CL_and(Value args, Environment * env, Thread * thread)
         {
           if (xcdr(args) != NIL)
             {
-              // Not the last form.
-              thread->set_values_length(-1); // REVIEW
+              // not the last form
+              thread->clear_values();
             }
           break;
         }
@@ -1176,7 +1178,7 @@ Value CL_and(Value args, Environment * env, Thread * thread)
 }
 
 // ### or
-// Should be a macro.
+// should be a macro
 Value CL_or(Value args, Environment * env, Thread * thread)
 {
   Value result = NIL;
@@ -1187,8 +1189,8 @@ Value CL_or(Value args, Environment * env, Thread * thread)
         {
           if (xcdr(args) != NIL)
             {
-              // Not the last form.
-              thread->set_values_length(-1); // REVIEW
+              // not the last form
+              thread->clear_values();
             }
           break;
         }

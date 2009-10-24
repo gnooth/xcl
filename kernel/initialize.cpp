@@ -544,7 +544,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_default_time_zone, SYS_default_time_zone, 0, 0);
   ADD_PRIMITIVE(S_defconstant_internal, SYS_defconstant_internal, 2, 2);
   ADD_PRIMITIVE(S_defpackage_internal, SYS_defpackage_internal, 10, 10);
-  ADD_PRIMITIVE(S_defparameter_internal, SYS_defparameter_internal, 2, 2);
+  ADD_PRIMITIVE(S_defparameter_internal, SYS_defparameter_internal, 4, 4);
   ADD_PRIMITIVE(S_defun_internal, SYS_defun_internal, 2, 2);
   ADD_PRIMITIVE(S_defvar_internal, SYS_defvar_internal, 1, 1);
   ADD_PRIMITIVE(S_delete_package_internal, SYS_delete_package_internal, 1, 1);
