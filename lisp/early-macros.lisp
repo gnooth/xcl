@@ -17,7 +17,7 @@
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 (cl:eval-when (:compile-toplevel :load-toplevel :execute)
-              (sys:%in-package "SYSTEM"))
+  (sys:%in-package "SYSTEM"))
 
 (defmacro in-package (name)
   `(eval-when (:compile-toplevel :load-toplevel :execute)
