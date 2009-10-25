@@ -17,4 +17,4 @@
     (pushnew entry asdf:*central-registry*)))
 #-windows
 (when (probe-directory #p"/home/peter/cl/systems/")
-  (pushnew #p"/home/peter/cl/systems/" asdf::*central-registry*))
+  (pushnew #p"/home/peter/cl/systems/" asdf::*central-registry* :test 'equal))
