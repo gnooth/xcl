@@ -82,6 +82,7 @@
 (install-p2-handler 'find                       'p2-find)
 (install-p2-handler 'find-eql                   'p2-find)
 (install-p2-handler 'first                      'p2-car)
+(install-p2-handler 'floor                      'p2-floor)
 (install-p2-handler 'funcall                    'p2-funcall)
 (install-p2-handler 'gethash                    'p2-gethash)
 (install-p2-handler 'gethash2                   'p2-gethash)

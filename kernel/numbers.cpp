@@ -3125,6 +3125,18 @@ Value floor(Value arg1, Value arg2)
   return signal_type_error(arg1, S_real);
 }
 
+// ### floor-1
+Value SYS_floor_1(Value arg)
+{
+  return floor(arg);
+}
+
+// ### floor-2
+Value SYS_floor_2(Value arg1, Value arg2)
+{
+  return floor(arg1, arg2);
+}
+
 // ### floor
 Value CL_floor(unsigned int numargs, Value args[])
 {

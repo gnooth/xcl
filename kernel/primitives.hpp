@@ -546,6 +546,8 @@ extern Value SYS_find_class_1(Value arg);
 extern Value SYS_find_eql(Value item, Value sequence);
 extern Value SYS_fixnum_typep(Value object, Value low, Value high);
 extern Value SYS_float_string(Value arg);
+extern Value SYS_floor_1(Value arg);
+extern Value SYS_floor_2(Value arg1, Value arg2);
 extern Value SYS_funcallable_instance_function(Value arg);
 extern Value SYS_function_arity(Value arg);
 extern Value SYS_function_call_count(Value arg);

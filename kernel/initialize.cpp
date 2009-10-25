@@ -600,6 +600,8 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_fixnum_typep, SYS_fixnum_typep, 3, 3);
   ADD_PRIMITIVE(S_fixnump, EXT_fixnump, 1, 1);
   ADD_PRIMITIVE(S_float_string, SYS_float_string, 1, 1);
+  ADD_PRIMITIVE(S_floor_1, SYS_floor_1, 1, 1);
+  ADD_PRIMITIVE(S_floor_2, SYS_floor_2, 2, 2);
   ADD_PRIMITIVE(S_funcallable_instance_function, SYS_funcallable_instance_function, 1, 1);
   ADD_PRIMITIVE(S_function_arity, SYS_function_arity, 1, 1);
   ADD_PRIMITIVE(S_function_call_count, SYS_function_call_count, 1, 1);
