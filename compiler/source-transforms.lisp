@@ -278,6 +278,6 @@
 (define-source-transform sbit (&whole form simple-bit-array &rest subscripts)
   (mumble "sbit source transform~%")
   (cond ((length-eql subscripts 1)
-         `(sbit1 simple-bit-array ,(%car subscripts)))
+         `(sbit1 ,simple-bit-array ,(%car subscripts)))
         (t
          form)))

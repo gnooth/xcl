@@ -238,9 +238,10 @@
   (when (atom form)
     ;; REVIEW support symbol macros
     (when compile-time-too
-      (eval form)
-      (return-from process-top-level-form)))
-  (let ((operator (%car form)))
+      (eval form))
+    (return-from process-top-level-form))
+  (let ((original-form form)
+        (operator (%car form)))
     (case operator
       (MACROLET
        (process-top-level-macrolet form stream compile-time-too)
@@ -335,13 +336,11 @@
                                    stream compile-time-too))
          (return-from process-top-level-form))
 
-       (when compile-time-too
-         (eval form))
+;;        (when compile-time-too
+;;          (eval form))
 
        (cond ((eq operator 'QUOTE)
-              ;;                      (setf form (precompile-form form nil))
-              (return-from process-top-level-form)
-              )
+              (return-from process-top-level-form))
              ((eq operator 'PUT)
               (setq form (precompile-form form)))
              ((eq operator 'COMPILER-DEFSTRUCT)
@@ -359,6 +358,8 @@
               (let ((*package* +keyword-package+))
                 (dump-form form stream))
               (%stream-terpri stream)
+              (when compile-time-too
+                (eval original-form))
               (return-from process-top-level-form))
              ((and (eq operator '%SET-FDEFINITION)
                    (eq (car (second form)) 'QUOTE)
@@ -385,9 +386,16 @@
               (note-top-level-form form)
               (setq form (precompile-form form))
 ;;                      (setq form (convert-toplevel-form form))
-              )))))
-  (when (consp form)
-    (dump-top-level-form form stream)))
+              )
+             )
+       (when (consp form)
+         (dump-top-level-form form stream))
+       (when compile-time-too
+         (eval original-form))
+       )))
+;;   (when (consp form)
+;;     (dump-top-level-form form stream))
+  )
 
 (defun %compile-file (input-file output-file external-format)
   (declare (ignore external-format)) ; FIXME
