@@ -62,16 +62,6 @@
 (defun emit-call-8 (address target)
   (emit-call-n address target 8))
 
-(defknown unbox-fixnum (t) t)
-(defun unbox-fixnum (register)
-  (inst :sar +fixnum-shift+ register)
-  (clear-register-contents register))
-
-(defknown box-fixnum (t) t)
-(defun box-fixnum (register)
-  (inst :shl +fixnum-shift+ register)
-  (clear-register-contents register))
-
 (defknown emit-clear-values (*) t)
 (defun emit-clear-values (&key preserve)
   (setq preserve (if (eq preserve :stack)

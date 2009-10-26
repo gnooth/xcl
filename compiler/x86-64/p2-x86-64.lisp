@@ -18,11 +18,6 @@
 
 (in-package "COMPILER")
 
-(defknown unbox-fixnum (t) t)
-(defun unbox-fixnum (register)
-  (inst :sar +fixnum-shift+ register)
-  (clear-register-contents register))
-
 (defknown emit-clear-values (*) t)
 (defun emit-clear-values (&key preserve)
   (setq preserve (designator-list preserve))
@@ -2379,7 +2374,6 @@
                       (subtypep type1 'SIMPLE-VECTOR)
                       (setq size (derive-vector-size type1))
                       (subtypep type2 (list 'INTEGER 0 (1- size)))))
-             (mumble "p2-svset optimized case safety = ~S~%" *safety*)
              (process-3-args args '(:rax :rdx :rcx) t) ; vector in rax, index in rdx, new element in rcx
              (clear-register-contents :rax :rdx)
              (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
@@ -5492,10 +5486,8 @@
                nil)))
       (when call-argument-registers
         (setq call-argument-registers (nreverse call-argument-registers)))
-      (mumble "call-argument-registers = ~S~%" call-argument-registers)
 
       (when (some 'var-used-non-locally-p (compiland-arg-vars compiland))
-        (mumble "p2-child-function-prolog: at least one arg-var is used non-locally~%")
         (inst :push :rsi)
         (inst :push :rdx)
         (inst :push :rcx)

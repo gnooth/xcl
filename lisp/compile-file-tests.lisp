@@ -206,6 +206,24 @@
     (bar 1 2 3 4 5)))
 (aver (equal (test75 42) '(1 2 3 4 5 42)))
 
+(defun-compile-file test76 (x)
+  (declare (type (integer 0 #.most-positive-fixnum) x))
+  (floor x 2))
+(aver (equal (multiple-value-list (test76 most-positive-fixnum))
+             (multiple-value-list (floor most-positive-fixnum 2))))
+
+(defun-compile-file test77 (x)
+  (declare (type (integer 0 #.most-positive-fixnum) x))
+  (floor x 64))
+(aver (equal (multiple-value-list (test77 most-positive-fixnum))
+             (multiple-value-list (floor most-positive-fixnum 64))))
+
+(defun-compile-file test78 (x)
+  (declare (type fixnum x))
+  (floor x 64))
+(aver (equal (multiple-value-list (test78 most-negative-fixnum))
+             (multiple-value-list (floor most-negative-fixnum 64))))
+
 (defun-compile-file fact (n)
   (labels
     ((fact1 (n m)

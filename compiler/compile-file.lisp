@@ -195,9 +195,9 @@
 ;;           (if compiled-function
 ;;               `(funcall (load-compiled-function ,(file-namestring classfile)))
 ;;               (precompile-form form nil))))
-  (mumble "converting top-level form~%")
-  (pprint form)
-  (terpri)
+;;   (mumble "converting top-level form~%")
+;;   (pprint form)
+;;   (terpri)
 
   (let ((lambda-expression `(lambda () ,form))
         (name (gensym)))

@@ -491,14 +491,12 @@
                (when (inline-p name)
                  (let ((expansion (local-function-inline-expansion local-function)))
                    (when expansion
-                     (mumble "inlining call to local function ~S~%" name)
                      (return-from p1-function-call (p1 (expand-inline form expansion))))))
                (incf (local-function-call-count local-function))
                (let ((var (local-function-var local-function)))
                  (when var
                    (unless (eq (compiland-id compiland)
                                (var-compiland-id var))
-                     (mumble "p1-function-call var ~S is used non-locally~%" (var-name var))
                      (setf (var-used-non-locally-p var) t)))))
              (when (symbolp name)
                (pushnew name (compiland-called-names compiland))

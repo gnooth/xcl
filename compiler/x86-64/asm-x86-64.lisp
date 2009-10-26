@@ -468,7 +468,15 @@
   (emit-byte #xc3))
 
 (define-assembler :sar
-  (cond ((and (typep operand1 '(unsigned-byte 8))
+  (when (and (reg64-p operand1)
+             (null operand2))
+    (setq operand2 operand1
+          operand1 1))
+  (cond ((and (eql operand1 1)
+              (reg64-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 7 (register-number operand2))))
+           (emit-bytes #x48 #xd1 modrm-byte)))
+        ((and (typep operand1 '(unsigned-byte 8))
               (reg64-p operand2))
          (let ((modrm-byte (make-modrm-byte #b11 7 (register-number operand2))))
            (emit-bytes #x48 #xc1 modrm-byte operand1)))
@@ -509,21 +517,31 @@
          (unsupported))))
 
 (define-assembler :shr
-  (cond ((and (null operand2)
-              (reg32-p operand1))
-         (let ((modrm-byte (make-modrm-byte #b11 5 (register-number operand1))))
-           (emit-bytes #xd1 modrm-byte)))
-        ((and (eql operand1 1)
-              (reg32-p operand2))
+  (when (and (null operand2)
+             (or (reg32-p operand1)
+                 (reg64-p operand1)))
+    (setq operand2 operand1
+          operand1 1))
+  (cond ((eql operand1 1)
          (let ((modrm-byte (make-modrm-byte #b11 5 (register-number operand2))))
-           (emit-bytes #xd1 modrm-byte)))
-        ((and (typep operand1 '(unsigned-byte 8))
-              (reg64-p operand2))
-         (let ((modrm-byte (make-modrm-byte #b11 5 (register-number operand2)))
-               (prefix-byte #x48))
-           (when (extended-register-p operand2)
-             (setq prefix-byte (logior prefix-byte rex.b)))
-           (emit-bytes prefix-byte #xc1 modrm-byte operand1)))
+           (cond ((reg32-p operand2)
+                  (emit-bytes #xd1 modrm-byte))
+                 ((reg64-p operand2)
+                  (let ((prefix-byte #x48))
+                    (when (extended-register-p operand2)
+                      (setq prefix-byte (logior prefix-byte rex.b)))
+                    (emit-bytes prefix-byte #xd1 modrm-byte)))
+                 (t
+                  (unsupported)))))
+        ((typep operand1 '(unsigned-byte 8)) ;; REVIEW 0-31 or 0-63
+         (let ((modrm-byte (make-modrm-byte #b11 5 (register-number operand2))))
+           (cond ((reg32-p operand2)
+                  (emit-bytes #xc1 modrm-byte operand1))
+                 ((reg64-p operand2)
+                  (let ((prefix-byte #x48))
+                    (when (extended-register-p operand2)
+                      (setq prefix-byte (logior prefix-byte rex.b)))
+                    (emit-bytes prefix-byte #xc1 modrm-byte operand1))))))
         (t
          (unsupported))))
 
