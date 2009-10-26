@@ -543,6 +543,15 @@
                    (setq length 2
                          mnemonic :jne
                          operand1 (make-absolute-operand absolute-address))))
+                (#x78
+                 ;; jump short if SF=1, 1-byte displacement relative to next instruction
+                 (let* ((displacement (mref-8-signed block-start (1+ offset)))
+                        (absolute-address (+ block-start offset 2 displacement)))
+                   (push (make-disassembly-block :start-address absolute-address) *blocks*)
+                   (push absolute-address *labels*)
+                   (setq length 2
+                         mnemonic :js
+                         operand1 (make-absolute-operand absolute-address))))
                 (#x7c
                  ;; jump short if less (SF<>OF), 1-byte displacement relative to next instruction
                  (let* ((displacement (mref-8-signed block-start (1+ offset)))
@@ -898,7 +907,7 @@
                          (t
                           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
                 (t
-                 (error "unhandled opcode ~2,'0x" byte1)))))
+                 (error "unhandled opcode #x~2,'0x" byte1)))))
         (when (null instruction)
           (setq instruction
                 (make-instruction :start start

@@ -698,10 +698,16 @@
                     (aver (eql arg2 (ash 1 shift)))
                     (let ((reg1 #+x86-64 :rax #+x86 :eax)
                           (reg2 #+x86-64 :rdx #+x86 :edx)
+                          #+x86-64
                           (thread-reg (compiland-thread-register *current-compiland*))
+                          #+x86
+                          (thread-var (compiland-thread-var *current-compiland*))
                           (LABEL1 (make-label))
                           (LABEL2 (make-label)))
+                      #+x86-64
                       (aver thread-reg)
+                      #+x86
+                      (aver thread-var)
                       (process-1-arg arg1 reg1 t)
                       (inst :test reg1 reg1)
                       (emit-jmp-short :s LABEL1) ; arg1 is negative
@@ -712,14 +718,29 @@
                       (inst :pop reg2)
                       (inst :and mask reg2) ; remainder in reg2
                       (box-fixnum reg2)
-                      (inst :mov reg1 `(,+values-offset+ ,thread-reg))
-                      (inst :mov reg2 `(,(+ +values-offset+ +bytes-per-word+) ,thread-reg))
-                      (inst :movb 2 `(,+values-length-offset+ ,thread-reg))
+                      #+x86-64
+                      (progn
+                        (inst :mov reg1 `(,+values-offset+ ,thread-reg))
+                        (inst :mov reg2 `(,(+ +values-offset+ +bytes-per-word+) ,thread-reg))
+                        (inst :movb 2 `(,+values-length-offset+ ,thread-reg)))
+                      #+x86
+                      (progn
+                        (inst :mov thread-var :ecx)
+                        (clear-register-contents :ecx)
+                        (inst :mov reg1 `(,+values-offset+ :ecx))
+                        (inst :mov reg2 `(,(+ +values-offset+ +bytes-per-word+) :ecx))
+                        (inst :movb 2 `(,+values-length-offset+ :ecx)))
                       (emit-jmp-short t LABEL2)
                       (label LABEL1)
-                      (inst :mov reg1 :rdi)
-                      (inst :mov (fixnumize arg2) :rsi)
-                      (emit-call-2 'floor-2 :rax)
+                      #+x86-64
+                      (progn
+                        (inst :mov reg1 :rdi)
+                        (inst :mov (fixnumize arg2) :rsi))
+                      #+x86
+                      (progn
+                        (inst :push (fixnumize arg2))
+                        (inst :push reg1))
+                      (emit-call-2 'floor-2 reg1)
                       (label LABEL2)
                       (move-result-to-target target))))
                  ((and (subtypep type1 'REAL)

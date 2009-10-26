@@ -53,6 +53,8 @@
     ((:sar 4 :eax)              #(#xc1 #xf8 #x04))
     ((:shr 8 :eax)              #(#xc1 #xe8 #x08))
     ((:and #xfc :al)            #(#x24 #xfc))
+    ((:and 1 :eax)              #(#x83 #xe0 #x01))
+    ((:and 1 :edx)              #(#x83 #xe2 #x01))
     ((:xor :eax :eax)           #(#x31 #xc0))
     ((:push 4)                  #(#x6a #x04))
     ((:push 512)                #(#x68 #x00 #x02 #x00 #x00))
