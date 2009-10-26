@@ -65,7 +65,6 @@
 
 (defknown note-top-level-form (t) t)
 (defun note-top-level-form (form)
-;;   (when (or t *compile-print*) ;; FIXME
   (when *compile-print*
     (when *last-error-context*
       (terpri)
@@ -243,6 +242,12 @@
   (let ((original-form form)
         (operator (%car form)))
     (case operator
+      (DEFUN
+       (process-defun form stream compile-time-too)
+       (return-from process-top-level-form))
+      (DEFMACRO
+       (process-defmacro form stream)
+       (return-from process-top-level-form))
       (MACROLET
        (process-top-level-macrolet form stream compile-time-too)
        (return-from process-top-level-form))
@@ -276,12 +281,6 @@
       (DEFCONSTANT
        (note-top-level-form form)
        (process-defconstant form stream)
-       (return-from process-top-level-form))
-      (DEFUN
-       (process-defun form stream compile-time-too)
-       (return-from process-top-level-form))
-      (DEFMACRO
-       (process-defmacro form stream)
        (return-from process-top-level-form))
       ((DEFGENERIC DEFMETHOD)
        (note-top-level-form form)
@@ -321,8 +320,8 @@
       (PROGN
        (process-top-level-progn (cdr form) stream compile-time-too)
        (return-from process-top-level-form))
-;;              (DECLARE
-;;               (compiler-style-warn "Misplaced declaration: ~S" form))
+      (DECLARE
+       (compiler-style-warn "Misplaced declaration: ~S" form))
       (t
 ;;               (format t "falling through, form = ~S~%" form)
        (when (and (symbolp operator)
@@ -336,37 +335,21 @@
                                    stream compile-time-too))
          (return-from process-top-level-form))
 
-;;        (when compile-time-too
-;;          (eval form))
-
        (cond ((eq operator 'QUOTE)
               (return-from process-top-level-form))
-             ((eq operator 'PUT)
-              (setq form (precompile-form form)))
-             ((eq operator 'COMPILER-DEFSTRUCT)
-              (setq form (precompile-form form)))
-             ((eq operator 'PROCLAIM)
-              (setq form (precompile-form form)))
-             ((and (memq operator '(EXPORT REQUIRE PROVIDE SHADOW))
-                   (or (keywordp (second form))
-                       (and (listp (second form))
-                            (eq (first (second form)) 'QUOTE))))
-              (setq form (precompile-form form)))
-             ((eq operator 'IMPORT)
-              (setq form (precompile-form form))
-              ;; make sure package prefix is printed when symbols are imported
-              (let ((*package* +keyword-package+))
-                (dump-form form stream))
-              (%stream-terpri stream)
-              (when compile-time-too
-                (eval original-form))
-              (return-from process-top-level-form))
-             ((and (eq operator '%SET-FDEFINITION)
-                   (eq (car (second form)) 'QUOTE)
-                   (consp (third form))
-                   (eq (%car (third form)) 'FUNCTION)
-                   (symbolp (cadr (third form))))
-              (setq form (precompile-form form)))
+;;              ((eq operator 'COMPILER-DEFSTRUCT)
+;;               (setq form (precompile-form form)))
+;;              ((and (memq operator '(EXPORT REQUIRE PROVIDE SHADOW))
+;;                    (or (keywordp (second form))
+;;                        (and (listp (second form))
+;;                             (eq (first (second form)) 'QUOTE))))
+;;               (setq form (precompile-form form)))
+;;              ((and (eq operator '%SET-FDEFINITION)
+;;                    (eq (car (second form)) 'QUOTE)
+;;                    (consp (third form))
+;;                    (eq (%car (third form)) 'FUNCTION)
+;;                    (symbolp (cadr (third form))))
+;;               (setq form (precompile-form form)))
              ((memq operator '(LET LET*))
               (let ((body (cddr form)))
                 (cond ((dolist (subform body nil)
@@ -377,25 +360,18 @@
                        (setq form (precompile-form form))))))
 ;;                     ((eq operator 'mop::ensure-method)
 ;;                      (setf form (convert-ensure-method form)))
-             ((and (symbolp operator)
-                   (not (special-operator-p operator))
-                   (null (cdr form)))
-              (setq form (precompile-form form)))
+;;              ((and (symbolp operator)
+;;                    (not (special-operator-p operator))
+;;                    (null (cdr form)))
+;;               (setq form (precompile-form form)))
              (t
-;;                      (setf form (precompile-form form nil))
               (note-top-level-form form)
-              (setq form (precompile-form form))
-;;                      (setq form (convert-toplevel-form form))
-              )
-             )
+              ;; REVIEW convert-toplevel-form
+              (setq form (precompile-form form))))
        (when (consp form)
          (dump-top-level-form form stream))
        (when compile-time-too
-         (eval original-form))
-       )))
-;;   (when (consp form)
-;;     (dump-top-level-form form stream))
-  )
+         (eval original-form))))))
 
 (defun %compile-file (input-file output-file external-format)
   (declare (ignore external-format)) ; FIXME
@@ -432,8 +408,7 @@
                   (*debug* *debug*)
                   (*compile-file-output-stream* out)
 ;;                   (*explain* *explain*)
-                  (*functions-defined-in-current-file* nil)
-                  )
+                  (*functions-defined-in-current-file* nil))
               (write "; -*- Mode: Lisp -*-" :escape nil :stream out)
               (%stream-terpri out)
               (let ((*standard-output* out))
@@ -444,13 +419,11 @@
                 (dump-top-level-form `(setq *source-file* ,*compile-file-truename*) out))
               (loop
                 (let* ((*source-position* (file-position in))
-;;                        (jvm::*source-line-number* (stream-line-number in))
                        (form (read in nil in))
                        (*compiler-error-context* form))
                   (when (eq form in)
                     (return))
-                  (process-top-level-form form out nil)))
-              ))
+                  (process-top-level-form form out nil)))))
           (cond ((zerop (+ *errors* *warnings* *style-warnings*))
                  (setq warnings-p nil
                        failure-p  nil))
@@ -461,8 +434,7 @@
 
         (setq elapsed (/ (- (get-internal-real-time) start) (float internal-time-units-per-second)))
         (when *compile-verbose*
-          (format t "~&; Wrote ~A (~A seconds)~%" (namestring output-file) elapsed)
-          )))
+          (format t "~&; Wrote ~A (~A seconds)~%" (namestring output-file) elapsed))))
     (values (truename output-file) warnings-p failure-p)))
 
 (defun compile-file (input-file
