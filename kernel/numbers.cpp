@@ -2859,7 +2859,8 @@ Value CL_isqrt(Value arg)
   return signal_type_error(arg, S_unsigned_byte);
 }
 
-Value truncate(Value arg)
+// ### truncate-1
+Value SYS_truncate_1(Value arg)
 {
   Thread * const thread = current_thread();
   if (fixnump(arg) || bignump(arg))
@@ -2881,26 +2882,29 @@ Value truncate(Value arg)
     }
   if (single_float_p(arg))
     {
-      Value quotient = truncate(the_single_float(arg)->rational());
+      Value quotient = SYS_truncate_1(the_single_float(arg)->rational());
       Value remainder = coerce_to_single_float(thread->nth_value(1));
       return thread->set_values(quotient, remainder);
     }
   if (double_float_p(arg))
     {
-      Value quotient = truncate(the_double_float(arg)->rational());
+      Value quotient = SYS_truncate_1(the_double_float(arg)->rational());
       Value remainder = coerce_to_double_float(thread->nth_value(1));
       return thread->set_values(quotient, remainder);
     }
   return signal_type_error(arg, S_real);
 }
 
-Value truncate(Value arg1, Value arg2)
+// ### truncate-2
+Value SYS_truncate_2(Value arg1, Value arg2)
 {
   Thread * const thread = current_thread();
   if (fixnump(arg1))
     {
       if (fixnump(arg2))
         {
+          if (arg2 == 0)
+            return signal_lisp_error(new DivisionByZero());
           mpz_t z1, z2;
           mpz_init_set_si(z1, xlong(arg1));
           mpz_init_set_si(z2, xlong(arg2));
@@ -2919,7 +2923,7 @@ Value truncate(Value arg1, Value arg2)
       if (ratiop(arg2))
         {
           Ratio * r2 = the_ratio(arg2);
-          Value quotient = truncate(SYS_multiply_2(arg1, r2->denominator()), r2->numerator());
+          Value quotient = SYS_truncate_2(SYS_multiply_2(arg1, r2->denominator()), r2->numerator());
           current_thread()->set_values_length(-1);
           Value remainder = SYS_subtract_2(arg1, SYS_multiply_2(quotient, arg2));
           return thread->set_values(quotient, remainder);
@@ -2948,7 +2952,7 @@ Value truncate(Value arg1, Value arg2)
       if (realp(arg2))
         {
           Value quotient = SYS_divide_2(arg1, arg2);
-          Value value1 = truncate(quotient);
+          Value value1 = SYS_truncate_1(quotient);
           Value value2 = thread->nth_value(1);
           if (!zerop(value2))
             value2 = SYS_multiply_2(value2, arg2);
@@ -2965,9 +2969,9 @@ Value CL_truncate(unsigned int numargs, Value args[])
   switch (numargs)
     {
     case 1:
-      return truncate(args[0]);
+      return SYS_truncate_1(args[0]);
     case 2:
-      return truncate(args[0], args[1]);
+      return SYS_truncate_2(args[0], args[1]);
     default:
       return wrong_number_of_arguments(S_truncate, numargs, 1, 2);
     }
@@ -2979,7 +2983,7 @@ Value CL_rem(Value arg1, Value arg2)
   // "REM performs the operation TRUNCATE on number and divisor and returns the
   // remainder of the truncate operation."
   Thread * const thread = current_thread();
-  truncate(arg1, arg2);
+  SYS_truncate_2(arg1, arg2);
   Value value = thread->nth_value(1);
   thread->clear_values();
   return value;
@@ -2989,10 +2993,9 @@ Value CL_rem(Value arg1, Value arg2)
 Value CL_mod(Value number, Value divisor)
 {
   Thread * const thread = current_thread();
-  truncate(number, divisor);
+  SYS_truncate_2(number, divisor);
   Value rem = thread->nth_value(1);
   thread->clear_values();
-//   return value;
   if (zerop(rem))
     return FIXNUM_ZERO;
   if (minusp(divisor))
@@ -3008,7 +3011,8 @@ Value CL_mod(Value number, Value divisor)
   return rem;
 }
 
-Value floor(Value arg)
+// ### floor-1
+Value SYS_floor_1(Value arg)
 {
   Thread * const thread = current_thread();
   switch (typecode_of(arg))
@@ -3033,13 +3037,13 @@ Value floor(Value arg)
       }
     case TYPECODE_SINGLE_FLOAT:
       {
-        Value quotient = floor(the_single_float(arg)->rational());
+        Value quotient = SYS_floor_1(the_single_float(arg)->rational());
         Value remainder = coerce_to_single_float(thread->nth_value(1));
         return thread->set_values(quotient, remainder);
       }
     case TYPECODE_DOUBLE_FLOAT:
       {
-        Value quotient = floor(the_double_float(arg)->rational());
+        Value quotient = SYS_floor_1(the_double_float(arg)->rational());
         Value remainder = coerce_to_double_float(thread->nth_value(1));
         return thread->set_values(quotient, remainder);
       }
@@ -3048,32 +3052,71 @@ Value floor(Value arg)
     }
 }
 
-Value floor(Value arg1, Value arg2)
+inline long abs(long x)
+{
+  return (x >= 0) ? x : -x;
+}
+
+inline bool same_sign_p(long x, long y)
+{
+  if (x == y)
+    return true;
+  if (x > 0 && y > 0)
+    return true;
+  if (x < 0 && y < 0)
+    return true;
+  return false;
+}
+
+// ### floor-2
+Value SYS_floor_2(Value arg1, Value arg2)
 {
   Thread * const thread = current_thread();
   if (fixnump(arg1))
     {
       if (fixnump(arg2))
         {
-          mpz_t z1, z2;
-          mpz_init_set_si(z1, xlong(arg1));
-          mpz_init_set_si(z2, xlong(arg2));
-          mpz_t quotient, remainder;
-          mpz_init(quotient);
-          mpz_init(remainder);
-          mpz_fdiv_qr(quotient, remainder, z1, z2);
-          MPZ_CLEAR(z1);
-          MPZ_CLEAR(z2);
-          Value value1 = normalize(quotient);
-          MPZ_CLEAR(quotient);
-          Value value2 = normalize(remainder);
-          MPZ_CLEAR(remainder);
-          return thread->set_values(value1, value2);
+          if (arg2 == 0)
+            return signal_lisp_error(new DivisionByZero());
+//           mpz_t z1, z2;
+//           mpz_init_set_si(z1, xlong(arg1));
+//           mpz_init_set_si(z2, xlong(arg2));
+//           mpz_t quotient, remainder;
+//           mpz_init(quotient);
+//           mpz_init(remainder);
+//           mpz_fdiv_qr(quotient, remainder, z1, z2);
+//           MPZ_CLEAR(z1);
+//           MPZ_CLEAR(z2);
+//           Value value1 = normalize(quotient);
+//           MPZ_CLEAR(quotient);
+//           Value value2 = normalize(remainder);
+//           MPZ_CLEAR(remainder);
+//           return thread->set_values(value1, value2);
+          long x = xlong(arg1);
+          long y = xlong(arg2);
+          long x_abs = abs(x);
+          long y_abs = abs(y);
+          long q = x_abs / y_abs;
+          long r = x_abs % y_abs;
+          if (!same_sign_p(x, y))
+            {
+              if (r != 0)
+                {
+                  q++;
+                  r -= y_abs;
+                }
+              q = -q;
+            }
+          if (x < 0)
+            r = -r;
+          Value quotient = make_number(q);
+          Value remainder = make_number(r);
+          return thread->set_values(quotient, remainder);
         }
       if (ratiop(arg2))
         {
           Ratio * r2 = the_ratio(arg2);
-          Value quotient = floor(SYS_multiply_2(arg1, r2->denominator()), r2->numerator());
+          Value quotient = SYS_floor_2(SYS_multiply_2(arg1, r2->denominator()), r2->numerator());
           current_thread()->set_values_length(-1);
           Value remainder = SYS_subtract_2(arg1, SYS_multiply_2(quotient, arg2));
           return thread->set_values(quotient, remainder);
@@ -3114,7 +3157,7 @@ Value floor(Value arg1, Value arg2)
       if (realp(arg2))
         {
           Value quotient = SYS_divide_2(arg1, arg2);
-          Value value1 = floor(quotient);
+          Value value1 = SYS_floor_1(quotient);
           Value value2 = thread->nth_value(1);
           if (!zerop(value2))
             value2 = SYS_multiply_2(value2, arg2);
@@ -3125,27 +3168,15 @@ Value floor(Value arg1, Value arg2)
   return signal_type_error(arg1, S_real);
 }
 
-// ### floor-1
-Value SYS_floor_1(Value arg)
-{
-  return floor(arg);
-}
-
-// ### floor-2
-Value SYS_floor_2(Value arg1, Value arg2)
-{
-  return floor(arg1, arg2);
-}
-
 // ### floor
 Value CL_floor(unsigned int numargs, Value args[])
 {
   switch (numargs)
     {
     case 1:
-      return floor(args[0]);
+      return SYS_floor_1(args[0]);
     case 2:
-      return floor(args[0], args[1]);
+      return SYS_floor_2(args[0], args[1]);
     default:
       return wrong_number_of_arguments(S_floor, numargs, 1, 2);
     }
