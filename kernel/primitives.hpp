@@ -482,6 +482,8 @@ extern Value SYS_atan_1(Value arg);
 extern Value SYS_autocompile(Value arg1);
 extern Value SYS_builtin_typep(Value object, Value type_specifier);
 extern Value SYS_canonicalize_logical_host(Value arg);
+extern Value SYS_ceiling_1(Value number);
+extern Value SYS_ceiling_2(Value number, Value divisor);
 extern Value SYS_check_fixnum_bounds(Value arg1, Value arg2, Value arg3);
 extern Value SYS_check_subsequence(Value arg1, Value arg2, Value arg3);
 extern Value SYS_class_name_internal(Value arg);

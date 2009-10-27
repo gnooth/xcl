@@ -524,6 +524,8 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_bignump, EXT_bignump, 1, 1);
   ADD_PRIMITIVE(S_builtin_typep, SYS_builtin_typep, 2, 2);
   ADD_PRIMITIVE(S_canonicalize_logical_host, SYS_canonicalize_logical_host, 1, 1);
+  ADD_PRIMITIVE(S_ceiling_1, SYS_ceiling_1, 1, 1);
+  ADD_PRIMITIVE(S_ceiling_2, SYS_ceiling_2, 2, 2);
   ADD_PRIMITIVE(S_check_fixnum_bounds, SYS_check_fixnum_bounds, 3, 3);
   ADD_PRIMITIVE(S_check_subsequence, SYS_check_subsequence, 3, 3);
   ADD_PRIMITIVE(S_class_name_internal, SYS_class_name_internal, 1, 1);

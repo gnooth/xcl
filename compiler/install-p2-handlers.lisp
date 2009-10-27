@@ -64,6 +64,7 @@
 (install-p2-handler 'ash                        'p2-ash)
 (install-p2-handler 'car                        'p2-car)
 (install-p2-handler 'cdr                        'p2-cdr)
+(install-p2-handler 'ceiling                    'p2-ceiling)
 (install-p2-handler 'char                       'p2-char)
 (install-p2-handler 'char-code                  'p2-char-code)
 (install-p2-handler 'char/=                     'p2-char/=)
