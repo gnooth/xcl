@@ -1,4 +1,9 @@
 ; -*- Mode: Lisp -*-
+
+(cl:in-package "CL-USER")
+
+(setq sys:*mumble* t)
+
 (setq *load-path*
       (mapcar (lambda (dirname)
                 (merge-pathnames dirname *xcl-home*))
@@ -11,10 +16,11 @@
                     "compiler/x86-64/")))
 
 (require "ASDF")
+
 #+windows
 (dolist (entry (directory "c:\\cl\\systems\\*"))
   (when (file-directory-p entry)
-    (pushnew entry asdf:*central-registry*)))
+    (pushnew entry asdf:*central-registry* :test 'equal)))
 #-windows
 (when (probe-directory #p"/home/peter/cl/systems/")
   (pushnew #p"/home/peter/cl/systems/" asdf::*central-registry* :test 'equal))
