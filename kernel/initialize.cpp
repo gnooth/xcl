@@ -878,6 +878,8 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_thread_name, EXT_thread_name, 1, 1);
   ADD_PRIMITIVE(S_threadp, EXT_threadp, 1, 1);
   ADD_TEMPORARY(S_trace_redefined_update, SYS_trace_redefined_update, 2, 2);
+  ADD_PRIMITIVE(S_truncate_1, SYS_truncate_1, 1, 1);
+  ADD_PRIMITIVE(S_truncate_2, SYS_truncate_2, 2, 2);
   ADD_PRIMITIVE(S_two_arg_append, SYS_two_arg_append, 2, 2);
   ADD_PRIMITIVE(S_two_arg_char_e, SYS_two_arg_char_e, 2, 2);
   ADD_PRIMITIVE(S_two_arg_char_ge, SYS_two_arg_char_ge, 2, 2);

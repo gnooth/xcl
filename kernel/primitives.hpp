@@ -812,6 +812,8 @@ extern Value SYS_symbol_flags(Value arg);
 extern Value SYS_symbol_global_value(Value arg);
 extern Value SYS_trace_redefined_update(Value name, Value function);
 extern Value SYS_truly_the(Value args, Environment * env, Thread * thread);
+extern Value SYS_truncate_1(Value arg);
+extern Value SYS_truncate_2(Value arg1, Value arg2);
 extern Value SYS_two_arg_append(Value arg1, Value arg2);
 extern Value SYS_two_arg_char_e(Value arg1, Value arg2);
 extern Value SYS_two_arg_char_ge(Value arg1, Value arg2);

@@ -986,6 +986,15 @@
   (aver (eql (imagpart -1.0d0) -0.0d0))
   )
 
+(aver (equal (multiple-value-list (floor 7 2)) '(3 1)))
+(aver (equal (multiple-value-list (floor -7 2)) '(-4 1)))
+(aver (equal (multiple-value-list (floor 7 -2)) '(-4 -1)))
+(aver (equal (multiple-value-list (floor -7 -2)) '(3 -1)))
+(aver (equal (multiple-value-list (truncate 7 2)) '(3 1)))
+(aver (equal (multiple-value-list (truncate -7 2)) '(-3 -1)))
+(aver (equal (multiple-value-list (truncate 7 -2)) '(-3 1)))
+(aver (equal (multiple-value-list (truncate -7 -2)) '(3 -1)))
+
 #+abcl
 (unintern 'x) ; FIXME why is this necessary?
 

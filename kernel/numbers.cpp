@@ -32,6 +32,22 @@
 
 #include "../mpfr/mpfr.h"
 
+inline long abs(long x)
+{
+  return (x >= 0) ? x : -x;
+}
+
+inline bool same_sign_p(long x, long y)
+{
+  if (x == y)
+    return true;
+  if (x > 0 && y > 0)
+    return true;
+  if (x < 0 && y < 0)
+    return true;
+  return false;
+}
+
 // ### integerp
 Value CL_integerp(Value arg)
 {
@@ -2905,20 +2921,19 @@ Value SYS_truncate_2(Value arg1, Value arg2)
         {
           if (arg2 == 0)
             return signal_lisp_error(new DivisionByZero());
-          mpz_t z1, z2;
-          mpz_init_set_si(z1, xlong(arg1));
-          mpz_init_set_si(z2, xlong(arg2));
-          mpz_t quotient, remainder;
-          mpz_init(quotient);
-          mpz_init(remainder);
-          mpz_tdiv_qr(quotient, remainder, z1, z2);
-          MPZ_CLEAR(z1);
-          MPZ_CLEAR(z2);
-          Value value1 = normalize(quotient);
-          MPZ_CLEAR(quotient);
-          Value value2 = normalize(remainder);
-          MPZ_CLEAR(remainder);
-          return thread->set_values(value1, value2);
+          long x = xlong(arg1);
+          long y = xlong(arg2);
+          long x_abs = abs(x);
+          long y_abs = abs(y);
+          long q = x_abs / y_abs;
+          long r = x_abs % y_abs;
+          if (x < 0)
+            r = -r;
+          if (!same_sign_p(x, y))
+            q = -q;
+          Value quotient = make_number(q);
+          Value remainder = make_number(r);
+          return thread->set_values(quotient, remainder);
         }
       if (ratiop(arg2))
         {
@@ -3052,22 +3067,6 @@ Value SYS_floor_1(Value arg)
     }
 }
 
-inline long abs(long x)
-{
-  return (x >= 0) ? x : -x;
-}
-
-inline bool same_sign_p(long x, long y)
-{
-  if (x == y)
-    return true;
-  if (x > 0 && y > 0)
-    return true;
-  if (x < 0 && y < 0)
-    return true;
-  return false;
-}
-
 // ### floor-2
 Value SYS_floor_2(Value arg1, Value arg2)
 {
@@ -3078,20 +3077,6 @@ Value SYS_floor_2(Value arg1, Value arg2)
         {
           if (arg2 == 0)
             return signal_lisp_error(new DivisionByZero());
-//           mpz_t z1, z2;
-//           mpz_init_set_si(z1, xlong(arg1));
-//           mpz_init_set_si(z2, xlong(arg2));
-//           mpz_t quotient, remainder;
-//           mpz_init(quotient);
-//           mpz_init(remainder);
-//           mpz_fdiv_qr(quotient, remainder, z1, z2);
-//           MPZ_CLEAR(z1);
-//           MPZ_CLEAR(z2);
-//           Value value1 = normalize(quotient);
-//           MPZ_CLEAR(quotient);
-//           Value value2 = normalize(remainder);
-//           MPZ_CLEAR(remainder);
-//           return thread->set_values(value1, value2);
           long x = xlong(arg1);
           long y = xlong(arg2);
           long x_abs = abs(x);
@@ -3224,6 +3209,8 @@ static Value ceiling(Value arg1, Value arg2)
     {
       if (fixnump(arg2))
         {
+          if (arg2 == 0)
+            return signal_lisp_error(new DivisionByZero());
           mpz_t z1, z2;
           mpz_init_set_si(z1, xlong(arg1));
           mpz_init_set_si(z2, xlong(arg2));

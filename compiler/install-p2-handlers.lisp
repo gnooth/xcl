@@ -144,6 +144,7 @@
 (install-p2-handler 'symbol-name                'p2-symbol-name)
 (install-p2-handler 'symbol-package             'p2-symbol-package)
 (install-p2-handler 'symbolp                    'p2-symbolp)
+(install-p2-handler 'truncate                   'p2-truncate)
 (install-p2-handler 'two-arg-*                  'p2-two-arg-*)
 (install-p2-handler 'two-arg-+                  'p2-two-arg-+)
 (install-p2-handler 'two-arg--                  'p2-two-arg--)

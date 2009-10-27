@@ -1207,7 +1207,7 @@
 		   (print-fixnum xp (- id))
 		   (write-char++ #\# xp)
 		   :subsequent))))))
-
+
 ;This prints a few very common, simple atoms very fast.
 ;Pragmatically, this turns out to be an enormous savings over going to the
 ;standard printer all the time.  There would be diminishing returns from making
@@ -1256,6 +1256,7 @@
            t))))
 
 (defun print-fixnum (xp fixnum)
+  (declare (type fixnum fixnum))
   (multiple-value-bind (digits d)
       (truncate fixnum 10)
     (unless (zerop digits)
