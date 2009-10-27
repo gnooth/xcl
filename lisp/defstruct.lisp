@@ -336,10 +336,7 @@
                (define-source-transform ,pred (object)
 ;;                  `(structure-typep ,object ',',*dd-name*)
 ;;                  (list 'structure-typep object '',*dd-name*) ; works
-                 `(structure-typep ,object ',',*dd-name*)
-                 )
-               )
-             )))))
+                 `(structure-typep ,object ',',*dd-name*))))))))
 
 (defun define-reader (slot accessor)
   (let ((slot-index (slot-index slot)))
@@ -351,13 +348,11 @@
            (let* ((element-type (if (consp *dd-type*) (cadr *dd-type*) t))
                   (upgraded-type (upgraded-array-element-type element-type)))
              (cond ((eq upgraded-type t)
-                    (mumble "define-reader simple-vector case~%")
                     `((defun ,accessor (instance)
                         (vector-ref (the simple-vector instance) ,slot-index))
                       (define-source-transform ,accessor (instance)
                         `(truly-the ,',element-type (vector-ref (the simple-vector ,instance) ,,slot-index)))))
                    (t
-                    (mumble "define-reader specialized vector case~%")
                     `((defun ,accessor (instance)
                         (vector-ref (the vector instance) ,slot-index))
                       (define-source-transform ,accessor (instance)
@@ -383,13 +378,11 @@
            (let* ((element-type (if (consp *dd-type*) (cadr *dd-type*) t))
                   (upgraded-type (upgraded-array-element-type element-type)))
              (cond ((eq upgraded-type t)
-                    (mumble "define-writer simple-vector case~%")
                     `((defun (setf ,accessor) (value instance)
                         (vector-set (the simple-vector instance) ,slot-index (the ,element-type value)))
                       (define-source-transform (setf ,accessor) (value instance)
                         `(vector-set (the simple-vector ,instance) ,,slot-index (the ,',element-type ,value)))))
                    (t
-                    (mumble "define-writer specialized vector case~%")
                     `((defun (setf ,accessor) (value instance)
                         (vector-set (the vector instance) ,slot-index (the ,element-type value)))
                       (define-source-transform (setf ,accessor) (value instance)
@@ -411,8 +404,6 @@
                           (slot-name slot)))
             entry)
         (cond ((setq entry (assoc accessor *inherited-accessors-alist*))
-
-               (mumble "define-access-functions ~S not redefining ~S~%" *dd-name* accessor)
                (unless (eql (cdr entry) (slot-index slot))
                  (mumble "define-access-functions ~S index mismatch new = ~S old = ~S~%"
                          *dd-name* (cdr entry) (slot-index slot))))

@@ -23,12 +23,14 @@
 (defun define-module (module-name path)
   (setf (gethash module-name *defined-modules*) path))
 
+(define-module "CLOS"                  "clos/clos")
+(define-module "COMPILER"              "compiler/load-compiler")
 (define-module "ASSEMBLER"             "compiler/assembler")
 (define-module "DUMP-FORM"             "compiler/dump-form")
-(define-module "CLOS"                  "lisp/clos")
 (define-module "WITH-COMPILATION-UNIT" "compiler/with-compilation-unit")
 (define-module "X86"                   "lisp/x86")
 (define-module "X86-64"                "lisp/x86-64")
+(define-module "ASDF"                  "lisp/asdf")
 
 (defun require (module &optional pathnames)
   (let ((module-name (string module)))

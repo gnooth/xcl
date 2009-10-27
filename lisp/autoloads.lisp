@@ -140,7 +140,7 @@
 
 (autoload 'mumble "lisp/mumble")
 
-(autoload 'compile "lisp/load-compiler")
+(autoload 'compile "compiler/load-compiler")
 
 (autoload 'assign-setf-macro "lisp/defsetf")
 
@@ -249,8 +249,11 @@
 (autoload '(query-readline y-or-n-p yes-or-no-p) "lisp/query")
 
 (in-package "EXTENSIONS")
+
+;; REVIEW
 (export 'dump-ir2)
-(autoload 'dump-ir2 "lisp/lisp/load-compiler")
+(autoload 'dump-ir2 "compiler/load-compiler")
+
 (export 'with-mutex)
 (autoload-macro 'with-mutex)
 

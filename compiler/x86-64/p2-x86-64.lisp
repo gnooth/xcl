@@ -2146,18 +2146,11 @@
                           (t
                            (inst :mov '(:rax) :rax)
                            (move-result-to-target target))))))
-            (;(subtypep type1 'simple-vector)
-             t
-;;              (mumble "p2-svref %svref case~%")
-             (mumble "p2-svref default case~%")
+            (t
              (process-2-args args '(:rax :rdx) t) ; vector in rax, tagged index in rdx
-
              (unless (subtypep type1 'SIMPLE-VECTOR)
-               (mumble "p2-svref checking arg1~%")
                (let* ((common-labels (compiland-common-labels *current-compiland*))
                       (SVREF-ERROR-NOT-SIMPLE-VECTOR (gethash :svref-error-not-simple-vector common-labels)))
-                 (when SVREF-ERROR-NOT-SIMPLE-VECTOR
-                   (mumble "p2-svref re-using label~%"))
                  (unless SVREF-ERROR-NOT-SIMPLE-VECTOR
                    (setq SVREF-ERROR-NOT-SIMPLE-VECTOR (make-label))
                    (let ((*current-segment* :elsewhere))
@@ -2178,9 +2171,7 @@
                  (aver (typep +simple-vector-widetag+ '(signed-byte 32)))
                  (inst :cmp +simple-vector-widetag+ :rax)
                  (emit-jmp-short :ne SVREF-ERROR-NOT-SIMPLE-VECTOR)
-                 (inst :mov :rdi :rax) ; vector in rax
-                 ))
-
+                 (inst :mov :rdi :rax))) ; vector in rax
              (unless (fixnum-type-p (derive-type arg2))
                (let* ((common-labels (compiland-common-labels *current-compiland*))
                       (SVREF-ERROR-NOT-FIXNUM (gethash :svref-error-not-fixnum common-labels)))
@@ -2225,15 +2216,7 @@
                (move-result-to-target target))
              (when (var-ref-p arg1)
                (unless (subtypep type1 'SIMPLE-VECTOR)
-                 (add-type-constraint (var-ref-var arg1) 'SIMPLE-VECTOR)))
-             )
-;;             (t
-;;              (mumble "p2-svref full call type1 = ~S type2 = ~S~%" (derive-type arg1) (derive-type arg2))
-;;              (p2-function-call form target)
-;;              (when (var-ref-p arg1)
-;;                (add-type-constraint (var-ref-var arg1) 'SIMPLE-VECTOR))
-;;              )
-            ))
+                 (add-type-constraint (var-ref-var arg1) 'SIMPLE-VECTOR))))))
     t))
 
 (defknown p2-vector-ref (t t) t)
@@ -5209,11 +5192,8 @@
                 (subtypep type 'SIMPLE-VECTOR))
            (p2 arg target))
           (t
-           (mumble "p2-require-simple-vector~%")
            (let* ((common-labels (compiland-common-labels *current-compiland*))
                   (REQUIRE-SIMPLE-VECTOR-ERROR (gethash :require-simple-vector-error common-labels)))
-             (when REQUIRE-SIMPLE-VECTOR-ERROR
-               (mumble "p2-require-simple-vector re-using label~%"))
              (unless REQUIRE-SIMPLE-VECTOR-ERROR
                (setq REQUIRE-SIMPLE-VECTOR-ERROR (make-label))
                (let ((*current-segment* :elsewhere))
@@ -5239,8 +5219,6 @@
                (inst :mov :rdi :rax)
                (move-result-to-target target))
              (when (var-ref-p arg)
-               (mumble "p2-require-simple-vector adding type constraint for ~S~%"
-                          (var-name (var-ref-var arg)))
                (add-type-constraint (var-ref-var arg) 'SIMPLE-VECTOR))))))
   t)
 

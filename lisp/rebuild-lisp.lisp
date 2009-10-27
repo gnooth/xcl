@@ -27,7 +27,7 @@
 
 (defun rebuild-lisp ()
   (clean)
-  (load-system-file "lisp/load-compiler.lisp")
+  (load-system-file "compiler/load-compiler.lisp")
   (with-compilation-unit ()
     (let ((*default-pathname-defaults* *xcl-home*))
       (load (compile-file "lisp/precompiler.lisp"))
@@ -80,7 +80,7 @@
                           "and"
                           "apply-key"
                           "apropos"
-                          ;;                           "asdf"
+;;                           "asdf"
                           "asin"
                           "asinh"
                           "assert"

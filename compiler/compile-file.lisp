@@ -16,11 +16,9 @@
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-(in-package "SYSTEM")
-
-(resolve 'compile)
-
 (in-package "COMPILER")
+
+(require "COMPILER")
 
 (require "DUMP-FORM")
 
@@ -116,7 +114,7 @@
       (let* ((lambda-expression
               `(lambda ,lambda-list ,@declarations (block ,block-name ,@body))))
         (multiple-value-bind (code minargs maxargs constants l-v-info)
-            (report-error (c::compile-defun-for-compile-file name lambda-expression))
+            (report-error (compile-defun-for-compile-file name lambda-expression))
           (cond (code
                  (setq form
                        `(multiple-value-bind (final-code final-constants)
@@ -131,7 +129,7 @@
                           (record-source-information ',name)
                           (set-local-variable-information #',name ',l-v-info))))
                 (t
-                 ;; FIXME This should be a warning or error of some sort...
+                 ;; FIXME this should be a warning or error of some sort
                  (format t "~&~%; Unable to compile function ~A~%" name)
                  (let ((precompiled-function (precompile-form lambda-expression)))
                    (setq form
@@ -140,7 +138,7 @@
                             (setq *source-position* ,*source-position*)
                             (record-source-information ',name))))))))
       (when (inline-p name)
-        ;; FIXME Need to support SETF functions too!
+        ;; FIXME need to support SETF functions too!
         (set-inline-expansion name
                               (generate-inline-expansion block-name
                                                          lambda-list
@@ -186,18 +184,6 @@
   t)
 
 (defun convert-toplevel-form (form)
-;;   (let* ((expr `(lambda () ,form))
-;;          (classfile-name (next-classfile-name))
-;;          (classfile (report-error (jvm:compile-defun nil expr nil classfile-name)))
-;;          (compiled-function (verify-load classfile)))
-;;     (setf form
-;;           (if compiled-function
-;;               `(funcall (load-compiled-function ,(file-namestring classfile)))
-;;               (precompile-form form nil))))
-;;   (mumble "converting top-level form~%")
-;;   (pprint form)
-;;   (terpri)
-
   (let ((lambda-expression `(lambda () ,form))
         (name (gensym)))
     (multiple-value-bind (code minargs maxargs constants)
@@ -212,26 +198,12 @@
                                                                ,minargs
                                                                ,maxargs
                                                                final-constants))
-;;                       (setq *source-position* ,*source-position*)
-;;                       (record-source-information ',name)
-                      (funcall ',name)
-;;                       (fmakunbound ',name)
-                      )))
+                      (funcall ',name))))
             (t
              ;; FIXME This should be a warning or error of some sort...
              (format t "~&~%; Unable to convert top-level form~%" name)
-;;              (let ((precompiled-function (precompile-form lambda-expression)))
-;;                (setq form
-;; ;;                      `(progn
-;; ;;                         (set-fdefinition ',name ,precompiled-function)
-;; ;;                         (setq *source-position* ,*source-position*)
-;; ;;                         (record-source-information ',name))
-;;                      `(funcall ,precompiled-function)
-;;                      ))
-             (setq form (precompile-form form))
-             ))))
-  form
-  )
+             (setq form (precompile-form form))))))
+  form)
 
 (defun process-top-level-form (form stream compile-time-too)
   (when (atom form)
@@ -323,7 +295,6 @@
       (DECLARE
        (compiler-style-warn "Misplaced declaration: ~S" form))
       (t
-;;               (format t "falling through, form = ~S~%" form)
        (when (and (symbolp operator)
                   (macro-function operator *compile-file-environment*))
          (note-top-level-form form)
@@ -337,19 +308,6 @@
 
        (cond ((eq operator 'QUOTE)
               (return-from process-top-level-form))
-;;              ((eq operator 'COMPILER-DEFSTRUCT)
-;;               (setq form (precompile-form form)))
-;;              ((and (memq operator '(EXPORT REQUIRE PROVIDE SHADOW))
-;;                    (or (keywordp (second form))
-;;                        (and (listp (second form))
-;;                             (eq (first (second form)) 'QUOTE))))
-;;               (setq form (precompile-form form)))
-;;              ((and (eq operator '%SET-FDEFINITION)
-;;                    (eq (car (second form)) 'QUOTE)
-;;                    (consp (third form))
-;;                    (eq (%car (third form)) 'FUNCTION)
-;;                    (symbolp (cadr (third form))))
-;;               (setq form (precompile-form form)))
              ((memq operator '(LET LET*))
               (let ((body (cddr form)))
                 (cond ((dolist (subform body nil)
@@ -358,12 +316,6 @@
                        (setq form (convert-toplevel-form form)))
                       (t
                        (setq form (precompile-form form))))))
-;;                     ((eq operator 'mop::ensure-method)
-;;                      (setf form (convert-ensure-method form)))
-;;              ((and (symbolp operator)
-;;                    (not (special-operator-p operator))
-;;                    (null (cdr form)))
-;;               (setq form (precompile-form form)))
              (t
               (note-top-level-form form)
               ;; REVIEW convert-toplevel-form
@@ -407,7 +359,6 @@
                   (*safety* *safety*)
                   (*debug* *debug*)
                   (*compile-file-output-stream* out)
-;;                   (*explain* *explain*)
                   (*functions-defined-in-current-file* nil))
               (write "; -*- Mode: Lisp -*-" :escape nil :stream out)
               (%stream-terpri out)
@@ -454,9 +405,9 @@
         (return)))))
 
 ;; From ABCL.
-(defun compile-file-if-needed (input-file &rest allargs &key force-compile)
+(defun compile-file-if-needed (input-file &rest allargs &key force)
   (setf input-file (truename input-file))
-  (cond (force-compile
+  (cond (force
          (remf allargs :force-compile)
          (apply 'compile-file input-file allargs))
         (t
