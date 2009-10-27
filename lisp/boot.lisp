@@ -204,22 +204,13 @@
 
 (load-system-file "lisp/late-setf")
 
-;; (load-system-file "lisp/find.lisp")
-;; (autoload '(position position-if position-if-not find find-if find-if-not
-;;             list-find* vector-find*)
-;;           "find")
-
-;; (load-system-file "lisp/assoc.lisp")
 ;; REVIEW
 (defun shrink-vector (vector new-size)
   (subseq vector 0 new-size))
 
-;; (defmacro make-sequence-like (sequence length)
-;;   `(make-sequence-of-type (type-of ,sequence) ,length))
-
 (load-system-file "lisp/define-modify-macro")
 
-(defvar *mumble* t)
+(defvar *mumble* nil)
 (export '(*mumble* mumble))
 
 (load-system-file "lisp/defvar")
@@ -231,8 +222,6 @@
 (load-system-file "lisp/top-level")
 
 (load-system-file "lisp/define-compiler-macro")
-
-;; (load-system-file "lisp/reader.lisp")
 
 (make-package "XP" :use '("CL"))
 
