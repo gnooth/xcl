@@ -994,6 +994,14 @@
 (aver (equal (multiple-value-list (truncate -7 2)) '(-3 -1)))
 (aver (equal (multiple-value-list (truncate 7 -2)) '(-3 1)))
 (aver (equal (multiple-value-list (truncate -7 -2)) '(3 -1)))
+(aver (equal (multiple-value-list (mod 7 2)) '(1)))
+(aver (equal (multiple-value-list (mod -7 2)) '(1)))
+(aver (equal (multiple-value-list (mod 7 -2)) '(-1)))
+(aver (equal (multiple-value-list (mod -7 -2)) '(-1)))
+(aver (equal (multiple-value-list (rem 7 2)) '(1)))
+(aver (equal (multiple-value-list (rem -7 2)) '(-1)))
+(aver (equal (multiple-value-list (rem 7 -2)) '(1)))
+(aver (equal (multiple-value-list (rem -7 -2)) '(-1)))
 
 #+abcl
 (unintern 'x) ; FIXME why is this necessary?

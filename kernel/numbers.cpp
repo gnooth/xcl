@@ -2876,84 +2876,84 @@ Value CL_isqrt(Value arg)
 }
 
 // ### truncate-1
-Value SYS_truncate_1(Value arg)
+Value SYS_truncate_1(Value number)
 {
   Thread * const thread = current_thread();
-  if (fixnump(arg) || bignump(arg))
-    return thread->set_values(arg, FIXNUM_ZERO);
-  if (ratiop(arg))
+  if (fixnump(number) || bignump(number))
+    return thread->set_values(number, FIXNUM_ZERO);
+  if (ratiop(number))
     {
       mpz_t quotient, remainder;
       mpz_init(quotient);
       mpz_init(remainder);
       mpz_tdiv_qr(quotient, remainder,
-                  mpq_numref(the_ratio(arg)->_q),
-                  mpq_denref(the_ratio(arg)->_q));
+                  mpq_numref(the_ratio(number)->_q),
+                  mpq_denref(the_ratio(number)->_q));
       Value value1 = normalize(quotient);
       MPZ_CLEAR(quotient);
       Value value2 = normalize(remainder);
       MPZ_CLEAR(remainder);
-      value2 = SYS_divide_2(value2, the_ratio(arg)->denominator());
+      value2 = SYS_divide_2(value2, the_ratio(number)->denominator());
       return thread->set_values(value1, value2);
     }
-  if (single_float_p(arg))
+  if (single_float_p(number))
     {
-      Value quotient = SYS_truncate_1(the_single_float(arg)->rational());
+      Value quotient = SYS_truncate_1(the_single_float(number)->rational());
       Value remainder = coerce_to_single_float(thread->nth_value(1));
       return thread->set_values(quotient, remainder);
     }
-  if (double_float_p(arg))
+  if (double_float_p(number))
     {
-      Value quotient = SYS_truncate_1(the_double_float(arg)->rational());
+      Value quotient = SYS_truncate_1(the_double_float(number)->rational());
       Value remainder = coerce_to_double_float(thread->nth_value(1));
       return thread->set_values(quotient, remainder);
     }
-  return signal_type_error(arg, S_real);
+  return signal_type_error(number, S_real);
 }
 
 // ### truncate-2
-Value SYS_truncate_2(Value arg1, Value arg2)
+Value SYS_truncate_2(Value number, Value divisor)
 {
   Thread * const thread = current_thread();
-  if (fixnump(arg1))
+  if (fixnump(number))
     {
-      if (fixnump(arg2))
+      if (fixnump(divisor))
         {
-          if (arg2 == 0)
+          if (divisor == 0)
             return signal_lisp_error(new DivisionByZero());
-          long x = xlong(arg1);
-          long y = xlong(arg2);
-          long x_abs = abs(x);
-          long y_abs = abs(y);
-          long q = x_abs / y_abs;
-          long r = x_abs % y_abs;
-          if (x < 0)
+          long n = xlong(number);
+          long d = xlong(divisor);
+          long n_abs = abs(n);
+          long d_abs = abs(d);
+          long q = n_abs / d_abs;
+          long r = n_abs % d_abs;
+          if (n < 0)
             r = -r;
-          if (!same_sign_p(x, y))
+          if (!same_sign_p(n, d))
             q = -q;
           Value quotient = make_number(q);
           Value remainder = make_number(r);
           return thread->set_values(quotient, remainder);
         }
-      if (ratiop(arg2))
+      if (ratiop(divisor))
         {
-          Ratio * r2 = the_ratio(arg2);
-          Value quotient = SYS_truncate_2(SYS_multiply_2(arg1, r2->denominator()), r2->numerator());
+          Ratio * r2 = the_ratio(divisor);
+          Value quotient = SYS_truncate_2(SYS_multiply_2(number, r2->denominator()), r2->numerator());
           current_thread()->set_values_length(-1);
-          Value remainder = SYS_subtract_2(arg1, SYS_multiply_2(quotient, arg2));
+          Value remainder = SYS_subtract_2(number, SYS_multiply_2(quotient, divisor));
           return thread->set_values(quotient, remainder);
         }
     }
-  if (bignump(arg1))
+  if (bignump(number))
     {
-      if (fixnump(arg2))
+      if (fixnump(divisor))
         {
           mpz_t z2;
-          mpz_init_set_si(z2, xlong(arg2));
+          mpz_init_set_si(z2, xlong(divisor));
           mpz_t quotient, remainder;
           mpz_init(quotient);
           mpz_init(remainder);
-          mpz_tdiv_qr(quotient, remainder, the_bignum(arg1)->_z, z2);
+          mpz_tdiv_qr(quotient, remainder, the_bignum(number)->_z, z2);
           MPZ_CLEAR(z2);
           Value value1 = normalize(quotient);
           MPZ_CLEAR(quotient);
@@ -2962,20 +2962,20 @@ Value SYS_truncate_2(Value arg1, Value arg2)
           return thread->set_values(value1, value2);
         }
     }
-  if (realp(arg1))
+  if (realp(number))
     {
-      if (realp(arg2))
+      if (realp(divisor))
         {
-          Value quotient = SYS_divide_2(arg1, arg2);
+          Value quotient = SYS_divide_2(number, divisor);
           Value value1 = SYS_truncate_1(quotient);
           Value value2 = thread->nth_value(1);
           if (!zerop(value2))
-            value2 = SYS_multiply_2(value2, arg2);
+            value2 = SYS_multiply_2(value2, divisor);
           return thread->set_values(value1, value2);
         }
-      return signal_type_error(arg2, S_real);
+      return signal_type_error(divisor, S_real);
     }
-  return signal_type_error(arg1, S_real);
+  return signal_type_error(number, S_real);
 }
 
 // ### truncate
@@ -2993,12 +2993,25 @@ Value CL_truncate(unsigned int numargs, Value args[])
 }
 
 // ### rem number divisor => remainder
-Value CL_rem(Value arg1, Value arg2)
+Value CL_rem(Value number, Value divisor)
 {
   // "REM performs the operation TRUNCATE on number and divisor and returns the
-  // remainder of the truncate operation."
-  Thread * const thread = current_thread();
-  SYS_truncate_2(arg1, arg2);
+  // remainder of the TRUNCATE operation."
+  if (fixnump(number) && fixnump(divisor))
+    {
+      if (divisor == 0)
+        return signal_lisp_error(new DivisionByZero());
+      long n = xlong(number);
+      long d = xlong(divisor);
+      long n_abs = abs(n);
+      long d_abs = abs(d);
+      long r = n_abs % d_abs;
+      if (n < 0)
+        r = -r;
+      return make_fixnum(r);
+    }
+  Thread * thread = current_thread();
+  SYS_truncate_2(number, divisor);
   Value value = thread->nth_value(1);
   thread->clear_values();
   return value;
@@ -3007,22 +3020,28 @@ Value CL_rem(Value arg1, Value arg2)
 // ### mod number divisor => modulus
 Value CL_mod(Value number, Value divisor)
 {
-  Thread * const thread = current_thread();
-  SYS_truncate_2(number, divisor);
+  // "MOD performs the operation FLOOR on number and divisor and returns the
+  // remainder of the FLOOR operation."
+  if (fixnump(number) && fixnump(divisor))
+    {
+      if (divisor == 0)
+        return signal_lisp_error(new DivisionByZero());
+      long n = xlong(number);
+      long d = xlong(divisor);
+      long n_abs = abs(n);
+      long d_abs = abs(d);
+      long r = n_abs % d_abs;
+      if (!same_sign_p(n, d))
+        if (r != 0)
+          r -= d_abs;
+      if (n < 0)
+        r = -r;
+      return make_fixnum(r);
+    }
+  Thread * thread = current_thread();
+  SYS_floor_2(number, divisor);
   Value rem = thread->nth_value(1);
   thread->clear_values();
-  if (zerop(rem))
-    return FIXNUM_ZERO;
-  if (minusp(divisor))
-    {
-      if (plusp(number))
-        return SYS_add_2(rem, divisor);
-    }
-  else
-    {
-      if (minusp(number))
-        return SYS_add_2(rem, divisor);
-    }
   return rem;
 }
 
