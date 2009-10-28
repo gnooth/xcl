@@ -705,7 +705,6 @@ void initialize_lisp()
 #endif
   ADD_PRIMITIVE(S_mref_8, SYS_mref_8, 2, 2);
   ADD_PRIMITIVE(S_mref_8_signed, SYS_mref_8_signed, 2, 2);
-  ADD_PRIMITIVE(S_multiply_2, SYS_multiply_2, 2, 2);
   ADD_PRIMITIVE(S_neq, EXT_neq, 2, 2);
   ADD_PRIMITIVE(S_not_equals_2, SYS_not_equals_2, 2, 2);
   ADD_PRIMITIVE(S_nstring_capitalize_internal, SYS_nstring_capitalize_internal, 3, 3);
@@ -870,7 +869,6 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_subseq2, SYS_subseq2, 2, 2);
   ADD_PRIMITIVE(S_subseq3, SYS_subseq3, 3, 3);
   ADD_PRIMITIVE(S_subsetp_eql, SYS_subsetp_eql, 2, 2);
-  ADD_PRIMITIVE(S_subtract_2, SYS_subtract_2, 2, 2);
   ADD_PRIMITIVE(S_svset, SYS_svset, 3, 3);
   ADD_PRIMITIVE(S_swap_slots, SYS_swap_slots, 2, 2);
   ADD_PRIMITIVE(S_symbol_flags, SYS_symbol_flags, 1, 1);
@@ -892,8 +890,10 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_two_arg_logxor, SYS_two_arg_logxor, 2, 2);
   ADD_PRIMITIVE(S_two_arg_max, SYS_two_arg_max, 2, 2);
   ADD_PRIMITIVE(S_two_arg_min, SYS_two_arg_min, 2, 2);
+  ADD_PRIMITIVE(S_two_arg_minus, SYS_two_arg_minus, 2, 2);
   ADD_PRIMITIVE(S_two_arg_plus, SYS_two_arg_plus, 2, 2);
   ADD_PRIMITIVE(S_two_arg_slash, SYS_two_arg_slash, 2, 2);
+  ADD_PRIMITIVE(S_two_arg_star, SYS_two_arg_star, 2, 2);
   ADD_PRIMITIVE(S_type_error_internal, SYS_type_error_internal, 2, 2);
   ADD_PRIMITIVE(S_untraced_function, SYS_untraced_function, 1, 1);
   ADD_PRIMITIVE(S_upgraded_array_element_type_internal, SYS_upgraded_array_element_type_internal, 1, 1);

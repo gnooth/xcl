@@ -153,7 +153,7 @@ bool zerop(Value arg)
       }
     default:
       signal_type_error(arg, S_number);
-      // Not reached.
+      // not reached
       return false;
     }
 }
@@ -430,7 +430,7 @@ Value negate(Value arg)
 }
 
 // ### two-arg-*
-Value SYS_multiply_2(Value v1, Value v2)
+Value SYS_two_arg_star(Value v1, Value v2)
 {
   if (fixnump(v1))
     {
@@ -489,8 +489,8 @@ Value SYS_multiply_2(Value v1, Value v2)
       if (complexp(v2))
         {
           Complex * c = the_complex(v2);
-          return make_complex(SYS_multiply_2(v1, c->realpart()),
-                              SYS_multiply_2(v1, c->imagpart()));
+          return make_complex(SYS_two_arg_star(v1, c->realpart()),
+                              SYS_two_arg_star(v1, c->imagpart()));
         }
       return signal_type_error(v2, S_number);
     }
@@ -508,16 +508,16 @@ Value SYS_multiply_2(Value v1, Value v2)
           return b1->multiply(b2);
         }
       if (ratiop(v2))
-        return SYS_multiply_2(v2, v1);
+        return SYS_two_arg_star(v2, v1);
       if (single_float_p(v2))
-        return SYS_multiply_2(coerce_to_single_float(v1), v2);
+        return SYS_two_arg_star(coerce_to_single_float(v1), v2);
       if (double_float_p(v2))
-        return SYS_multiply_2(coerce_to_double_float(v1), v2);
+        return SYS_two_arg_star(coerce_to_double_float(v1), v2);
       if (complexp(v2))
         {
           Complex * c = the_complex(v2);
-          return make_complex(SYS_multiply_2(v1, c->realpart()),
-                              SYS_multiply_2(v1, c->imagpart()));
+          return make_complex(SYS_two_arg_star(v1, c->realpart()),
+                              SYS_two_arg_star(v1, c->imagpart()));
         }
       return signal_type_error(v2, S_number);
     }
@@ -567,8 +567,8 @@ Value SYS_multiply_2(Value v1, Value v2)
       if (complexp(v2))
         {
           Complex * c = the_complex(v2);
-          return make_complex(SYS_multiply_2(v1, c->realpart()),
-                              SYS_multiply_2(v1, c->imagpart()));
+          return make_complex(SYS_two_arg_star(v1, c->realpart()),
+                              SYS_two_arg_star(v1, c->imagpart()));
         }
       return signal_type_error(v2, S_number);
     }
@@ -602,8 +602,8 @@ Value SYS_multiply_2(Value v1, Value v2)
       if (complexp(v2))
         {
           Complex * c = the_complex(v2);
-          return make_complex(SYS_multiply_2(v1, c->realpart()),
-                              SYS_multiply_2(v1, c->imagpart()));
+          return make_complex(SYS_two_arg_star(v1, c->realpart()),
+                              SYS_two_arg_star(v1, c->imagpart()));
         }
       return signal_type_error(v2, S_number);
     }
@@ -637,8 +637,8 @@ Value SYS_multiply_2(Value v1, Value v2)
       if (complexp(v2))
         {
           Complex * c = the_complex(v2);
-          return make_complex(SYS_multiply_2(v1, c->realpart()),
-                              SYS_multiply_2(v1, c->imagpart()));
+          return make_complex(SYS_two_arg_star(v1, c->realpart()),
+                              SYS_two_arg_star(v1, c->imagpart()));
         }
       return signal_type_error(v2, S_number);
     }
@@ -647,8 +647,8 @@ Value SYS_multiply_2(Value v1, Value v2)
       if (realp(v2))
         {
           Complex * c = the_complex(v1);
-          return make_complex(SYS_multiply_2(c->realpart(), v2),
-                              SYS_multiply_2(c->imagpart(), v2));
+          return make_complex(SYS_two_arg_star(c->realpart(), v2),
+                              SYS_two_arg_star(c->imagpart(), v2));
         }
       if (complexp(v2))
         {
@@ -659,10 +659,10 @@ Value SYS_multiply_2(Value v1, Value v2)
           // xy = (ac - bd) + i(ad + bc)
           // real part = ac - bd
           // imag part = (a + b)(c + d) - ac - bd
-          Value ac = SYS_multiply_2(a, c);
-          Value bd = SYS_multiply_2(b, d);
-          return make_complex(SYS_subtract_2(ac, bd),
-                              SYS_subtract_2(SYS_subtract_2(SYS_multiply_2(SYS_two_arg_plus(a, b), SYS_two_arg_plus(c, d)), ac), bd));
+          Value ac = SYS_two_arg_star(a, c);
+          Value bd = SYS_two_arg_star(b, d);
+          return make_complex(SYS_two_arg_minus(ac, bd),
+                              SYS_two_arg_minus(SYS_two_arg_minus(SYS_two_arg_star(SYS_two_arg_plus(a, b), SYS_two_arg_plus(c, d)), ac), bd));
         }
       return signal_type_error(v2, S_number);
     }
@@ -744,9 +744,9 @@ TOP:
               Value realpart = c->realpart();
               Value imagpart = c->imagpart();
               Value denominator =
-                SYS_two_arg_plus(SYS_multiply_2(realpart, realpart), SYS_multiply_2(imagpart, imagpart));
-              return make_complex(SYS_two_arg_slash(SYS_multiply_2(v1, realpart), denominator),
-                                  SYS_two_arg_slash(SYS_subtract_2(FIXNUM_ZERO, SYS_multiply_2(v1, imagpart)),
+                SYS_two_arg_plus(SYS_two_arg_star(realpart, realpart), SYS_two_arg_star(imagpart, imagpart));
+              return make_complex(SYS_two_arg_slash(SYS_two_arg_star(v1, realpart), denominator),
+                                  SYS_two_arg_slash(SYS_two_arg_minus(FIXNUM_ZERO, SYS_two_arg_star(v1, imagpart)),
                                              denominator));
             }
           default:
@@ -815,9 +815,9 @@ TOP:
             Value realpart = c->realpart();
             Value imagpart = c->imagpart();
             Value denominator =
-              SYS_two_arg_plus(SYS_multiply_2(realpart, realpart), SYS_multiply_2(imagpart, imagpart));
-            return make_complex(SYS_two_arg_slash(SYS_multiply_2(v1, realpart), denominator),
-                                SYS_two_arg_slash(SYS_subtract_2(FIXNUM_ZERO, SYS_multiply_2(v1, imagpart)),
+              SYS_two_arg_plus(SYS_two_arg_star(realpart, realpart), SYS_two_arg_star(imagpart, imagpart));
+            return make_complex(SYS_two_arg_slash(SYS_two_arg_star(v1, realpart), denominator),
+                                SYS_two_arg_slash(SYS_two_arg_minus(FIXNUM_ZERO, SYS_two_arg_star(v1, imagpart)),
                                            denominator));
           }
         return signal_type_error(v2, S_number);
@@ -873,12 +873,12 @@ TOP:
               Value v2_realpart = c->realpart();
               Value v2_imagpart = c->imagpart();
               // numerator
-              Value realpart = SYS_multiply_2(v1, v2_realpart);
+              Value realpart = SYS_two_arg_star(v1, v2_realpart);
               Value imagpart =
-                SYS_multiply_2(SYS_subtract_2(FIXNUM_ZERO, v1), v2_imagpart);
+                SYS_two_arg_star(SYS_two_arg_minus(FIXNUM_ZERO, v1), v2_imagpart);
               // denominator
-              Value d = SYS_multiply_2(v2_realpart, v2_realpart);
-              d = SYS_two_arg_plus(d, SYS_multiply_2(v2_imagpart, v2_imagpart));
+              Value d = SYS_two_arg_star(v2_realpart, v2_realpart);
+              d = SYS_two_arg_plus(d, SYS_two_arg_star(v2_imagpart, v2_imagpart));
               return make_complex(SYS_two_arg_slash(realpart, d),
                                   SYS_two_arg_slash(imagpart, d));
             }
@@ -916,12 +916,12 @@ TOP:
               Value v2_realpart = c->realpart();
               Value v2_imagpart = c->imagpart();
               // numerator
-              Value realpart = SYS_multiply_2(v1, v2_realpart);
+              Value realpart = SYS_two_arg_star(v1, v2_realpart);
               Value imagpart =
-                SYS_multiply_2(SYS_subtract_2(FIXNUM_ZERO, v1), v2_imagpart);
+                SYS_two_arg_star(SYS_two_arg_minus(FIXNUM_ZERO, v1), v2_imagpart);
               // denominator
-              Value d = SYS_multiply_2(v2_realpart, v2_realpart);
-              d = SYS_two_arg_plus(d, SYS_multiply_2(v2_imagpart, v2_imagpart));
+              Value d = SYS_two_arg_star(v2_realpart, v2_realpart);
+              d = SYS_two_arg_plus(d, SYS_two_arg_star(v2_imagpart, v2_imagpart));
               return make_complex(SYS_two_arg_slash(realpart, d),
                                   SYS_two_arg_slash(imagpart, d));
             }
@@ -956,12 +956,12 @@ TOP:
               Value v2_realpart = c->realpart();
               Value v2_imagpart = c->imagpart();
               // numerator
-              Value realpart = SYS_multiply_2(v1, v2_realpart);
+              Value realpart = SYS_two_arg_star(v1, v2_realpart);
               Value imagpart =
-                SYS_multiply_2(SYS_subtract_2(FIXNUM_ZERO, v1), v2_imagpart);
+                SYS_two_arg_star(SYS_two_arg_minus(FIXNUM_ZERO, v1), v2_imagpart);
               // denominator
-              Value d = SYS_multiply_2(v2_realpart, v2_realpart);
-              d = SYS_two_arg_plus(d, SYS_multiply_2(v2_imagpart, v2_imagpart));
+              Value d = SYS_two_arg_star(v2_realpart, v2_realpart);
+              d = SYS_two_arg_plus(d, SYS_two_arg_star(v2_imagpart, v2_imagpart));
               return make_complex(SYS_two_arg_slash(realpart, d),
                                   SYS_two_arg_slash(imagpart, d));
             }
@@ -977,13 +977,13 @@ TOP:
             Value b = the_complex(v1)->imagpart();
             Value c = the_complex(v2)->realpart();
             Value d = the_complex(v2)->imagpart();
-            Value ac = SYS_multiply_2(a, c);
-            Value bd = SYS_multiply_2(b, d);
-            Value bc = SYS_multiply_2(b, c);
-            Value ad = SYS_multiply_2(a, d);
-            Value denominator = SYS_two_arg_plus(SYS_multiply_2(c, c), SYS_multiply_2(d, d));
+            Value ac = SYS_two_arg_star(a, c);
+            Value bd = SYS_two_arg_star(b, d);
+            Value bc = SYS_two_arg_star(b, c);
+            Value ad = SYS_two_arg_star(a, d);
+            Value denominator = SYS_two_arg_plus(SYS_two_arg_star(c, c), SYS_two_arg_star(d, d));
             return make_complex(SYS_two_arg_slash(SYS_two_arg_plus(ac, bd), denominator),
-                                SYS_two_arg_slash(SYS_subtract_2(bc, ad), denominator));
+                                SYS_two_arg_slash(SYS_two_arg_minus(bc, ad), denominator));
           }
         else
           return make_complex(SYS_two_arg_slash(the_complex(v1)->realpart(), v2),
@@ -1125,7 +1125,7 @@ Value SYS_two_arg_plus(Value v1, Value v2)
 }
 
 // ### two-arg--
-Value SYS_subtract_2(Value v1, Value v2)
+Value SYS_two_arg_minus(Value v1, Value v2)
 {
   if (fixnump(v1))
     {
@@ -1165,7 +1165,7 @@ Value SYS_subtract_2(Value v1, Value v2)
       if (complexp(v2))
         {
           Complex * c = the_complex(v2);
-          return make_value(new Complex(SYS_subtract_2(v1, c->realpart()), c->imagpart()));
+          return make_value(new Complex(SYS_two_arg_minus(v1, c->realpart()), c->imagpart()));
         }
       return signal_type_error(v2, S_number);
     }
@@ -1184,7 +1184,7 @@ Value SYS_subtract_2(Value v1, Value v2)
       if (complexp(v2))
         {
           Complex * c = the_complex(v2);
-          return make_value(new Complex(SYS_subtract_2(v1, c->realpart()), c->imagpart()));
+          return make_value(new Complex(SYS_two_arg_minus(v1, c->realpart()), c->imagpart()));
         }
       return signal_type_error(v2, S_number);
     }
@@ -1210,7 +1210,7 @@ Value SYS_subtract_2(Value v1, Value v2)
       if (complexp(v2))
         {
           Complex * c = the_complex(v2);
-          return make_value(new Complex(SYS_subtract_2(v1, c->realpart()), c->imagpart()));
+          return make_value(new Complex(SYS_two_arg_minus(v1, c->realpart()), c->imagpart()));
         }
       return signal_type_error(v2, S_number);
     }
@@ -1236,7 +1236,7 @@ Value SYS_subtract_2(Value v1, Value v2)
       if (complexp(v2))
         {
           Complex * c = the_complex(v2);
-          return make_value(new Complex(SYS_subtract_2(v1, c->realpart()), c->imagpart()));
+          return make_value(new Complex(SYS_two_arg_minus(v1, c->realpart()), c->imagpart()));
         }
       return signal_type_error(v2, S_number);
     }
@@ -1247,7 +1247,7 @@ Value SYS_subtract_2(Value v1, Value v2)
         return c->subtract(xlong(v2));
       if (complexp(v2))
         return c->subtract(the_complex(v2));
-      return make_value(new Complex(SYS_subtract_2(c->realpart(), v2), c->imagpart()));
+      return make_value(new Complex(SYS_two_arg_minus(c->realpart(), v2), c->imagpart()));
     }
   return signal_type_error(v1, S_number);
 }
@@ -1306,12 +1306,12 @@ Value CL_subtract(unsigned int numargs, Value args[])
         return signal_type_error(args[0], S_number);
       }
     case 2:
-      return SYS_subtract_2(args[0], args[1]);
+      return SYS_two_arg_minus(args[0], args[1]);
     default:
       {
         Value result = args[0];
         for (unsigned int i = 1; i < numargs; i++)
-          result = SYS_subtract_2(result, args[i]);
+          result = SYS_two_arg_minus(result, args[i]);
         return result;
       }
     }
@@ -1329,12 +1329,12 @@ Value CL_multiply(unsigned int numargs, Value args[])
       else
         return signal_type_error(args[0], S_number);
     case 2:
-      return SYS_multiply_2(args[0], args[1]);
+      return SYS_two_arg_star(args[0], args[1]);
     default:
       {
         Value result = args[0];
         for (unsigned int i = 1; i < numargs; i++)
-          result = SYS_multiply_2(result, args[i]);
+          result = SYS_two_arg_star(result, args[i]);
         return result;
       }
     }
@@ -1369,7 +1369,7 @@ Value CL_one_plus(Value arg)
 // ### 1-
 Value CL_one_minus(Value arg)
 {
-  return SYS_subtract_2(arg, FIXNUM_ONE);
+  return SYS_two_arg_minus(arg, FIXNUM_ONE);
 }
 
 bool equals(Value arg1, Value arg2)
@@ -1398,7 +1398,7 @@ bool equals(Value arg1, Value arg2)
       if (complexp(arg2))
         return equals(arg2, arg1);
       signal_type_error(arg2, S_number);
-      // Not reached.
+      // not reached
       return false;
     }
   if (bignump(arg1))
@@ -1423,7 +1423,7 @@ bool equals(Value arg1, Value arg2)
       if (complexp(arg2))
         return equals(arg2, arg1);
       signal_type_error(arg2, S_number);
-      // Not reached.
+      // not reached
       return false;
     }
   if (ratiop(arg1))
@@ -1446,7 +1446,7 @@ bool equals(Value arg1, Value arg2)
       if (complexp(arg2))
         return false;
       signal_type_error(arg2, S_number);
-      // Not reached.
+      // not reached
       return false;
     }
   if (single_float_p(arg1))
@@ -1460,7 +1460,7 @@ bool equals(Value arg1, Value arg2)
       if (complexp(arg2))
         return equals(arg2, arg1);
       signal_type_error(arg2, S_number);
-      // Not reached.
+      // not reached
       return false;
     }
   if (double_float_p(arg1))
@@ -1474,7 +1474,7 @@ bool equals(Value arg1, Value arg2)
       if (complexp(arg2))
         return equals(arg2, arg1);
       signal_type_error(arg2, S_number);
-      // Not reached.
+      // not reached
       return false;
     }
   if (complexp(arg1))
@@ -1493,11 +1493,11 @@ bool equals(Value arg1, Value arg2)
                   && equals(c1->realpart(), arg2));
         }
       signal_type_error(arg2, S_number);
-      // Not reached.
+      // not reached
       return false;
     }
   signal_type_error(arg1, S_number);
-  // Not reached.
+  // not reached
   return false;
 }
 
@@ -1536,7 +1536,7 @@ bool lt(Value arg1, Value arg2)
               goto top;
             default:
               signal_type_error(arg2, S_real);
-              // Not reached.
+              // not reached
               return false;
             }
         }
@@ -1572,7 +1572,7 @@ bool lt(Value arg1, Value arg2)
             }
           default:
             signal_type_error(arg2, S_real);
-            // Not reached.
+            // not reached
             return false;
           }
       }
@@ -1615,7 +1615,7 @@ bool lt(Value arg1, Value arg2)
             }
           default:
             signal_type_error(arg2, S_real);
-            // Not reached.
+            // not reached
             return false;
           }
       }
@@ -1640,7 +1640,7 @@ bool lt(Value arg1, Value arg2)
             return the_single_float(arg1)->_f < the_double_float(arg2)->_d;
           default:
             signal_type_error(arg2, S_real);
-            // Not reached.
+            // not reached
             return false;
           }
       }
@@ -1665,13 +1665,13 @@ bool lt(Value arg1, Value arg2)
             return the_double_float(arg1)->_d < the_double_float(arg2)->_d;
           default:
             signal_type_error(arg2, S_real);
-            // Not reached.
+            // not reached
             return false;
           }
       }
     default:
       signal_type_error(arg1, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
 }
@@ -1698,7 +1698,7 @@ bool le(Value arg1, Value arg2)
             return xlong(arg1) <= the_double_float(arg2)->_d;
           default:
             signal_type_error(arg2, S_real);
-            // Not reached.
+            // not reached
             return false;
           }
       }
@@ -1718,7 +1718,7 @@ bool le(Value arg1, Value arg2)
             return le(arg1, the_double_float(arg2)->rational());
           default:
             signal_type_error(arg2, S_real);
-            // Not reached.
+            // not reached
             return false;
           }
       }
@@ -1752,7 +1752,7 @@ bool le(Value arg1, Value arg2)
             return le(arg1, the_double_float(arg2)->rational());
           default:
             signal_type_error(arg2, S_real);
-            // Not reached.
+            // not reached
             return false;
           }
       }
@@ -1772,7 +1772,7 @@ bool le(Value arg1, Value arg2)
             return the_single_float(arg1)->_f <= the_double_float(arg2)->_d;
           default:
             signal_type_error(arg2, S_real);
-            // Not reached.
+            // not reached
             return false;
           }
       }
@@ -1792,13 +1792,13 @@ bool le(Value arg1, Value arg2)
             return the_double_float(arg1)->_d <= the_double_float(arg2)->_d;
           default:
             signal_type_error(arg2, S_real);
-            // Not reached.
+            // not reached
             return false;
           }
       }
     default:
       signal_type_error(arg1, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
 }
@@ -1826,7 +1826,7 @@ bool gt(Value arg1, Value arg2)
           goto fixnump;
         }
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   if (bignump(arg1))
@@ -1842,7 +1842,7 @@ bool gt(Value arg1, Value arg2)
       if (double_float_p(arg2))
         return gt(arg1, the_double_float(arg2)->rational());
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   if (ratiop(arg1))
@@ -1872,7 +1872,7 @@ bool gt(Value arg1, Value arg2)
       if (double_float_p(arg2))
         return gt(arg1, the_double_float(arg2)->rational());
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   if (single_float_p(arg1))
@@ -1891,7 +1891,7 @@ bool gt(Value arg1, Value arg2)
       if (double_float_p(arg2))
         return the_single_float(arg1)->_f > the_double_float(arg2)->_d;
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   if (double_float_p(arg1))
@@ -1910,11 +1910,11 @@ bool gt(Value arg1, Value arg2)
       if (double_float_p(arg2))
         return the_double_float(arg1)->_d > the_double_float(arg2)->_d;
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   signal_type_error(arg1, S_real);
-  // Not reached.
+  // not reached
   return false;
 }
 
@@ -1933,7 +1933,7 @@ bool ge(Value arg1, Value arg2)
       if (double_float_p(arg2))
         return xlong(arg1) >= the_double_float(arg2)->_d;
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   if (bignump(arg1))
@@ -1949,7 +1949,7 @@ bool ge(Value arg1, Value arg2)
       if (double_float_p(arg2))
         return ge(arg1, the_double_float(arg2)->rational());
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   if (ratiop(arg1))
@@ -1979,7 +1979,7 @@ bool ge(Value arg1, Value arg2)
       if (double_float_p(arg2))
         return ge(arg1, the_double_float(arg2)->rational());
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   if (single_float_p(arg1))
@@ -1995,7 +1995,7 @@ bool ge(Value arg1, Value arg2)
       if (double_float_p(arg2))
         return the_single_float(arg1)->_f >= the_double_float(arg2)->_d;
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   if (double_float_p(arg1))
@@ -2011,11 +2011,11 @@ bool ge(Value arg1, Value arg2)
       if (double_float_p(arg2))
         return the_double_float(arg1)->_d >= the_double_float(arg2)->_d;
       signal_type_error(arg2, S_real);
-      // Not reached.
+      // not reached
       return false;
     }
   signal_type_error(arg1, S_real);
-  // Not reached.
+  // not reached
   return false;
 }
 
@@ -2922,7 +2922,7 @@ Value SYS_truncate_2(Value number, Value divisor)
       if (fixnump(divisor))
         {
           if (divisor == 0)
-            return signal_lisp_error(new DivisionByZero(S_truncate_2, list2(number, divisor)));
+            goto DIVIDE_BY_ZERO;
           long n = xlong(number);
           long d = xlong(divisor);
           long n_abs = abs(n);
@@ -2940,9 +2940,9 @@ Value SYS_truncate_2(Value number, Value divisor)
       if (ratiop(divisor))
         {
           Ratio * r2 = the_ratio(divisor);
-          Value quotient = SYS_truncate_2(SYS_multiply_2(number, r2->denominator()), r2->numerator());
+          Value quotient = SYS_truncate_2(SYS_two_arg_star(number, r2->denominator()), r2->numerator());
           current_thread()->set_values_length(-1);
-          Value remainder = SYS_subtract_2(number, SYS_multiply_2(quotient, divisor));
+          Value remainder = SYS_two_arg_minus(number, SYS_two_arg_star(quotient, divisor));
           return thread->set_values(quotient, remainder);
         }
     }
@@ -2950,6 +2950,8 @@ Value SYS_truncate_2(Value number, Value divisor)
     {
       if (fixnump(divisor))
         {
+          if (divisor == 0)
+            goto DIVIDE_BY_ZERO;
           mpz_t z2;
           mpz_init_set_si(z2, xlong(divisor));
           mpz_t quotient, remainder;
@@ -2972,12 +2974,14 @@ Value SYS_truncate_2(Value number, Value divisor)
           Value value1 = SYS_truncate_1(quotient);
           Value value2 = thread->nth_value(1);
           if (!zerop(value2))
-            value2 = SYS_multiply_2(value2, divisor);
+            value2 = SYS_two_arg_star(value2, divisor);
           return thread->set_values(value1, value2);
         }
       return signal_type_error(divisor, S_real);
     }
   return signal_type_error(number, S_real);
+DIVIDE_BY_ZERO:
+  return signal_lisp_error(new DivisionByZero(S_truncate_2, list2(number, divisor)));
 }
 
 // ### truncate
@@ -3097,7 +3101,7 @@ Value SYS_floor_2(Value number, Value divisor)
       if (fixnump(divisor))
         {
           if (divisor == 0)
-            return signal_lisp_error(new DivisionByZero(S_floor_2, list2(number, divisor)));
+            goto DIVIDE_BY_ZERO;
           long x = xlong(number);
           long y = xlong(divisor);
           long x_abs = abs(x);
@@ -3122,9 +3126,9 @@ Value SYS_floor_2(Value number, Value divisor)
       if (ratiop(divisor))
         {
           Ratio * r2 = the_ratio(divisor);
-          Value quotient = SYS_floor_2(SYS_multiply_2(number, r2->denominator()), r2->numerator());
+          Value quotient = SYS_floor_2(SYS_two_arg_star(number, r2->denominator()), r2->numerator());
           current_thread()->set_values_length(-1);
-          Value remainder = SYS_subtract_2(number, SYS_multiply_2(quotient, divisor));
+          Value remainder = SYS_two_arg_minus(number, SYS_two_arg_star(quotient, divisor));
           return thread->set_values(quotient, remainder);
         }
     }
@@ -3133,7 +3137,7 @@ Value SYS_floor_2(Value number, Value divisor)
       if (fixnump(divisor))
         {
           if (divisor == 0)
-            return signal_lisp_error(new DivisionByZero(S_floor_2, list2(number, divisor)));
+            goto DIVIDE_BY_ZERO;
           mpz_t z2;
           mpz_init_set_si(z2, xlong(divisor));
           mpz_t quotient, remainder;
@@ -3168,12 +3172,14 @@ Value SYS_floor_2(Value number, Value divisor)
           Value value1 = SYS_floor_1(quotient);
           Value value2 = thread->nth_value(1);
           if (!zerop(value2))
-            value2 = SYS_multiply_2(value2, divisor);
+            value2 = SYS_two_arg_star(value2, divisor);
           return thread->set_values(value1, value2);
         }
       return signal_type_error(divisor, S_real);
     }
   return signal_type_error(number, S_real);
+DIVIDE_BY_ZERO:
+  return signal_lisp_error(new DivisionByZero(S_floor_2, list2(number, divisor)));
 }
 
 // ### floor
@@ -3235,7 +3241,7 @@ Value SYS_ceiling_2(Value number, Value divisor)
       if (fixnump(divisor))
         {
           if (divisor == 0)
-            return signal_lisp_error(new DivisionByZero());
+            goto DIVIDE_BY_ZERO;
           long n = xlong(number);
           long d = xlong(divisor);
           long n_abs = abs(n);
@@ -3259,9 +3265,9 @@ Value SYS_ceiling_2(Value number, Value divisor)
       if (ratiop(divisor))
         {
           Ratio * r2 = the_ratio(divisor);
-          Value quotient = SYS_ceiling_2(SYS_multiply_2(number, r2->denominator()), r2->numerator());
+          Value quotient = SYS_ceiling_2(SYS_two_arg_star(number, r2->denominator()), r2->numerator());
           current_thread()->set_values_length(-1);
-          Value remainder = SYS_subtract_2(number, SYS_multiply_2(quotient, divisor));
+          Value remainder = SYS_two_arg_minus(number, SYS_two_arg_star(quotient, divisor));
           return thread->set_values(quotient, remainder);
         }
     }
@@ -3269,6 +3275,8 @@ Value SYS_ceiling_2(Value number, Value divisor)
     {
       if (fixnump(divisor))
         {
+          if (divisor == 0)
+            goto DIVIDE_BY_ZERO;
           mpz_t z2;
           mpz_init_set_si(z2, xlong(divisor));
           mpz_t quotient, remainder;
@@ -3303,12 +3311,14 @@ Value SYS_ceiling_2(Value number, Value divisor)
           Value value1 = SYS_ceiling_1(quotient);
           Value value2 = thread->nth_value(1);
           if (!zerop(value2))
-            value2 = SYS_multiply_2(value2, divisor);
+            value2 = SYS_two_arg_star(value2, divisor);
           return thread->set_values(value1, value2);
         }
       return signal_type_error(divisor, S_real);
     }
   return signal_type_error(number, S_real);
+DIVIDE_BY_ZERO:
+  return signal_lisp_error(new DivisionByZero(S_ceiling_2, list2(number, divisor)));
 }
 
 // ### ceiling
@@ -3331,7 +3341,7 @@ Value log1(Value arg)
     {
       if (CL_minusp(arg) == NIL)
         {
-          // Result is real.
+          // result is real
           if (fixnump(arg))
             return make_single_float(logf(xlong(arg)));
           if (bignump(arg) || ratiop(arg))
@@ -3413,9 +3423,9 @@ Value CL_sin(Value arg)
       return make_double_float(sin(the_double_float(arg)->_d));
     case TYPECODE_COMPLEX:
       {
-        Value n = SYS_multiply_2(arg, make_complex(FIXNUM_ZERO, FIXNUM_ONE));
+        Value n = SYS_two_arg_star(arg, make_complex(FIXNUM_ZERO, FIXNUM_ONE));
         Value result = CL_exp(n);
-        result = SYS_subtract_2(result, CL_exp(SYS_multiply_2(n, FIXNUM_MINUS_ONE)));
+        result = SYS_two_arg_minus(result, CL_exp(SYS_two_arg_star(n, FIXNUM_MINUS_ONE)));
         return SYS_two_arg_slash(result, make_complex(FIXNUM_ZERO, FIXNUM_TWO));
       }
     default:
@@ -3437,9 +3447,9 @@ Value CL_cos(Value arg)
       return make_double_float(cos(the_double_float(arg)->_d));
     case TYPECODE_COMPLEX:
       {
-        Value n = SYS_multiply_2(arg, make_complex(FIXNUM_ZERO, FIXNUM_ONE));
+        Value n = SYS_two_arg_star(arg, make_complex(FIXNUM_ZERO, FIXNUM_ONE));
         Value result = CL_exp(n);
-        result = SYS_two_arg_plus(result, CL_exp(SYS_multiply_2(n, FIXNUM_MINUS_ONE)));
+        result = SYS_two_arg_plus(result, CL_exp(SYS_two_arg_star(n, FIXNUM_MINUS_ONE)));
         return SYS_two_arg_slash(result, FIXNUM_TWO);
       }
     default:
@@ -3655,16 +3665,16 @@ Value SYS_atan_1(Value arg)
         Value imagpart = c->imagpart();
         if (zerop(imagpart))
           return make_complex(SYS_atan_1(c->realpart()), imagpart);
-        Value result = SYS_multiply_2(arg, arg);
+        Value result = SYS_two_arg_star(arg, arg);
         result = SYS_two_arg_plus(result, FIXNUM_ONE);
         result = SYS_two_arg_slash(FIXNUM_ONE, result);
         result = CL_sqrt(result);
         Value n = make_complex(FIXNUM_ZERO, FIXNUM_ONE);
-        n = SYS_multiply_2(n, arg);
+        n = SYS_two_arg_star(n, arg);
         n = SYS_two_arg_plus(n, FIXNUM_ONE);
-        result = SYS_multiply_2(n, result);
+        result = SYS_two_arg_star(n, result);
         result = log1(result);
-        result = SYS_multiply_2(result, make_complex(FIXNUM_ZERO, FIXNUM_MINUS_ONE));
+        result = SYS_two_arg_star(result, make_complex(FIXNUM_ZERO, FIXNUM_MINUS_ONE));
         return result;
       }
     default:
@@ -3741,7 +3751,7 @@ Value CL_exp(Value arg)
   if (complexp(arg))
     {
       Complex * c = the_complex(arg);
-      return SYS_multiply_2(CL_exp(c->realpart()), CL_cis(c->imagpart()));
+      return SYS_two_arg_star(CL_exp(c->realpart()), CL_cis(c->imagpart()));
     }
   return signal_type_error(arg, S_number);
 }
@@ -4561,7 +4571,7 @@ Value CL_expt(Value base, Value power)
           if (exp > 0)
             {
               for (long i = exp; i-- > 0;)
-                result = SYS_multiply_2(result, base);
+                result = SYS_two_arg_star(result, base);
             }
           else if (exp < 0)
             {
@@ -4572,7 +4582,7 @@ Value CL_expt(Value base, Value power)
         }
     }
   if (complexp(base) || complexp(power))
-    return CL_exp(SYS_multiply_2(power, log1(base)));
+    return CL_exp(SYS_two_arg_star(power, log1(base)));
   // power is not a fixnum
   if (double_float_p(base))
     return make_value(new DoubleFloat(pow(the_double_float(base)->_d,

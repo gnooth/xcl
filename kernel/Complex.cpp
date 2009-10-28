@@ -44,13 +44,13 @@ Value Complex::add(Complex * c) const
 
 Value Complex::subtract(long n) const
 {
-  return make_value(new Complex(SYS_subtract_2(_realpart, make_fixnum(n)), _imagpart));
+  return make_value(new Complex(SYS_two_arg_minus(_realpart, make_fixnum(n)), _imagpart));
 }
 
 Value Complex::subtract(Complex * c) const
 {
-  return make_complex(SYS_subtract_2(_realpart, c->_realpart),
-                      SYS_subtract_2(_imagpart, c->_imagpart));
+  return make_complex(SYS_two_arg_minus(_realpart, c->_realpart),
+                      SYS_two_arg_minus(_imagpart, c->_imagpart));
 }
 
 Value Complex::negate() const
