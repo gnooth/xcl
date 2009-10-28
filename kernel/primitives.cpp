@@ -2555,7 +2555,7 @@ Value CL_get_internal_run_time()
 {
   SYS_get_process_times();
   Thread * thread = current_thread();
-  Value result = SYS_add_2(thread->nth_value(0), thread->nth_value(1));
+  Value result = SYS_two_arg_plus(thread->nth_value(0), thread->nth_value(1));
   thread->clear_values();
   return result;
 }

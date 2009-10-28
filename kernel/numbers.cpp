@@ -295,7 +295,7 @@ Value make_number(AbstractString * string, int base, Stream * stream)
         {
           if (stream != NULL && denominator == 0)
             return signal_lisp_error(new ReaderError(stream, "Division by zero."));
-          return SYS_divide_2(numerator, denominator);
+          return SYS_two_arg_slash(numerator, denominator);
         }
       return signal_lisp_error(new ReaderError()); // REVIEW
     }
@@ -662,7 +662,7 @@ Value SYS_multiply_2(Value v1, Value v2)
           Value ac = SYS_multiply_2(a, c);
           Value bd = SYS_multiply_2(b, d);
           return make_complex(SYS_subtract_2(ac, bd),
-                              SYS_subtract_2(SYS_subtract_2(SYS_multiply_2(SYS_add_2(a, b), SYS_add_2(c, d)), ac), bd));
+                              SYS_subtract_2(SYS_subtract_2(SYS_multiply_2(SYS_two_arg_plus(a, b), SYS_two_arg_plus(c, d)), ac), bd));
         }
       return signal_type_error(v2, S_number);
     }
@@ -670,13 +670,13 @@ Value SYS_multiply_2(Value v1, Value v2)
 }
 
 // ### two-arg-/
-Value SYS_divide_2(Value v1, Value v2)
+Value SYS_two_arg_slash(Value v1, Value v2)
 {
- top:
-  if (v2 == 0)
-    return signal_lisp_error(new DivisionByZero());
+TOP:
   long typecode1 = typecode_of(v1);
   long typecode2 = typecode_of(v2);
+  if (v2 == 0)
+    goto DIVIDE_BY_ZERO;
   switch (typecode1)
     {
     case TYPECODE_FIXNUM:
@@ -728,14 +728,14 @@ Value SYS_divide_2(Value v1, Value v2)
             {
               float f = the_single_float(v2)->_f;
               if (f == 0)
-                return signal_lisp_error(new DivisionByZero());
+                goto DIVIDE_BY_ZERO;
               return make_single_float(xlong(v1) / f);
             }
           case TYPECODE_DOUBLE_FLOAT:
             {
               double d = the_double_float(v2)->_d;
               if (d == 0)
-                return signal_lisp_error(new DivisionByZero());
+                goto DIVIDE_BY_ZERO;
               return make_double_float(xlong(v1) / d);
             }
           case TYPECODE_COMPLEX:
@@ -744,9 +744,9 @@ Value SYS_divide_2(Value v1, Value v2)
               Value realpart = c->realpart();
               Value imagpart = c->imagpart();
               Value denominator =
-                SYS_add_2(SYS_multiply_2(realpart, realpart), SYS_multiply_2(imagpart, imagpart));
-              return make_complex(SYS_divide_2(SYS_multiply_2(v1, realpart), denominator),
-                                  SYS_divide_2(SYS_subtract_2(FIXNUM_ZERO, SYS_multiply_2(v1, imagpart)),
+                SYS_two_arg_plus(SYS_multiply_2(realpart, realpart), SYS_multiply_2(imagpart, imagpart));
+              return make_complex(SYS_two_arg_slash(SYS_multiply_2(v1, realpart), denominator),
+                                  SYS_two_arg_slash(SYS_subtract_2(FIXNUM_ZERO, SYS_multiply_2(v1, imagpart)),
                                              denominator));
             }
           default:
@@ -797,7 +797,7 @@ Value SYS_divide_2(Value v1, Value v2)
           {
             float f = the_single_float(v2)->_f;
             if (f == 0)
-              return signal_lisp_error(new DivisionByZero());
+              goto DIVIDE_BY_ZERO;
             v1 = coerce_to_single_float(v1);
             return make_single_float(the_single_float(v1)->_f / f);
           }
@@ -805,7 +805,7 @@ Value SYS_divide_2(Value v1, Value v2)
           {
             double d = the_double_float(v2)->_d;
             if (d == 0)
-              return signal_lisp_error(new DivisionByZero());
+              goto DIVIDE_BY_ZERO;
             v1 = coerce_to_double_float(v1);
             return make_double_float(the_double_float(v1)->_d / d);
           }
@@ -815,9 +815,9 @@ Value SYS_divide_2(Value v1, Value v2)
             Value realpart = c->realpart();
             Value imagpart = c->imagpart();
             Value denominator =
-              SYS_add_2(SYS_multiply_2(realpart, realpart), SYS_multiply_2(imagpart, imagpart));
-            return make_complex(SYS_divide_2(SYS_multiply_2(v1, realpart), denominator),
-                                SYS_divide_2(SYS_subtract_2(FIXNUM_ZERO, SYS_multiply_2(v1, imagpart)),
+              SYS_two_arg_plus(SYS_multiply_2(realpart, realpart), SYS_multiply_2(imagpart, imagpart));
+            return make_complex(SYS_two_arg_slash(SYS_multiply_2(v1, realpart), denominator),
+                                SYS_two_arg_slash(SYS_subtract_2(FIXNUM_ZERO, SYS_multiply_2(v1, imagpart)),
                                            denominator));
           }
         return signal_type_error(v2, S_number);
@@ -878,9 +878,9 @@ Value SYS_divide_2(Value v1, Value v2)
                 SYS_multiply_2(SYS_subtract_2(FIXNUM_ZERO, v1), v2_imagpart);
               // denominator
               Value d = SYS_multiply_2(v2_realpart, v2_realpart);
-              d = SYS_add_2(d, SYS_multiply_2(v2_imagpart, v2_imagpart));
-              return make_complex(SYS_divide_2(realpart, d),
-                                  SYS_divide_2(imagpart, d));
+              d = SYS_two_arg_plus(d, SYS_multiply_2(v2_imagpart, v2_imagpart));
+              return make_complex(SYS_two_arg_slash(realpart, d),
+                                  SYS_two_arg_slash(imagpart, d));
             }
           default:
             return signal_type_error(v2, S_number);
@@ -889,7 +889,7 @@ Value SYS_divide_2(Value v1, Value v2)
     case TYPECODE_SINGLE_FLOAT:
       {
         if (v2 == 0)
-          return signal_lisp_error(new DivisionByZero());
+          goto DIVIDE_BY_ZERO;
         switch (typecode2)
           {
           case TYPECODE_FIXNUM:
@@ -898,7 +898,7 @@ Value SYS_divide_2(Value v1, Value v2)
           case TYPECODE_RATIO:
             {
               v2 = coerce_to_single_float(v2);
-              goto top;
+              goto TOP;
             }
           case TYPECODE_SINGLE_FLOAT:
             {
@@ -921,9 +921,9 @@ Value SYS_divide_2(Value v1, Value v2)
                 SYS_multiply_2(SYS_subtract_2(FIXNUM_ZERO, v1), v2_imagpart);
               // denominator
               Value d = SYS_multiply_2(v2_realpart, v2_realpart);
-              d = SYS_add_2(d, SYS_multiply_2(v2_imagpart, v2_imagpart));
-              return make_complex(SYS_divide_2(realpart, d),
-                                  SYS_divide_2(imagpart, d));
+              d = SYS_two_arg_plus(d, SYS_multiply_2(v2_imagpart, v2_imagpart));
+              return make_complex(SYS_two_arg_slash(realpart, d),
+                                  SYS_two_arg_slash(imagpart, d));
             }
           default:
             return signal_type_error(v2, S_number);
@@ -932,14 +932,14 @@ Value SYS_divide_2(Value v1, Value v2)
     case TYPECODE_DOUBLE_FLOAT:
       {
         if (v2 == 0)
-          return signal_lisp_error(new DivisionByZero());
+          goto DIVIDE_BY_ZERO;
         switch (typecode2)
           {
           case TYPECODE_FIXNUM:
             return make_double_float(the_double_float(v1)->_d / xlong(v2));
           case TYPECODE_BIGNUM:
           case TYPECODE_RATIO:
-            return SYS_divide_2(v1, coerce_to_double_float(v2));
+            return SYS_two_arg_slash(v1, coerce_to_double_float(v2));
           case TYPECODE_SINGLE_FLOAT:
             {
               double d = the_double_float(v1)->_d / the_single_float(v2)->_f;
@@ -961,9 +961,9 @@ Value SYS_divide_2(Value v1, Value v2)
                 SYS_multiply_2(SYS_subtract_2(FIXNUM_ZERO, v1), v2_imagpart);
               // denominator
               Value d = SYS_multiply_2(v2_realpart, v2_realpart);
-              d = SYS_add_2(d, SYS_multiply_2(v2_imagpart, v2_imagpart));
-              return make_complex(SYS_divide_2(realpart, d),
-                                  SYS_divide_2(imagpart, d));
+              d = SYS_two_arg_plus(d, SYS_multiply_2(v2_imagpart, v2_imagpart));
+              return make_complex(SYS_two_arg_slash(realpart, d),
+                                  SYS_two_arg_slash(imagpart, d));
             }
           default:
             return signal_type_error(v2, S_number);
@@ -981,22 +981,24 @@ Value SYS_divide_2(Value v1, Value v2)
             Value bd = SYS_multiply_2(b, d);
             Value bc = SYS_multiply_2(b, c);
             Value ad = SYS_multiply_2(a, d);
-            Value denominator = SYS_add_2(SYS_multiply_2(c, c), SYS_multiply_2(d, d));
-            return make_complex(SYS_divide_2(SYS_add_2(ac, bd), denominator),
-                                SYS_divide_2(SYS_subtract_2(bc, ad), denominator));
+            Value denominator = SYS_two_arg_plus(SYS_multiply_2(c, c), SYS_multiply_2(d, d));
+            return make_complex(SYS_two_arg_slash(SYS_two_arg_plus(ac, bd), denominator),
+                                SYS_two_arg_slash(SYS_subtract_2(bc, ad), denominator));
           }
         else
-          return make_complex(SYS_divide_2(the_complex(v1)->realpart(), v2),
-                              SYS_divide_2(the_complex(v1)->imagpart(), v2));
+          return make_complex(SYS_two_arg_slash(the_complex(v1)->realpart(), v2),
+                              SYS_two_arg_slash(the_complex(v1)->imagpart(), v2));
         return signal_type_error(v2, S_number);
       }
       default:
         return signal_type_error(v1, S_number);
     }
+ DIVIDE_BY_ZERO:
+  return signal_lisp_error(new DivisionByZero(S_two_arg_slash, list2(v1, v2)));
 }
 
 // ### two-arg-+
-Value SYS_add_2(Value v1, Value v2)
+Value SYS_two_arg_plus(Value v1, Value v2)
 {
   long typecode1 = typecode_of(v1);
   long typecode2 = typecode_of(v2);
@@ -1045,7 +1047,7 @@ Value SYS_add_2(Value v1, Value v2)
           case TYPECODE_COMPLEX:
             {
               Complex * c = the_complex(v2);
-              return make_value(new Complex(SYS_add_2(v1, c->realpart()), c->imagpart()));
+              return make_value(new Complex(SYS_two_arg_plus(v1, c->realpart()), c->imagpart()));
             }
           default:
             return signal_type_error(v2, S_number);
@@ -1066,7 +1068,7 @@ Value SYS_add_2(Value v1, Value v2)
         if (complexp(v2))
           {
             Complex * c = the_complex(v2);
-            return make_value(new Complex(SYS_add_2(v1, c->realpart()), c->imagpart()));
+            return make_value(new Complex(SYS_two_arg_plus(v1, c->realpart()), c->imagpart()));
           }
         return signal_type_error(v2, S_number);
       }
@@ -1085,7 +1087,7 @@ Value SYS_add_2(Value v1, Value v2)
         if (complexp(v2))
           {
             Complex * c = the_complex(v2);
-            return make_value(new Complex(SYS_add_2(v1, c->realpart()), c->imagpart()));
+            return make_value(new Complex(SYS_two_arg_plus(v1, c->realpart()), c->imagpart()));
           }
         return signal_type_error(v2, S_number);
       }
@@ -1104,7 +1106,7 @@ Value SYS_add_2(Value v1, Value v2)
         if (complexp(v2))
           {
             Complex * c = the_complex(v2);
-            return make_value(new Complex(SYS_add_2(v1, c->realpart()), c->imagpart()));
+            return make_value(new Complex(SYS_two_arg_plus(v1, c->realpart()), c->imagpart()));
           }
         return signal_type_error(v2, S_number);
       }
@@ -1115,7 +1117,7 @@ Value SYS_add_2(Value v1, Value v2)
           return c->add(xlong(v2));
         if (complexp(v2))
           return c->add(the_complex(v2));
-        return make_value(new Complex(SYS_add_2(c->realpart(), v2), c->imagpart()));
+        return make_value(new Complex(SYS_two_arg_plus(c->realpart(), v2), c->imagpart()));
       }
     default:
       return signal_type_error(v1, S_number);
@@ -1137,15 +1139,15 @@ Value SYS_subtract_2(Value v1, Value v2)
           }
         }
       if (bignump(v2))
-        return SYS_add_2(the_bignum(v2)->negate(), v1);
+        return SYS_two_arg_plus(the_bignum(v2)->negate(), v1);
       if (ratiop(v2))
-        return SYS_add_2(the_ratio(v2)->negate(), v1);
+        return SYS_two_arg_plus(the_ratio(v2)->negate(), v1);
       if (single_float_p(v2))
-        return SYS_add_2(the_single_float(v2)->negate(), v1);
+        return SYS_two_arg_plus(the_single_float(v2)->negate(), v1);
       if (double_float_p(v2))
-        return SYS_add_2(the_double_float(v2)->negate(), v1);
+        return SYS_two_arg_plus(the_double_float(v2)->negate(), v1);
       if (complexp(v2))
-        return SYS_add_2(the_complex(v2)->negate(), v1);
+        return SYS_two_arg_plus(the_complex(v2)->negate(), v1);
       return signal_type_error(v2, S_number);
     }
   if (bignump(v1))
@@ -1155,7 +1157,7 @@ Value SYS_subtract_2(Value v1, Value v2)
       if (bignump(v2))
         return the_bignum(v1)->subtract(the_bignum(v2));
       if (ratiop(v2))
-        return SYS_add_2(v1, the_ratio(v2)->negate());
+        return SYS_two_arg_plus(v1, the_ratio(v2)->negate());
       if (single_float_p(v2))
         return the_single_float(coerce_to_single_float(v1))->subtract(the_single_float(v2));
       if (double_float_p(v2))
@@ -1172,7 +1174,7 @@ Value SYS_subtract_2(Value v1, Value v2)
       if (fixnump(v2))
         return the_ratio(v1)->subtract(xlong(v2));
       if (bignump(v2))
-        return SYS_add_2(v1, the_bignum(v2)->negate());
+        return SYS_two_arg_plus(v1, the_bignum(v2)->negate());
       if (ratiop(v2))
         return the_ratio(v1)->subtract(the_ratio(v2));
       if (single_float_p(v2))
@@ -1263,12 +1265,12 @@ Value CL_add(unsigned int numargs, Value args[])
       else
         return signal_type_error(args[0], S_number);
     case 2:
-      return SYS_add_2(args[0], args[1]);
+      return SYS_two_arg_plus(args[0], args[1]);
     default:
       {
         Value result = make_fixnum(0);
         for (unsigned int i = 0; i < numargs; i++)
-          result = SYS_add_2(result, args[i]);
+          result = SYS_two_arg_plus(result, args[i]);
         return result;
       }
     }
@@ -1345,14 +1347,14 @@ Value CL_divide(unsigned int numargs, Value args[])
     case 0:
       return wrong_number_of_arguments(S_slash, numargs, 1, MANY);
     case 1:
-      return SYS_divide_2(FIXNUM_ONE, args[0]);
+      return SYS_two_arg_slash(FIXNUM_ONE, args[0]);
     case 2:
-      return SYS_divide_2(args[0], args[1]);
+      return SYS_two_arg_slash(args[0], args[1]);
     default:
       {
         Value result = args[0];
         for (unsigned int i = 1; i < numargs; i++)
-          result = SYS_divide_2(result, args[i]);
+          result = SYS_two_arg_slash(result, args[i]);
         return result;
       }
     }
@@ -1361,7 +1363,7 @@ Value CL_divide(unsigned int numargs, Value args[])
 // ### 1+
 Value CL_one_plus(Value arg)
 {
-  return SYS_add_2(arg, FIXNUM_ONE);
+  return SYS_two_arg_plus(arg, FIXNUM_ONE);
 }
 
 // ### 1-
@@ -2566,7 +2568,7 @@ Value CL_signum(Value arg)
       if (zerop(arg))
         return arg;
       else
-        return SYS_divide_2(arg, CL_abs(arg));
+        return SYS_two_arg_slash(arg, CL_abs(arg));
     }
   return NIL;
 }
@@ -2893,7 +2895,7 @@ Value SYS_truncate_1(Value number)
       MPZ_CLEAR(quotient);
       Value value2 = normalize(remainder);
       MPZ_CLEAR(remainder);
-      value2 = SYS_divide_2(value2, the_ratio(number)->denominator());
+      value2 = SYS_two_arg_slash(value2, the_ratio(number)->denominator());
       return thread->set_values(value1, value2);
     }
   if (single_float_p(number))
@@ -2920,7 +2922,7 @@ Value SYS_truncate_2(Value number, Value divisor)
       if (fixnump(divisor))
         {
           if (divisor == 0)
-            return signal_lisp_error(new DivisionByZero());
+            return signal_lisp_error(new DivisionByZero(S_truncate_2, list2(number, divisor)));
           long n = xlong(number);
           long d = xlong(divisor);
           long n_abs = abs(n);
@@ -2966,7 +2968,7 @@ Value SYS_truncate_2(Value number, Value divisor)
     {
       if (realp(divisor))
         {
-          Value quotient = SYS_divide_2(number, divisor);
+          Value quotient = SYS_two_arg_slash(number, divisor);
           Value value1 = SYS_truncate_1(quotient);
           Value value2 = thread->nth_value(1);
           if (!zerop(value2))
@@ -3000,7 +3002,7 @@ Value CL_rem(Value number, Value divisor)
   if (fixnump(number) && fixnump(divisor))
     {
       if (divisor == 0)
-        return signal_lisp_error(new DivisionByZero());
+        return signal_lisp_error(new DivisionByZero(S_rem, list2(number, divisor)));
       long n = xlong(number);
       long d = xlong(divisor);
       long n_abs = abs(n);
@@ -3025,7 +3027,7 @@ Value CL_mod(Value number, Value divisor)
   if (fixnump(number) && fixnump(divisor))
     {
       if (divisor == 0)
-        return signal_lisp_error(new DivisionByZero());
+        return signal_lisp_error(new DivisionByZero(S_mod, list2(number, divisor)));
       long n = xlong(number);
       long d = xlong(divisor);
       long n_abs = abs(n);
@@ -3066,7 +3068,7 @@ Value SYS_floor_1(Value arg)
         MPZ_CLEAR(quotient);
         Value value2 = normalize(remainder);
         MPZ_CLEAR(remainder);
-        value2 = SYS_divide_2(value2, the_ratio(arg)->denominator());
+        value2 = SYS_two_arg_slash(value2, the_ratio(arg)->denominator());
         return thread->set_values(value1, value2);
       }
     case TYPECODE_SINGLE_FLOAT:
@@ -3087,17 +3089,17 @@ Value SYS_floor_1(Value arg)
 }
 
 // ### floor-2
-Value SYS_floor_2(Value arg1, Value arg2)
+Value SYS_floor_2(Value number, Value divisor)
 {
   Thread * const thread = current_thread();
-  if (fixnump(arg1))
+  if (fixnump(number))
     {
-      if (fixnump(arg2))
+      if (fixnump(divisor))
         {
-          if (arg2 == 0)
-            return signal_lisp_error(new DivisionByZero());
-          long x = xlong(arg1);
-          long y = xlong(arg2);
+          if (divisor == 0)
+            return signal_lisp_error(new DivisionByZero(S_floor_2, list2(number, divisor)));
+          long x = xlong(number);
+          long y = xlong(divisor);
           long x_abs = abs(x);
           long y_abs = abs(y);
           long q = x_abs / y_abs;
@@ -3117,25 +3119,27 @@ Value SYS_floor_2(Value arg1, Value arg2)
           Value remainder = make_number(r);
           return thread->set_values(quotient, remainder);
         }
-      if (ratiop(arg2))
+      if (ratiop(divisor))
         {
-          Ratio * r2 = the_ratio(arg2);
-          Value quotient = SYS_floor_2(SYS_multiply_2(arg1, r2->denominator()), r2->numerator());
+          Ratio * r2 = the_ratio(divisor);
+          Value quotient = SYS_floor_2(SYS_multiply_2(number, r2->denominator()), r2->numerator());
           current_thread()->set_values_length(-1);
-          Value remainder = SYS_subtract_2(arg1, SYS_multiply_2(quotient, arg2));
+          Value remainder = SYS_subtract_2(number, SYS_multiply_2(quotient, divisor));
           return thread->set_values(quotient, remainder);
         }
     }
-  if (bignump(arg1))
+  if (bignump(number))
     {
-      if (fixnump(arg2))
+      if (fixnump(divisor))
         {
+          if (divisor == 0)
+            return signal_lisp_error(new DivisionByZero(S_floor_2, list2(number, divisor)));
           mpz_t z2;
-          mpz_init_set_si(z2, xlong(arg2));
+          mpz_init_set_si(z2, xlong(divisor));
           mpz_t quotient, remainder;
           mpz_init(quotient);
           mpz_init(remainder);
-          mpz_fdiv_qr(quotient, remainder, the_bignum(arg1)->_z, z2);
+          mpz_fdiv_qr(quotient, remainder, the_bignum(number)->_z, z2);
           MPZ_CLEAR(z2);
           Value value1 = normalize(quotient);
           MPZ_CLEAR(quotient);
@@ -3143,12 +3147,12 @@ Value SYS_floor_2(Value arg1, Value arg2)
           MPZ_CLEAR(remainder);
           return thread->set_values(value1, value2);
         }
-      if (bignump(arg2))
+      if (bignump(divisor))
         {
           mpz_t quotient, remainder;
           mpz_init(quotient);
           mpz_init(remainder);
-          mpz_fdiv_qr(quotient, remainder, the_bignum(arg1)->_z, the_bignum(arg2)->_z);
+          mpz_fdiv_qr(quotient, remainder, the_bignum(number)->_z, the_bignum(divisor)->_z);
           Value value1 = normalize(quotient);
           MPZ_CLEAR(quotient);
           Value value2 = normalize(remainder);
@@ -3156,20 +3160,20 @@ Value SYS_floor_2(Value arg1, Value arg2)
           return thread->set_values(value1, value2);
         }
     }
-  if (realp(arg1))
+  if (realp(number))
     {
-      if (realp(arg2))
+      if (realp(divisor))
         {
-          Value quotient = SYS_divide_2(arg1, arg2);
+          Value quotient = SYS_two_arg_slash(number, divisor);
           Value value1 = SYS_floor_1(quotient);
           Value value2 = thread->nth_value(1);
           if (!zerop(value2))
-            value2 = SYS_multiply_2(value2, arg2);
+            value2 = SYS_multiply_2(value2, divisor);
           return thread->set_values(value1, value2);
         }
-      return signal_type_error(arg2, S_real);
+      return signal_type_error(divisor, S_real);
     }
-  return signal_type_error(arg1, S_real);
+  return signal_type_error(number, S_real);
 }
 
 // ### floor
@@ -3204,7 +3208,7 @@ Value SYS_ceiling_1(Value number)
       MPZ_CLEAR(quotient);
       Value value2 = normalize(remainder);
       MPZ_CLEAR(remainder);
-      value2 = SYS_divide_2(value2, the_ratio(number)->denominator());
+      value2 = SYS_two_arg_slash(value2, the_ratio(number)->denominator());
       return thread->set_values(value1, value2);
     }
   if (single_float_p(number))
@@ -3295,7 +3299,7 @@ Value SYS_ceiling_2(Value number, Value divisor)
     {
       if (realp(divisor))
         {
-          Value quotient = SYS_divide_2(number, divisor);
+          Value quotient = SYS_two_arg_slash(number, divisor);
           Value value1 = SYS_ceiling_1(quotient);
           Value value2 = thread->nth_value(1);
           if (!zerop(value2))
@@ -3389,7 +3393,7 @@ Value CL_log(unsigned int numargs, Value args[])
     case 1:
       return log1(args[0]);
     case 2:
-      return SYS_divide_2(log1(args[0]), log1(args[1]));
+      return SYS_two_arg_slash(log1(args[0]), log1(args[1]));
     default:
       return wrong_number_of_arguments(S_log, numargs, 1, 2);
     }
@@ -3412,7 +3416,7 @@ Value CL_sin(Value arg)
         Value n = SYS_multiply_2(arg, make_complex(FIXNUM_ZERO, FIXNUM_ONE));
         Value result = CL_exp(n);
         result = SYS_subtract_2(result, CL_exp(SYS_multiply_2(n, FIXNUM_MINUS_ONE)));
-        return SYS_divide_2(result, make_complex(FIXNUM_ZERO, FIXNUM_TWO));
+        return SYS_two_arg_slash(result, make_complex(FIXNUM_ZERO, FIXNUM_TWO));
       }
     default:
       return signal_type_error(arg, S_number);
@@ -3435,8 +3439,8 @@ Value CL_cos(Value arg)
       {
         Value n = SYS_multiply_2(arg, make_complex(FIXNUM_ZERO, FIXNUM_ONE));
         Value result = CL_exp(n);
-        result = SYS_add_2(result, CL_exp(SYS_multiply_2(n, FIXNUM_MINUS_ONE)));
-        return SYS_divide_2(result, FIXNUM_TWO);
+        result = SYS_two_arg_plus(result, CL_exp(SYS_multiply_2(n, FIXNUM_MINUS_ONE)));
+        return SYS_two_arg_slash(result, FIXNUM_TWO);
       }
     default:
       return signal_type_error(arg, S_number);
@@ -3456,7 +3460,7 @@ Value CL_tan(Value arg)
     case TYPECODE_DOUBLE_FLOAT:
       return make_double_float(tan(the_double_float(arg)->_d));
     case TYPECODE_COMPLEX:
-      return SYS_divide_2(CL_sin(arg), CL_cos(arg));
+      return SYS_two_arg_slash(CL_sin(arg), CL_cos(arg));
     default:
       return signal_type_error(arg, S_number);
     }
@@ -3652,12 +3656,12 @@ Value SYS_atan_1(Value arg)
         if (zerop(imagpart))
           return make_complex(SYS_atan_1(c->realpart()), imagpart);
         Value result = SYS_multiply_2(arg, arg);
-        result = SYS_add_2(result, FIXNUM_ONE);
-        result = SYS_divide_2(FIXNUM_ONE, result);
+        result = SYS_two_arg_plus(result, FIXNUM_ONE);
+        result = SYS_two_arg_slash(FIXNUM_ONE, result);
         result = CL_sqrt(result);
         Value n = make_complex(FIXNUM_ZERO, FIXNUM_ONE);
         n = SYS_multiply_2(n, arg);
-        n = SYS_add_2(n, FIXNUM_ONE);
+        n = SYS_two_arg_plus(n, FIXNUM_ONE);
         result = SYS_multiply_2(n, result);
         result = log1(result);
         result = SYS_multiply_2(result, make_complex(FIXNUM_ZERO, FIXNUM_MINUS_ONE));
@@ -4387,7 +4391,7 @@ Value CL_expt(Value base, Value power)
   if (power == FIXNUM_ONE)
     return base;
   if (power == FIXNUM_MINUS_ONE)
-    return SYS_divide_2(FIXNUM_ONE, base);
+    return SYS_two_arg_slash(FIXNUM_ONE, base);
   if (fixnump(power))
     {
       long exp = xlong(power);
@@ -4521,7 +4525,7 @@ Value CL_expt(Value base, Value power)
           Ratio * r = the_ratio(base);
           Value numerator = r->numerator();
           Value denominator = r->denominator();
-          return SYS_divide_2(CL_expt(numerator, power), CL_expt(denominator, power));
+          return SYS_two_arg_slash(CL_expt(numerator, power), CL_expt(denominator, power));
         }
       if (single_float_p(base))
         {
@@ -4562,7 +4566,7 @@ Value CL_expt(Value base, Value power)
           else if (exp < 0)
             {
               for (long i = -exp; i-- > 0;)
-                result = SYS_divide_2(result, base);
+                result = SYS_two_arg_slash(result, base);
             }
           return result;
         }
@@ -4622,7 +4626,7 @@ Value CL_sqrt(Value arg)
             else
               return make_complex(CL_sqrt(realpart), imagpart);
           }
-        return CL_exp(SYS_divide_2(log1(arg), FIXNUM_TWO));
+        return CL_exp(SYS_two_arg_slash(log1(arg), FIXNUM_TWO));
       }
     default:
       return signal_type_error(arg, S_number);

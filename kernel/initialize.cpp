@@ -502,7 +502,6 @@ void initialize_lisp()
 
   // non-CL primitives
   ADD_PRIMITIVE(S_accept_connection, EXT_accept_connection, 1, 1);
-  ADD_PRIMITIVE(S_add_2, SYS_add_2, 2, 2);
   ADD_PRIMITIVE(S_address_of, SYS_address_of, 1, 1);
   ADD_PRIMITIVE(S_adjust_array_internal, SYS_adjust_array_internal, 10, 10);
   ADD_PRIMITIVE(S_allocate_funcallable_standard_instance, SYS_allocate_funcallable_standard_instance, 1, 1);
@@ -553,7 +552,6 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_designator_input_stream, SYS_designator_input_stream, 1, 1);
   ADD_PRIMITIVE(S_designator_list, SYS_designator_list, 1, 1);
   ADD_PRIMITIVE(S_designator_output_stream, SYS_designator_output_stream, 1, 1);
-  ADD_PRIMITIVE(S_divide_2, SYS_divide_2, 2, 2);
   ADD_PRIMITIVE(S_documentation_internal, SYS_documentation_internal, 2, 2);
   ADD_PRIMITIVE(S_double_float_add_internal, SYS_double_float_add_internal, 2, 2);
   ADD_PRIMITIVE(S_double_float_high_bits, SYS_double_float_high_bits, 1, 1);
@@ -894,6 +892,8 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_two_arg_logxor, SYS_two_arg_logxor, 2, 2);
   ADD_PRIMITIVE(S_two_arg_max, SYS_two_arg_max, 2, 2);
   ADD_PRIMITIVE(S_two_arg_min, SYS_two_arg_min, 2, 2);
+  ADD_PRIMITIVE(S_two_arg_plus, SYS_two_arg_plus, 2, 2);
+  ADD_PRIMITIVE(S_two_arg_slash, SYS_two_arg_slash, 2, 2);
   ADD_PRIMITIVE(S_type_error_internal, SYS_type_error_internal, 2, 2);
   ADD_PRIMITIVE(S_untraced_function, SYS_untraced_function, 1, 1);
   ADD_PRIMITIVE(S_upgraded_array_element_type_internal, SYS_upgraded_array_element_type_internal, 1, 1);

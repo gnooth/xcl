@@ -1,6 +1,6 @@
 // ArithmeticError.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,6 +29,8 @@ public:
     : Condition(WIDETAG_CONDITION, get_layout_for_class())
   {
   }
+
+  ArithmeticError(Value operation, Value operands);
 
   virtual void initialize(Value initargs);
 

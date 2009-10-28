@@ -33,13 +33,13 @@ bool Complex::typep(Value type) const
 
 Value Complex::add(long n) const
 {
-  return make_value(new Complex(SYS_add_2(_realpart, make_fixnum(n)), _imagpart));
+  return make_value(new Complex(SYS_two_arg_plus(_realpart, make_fixnum(n)), _imagpart));
 }
 
 Value Complex::add(Complex * c) const
 {
-  return make_complex(SYS_add_2(_realpart, c->_realpart),
-                      SYS_add_2(_imagpart, c->_imagpart));
+  return make_complex(SYS_two_arg_plus(_realpart, c->_realpart),
+                      SYS_two_arg_plus(_imagpart, c->_imagpart));
 }
 
 Value Complex::subtract(long n) const

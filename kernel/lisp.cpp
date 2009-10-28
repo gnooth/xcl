@@ -609,7 +609,7 @@ Value SYS_incq(Value args, Environment * env, Thread * thread)
       Value value = thread->symbol_value(var);
       if (value == NULL_VALUE)
         return signal_lisp_error(new UnboundVariable(var));
-      value = SYS_add_2(value, delta);
+      value = SYS_two_arg_plus(value, delta);
       thread->set_symbol_value(var, value);
       return value;
     }
@@ -619,7 +619,7 @@ Value SYS_incq(Value args, Environment * env, Thread * thread)
       Value value;
       if (binding)
         {
-          value = SYS_add_2(binding->value(), delta);
+          value = SYS_two_arg_plus(binding->value(), delta);
           binding->set_value(value);
         }
       else
@@ -627,7 +627,7 @@ Value SYS_incq(Value args, Environment * env, Thread * thread)
           value = sym->value();
           if (value == NULL_VALUE)
             return signal_lisp_error(new UnboundVariable(var));
-          value = SYS_add_2(value, delta);
+          value = SYS_two_arg_plus(value, delta);
           sym->set_value(value);
         }
       return value;

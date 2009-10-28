@@ -1,6 +1,6 @@
 // ArithmeticError.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -18,6 +18,13 @@
 
 #include "lisp.hpp"
 #include "ArithmeticError.hpp"
+
+ArithmeticError::ArithmeticError(Value operation, Value operands)
+  : Condition(WIDETAG_CONDITION, get_layout_for_class())
+{
+  set_slot_value(S_operation, operation);
+  set_slot_value(S_operands, operands);
+}
 
 Layout * ArithmeticError::get_layout_for_class()
 {
