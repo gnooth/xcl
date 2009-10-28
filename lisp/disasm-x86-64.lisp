@@ -1074,7 +1074,7 @@
                           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)
                           ))))
                 (t
-                 (error "unhandled opcode ~2,'0x" byte1)))))
+                 (error "unhandled opcode #x~2,'0x" byte1)))))
         (when (null instruction)
           (when prefix-byte
             (incf length))
