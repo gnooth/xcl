@@ -52,6 +52,7 @@
 (defmethod test6 ((x number))
   (+ x x))
 (defmethod test6 :around ((x integer))
+  (declare (ignore x))
   (+ 42 (call-next-method)))
 (aver (eql (test6 3.0) 6.0))
 (aver (eql (test6 3) 48))
