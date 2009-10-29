@@ -52,7 +52,7 @@
     (time (prof:with-profiling () (funcall (find-symbol "TEST" "CL-PPCRE-TEST"))))))
 
 #+xcl
-(defun profile-ironclad ()
+(defun profile-ironclad (&key (max-depth most-positive-fixnum))
   (let* ((ironclad-directory
           #+windows #p"c:/cygwin/home/peter/ironclad_0.22/"
           #-windows #p"/home/peter/ironclad_0.22/")
@@ -60,7 +60,7 @@
     (map nil #'delete-file (directory "*.xcl"))
     (map nil #'delete-file (directory "test-vectors/*.xcl"))
     (asdf:oos 'asdf:load-op :ironclad :force t)
-    (time (prof:with-profiling () (asdf:oos 'asdf:test-op  :ironclad)))))
+    (time (prof:with-profiling (:max-depth max-depth) (asdf:oos 'asdf:test-op  :ironclad)))))
 
 (defun run-mop-tests ()
   (let ((lw-compat-directory
