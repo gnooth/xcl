@@ -1123,6 +1123,25 @@
                   :format-control "Wrong number of arguments for generic function ~S."
                   :format-arguments (list (generic-function-name gf)))))))
 
+(defun required-classes (gf args)
+  (declare (optimize speed (safety 0)))
+  (mapcar #'class-of (required-portion gf args))
+  #+nil
+  (let ((numargs (length args))
+        (minargs (generic-function.minargs gf)))
+    (unless minargs
+      (setq minargs (length (gf-required-arglist gf)))
+      (setf (generic-function.minargs gf) minargs))
+    (cond ((eql numargs minargs)
+           args)
+          ((> numargs minargs)
+           (subseq args 0 minargs))
+          (t
+           (error 'program-error
+                  :format-control "Wrong number of arguments for generic function ~S."
+                  :format-arguments (list (generic-function-name gf))))))
+  )
+
 (defun gf-required-arglist (gf)
   (let ((plist (analyze-lambda-list (generic-function-lambda-list gf))))
     (getf plist ':required-args)))
@@ -1381,7 +1400,8 @@
                     (slow-method-lookup ,gf ,+gf-args-var+ nil)))
                 (t
                  `(lambda (&rest ,+gf-args-var+)
-                    (let* ((classes (mapcar #'class-of (required-portion ,gf ,+gf-args-var+)))
+                    (let* (;(classes (mapcar #'class-of (required-portion ,gf ,+gf-args-var+)))
+                           (classes (required-classes ,gf ,+gf-args-var+))
                            (emfun (gethash2-1 classes (classes-to-emf-table ,gf))))
                       (if emfun
                           (funcall emfun ,+gf-args-var+)
@@ -1419,7 +1439,8 @@
 
 ;; MOP p. 170 (generic function)
 (defun compute-applicable-methods (gf args)
-  (let ((required-classes (mapcar #'class-of (required-portion gf args)))
+  (let (;(required-classes (mapcar #'class-of (required-portion gf args)))
+        (required-classes (required-classes gf args))
         (methods nil))
     (dolist (method (generic-function-methods gf))
       (when (method-applicable-p method args)
