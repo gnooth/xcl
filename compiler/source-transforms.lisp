@@ -205,7 +205,31 @@
                 (when (endp ,list)
                   (return (%cdr ,result)))
                 (%rplacd ,temp (setq ,temp (list1 (funcall ,arg1 (%car ,list)))))
-                (setq ,list (%cdr ,list))))))))
+                (setq ,list (%cdr ,list))))))
+        (t
+         form)))
+
+(define-source-transform funcall (&whole form &rest args)
+  (if (< (length form) 2)
+      form
+      (let* ((operator-form (%cadr form))
+             operator)
+        (cond ((and (setq operator (and (quoted-form-p operator-form)
+                                        (%cadr operator-form)))
+                    (symbolp operator)
+                    (kernel-function-p operator))
+               (mumble "funcall source transform case 1~%")
+               `(,operator ,@(cdr args)))
+              ((and (setq operator (and (consp operator-form)
+                                        (length-eql operator-form 2)
+                                        (eq (%car operator-form) 'FUNCTION)
+                                        (%cadr operator-form)))
+                    (symbolp operator)
+                    (kernel-function-p operator))
+               (mumble "funcall source transform case 2~%")
+               `(,operator ,@(cdr args)))
+              (t
+               form)))))
 
 (define-source-transform assoc (&whole form &rest args)
   (case (length args)
