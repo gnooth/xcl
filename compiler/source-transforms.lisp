@@ -187,12 +187,12 @@
           (t
            form))))
 
-#+nil
 (define-source-transform mapcar2 (&whole form &rest args)
   (cond ((or (> *debug* *speed*)
              (> *space* *speed*))
          form)
         ((length-eql args 2)
+         (mumble "mapcar2 source transform~%")
          (let ((arg1 (%car args))
                (arg2 (%cadr args))
                (list (gensym))
