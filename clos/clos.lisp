@@ -1574,7 +1574,7 @@
 ;;        (funcall (method-function ,method) args ,next-method-list)))
 
   (if (typep method 'method)
-      `(funcall (method-function ,method) ,+gf-args-var+ ',next-method-list)
+      `(funcall (method-function ,method) ,+gf-args-var+ ,next-method-list)
       `(funcall ,method ,+gf-args-var+)))
 
 ;; (defmacro call-method (method &optional next-method-list)
@@ -1667,9 +1667,9 @@
 ;; ;;                                     (coerce-to-function form))
 ;;                                   )
                          (call-method ,(first arounds)
-                                      (,@(rest arounds)
+                                      '(,@(rest arounds)
 ;;                                        (make-method ,main-effective-method-lambda-form)
-                                       ,(coerce-to-function main-effective-method-lambda-form)
+                                        ,(coerce-to-function main-effective-method-lambda-form)
                                        ))
 ;;                          )
                        )))
