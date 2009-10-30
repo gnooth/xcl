@@ -175,6 +175,7 @@
 ;; (defun (setf class-direct-subclasses) (new-value class)
 ;;   (setf (slot-value class 'direct-subclasses) new-value))
 
+;; MOP p.238 specializer-direct-methods (generic function)
 (defun class-direct-methods (class)
   (slot-value class 'direct-methods))
 (defun (setf class-direct-methods) (new-value class)
@@ -854,6 +855,7 @@
 (defun (setf method-qualifiers) (new-value method)
   (setf (slot-value method 'qualifiers) new-value))
 
+;; MOP p.219 (generic function)
 (defun method-specializers (method) (slot-value method 'specializers))
 (defun (setf method-specializers) (new-value method)
   (setf (slot-value method 'specializers) new-value))
@@ -1400,8 +1402,7 @@
                     (slow-method-lookup ,gf ,+gf-args-var+ nil)))
                 (t
                  `(lambda (&rest ,+gf-args-var+)
-                    (let* (;(classes (mapcar #'class-of (required-portion ,gf ,+gf-args-var+)))
-                           (classes (required-classes ,gf ,+gf-args-var+))
+                    (let* ((classes (required-classes ,gf ,+gf-args-var+))
                            (emfun (gethash2-1 classes (classes-to-emf-table ,gf))))
                       (if emfun
                           (funcall emfun ,+gf-args-var+)
