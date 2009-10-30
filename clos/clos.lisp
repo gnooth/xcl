@@ -1127,22 +1127,20 @@
 
 (defun required-classes (gf args)
   (declare (optimize speed (safety 0)))
-  (mapcar #'class-of (required-portion gf args))
-  #+nil
   (let ((numargs (length args))
         (minargs (generic-function.minargs gf)))
     (unless minargs
       (setq minargs (length (gf-required-arglist gf)))
       (setf (generic-function.minargs gf) minargs))
-    (cond ((eql numargs minargs)
-           args)
-          ((> numargs minargs)
-           (subseq args 0 minargs))
-          (t
-           (error 'program-error
-                  :format-control "Wrong number of arguments for generic function ~S."
-                  :format-arguments (list (generic-function-name gf))))))
-  )
+    (when (< numargs minargs)
+      (error 'program-error
+             :format-control "Wrong number of arguments for generic function ~S."
+             :format-arguments (list (generic-function-name gf))))
+    (let ((args args)
+          result)
+      (dotimes (i minargs (nreverse result))
+        (push (class-of (%car args)) result)
+        (setq args (%cdr args))))))
 
 (defun gf-required-arglist (gf)
   (let ((plist (analyze-lambda-list (generic-function-lambda-list gf))))
