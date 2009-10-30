@@ -1,6 +1,6 @@
 // BroadcastStream.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,6 +35,10 @@ void BroadcastStream::write_char(BASE_CHAR c)
 {
   for (INDEX i = 0; i < _numstreams; i++)
     _streams[i]->write_char(c);
+  if (c == '\n')
+    _charpos = 0;
+  else
+    ++_charpos;
 }
 
 Value BroadcastStream::file_string_length(Value arg) const
