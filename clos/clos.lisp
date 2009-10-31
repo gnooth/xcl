@@ -1110,21 +1110,6 @@
         (t
          (error "Unknown specializer: ~S" specializer))))
 
-(defun required-portion (gf args)
-  (let ((numargs (length args))
-        (minargs (generic-function.minargs gf)))
-    (unless minargs
-      (setq minargs (length (gf-required-arglist gf)))
-      (setf (generic-function.minargs gf) minargs))
-    (cond ((eql numargs minargs)
-           args)
-          ((> numargs minargs)
-           (subseq args 0 minargs))
-          (t
-           (error 'program-error
-                  :format-control "Wrong number of arguments for generic function ~S."
-                  :format-arguments (list (generic-function-name gf)))))))
-
 (defun required-classes (gf args)
   (declare (optimize speed (safety 0)))
   (let ((numargs (length args))
@@ -1144,7 +1129,7 @@
 
 (defun gf-required-arglist (gf)
   (let ((plist (analyze-lambda-list (generic-function-lambda-list gf))))
-    (getf plist ':required-args)))
+    (getf plist :required-args)))
 
 (defun extract-lambda-list (specialized-lambda-list)
   (let* ((plist (analyze-lambda-list specialized-lambda-list))
@@ -1438,8 +1423,7 @@
 
 ;; MOP p. 170 (generic function)
 (defun compute-applicable-methods (gf args)
-  (let (;(required-classes (mapcar #'class-of (required-portion gf args)))
-        (required-classes (required-classes gf args))
+  (let ((required-classes (required-classes gf args))
         (methods nil))
     (dolist (method (generic-function-methods gf))
       (when (method-applicable-p method args)
