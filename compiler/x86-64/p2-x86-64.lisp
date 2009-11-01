@@ -562,9 +562,9 @@
                (emit-move-var-to-register (block-tagbody-var enclosing-block) :rsi)
                (inst :mov :r12 :rdi) ; thread
                (inst :push :rax) ; save result
-               (inst :push :rax) ; stack alignment
+;;                (inst :push :rax) ; stack alignment
                (emit-call "RT_leave_tagbody")
-               (inst :pop :rax) ; stack alignment
+;;                (inst :pop :rax) ; stack alignment
                (inst :pop :rax)) ; restore result
              (when (equal (block-name enclosing-block) '(UNWIND-PROTECT))
                (aver (block-cleanup-label enclosing-block))
