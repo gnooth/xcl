@@ -29,7 +29,6 @@ jmp_buf * RT_frame_jmp(Frame * frame)
 inline void restore_frame_context(Frame * frame, Thread * thread)
 {
   thread->set_last_special_binding(frame->last_special_binding());
-
   if (frame->type() == TAGBODY)
     thread->set_last_control_frame(frame);
   else
@@ -37,7 +36,6 @@ inline void restore_frame_context(Frame * frame, Thread * thread)
       thread->set_last_control_frame(frame->last_control_frame());
       thread->set_last_tag(frame->last_tag());
     }
-
   thread->set_unwind_protect(frame->unwind_protect());
   thread->set_stack(frame->stack());
   thread->set_call_depth(frame->call_depth());
@@ -45,12 +43,11 @@ inline void restore_frame_context(Frame * frame, Thread * thread)
 
 void RT_unwind_to(Frame * frame, Thread * thread)
 {
-  UnwindProtect * context = thread->unwind_protect();
-  if (context && context != frame->unwind_protect())
+  UnwindProtect * current_uwp = thread->unwind_protect();
+  if (current_uwp && current_uwp != frame->unwind_protect())
     {
       // save thread's values
       Values * values = thread->copy_values();
-
       // run applicable cleanups
       Frame * f = thread->last_control_frame();
       while (f && f != frame)
@@ -61,33 +58,6 @@ void RT_unwind_to(Frame * frame, Thread * thread)
               if (uwp->code() != NULL)
                 {
                   thread->set_uwp_in_cleanup(uwp);
-//                   Value (*code) () = (Value (*) ()) uwp->code();
-// #ifdef __x86_64__
-//                   long reg = uwp->rbp();
-//                   __asm__ __volatile__("push %%rbp\n\t"
-//                                        "push %%r12\n\t"
-//                                        "movq %0,%%rbp\n\t"
-//                                        "call *%1\n\t"
-//                                        "pop %%r12\n\t"
-//                                        "pop %%rbp\n\t"
-//                                        : // no output registers
-//                                        : "r"(reg), "r"(code) // input
-//                                        : "rax","rbx","rcx","rdx",
-//                                          "rsi","rdi","r8","r9",
-//                                          "r13","r14","r15",
-//                                          "memory" // clobber list
-//                                        );
-// #else
-//                   int reg = uwp->ebp();
-//                   __asm__ __volatile__("push %%ebp\n\t"
-//                                        "movl %0,%%ebp\n\t"
-//                                        "call *%1\n\t"
-//                                        "pop %%ebp\n\t"
-//                                        : // no output registers
-//                                        : "r"(reg), "r"(code) // input
-//                                        : "eax","ebx","ecx","edx" // clobber list
-//                                        );
-// #endif
                   uwp->run_cleanup_code();
                   thread->set_uwp_in_cleanup(NULL);
                 }
@@ -96,11 +66,9 @@ void RT_unwind_to(Frame * frame, Thread * thread)
             }
           f = f->next();
         }
-
       // restore thread's values
       thread->set_values(values);
     }
-
   restore_frame_context(frame, thread);
 }
 

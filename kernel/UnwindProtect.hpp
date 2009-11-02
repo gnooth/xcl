@@ -1,6 +1,6 @@
 // UnwindProtect.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -65,7 +65,7 @@ public:
     return _ebp;
   }
 #endif
-  
+
   void run_cleanup_code();
 
   void run_cleanup_forms(Thread * thread)
