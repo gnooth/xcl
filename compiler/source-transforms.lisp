@@ -192,7 +192,6 @@
              (> *space* *speed*))
          form)
         ((length-eql args 2)
-         (mumble "mapcar2 source transform~%")
          (let ((arg1 (%car args))
                (arg2 (%cadr args))
                (list (gensym))
@@ -218,7 +217,6 @@
                                         (%cadr operator-form)))
                     (symbolp operator)
                     (kernel-function-p operator))
-               (mumble "funcall source transform case 1~%")
                `(,operator ,@(cdr args)))
               ((and (setq operator (and (consp operator-form)
                                         (length-eql operator-form 2)
@@ -226,7 +224,6 @@
                                         (%cadr operator-form)))
                     (symbolp operator)
                     (kernel-function-p operator))
-               (mumble "funcall source transform case 2~%")
                `(,operator ,@(cdr args)))
               (t
                form)))))

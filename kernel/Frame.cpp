@@ -43,9 +43,6 @@ inline void restore_frame_context(Frame * frame, Thread * thread)
   thread->set_call_depth(frame->call_depth());
 }
 
-// FIXME move to Thread object
-UnwindProtect * _uwp;
-
 void RT_unwind_to(Frame * frame, Thread * thread)
 {
   UnwindProtect * context = thread->unwind_protect();
@@ -60,40 +57,42 @@ void RT_unwind_to(Frame * frame, Thread * thread)
         {
           if (f->type() == UNWIND_PROTECT)
             {
-              if (((UnwindProtect *)f)->code() != NULL)
+              UnwindProtect * uwp = reinterpret_cast<UnwindProtect *>(f);
+              if (uwp->code() != NULL)
                 {
-                  _uwp = (UnwindProtect *) f;
-                  Value (*code) () = (Value (*) ()) ((UnwindProtect *)f)->code();
-#ifdef __x86_64__
-                  long reg = ((UnwindProtect *)f)->rbp();
-                  __asm__ __volatile__("push %%rbp\n\t"
-                                       "push %%r12\n\t"
-                                       "movq %0,%%rbp\n\t"
-                                       "call *%1\n\t"
-                                       "pop %%r12\n\t"
-                                       "pop %%rbp\n\t"
-                                       : // no output registers
-                                       : "r"(reg), "r"(code) // input
-                                       : "rax","rbx","rcx","rdx",
-                                         "rsi","rdi","r8","r9",
-                                         "r13","r14","r15",
-                                         "memory" // clobber list
-                                       );
-#else
-                  int reg = ((UnwindProtect *)f)->ebp();
-                  __asm__ __volatile__("push %%ebp\n\t"
-                                       "movl %0,%%ebp\n\t"
-                                       "call *%1\n\t"
-                                       "pop %%ebp\n\t"
-                                       : // no output registers
-                                       : "r"(reg), "r"(code) // input
-                                       : "eax","ebx","ecx","edx" // clobber list
-                                       );
-#endif
-                  _uwp = NULL;
+                  thread->set_uwp_in_cleanup(uwp);
+//                   Value (*code) () = (Value (*) ()) uwp->code();
+// #ifdef __x86_64__
+//                   long reg = uwp->rbp();
+//                   __asm__ __volatile__("push %%rbp\n\t"
+//                                        "push %%r12\n\t"
+//                                        "movq %0,%%rbp\n\t"
+//                                        "call *%1\n\t"
+//                                        "pop %%r12\n\t"
+//                                        "pop %%rbp\n\t"
+//                                        : // no output registers
+//                                        : "r"(reg), "r"(code) // input
+//                                        : "rax","rbx","rcx","rdx",
+//                                          "rsi","rdi","r8","r9",
+//                                          "r13","r14","r15",
+//                                          "memory" // clobber list
+//                                        );
+// #else
+//                   int reg = uwp->ebp();
+//                   __asm__ __volatile__("push %%ebp\n\t"
+//                                        "movl %0,%%ebp\n\t"
+//                                        "call *%1\n\t"
+//                                        "pop %%ebp\n\t"
+//                                        : // no output registers
+//                                        : "r"(reg), "r"(code) // input
+//                                        : "eax","ebx","ecx","edx" // clobber list
+//                                        );
+// #endif
+                  uwp->run_cleanup_code();
+                  thread->set_uwp_in_cleanup(NULL);
                 }
               else
-                ((UnwindProtect *)f)->run_cleanup_forms(thread);
+                uwp->run_cleanup_forms(thread);
             }
           f = f->next();
         }
@@ -105,7 +104,7 @@ void RT_unwind_to(Frame * frame, Thread * thread)
   restore_frame_context(frame, thread);
 }
 
-int RT_thread_unwinding_p(Thread * thread, UnwindProtect * uwp)
+int RT_thread_uwp_in_cleanup_p(Thread * thread, UnwindProtect * uwp)
 {
-  return (uwp == _uwp) ? 1 : 0;
+  return (uwp == thread->uwp_in_cleanup()) ? 1 : 0;
 }

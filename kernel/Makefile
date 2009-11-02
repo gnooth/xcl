@@ -42,7 +42,7 @@ else
   CFLAGS := $(CFLAGS) -march=i686 -m32
 endif
 
-LIBOBJS = lisp.o xcl_home.o getpid.o SlimeInputStream.o SlimeOutputStream.o \
+LIBOBJS = lisp.o xcl_home.o UnwindProtect.o getpid.o SlimeInputStream.o SlimeOutputStream.o \
         initialize.o initialize_symbols.o SimpleBitVector.o Thread.o Symbol.o \
 	peek-char.o documentation.o LogicalPathname.o parse-namestring.o merge-pathnames.o \
 	FaslReadtable.o \
@@ -116,6 +116,11 @@ endif
 # all: shared
 # endif
 all: static
+
+ifeq ($(MACHINE_TYPE), x86_64)
+UnwindProtect.o : UnwindProtect.cpp
+	$(CC) $(CFLAGS) -mno-red-zone $<
+endif
 
 %.o : %.cpp
 	$(CC) $(CFLAGS) $<

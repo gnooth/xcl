@@ -1,6 +1,6 @@
 // CompiledClosure.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -333,7 +333,8 @@ Value make_compiled_closure(Value template_function, Value * data)
 {
   assert(lowtag_of(template_function) == LOWTAG_TYPED_OBJECT);
   assert(the_typed_object(template_function)->widetag() == WIDETAG_COMPILED_FUNCTION);
-  ClosureTemplateFunction * ctf = reinterpret_cast<ClosureTemplateFunction *>(template_function - LOWTAG_TYPED_OBJECT);
+  ClosureTemplateFunction * ctf =
+    reinterpret_cast<ClosureTemplateFunction *>(template_function - LOWTAG_TYPED_OBJECT);
   return make_value(new CompiledClosure(ctf, data));
 }
 

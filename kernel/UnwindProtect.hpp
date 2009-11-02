@@ -65,6 +65,8 @@ public:
     return _ebp;
   }
 #endif
+  
+  void run_cleanup_code();
 
   void run_cleanup_forms(Thread * thread)
   {

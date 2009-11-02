@@ -1421,8 +1421,8 @@ void initialize_runtime()
   ht_names->put(make_simple_string("RT_gethash3"),
                 make_number((unsigned long)RT_gethash3));
 
-  ht_names->put(make_simple_string("RT_thread_unwinding_p"),
-                make_number((unsigned long)RT_thread_unwinding_p));
+  ht_names->put(make_simple_string("RT_thread_uwp_in_cleanup_p"),
+                make_number((unsigned long)RT_thread_uwp_in_cleanup_p));
 
   the_symbol(S_runtime_names)->initialize_constant(make_value(ht_names));
 }
