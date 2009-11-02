@@ -37,9 +37,8 @@ void UnwindProtect::run_cleanup_code()
                        "call *%%edx\n\t"
                        "pop %%ebp\n\t"
                        : // no output registers
-                       : "r"(_ebp), "r"(_code) // input
+                       : "a"(_ebp), "d"(_code) // input
                        : "ebx","esi","edi" // clobber list
                        );
 #endif
 }
-
