@@ -76,6 +76,8 @@ extern "C" {
   extern Value RT_gethash2(Thread * thread, Value arg1, Value arg2);
   extern Value RT_gethash3(Thread * thread, Value arg1, Value arg2, Value arg3);
 
+  extern int RT_thread_unwinding_p(Thread * thread, UnwindProtect * uwp);
+
 #ifdef	__cplusplus
 }
 #endif

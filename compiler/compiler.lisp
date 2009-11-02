@@ -267,7 +267,7 @@
   return-p              ; is there a return from this block?
   non-local-return-p
   non-local-go-p
-  exit                  ; a label (or NIL)
+  exit                  ; a label (or nil)
   target
   free-specials
   last-special-binding-var
@@ -279,6 +279,8 @@
   uwp-values-var
   values-var            ; for MULTIPLE-VALUE-PROG1
   )
+
+(defvar *in-cleanup* nil) ; unwind-protect node or nil
 
 (defvar *visible-blocks* nil)
 

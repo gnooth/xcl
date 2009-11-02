@@ -43,6 +43,9 @@ inline void restore_frame_context(Frame * frame, Thread * thread)
   thread->set_call_depth(frame->call_depth());
 }
 
+// FIXME move to Thread object
+UnwindProtect * _uwp;
+
 void RT_unwind_to(Frame * frame, Thread * thread)
 {
   UnwindProtect * context = thread->unwind_protect();
@@ -59,6 +62,7 @@ void RT_unwind_to(Frame * frame, Thread * thread)
             {
               if (((UnwindProtect *)f)->code() != NULL)
                 {
+                  _uwp = (UnwindProtect *) f;
                   Value (*code) () = (Value (*) ()) ((UnwindProtect *)f)->code();
 #ifdef __x86_64__
                   long reg = ((UnwindProtect *)f)->rbp();
@@ -86,6 +90,7 @@ void RT_unwind_to(Frame * frame, Thread * thread)
                                        : "eax","ebx","ecx","edx" // clobber list
                                        );
 #endif
+                  _uwp = NULL;
                 }
               else
                 ((UnwindProtect *)f)->run_cleanup_forms(thread);
@@ -98,4 +103,9 @@ void RT_unwind_to(Frame * frame, Thread * thread)
     }
 
   restore_frame_context(frame, thread);
+}
+
+int RT_thread_unwinding_p(Thread * thread, UnwindProtect * uwp)
+{
+  return (uwp == _uwp) ? 1 : 0;
 }

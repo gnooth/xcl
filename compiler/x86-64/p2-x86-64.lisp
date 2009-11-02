@@ -542,15 +542,60 @@
   (let* ((name (second form))
          (result-form (third form))
          (block (find-visible-block name))
-         (compiland *current-compiland*))
+         (compiland *current-compiland*)
+         (safe t))
     (declare (type cblock block))
     (declare (type compiland compiland))
 ;;     (unless block
 ;;       (error "No block named ~S is currently visible." name))
 ;;     (mumble "p2-return-from block ~S~%" name)
     (aver (not (null (block-exit block))))
+;;     (mumble "p2-return-from block = ~S compiland = ~S~%" name (compiland-name compiland))
     (emit-clear-values) ; REVIEW
     (p2 result-form :rax)
+    (when *in-cleanup*
+      ;; The return-from is inside unwind-protect cleanup form(s). Searching
+      ;; outward through the enclosing nodes, if we find the block we are
+      ;; returning from before we find the unwind-protect node we are cleaning
+      ;; up, the block is entirely contained within the cleanup code, and we
+      ;; don't need to do anything special. If, on the other hand, we find the
+      ;; unwind-protect node first, we are (in effect) jumping out of the
+      ;; cleanup code to return from the enclosing block. In this second case,
+      ;; if the cleanup code is being called from RT_unwind_to, we simply want
+      ;; to return from that call.
+      (let ((*print-structure* nil))
+        (mumble "p2-return-from *in-cleanup* = ~S~%" *in-cleanup*)
+        (dolist (enclosing-block *visible-blocks*)
+          (mumble "enclosing-block = ~S~%" enclosing-block)
+          (when (eq enclosing-block block)
+            (mumble "found block to return from amoung enclosing blocks~%")
+            (setq safe t)
+            (return))
+          (when (eq enclosing-block *in-cleanup*)
+            (mumble "found cleanup among enclosing blocks~%")
+            (setq safe nil)
+            (return)
+            ))
+        (mumble "safe = ~S~%" safe)
+
+        (cond (safe
+               )
+              (t
+               (let ((thread-register (compiland-thread-register compiland))
+                     (uwp-var (block-uwp-var *in-cleanup*))
+                     (LABEL1 (make-label)))
+                 (inst :push :rax)
+                 (emit-move-var-to-register uwp-var :rsi) ; uwp
+                 (inst :mov thread-register :rdi)
+                 (emit-call "RT_thread_unwinding_p")
+                 (inst :test :al :al)
+                 (inst :pop :rax)
+                 (emit-jmp-short :z LABEL1)
+                 (inst :ret)
+                 (label LABEL1)
+                 )))
+
+        ))
     (cond ((eq (block-compiland block) compiland)
 ;;            (mumble "p2-return-from block ~S local return case~%" name)
            (dolist (enclosing-block *visible-blocks*)
@@ -566,7 +611,8 @@
                (emit-call "RT_leave_tagbody")
 ;;                (inst :pop :rax) ; stack alignment
                (inst :pop :rax)) ; restore result
-             (when (equal (block-name enclosing-block) '(UNWIND-PROTECT))
+             (when (and (equal (block-name enclosing-block) '(UNWIND-PROTECT))
+                        (neq enclosing-block *in-cleanup*))
                (aver (block-cleanup-label enclosing-block))
                (inst :push :rax)
                (emit-call (block-cleanup-label enclosing-block))
@@ -1682,7 +1728,8 @@
              (declare (type cblock enclosing-block))
              (cond ((eq enclosing-block tag-block)
                     (return))
-                   ((equal (block-name enclosing-block) '(UNWIND-PROTECT))
+                   ((and (equal (block-name enclosing-block) '(UNWIND-PROTECT))
+                         (neq enclosing-block *in-cleanup*))
                     (aver (block-cleanup-label enclosing-block))
                     (emit-call (block-cleanup-label enclosing-block)))
                    ((equal (block-name enclosing-block) '(CATCH))
@@ -1714,6 +1761,7 @@
 (defun p2-unwind-protect (form target)
   (aver (length-eql form 2))
   (let* ((block (cadr form))
+         (*visible-blocks* (cons block *visible-blocks*))
          (protected-form (cadr (block-form block)))
          (cleanup-forms (cddr (block-form block)))
          (thread-register (compiland-thread-register *current-compiland*))
@@ -1739,7 +1787,8 @@
     (inst :mov thread-register :rdi)
     (emit-move-var-to-register uwp-var :rsi) ; uwp
     (emit-call "RT_leave_unwind_protect")
-    (p2-progn-body cleanup-forms nil)
+    (let ((*in-cleanup* block))
+      (p2-progn-body cleanup-forms nil))
     (inst :ret) ; end of cleanup subroutine
 
     (label START)
@@ -1752,8 +1801,9 @@
     (emit-call "RT_enter_unwind_protect") ; returns uwp
     (emit-move-register-to-var :rax uwp-var)
     (emit-clear-values)
-    (let ((*visible-blocks* (cons block *visible-blocks*)))
-      (p2 protected-form :rsi))
+;;     (let ((*visible-blocks* (cons block *visible-blocks*))) ;; CLEARLY WRONG TO DO THIS TWICE!!
+      (p2 protected-form :rsi)
+;;       )
     (inst :mov thread-register :rdi)
     (emit-call-2 "RT_thread_copy_values" :rax) ; REVIEW stack alignment
     (emit-move-register-to-var :rax uwp-values-var)
