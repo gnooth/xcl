@@ -880,6 +880,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_truncate_2, SYS_truncate_2, 2, 2);
   ADD_PRIMITIVE(S_two_arg_append, SYS_two_arg_append, 2, 2);
   ADD_PRIMITIVE(S_two_arg_char_e, SYS_two_arg_char_e, 2, 2);
+  ADD_PRIMITIVE(S_two_arg_char_equal, SYS_two_arg_char_equal, 2, 2);
   ADD_PRIMITIVE(S_two_arg_char_ge, SYS_two_arg_char_ge, 2, 2);
   ADD_PRIMITIVE(S_two_arg_char_gt, SYS_two_arg_char_gt, 2, 2);
   ADD_PRIMITIVE(S_two_arg_char_le, SYS_two_arg_char_le, 2, 2);

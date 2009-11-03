@@ -120,6 +120,22 @@ Value CL_char_e(unsigned int numargs, Value args[])
     }
 }
 
+// ### two-arg-char-equal
+Value SYS_two_arg_char_equal(Value arg1, Value arg2)
+{
+  if (!characterp(arg1))
+    return signal_type_error(arg1, S_character);
+  if (arg1 == arg2)
+    return T;
+  if (!characterp(arg2))
+    return signal_type_error(arg2, S_character);
+  BASE_CHAR c1 = xchar(arg1);
+  BASE_CHAR c2 = xchar(arg2);
+  if (toupper(c1) == toupper(c2))
+    return T;
+  return NIL;
+}
+
 // ### char-equal
 Value CL_char_equal(unsigned int numargs, Value args[])
 {
@@ -136,10 +152,10 @@ Value CL_char_equal(unsigned int numargs, Value args[])
       {
         if (!characterp(args[0]))
           return signal_type_error(args[0], S_character);
-        if (!characterp(args[1]))
-          return signal_type_error(args[1], S_character);
         if (args[0] == args[1])
           return T;
+        if (!characterp(args[1]))
+          return signal_type_error(args[1], S_character);
         BASE_CHAR c1 = xchar(args[0]);
         BASE_CHAR c2 = xchar(args[1]);
         if (toupper(c1) == toupper(c2))

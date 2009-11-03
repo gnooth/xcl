@@ -814,6 +814,7 @@ extern Value SYS_truncate_1(Value number);
 extern Value SYS_truncate_2(Value number, Value divisor);
 extern Value SYS_two_arg_append(Value arg1, Value arg2);
 extern Value SYS_two_arg_char_e(Value arg1, Value arg2);
+extern Value SYS_two_arg_char_equal(Value arg1, Value arg2);
 extern Value SYS_two_arg_char_ge(Value arg1, Value arg2);
 extern Value SYS_two_arg_char_gt(Value arg1, Value arg2);
 extern Value SYS_two_arg_char_le(Value arg1, Value arg2);
