@@ -550,7 +550,6 @@
 ;;       (error "No block named ~S is currently visible." name))
 ;;     (mumble "p2-return-from block ~S~%" name)
     (aver (not (null (block-exit block))))
-;;     (mumble "p2-return-from block = ~S compiland = ~S~%" name (compiland-name compiland))
     (emit-clear-values) ; REVIEW
     (p2 result-form :rax)
     (when *in-cleanup*
@@ -563,41 +562,26 @@
       ;; to return from the enclosing block. In this second case, if the
       ;; cleanup code is being called from RT_unwind_to(), we just want to
       ;; return from that call and not jump to the block exit.
-      (let ((*print-structure* nil))
-        (mumble "p2-return-from *in-cleanup* = ~S~%" *in-cleanup*)
-        (dolist (enclosing-block *visible-blocks*)
-          (mumble "enclosing-block = ~S~%" enclosing-block)
-          (when (eq enclosing-block block)
-            (mumble "found block to return from amoung enclosing blocks~%")
-            (setq safe t)
-            (return))
-          (when (eq enclosing-block *in-cleanup*)
-            (mumble "found cleanup among enclosing blocks~%")
-            (setq safe nil)
-            (return)
-            ))
-        (mumble "safe = ~S~%" safe)
-
-        (cond (safe
-               )
-              (t
-               (let ((thread-register (compiland-thread-register compiland))
-                     (uwp-var (block-uwp-var *in-cleanup*))
-                     (LABEL1 (make-label)))
-                 (inst :push :rax)
-                 (emit-move-var-to-register uwp-var :rsi) ; uwp
-                 (inst :mov thread-register :rdi)
-                 (emit-call "RT_thread_uwp_in_cleanup_p")
-                 (inst :test :al :al)
-                 (inst :pop :rax)
-                 (emit-jmp-short :z LABEL1)
-                 (inst :ret)
-                 (label LABEL1)
-                 )))
-
-        ))
+      (dolist (enclosing-block *visible-blocks*)
+        (when (eq enclosing-block block)
+          (return))
+        (when (eq enclosing-block *in-cleanup*)
+          (setq safe nil)
+          (return)))
+      (unless safe
+        (let ((thread-register (compiland-thread-register compiland))
+              (uwp-var (block-uwp-var *in-cleanup*))
+              (LABEL1 (make-label)))
+          (inst :push :rax)
+          (emit-move-var-to-register uwp-var :rsi) ; uwp
+          (inst :mov thread-register :rdi)
+          (emit-call "RT_thread_uwp_in_cleanup_p")
+          (inst :test :al :al)
+          (inst :pop :rax)
+          (emit-jmp-short :z LABEL1)
+          (inst :ret)
+          (label LABEL1))))
     (cond ((eq (block-compiland block) compiland)
-;;            (mumble "p2-return-from block ~S local return case~%" name)
            (dolist (enclosing-block *visible-blocks*)
              (declare (type cblock enclosing-block))
              (when (eq enclosing-block block)
@@ -618,7 +602,6 @@
            (emit-jmp-short t (block-exit block)))
           (t
            ;; non-local return
-;;            (mumble "p2-return-from block ~S non-local return case~%" name)
            (let ((thread-register (compiland-thread-register compiland)))
              (aver thread-register)
              (inst :push :rax) ; result
