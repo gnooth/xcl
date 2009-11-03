@@ -811,6 +811,7 @@
                 (>=             two-arg->=)
                 (append         two-arg-append)
                 (aref           vector-ref)
+                (char-equal     two-arg-char-equal)
                 (char/=         two-arg-char/=)
                 (char<          two-arg-char<)
                 (char<=         two-arg-char<=)
