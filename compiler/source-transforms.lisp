@@ -264,6 +264,28 @@
     (t
      form)))
 
+(define-source-transform position (&whole form item sequence &rest rest)
+;;   (mumble "position source transform form = ~S~%" form)
+  (let* ((test-form (ignore-errors (getf rest :test))))
+    (when test-form
+      (let (test op)
+        (cond ((setq test (and (quoted-form-p test-form) (%cadr test-form)))
+               (when (setq op (gethash test +two-arg-operators+))
+;;                  (mumble "position source transform optimized case 1~%")
+                 (setf (getf rest :test) (list 'QUOTE op))
+;;                  (mumble "rest = ~S~%" rest)
+                 (setq form `(position ,item ,sequence ,@rest))))
+              ((setq test (and (consp test-form)
+                               (length-eql test-form 2)
+                               (eq (%car test-form) 'FUNCTION)
+                               (%cadr test-form)))
+               (when (setq op (gethash test +two-arg-operators+))
+;;                  (mumble "position source transform optimized case 2~%")
+                 (setf (getf rest :test) (list 'FUNCTION op))
+                 (setq form `(position ,item ,sequence ,@rest))))))))
+;;   (mumble "new form = ~S~%" form)
+  form)
+
 (define-source-transform sys::backq-list (&rest args)
   (case (length args)
     (0

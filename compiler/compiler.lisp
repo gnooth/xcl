@@ -579,9 +579,7 @@
                handler)
            (cond ((symbolp op)
                   (when (compiler-macro-function op)
-                    (mumble "found compiler macro for ~S~%" op)
                     (unless (notinline-p op)
-                      (mumble "expanding compiler macro for ~S~%" op)
                       (multiple-value-bind (expansion expanded-p)
                           (compiler-macroexpand form)
                         (when expanded-p
