@@ -42,7 +42,8 @@ else
   CFLAGS := $(CFLAGS) -march=i686 -m32
 endif
 
-LIBOBJS = lisp.o xcl_home.o UnwindProtect.o getpid.o SlimeInputStream.o SlimeOutputStream.o \
+LIBOBJS = lisp.o xcl_home.o run-shell-command.o \
+	UnwindProtect.o getpid.o SlimeInputStream.o SlimeOutputStream.o \
         initialize.o initialize_symbols.o SimpleBitVector.o Thread.o Symbol.o \
 	peek-char.o documentation.o LogicalPathname.o parse-namestring.o merge-pathnames.o \
 	FaslReadtable.o \
@@ -66,7 +67,6 @@ LIBOBJS = lisp.o xcl_home.o UnwindProtect.o getpid.o SlimeInputStream.o SlimeOut
 	StyleWarning.o SimpleTypeError.o ReaderError.o \
 	conditions.o \
 	sockets.o ServerSocket.o SocketStream.o \
-	run-program.o \
 	SimpleArray_UB8_1.o \
 	SynonymStream.o EchoStream.o ConcatenatedStream.o \
 	AbstractArray.o Array_T.o SimpleArray_T.o  make_array_internal.o adjust_array_internal.o \

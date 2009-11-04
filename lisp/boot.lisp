@@ -261,7 +261,7 @@
          (*default-pathname-defaults* ansi-tests-directory)
          (*print-structure* t)
          (sys:*mumble* mumble))
-    (run-program "make" '("clean"))
+    (run-shell-command "make clean")
     (cond (compile-tests
            (load "compileit.lsp"))
           (t

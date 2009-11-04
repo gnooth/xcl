@@ -462,7 +462,7 @@ extern Value EXT_quit();
 extern Value EXT_release_mutex(Value arg);
 extern Value EXT_reset();
 extern Value EXT_resolve(Value arg);
-extern Value EXT_run_program(Value program, Value args);
+extern Value EXT_run_shell_command(Value arg);
 extern Value EXT_sequencep(Value arg);
 extern Value EXT_special_variable_p(Value arg);
 extern Value EXT_subclassp(Value arg1, Value arg2);
