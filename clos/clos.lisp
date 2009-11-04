@@ -431,7 +431,7 @@
 (defun slot-definition-initfunction (slot)
   (slot-definition.initfunction slot))
 
-;; Not in MOP.
+;; not in MOP
 (defun slot-definition-class (slot)
   (slot-definition.class slot))
 
@@ -716,18 +716,6 @@
             (unless (member name names)
               (push initarg result)
               (push name names))))))))
-
-;;; Method combination
-
-(define-method-combination +      :identity-with-one-argument t)
-(define-method-combination and    :identity-with-one-argument t)
-(define-method-combination append :identity-with-one-argument nil)
-(define-method-combination list   :identity-with-one-argument nil)
-(define-method-combination max    :identity-with-one-argument t)
-(define-method-combination min    :identity-with-one-argument t)
-(define-method-combination nconc  :identity-with-one-argument t)
-(define-method-combination or     :identity-with-one-argument t)
-(define-method-combination progn  :identity-with-one-argument t)
 
 ;;; EQL specializers
 
@@ -2663,6 +2651,18 @@
 
 ;; FIXME
 (defgeneric function-keywords (method))
+
+;;; built-in method combination types
+
+(define-method-combination +      :identity-with-one-argument t)
+(define-method-combination and    :identity-with-one-argument t)
+(define-method-combination append :identity-with-one-argument nil)
+(define-method-combination list   :identity-with-one-argument nil)
+(define-method-combination max    :identity-with-one-argument t)
+(define-method-combination min    :identity-with-one-argument t)
+(define-method-combination nconc  :identity-with-one-argument t)
+(define-method-combination or     :identity-with-one-argument t)
+(define-method-combination progn  :identity-with-one-argument t)
 
 (setq *mop-working-p* t)
 
