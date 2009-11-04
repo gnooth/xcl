@@ -24,13 +24,21 @@
 #include "primitives.hpp"
 #include "Pathname.hpp"
 
+void check_set_current_directory(const char * dir)
+{
+#ifdef WIN32
+  if (!SetCurrentDirectory(dir))
+    {
+      String * message = new String("Unable to set current directory to ");
+      message->append(dir);
+      signal_lisp_error(message);
+    }
+#endif
+}
+
 // ### run-program
 Value EXT_run_program(Value program, Value args)
 {
-#ifdef WIN32
-  return signal_lisp_error("Not implemented.");
-#else
-  // REVIEW
   AbstractString * namestring = NULL;
   if (pathnamep(program))
     namestring = the_pathname(program)->namestring();
@@ -39,6 +47,31 @@ Value EXT_run_program(Value program, Value args)
   if (!namestring)
     return signal_lisp_error("No namestring.");
   check_list(args);
+#ifdef WIN32
+  String * command = new String(namestring);
+  while (args != NIL)
+    {
+      command->append_char(' ');
+      command->append(check_string(car(args)));
+      args = cdr(args);
+    }
+  // "Multithreaded applications and shared library code should not use the
+  // SetCurrentDirectory function and should avoid using relative path names.
+  // The current directory state written by the SetCurrentDirectory function is
+  // stored as a global variable in each process, therefore multithreaded
+  // applications cannot reliably use this value without possible data
+  // corruption from other threads that may also be reading or setting this
+  // value. This limitation also applies to the GetCurrentDirectory and
+  // GetFullPathName functions."
+  char old_current_directory[MAX_PATH];
+  GetCurrentDirectory(sizeof(old_current_directory), old_current_directory);
+  Pathname * p =
+    the_pathname(coerce_to_pathname(current_thread()->symbol_value(S_default_pathname_defaults)));
+  check_set_current_directory(p->namestring()->copy_to_c_string());
+  int ret = system(command->copy_to_c_string());
+  check_set_current_directory(old_current_directory);
+  return make_number(ret);
+#else
   args = make_cons(make_value(namestring), args);
   INDEX len = ::length(args);
   char * * argv = (char * *) GC_malloc((len + 1) * sizeof(char *));
