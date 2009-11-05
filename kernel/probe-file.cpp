@@ -53,28 +53,6 @@ static Value truename(Value arg, bool require_directory_p, bool errorp)
   if (namestring && namestring->length() > 0)
     {
 #if defined(WIN32)
-//       if (namestring->length() > 1)
-//         {
-//           char c = namestring->fast_char_at(namestring->length() - 1);
-//           if (c == SEPARATOR_CHAR)
-//             namestring = namestring->substring(0, namestring->length() - 1);
-//         }
-//       struct _stat statbuf;
-//       if (_stat(namestring->as_c_string(), &statbuf) == 0)
-//         {
-//           if (S_ISDIR(statbuf.st_mode))
-//             {
-//               if (namestring->fast_char_at(namestring->length() - 1) != SEPARATOR_CHAR)
-//                 {
-//                   String * s = new String(namestring);
-//                   s->append_char(SEPARATOR_CHAR);
-//                   return make_value(new Pathname(s));
-//                 }
-//               return make_value(new Pathname(namestring));
-//             }
-//           if (!require_directory_p)
-//             return make_value(new Pathname(namestring));
-//         }
       if (equal(pathname->directory(), list1(K_absolute)) && pathname->name() == NIL)
         {
           if (pathname->device() == NIL) // current drive

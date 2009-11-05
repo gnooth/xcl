@@ -56,14 +56,6 @@ Pathname::Pathname(AbstractString * s)
       _directory = list2(K_relative, K_up);
       return;
     }
-//   if (Utilities.isPlatformWindows)
-//     s = s.replace('/', '\\');
-//   if (Utilities.isPlatformUnix) {
-//     if (s.equals("~"))
-//       s = System.getProperty("user.home").concat("/");
-//     else if (s.startsWith("~/"))
-//       s = System.getProperty("user.home").concat(s.substring(1));
-//   }
 #ifdef WIN32
   for (INDEX i = s->length(); i-- > 0;)
     {
@@ -97,7 +89,7 @@ Pathname::Pathname(AbstractString * s)
     }
 #endif
   String * d = NULL;
-  // Find last file separator char.
+  // find last file separator char
   for (INDEX i = s->length(); i-- > 0;)
     {
     if (is_separator_char(s->fast_char_at(i)))
@@ -878,9 +870,6 @@ Value CL_wild_pathname_p(unsigned int numargs, Value args[])
 // ### user-homedir-pathname &optional host => pathname
 Value CL_user_homedir_pathname(unsigned int numargs, Value args[])
 {
-// #ifdef WIN32
-//   return signal_lisp_error("Not implemented."); // FIXME
-// #endif
   // "If it is impossible to determine the user's home directory on HOST, then
   // NIL is returned. USER-HOMEDIR-PATHNAME never returns NIL if HOST is not
   // supplied."

@@ -23,54 +23,7 @@
 #include "primitives.hpp"
 #include "Pathname.hpp"
 
-void check_set_current_directory(const char * dir)
-{
-#ifdef WIN32
-  if (!SetCurrentDirectory(dir))
-#else
-  if (chdir(dir) != 0)
-#endif
-    {
-      String * message = new String("Unable to set current directory to ");
-      message->append(dir);
-      signal_lisp_error(message);
-    }
-}
-
-// // ### run-program
-// Value EXT_run_shell_command(Value arg)
-// {
-//   AbstractString * command = check_string(arg);
-//   char old_current_directory[1024];
-// #ifdef WIN32
-//   // "Multithreaded applications and shared library code should not use the
-//   // SetCurrentDirectory function and should avoid using relative path names.
-//   // The current directory state written by the SetCurrentDirectory function is
-//   // stored as a global variable in each process, therefore multithreaded
-//   // applications cannot reliably use this value without possible data
-//   // corruption from other threads that may also be reading or setting this
-//   // value. This limitation also applies to the GetCurrentDirectory and
-//   // GetFullPathName functions."
-//   GetCurrentDirectory(sizeof(old_current_directory), old_current_directory);
-// #else
-//   if (!getcwd(old_current_directory, sizeof(old_current_directory)))
-//     signal_lisp_error("Unable to determine current directory");
-// #endif
-//   Pathname * p =
-//     the_pathname(coerce_to_pathname(current_thread()->symbol_value(S_default_pathname_defaults)));
-//   check_set_current_directory(p->namestring()->copy_to_c_string());
-//   int ret = system(command->copy_to_c_string());
-//   check_set_current_directory(old_current_directory);
-//   return make_number(ret);
-// }
-
-Value SYS_run_shell_command_internal(Value arg)
-{
-  AbstractString * command = check_string(arg);
-  int ret = system(command->copy_to_c_string());
-  return make_number(ret);
-}
-
+// ### current-directory
 Value EXT_current_directory()
 {
   char old_current_directory[1024];
@@ -87,21 +40,36 @@ Value EXT_current_directory()
   return parse_namestring(s);
 }
 
+// ### chdir
 Value EXT_chdir(Value arg)
 {
-//   AbstractString * dir = check_string(dir);
-  Pathname * p = the_pathname(coerce_to_pathname(arg));
-  SimpleString * namestring = p->namestring();
+  Pathname * new_dir = the_pathname(coerce_to_pathname(arg));
+  SimpleString * namestring = new_dir->namestring();
 #ifdef WIN32
   if (!SetCurrentDirectory(namestring->copy_to_c_string()))
 #else
   if (chdir(namestring->copy_to_c_string()) != 0)
 #endif
     {
-      String * message = new String("Unable to set current directory to ");
-      message->append(namestring);
-      signal_lisp_error(message);
+      String * message = new String();
+      Pathname * current_dir = the_pathname(EXT_current_directory());
+      Pathname * merged_pathname = merge_pathnames(new_dir, current_dir, K_newest);
+      if (EXT_probe_directory(make_value(merged_pathname)) == NIL)
+        {
+          if (CL_probe_file(make_value(merged_pathname)) != NIL)
+            message->append("Not a directory.");
+          else
+            message->append("No such file or directory.");
+        }
+      else
+        {
+          message->append("Unable to change current directory to ");
+          message->append(::prin1_to_string(make_value(merged_pathname)));
+          message->append_char('.');
+        }
+      return signal_lisp_error(message);
     }
+
   char new_current_directory[1024];
 #ifdef WIN32
   GetCurrentDirectory(sizeof(new_current_directory), new_current_directory);
@@ -114,4 +82,13 @@ Value EXT_chdir(Value arg)
   if (len > 0 && s->char_at(len - 1) != SEPARATOR_CHAR)
     s->append_char(SEPARATOR_CHAR);
   return parse_namestring(s);
+}
+
+// ### %run-shell-command
+// run-shell-command is defined in run-shell-command.lisp
+Value SYS_run_shell_command_internal(Value arg)
+{
+  AbstractString * command = check_string(arg);
+  int ret = system(command->copy_to_c_string());
+  return make_number(ret);
 }
