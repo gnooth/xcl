@@ -257,6 +257,8 @@
 (export 'with-mutex)
 (autoload-macro 'with-mutex)
 
+(autoload 'run-shell-command)
+
 ;; REVIEW
 (in-package "CL-USER")
 
