@@ -321,12 +321,19 @@
 
 (defun pwd-command (ignored)
   (declare (ignore ignored))
-  (format t "~A~%" (namestring *default-pathname-defaults*)))
+  (format t "XCL's current working directory is ~S~%" (namestring (current-directory)))
+  (format t "~A is ~S~%" '*default-pathname-defaults* *default-pathname-defaults*))
 
 #-windows
 (defun ls-command (args)
   (let ((args (if (stringp args) args "")))
     (run-shell-command (concatenate 'string "ls" " " args)))
+  (values))
+
+#+windows
+(defun dir-command (args)
+  (let ((args (if (stringp args) args "")))
+    (run-shell-command (concatenate 'string "dir" " " args)))
   (values))
 
 (defun reset-command (ignored)
@@ -385,7 +392,10 @@
     ("inspect" "in" inspect-command "inspect an object")
     ("istep" "i" istep-command "navigate within inspection of an object")
     ("ld" nil ld-command "load file")
+    #-windows
     ("ls" nil ls-command "list directory")
+    #+windows
+    ("dir" nil dir-command "list directory")
 ;;     ("macroexpand" "ma" macroexpand-command "macroexpand an expression")
     ("package" "pa" package-command "change *PACKAGE*")
     ("pwd" "pw" pwd-command "print current directory")
