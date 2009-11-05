@@ -237,6 +237,7 @@
                           "revappend"
                           "rotatef"
                           "round"
+                          "run-shell-command"
                           "sbit"
                           "scale-float"
                           "search"
