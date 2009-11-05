@@ -168,17 +168,14 @@
   (declare (ignore ignored))
   (exit))
 
-(defvar *old-pwd* nil)
+(defvar *old-default-pathname-defaults* nil)
 
 (defun cd-command (args)
   (cond ((null args)
-         #+windows
-         (setq args "C:\\")
-         #-windows
          (setq args (namestring (user-homedir-pathname))))
         ((string= args "-")
-         (if *old-pwd*
-             (setf args (namestring *old-pwd*))
+         (if *old-default-pathname-defaults*
+             (setf args (namestring *old-default-pathname-defaults*))
              (progn
                (format t "No previous directory.")
                (return-from cd-command))))
@@ -188,10 +185,12 @@
                                       (subseq args 2))))))
   (let ((dir (probe-directory args)))
     (cond (dir
-           (unless (equal dir *default-pathname-defaults*)
-             (setq *old-pwd* *default-pathname-defaults*)
-             (setq *default-pathname-defaults* dir))
-           (format t "~A" (namestring *default-pathname-defaults*)))
+           (unless (and (equal dir *default-pathname-defaults*)
+                        (equal dir (current-directory)))
+             (setq *old-default-pathname-defaults* *default-pathname-defaults*)
+             (chdir dir)
+             (setq *default-pathname-defaults* dir)
+             (format t "~A" (namestring dir))))
           (t
            (format t "Error: no such directory (~S).~%" args)))))
 
@@ -321,8 +320,8 @@
 
 (defun pwd-command (ignored)
   (declare (ignore ignored))
-  (format t "XCL's current working directory is ~S~%" (namestring (current-directory)))
-  (format t "~A is ~S~%" '*default-pathname-defaults* *default-pathname-defaults*))
+  (format t "~A is ~S~%" '*default-pathname-defaults* *default-pathname-defaults*)
+  (format t "XCL's current working directory is ~S~%" (namestring (current-directory))))
 
 #-windows
 (defun ls-command (args)
@@ -335,6 +334,9 @@
   (let ((args (if (stringp args) args "")))
     (run-shell-command (concatenate 'string "dir" " " args)))
   (values))
+
+(defun sh-command (args)
+  (run-shell-command args))
 
 (defun reset-command (ignored)
   (declare (ignore ignored))
@@ -382,6 +384,8 @@
     ("cl" nil cl-command "compile and load file")
 ;;     ("continue" "cont" continue-command "invoke restart n")
     ("describe" "de" describe-command "describe an object")
+    #+windows
+    ("dir" nil dir-command "list directory")
     ("disassemble" "dis" disassemble-command "disassemble a function")
     ("edit" "ed" edit-command "edit a definition")
     ("error" "err" error-command "print the current error message")
@@ -394,12 +398,11 @@
     ("ld" nil ld-command "load file")
     #-windows
     ("ls" nil ls-command "list directory")
-    #+windows
-    ("dir" nil dir-command "list directory")
 ;;     ("macroexpand" "ma" macroexpand-command "macroexpand an expression")
     ("package" "pa" package-command "change *PACKAGE*")
     ("pwd" "pw" pwd-command "print current directory")
     ("reset" "res" reset-command "return to top level")
+    ("sh" nil sh-command "run shell command")
 ;;     ("rq" nil rq-command "require a module")
 ;;     ("trace" "tr" trace-command "trace function(s)")
 ;;     ("untrace" "untr" untrace-command "untrace function(s)")
