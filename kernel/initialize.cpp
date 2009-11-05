@@ -525,6 +525,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_canonicalize_logical_host, SYS_canonicalize_logical_host, 1, 1);
   ADD_PRIMITIVE(S_ceiling_1, SYS_ceiling_1, 1, 1);
   ADD_PRIMITIVE(S_ceiling_2, SYS_ceiling_2, 2, 2);
+  ADD_PRIMITIVE(S_chdir, EXT_chdir, 1, 1);
   ADD_PRIMITIVE(S_check_fixnum_bounds, SYS_check_fixnum_bounds, 3, 3);
   ADD_PRIMITIVE(S_check_subsequence, SYS_check_subsequence, 3, 3);
   ADD_PRIMITIVE(S_class_name_internal, SYS_class_name_internal, 1, 1);
@@ -541,6 +542,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_copy_string, EXT_copy_string, 1, 1);
   ADD_PRIMITIVE(S_copy_structure_slot_definition, SYS_copy_structure_slot_definition, 1, 1);
   ADD_PRIMITIVE(S_create_new_file, SYS_create_new_file, 1, 1);
+  ADD_PRIMITIVE(S_current_directory, EXT_current_directory, 0, 0);
   ADD_PRIMITIVE(S_current_thread, EXT_current_thread, 0, 0);
   ADD_PRIMITIVE(S_default_time_zone, SYS_default_time_zone, 0, 0);
   ADD_PRIMITIVE(S_defconstant_internal, SYS_defconstant_internal, 2, 2);

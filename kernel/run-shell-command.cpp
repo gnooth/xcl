@@ -63,3 +63,48 @@ Value EXT_run_shell_command(Value arg)
   check_set_current_directory(old_current_directory);
   return make_number(ret);
 }
+
+Value EXT_current_directory()
+{
+  char old_current_directory[1024];
+#ifdef WIN32
+  GetCurrentDirectory(sizeof(old_current_directory), old_current_directory);
+#else
+  if (!getcwd(old_current_directory, sizeof(old_current_directory)))
+    signal_lisp_error("Unable to determine current directory");
+#endif
+  String * s = new String(old_current_directory);
+  INDEX len = s->length();
+  if (len > 0 && s->char_at(len - 1) != SEPARATOR_CHAR)
+    s->append_char(SEPARATOR_CHAR);
+  return parse_namestring(s);
+}
+
+Value EXT_chdir(Value arg)
+{
+//   AbstractString * dir = check_string(dir);
+  Pathname * p = the_pathname(coerce_to_pathname(arg));
+  SimpleString * namestring = p->namestring();
+#ifdef WIN32
+  if (!SetCurrentDirectory(namestring->copy_to_c_string()))
+#else
+  if (chdir(namestring->copy_to_c_string()) != 0)
+#endif
+    {
+      String * message = new String("Unable to set current directory to ");
+      message->append(namestring);
+      signal_lisp_error(message);
+    }
+  char new_current_directory[1024];
+#ifdef WIN32
+  GetCurrentDirectory(sizeof(new_current_directory), new_current_directory);
+#else
+  if (!getcwd(new_current_directory, sizeof(new_current_directory)))
+    signal_lisp_error("Unable to determine current directory");
+#endif
+  String * s = new String(new_current_directory);
+  INDEX len = s->length();
+  if (len > 0 && s->char_at(len - 1) != SEPARATOR_CHAR)
+    s->append_char(SEPARATOR_CHAR);
+  return parse_namestring(s);
+}
