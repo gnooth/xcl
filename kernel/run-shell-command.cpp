@@ -37,30 +37,37 @@ void check_set_current_directory(const char * dir)
     }
 }
 
-// ### run-program
-Value EXT_run_shell_command(Value arg)
+// // ### run-program
+// Value EXT_run_shell_command(Value arg)
+// {
+//   AbstractString * command = check_string(arg);
+//   char old_current_directory[1024];
+// #ifdef WIN32
+//   // "Multithreaded applications and shared library code should not use the
+//   // SetCurrentDirectory function and should avoid using relative path names.
+//   // The current directory state written by the SetCurrentDirectory function is
+//   // stored as a global variable in each process, therefore multithreaded
+//   // applications cannot reliably use this value without possible data
+//   // corruption from other threads that may also be reading or setting this
+//   // value. This limitation also applies to the GetCurrentDirectory and
+//   // GetFullPathName functions."
+//   GetCurrentDirectory(sizeof(old_current_directory), old_current_directory);
+// #else
+//   if (!getcwd(old_current_directory, sizeof(old_current_directory)))
+//     signal_lisp_error("Unable to determine current directory");
+// #endif
+//   Pathname * p =
+//     the_pathname(coerce_to_pathname(current_thread()->symbol_value(S_default_pathname_defaults)));
+//   check_set_current_directory(p->namestring()->copy_to_c_string());
+//   int ret = system(command->copy_to_c_string());
+//   check_set_current_directory(old_current_directory);
+//   return make_number(ret);
+// }
+
+Value SYS_run_shell_command_internal(Value arg)
 {
   AbstractString * command = check_string(arg);
-  char old_current_directory[1024];
-#ifdef WIN32
-  // "Multithreaded applications and shared library code should not use the
-  // SetCurrentDirectory function and should avoid using relative path names.
-  // The current directory state written by the SetCurrentDirectory function is
-  // stored as a global variable in each process, therefore multithreaded
-  // applications cannot reliably use this value without possible data
-  // corruption from other threads that may also be reading or setting this
-  // value. This limitation also applies to the GetCurrentDirectory and
-  // GetFullPathName functions."
-  GetCurrentDirectory(sizeof(old_current_directory), old_current_directory);
-#else
-  if (!getcwd(old_current_directory, sizeof(old_current_directory)))
-    signal_lisp_error("Unable to determine current directory");
-#endif
-  Pathname * p =
-    the_pathname(coerce_to_pathname(current_thread()->symbol_value(S_default_pathname_defaults)));
-  check_set_current_directory(p->namestring()->copy_to_c_string());
   int ret = system(command->copy_to_c_string());
-  check_set_current_directory(old_current_directory);
   return make_number(ret);
 }
 

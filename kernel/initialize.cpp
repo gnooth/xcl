@@ -776,7 +776,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_restart_interactive_function, SYS_restart_interactive_function, 1, 1);
   ADD_PRIMITIVE(S_restart_test_function, SYS_restart_test_function, 1, 1);
   ADD_PRIMITIVE(S_row_major_aset, SYS_row_major_aset, 3, 3);
-  ADD_PRIMITIVE(S_run_shell_command, EXT_run_shell_command, 1, 1);
+  ADD_PRIMITIVE(S_run_shell_command_internal, SYS_run_shell_command_internal, 1, 1);
   ADD_PRIMITIVE(S_sbit1, SYS_sbit1, 2, 2);
   ADD_PRIMITIVE(S_sequencep, EXT_sequencep, 1, 1);
   ADD_PRIMITIVE(S_set_char, SYS_set_char, 3, 3);
