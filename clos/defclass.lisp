@@ -1,6 +1,6 @@
 ;;; defclass.lisp
 ;;;
-;;; Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -38,8 +38,13 @@
 
 (in-package "SYSTEM")
 
-(defmacro defclass (name direct-superclasses direct-slots
-                    &rest options)
+(defmacro defclass (&whole form name direct-superclasses direct-slots &rest options)
+  (unless (>= (length form) 4)
+    (error 'program-error
+           :format-control
+           "Wrong number of arguments for DEFCLASS (expected at least 3, but received only ~D)."
+           :format-arguments
+           (list (length (cdr form)))))
   `(ensure-class ',name
                  :direct-superclasses
 ;;                  (canonicalize-direct-superclasses ',direct-superclasses)

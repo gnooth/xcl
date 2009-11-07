@@ -1,6 +1,6 @@
 // WrongNumberOfArgumentsError.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -71,7 +71,7 @@ AbstractString * WrongNumberOfArgumentsError::write_to_string()
           s->append("at least ");
           s->append_long(_min);
         }
-      s->append(", but received ");
+      s->append(", but received only ");
       s->append_long(_numargs);
       s->append_char(')');
     }

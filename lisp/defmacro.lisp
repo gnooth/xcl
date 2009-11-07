@@ -1,6 +1,6 @@
 ;;; defmacro.lisp
 ;;;
-;;; Copyright (C) 2003-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -24,10 +24,10 @@
 
 ;; We don't have DEFVAR yet...
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar *arg-tests* ())
-  (defvar *system-lets* ())
-  (defvar *user-lets* ())
-  (defvar *ignorable-vars* ())
+  (defvar *arg-tests* nil)
+  (defvar *system-lets* nil)
+  (defvar *user-lets* nil)
+  (defvar *ignorable-vars* nil)
   (defvar *env-var* nil))
 
 (defun arg-count-error (error-kind name arg lambda-list minimum maximum)
@@ -118,7 +118,7 @@
          (now-processing :required)
          (maximum 0)
          (minimum 0)
-         (keys ())
+         (keys nil)
          rest-name restp allow-other-keys-p env-arg-used)
     ;; This really strange way to test for &WHOLE is necessary because MEMBER
     ;; does not have to work on dotted lists, and dotted lists are legal

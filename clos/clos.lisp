@@ -241,9 +241,9 @@
                :format-control "Duplicate initialization argument name ~S in :DEFAULT-INITARGS."
                :format-arguments (list name)))))
   (setq direct-superclasses (canonicalize-direct-superclasses direct-superclasses))
-  (dolist (class direct-superclasses)
-    (when (typep class 'built-in-class)
-      (error "Attempt to define a subclass of a built-in-class: ~S" class)))
+;;   (dolist (class direct-superclasses)
+;;     (when (typep class 'built-in-class)
+;;       (error "Attempt to define a subclass of a built-in-class: ~S" class)))
   (cond (class
          (cond ((typep class 'built-in-class)
                 (error "The symbol ~S names a built-in class." name))
@@ -2148,6 +2148,9 @@
              (eq class-of-superclass +the-class-funcallable-standard-class+))
         (and (eq class-of-class +the-class-funcallable-standard-class+)
              (eq class-of-superclass +the-class-standard-class+)))))
+
+(defmethod validate-superclass ((class class) (superclass built-in-class))
+  (eq superclass (find-class 'stream)))
 
 (defmethod validate-superclass ((class class) (superclass forward-referenced-class))
   t)
