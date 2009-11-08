@@ -18,42 +18,7 @@
 
 (in-package "SYSTEM")
 
-(defstruct method-combination
-  name
-  operator
-  identity-with-one-argument
-  documentation)
-
-(defun expand-short-defcombin (whole)
-  (let* ((name (cadr whole))
-         (documentation
-          (getf (cddr whole) :documentation ""))
-         (identity-with-one-arg
-          (getf (cddr whole) :identity-with-one-argument nil))
-         (operator
-          (getf (cddr whole) :operator name)))
-    `(progn
-       (setf (get ',name 'method-combination-object)
-             (make-method-combination :name ',name
-                                      :operator ',operator
-                                      :identity-with-one-argument ',identity-with-one-arg
-                                      :documentation ',documentation))
-       ',name)))
-
-(defun expand-long-defcombin (whole)
-  (declare (ignore whole))
-  (error "The long form of DEFINE-METHOD-COMBINATION is not implemented."))
-
-
-#+sacla
-(progn
-
-;; FIXME also in loop.lisp
-(defun %keyword (designator)
-  (intern (string designator) "KEYWORD"))
-
-
-(defclass method-combination (metaobject) ()) ; clos
+(defclass method-combination (metaobject) ())
 (defstruct method-combination-type
   (name)
   (lambda-list)
@@ -66,6 +31,56 @@
 (defclass standard-method-combination (method-combination) ; clos
   ((type :reader method-combination-type :initarg :type)
    (arguments :reader method-combination-arguments :initarg :arguments)))
+
+;; (defstruct (%method-combination (:conc-name method-combination-)
+;;                                 (:constructor make-method-combination))
+;;   name
+;;   operator
+;;   identity-with-one-argument
+;;   documentation)
+
+;; (defun expand-short-defcombin (whole)
+;;   (let* ((name (cadr whole))
+;;          (documentation
+;;           (getf (cddr whole) :documentation ""))
+;;          (identity-with-one-arg
+;;           (getf (cddr whole) :identity-with-one-argument nil))
+;;          (operator
+;;           (getf (cddr whole) :operator name)))
+;;     `(progn
+;;        (setf (get ',name 'method-combination-object)
+;;              (make-method-combination :name ',name
+;;                                       :operator ',operator
+;;                                       :identity-with-one-argument ',identity-with-one-arg
+;;                                       :documentation ',documentation))
+;;        ',name)))
+
+;; (defun expand-long-defcombin (whole)
+;;   (declare (ignore whole))
+;;   (error "The long form of DEFINE-METHOD-COMBINATION is not implemented."))
+
+
+;; #+sacla
+;; (progn
+
+;; FIXME also in loop.lisp
+(defun %keyword (designator)
+  (intern (string designator) "KEYWORD"))
+
+
+;; (defclass method-combination (metaobject) ()) ; clos
+;; (defstruct method-combination-type
+;;   (name)
+;;   (lambda-list)
+;;   (group-specifiers)
+;;   (args-lambda-list)
+;;   (generic-function-symbol)
+;;   (documentation)
+;;   (function)
+;;   (short-form-options))
+;; (defclass standard-method-combination (method-combination) ; clos
+;;   ((type :reader method-combination-type :initarg :type)
+;;    (arguments :reader method-combination-arguments :initarg :arguments)))
 
 (defparameter *method-combination-types* (make-hash-table))
 
@@ -310,6 +325,7 @@
 
 (defun define-short-form-method-combination
   (name &key identity-with-one-argument (documentation "") (operator name))
+  (aver nil)
   (define-long-form-method-combination name
     '(&optional (order :most-specific-first))
     `((around (:around))
@@ -330,6 +346,7 @@
                            :identity-with-one-argument ,identity-with-one-argument)))
   name)
 
+#+nil
 (defmacro define-method-combination (name &rest args) ; clos
   "Define new types of method combination."
   (format t "~&define-method-combination: ~S~%" name)
@@ -339,11 +356,39 @@
                    'define-long-form-method-combination
                    'define-short-form-method-combination) ',name ',args)))
 
-) ; end sacla
+;; ) ; end sacla
 
-(defmacro define-method-combination (&whole form &rest args)
-  (declare (ignore args))
-  (if (and (cddr form)
-           (listp (caddr form)))
-      (expand-long-defcombin form)
-      (expand-short-defcombin form)))
+(defstruct (%method-combination (:conc-name method-combination-)
+                                (:constructor make-method-combination))
+  name
+  operator
+  identity-with-one-argument
+  documentation)
+
+(defun expand-short-defcombin (whole)
+  (let* ((name (cadr whole))
+         (documentation
+          (getf (cddr whole) :documentation ""))
+         (identity-with-one-arg
+          (getf (cddr whole) :identity-with-one-argument nil))
+         (operator
+          (getf (cddr whole) :operator name)))
+    `(progn
+       (setf (get ',name 'method-combination-object)
+             (make-method-combination :name ',name
+                                      :operator ',operator
+                                      :identity-with-one-argument ',identity-with-one-arg
+                                      :documentation ',documentation))
+       ',name)))
+
+(defun expand-long-defcombin (whole)
+  (declare (ignore whole))
+  (error "The long form of DEFINE-METHOD-COMBINATION is not implemented."))
+
+(defmacro define-method-combination (&whole form name &rest args)
+  (declare (ignore name))
+  (cond ((and args
+              (listp (car args)))
+         (expand-long-defcombin form))
+        (t
+         (expand-short-defcombin form))))
