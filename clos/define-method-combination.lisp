@@ -18,19 +18,41 @@
 
 (in-package "SYSTEM")
 
+;; FIXME where does this belong?
+(defun declarationp (expr)
+  (and (consp expr) (eq (car expr) 'declare)))
+
 (defclass method-combination (metaobject) ())
+
 (defstruct method-combination-type
-  (name)
-  (lambda-list)
-  (group-specifiers)
-  (args-lambda-list)
-  (generic-function-symbol)
-  (documentation)
-  (function)
-  (short-form-options))
+  name
+  lambda-list
+  group-specifiers
+  args-lambda-list
+  generic-function-symbol
+  documentation
+  function
+  short-form-options)
+
 (defclass standard-method-combination (method-combination) ; clos
   ((type :reader method-combination-type :initarg :type)
    (arguments :reader method-combination-arguments :initarg :arguments)))
+
+;; MOP p. 191
+;; "The METHOD-COMBINATION-OPTIONS argument is a list of arguments to the
+;; method combination type."
+(defgeneric find-method-combination
+  (generic-function method-combination-type-name method-combination-options))
+
+(defmethod find-method-combination
+  ((gf standard-generic-function) method-combination-type method-combination-options)
+  (multiple-value-bind (type presentp)
+      (gethash method-combination-type *method-combination-types*)
+    (if presentp
+        (make-instance 'standard-method-combination
+                       :type type
+                       :arguments method-combination-options)
+        (error "Method combination ~S does not exist." method-combination-type))))
 
 ;; (defstruct (%method-combination (:conc-name method-combination-)
 ;;                                 (:constructor make-method-combination))
@@ -223,12 +245,12 @@
                   collect `(,var ,init-form)))
          ,@forms))))
 
-(defun invalid-method-error (method format-control &rest args)
-  (declare (ignorable method))
-  (apply #'error format-control args))
+;; (defun invalid-method-error (method format-control &rest args)
+;;   (declare (ignorable method))
+;;   (apply #'error format-control args))
 
-(defun method-combination-error (format-control &rest args)
-  (apply #'error format-control args))
+;; (defun method-combination-error (format-control &rest args)
+;;   (apply #'error format-control args))
 
 (defmacro with-method-groups (method-group-specs methods-form &body forms)
   (flet ((grouping-form (spec methods-var)
@@ -320,41 +342,41 @@
     ;;(format t "~&~S~%" lambda-expression)
     (apply #'define-method-combination-type name
            `(,@initargs
-             :function ,(compile nil lambda-expression)
+;;              :function ,(compile nil lambda-expression)
+             :function ,(coerce-to-function lambda-expression)
              :short-form-options nil))))
 
-(defun define-short-form-method-combination
-  (name &key identity-with-one-argument (documentation "") (operator name))
-  (aver nil)
-  (define-long-form-method-combination name
-    '(&optional (order :most-specific-first))
-    `((around (:around))
-      (primary (,name) :order order :required t))
-    documentation
-    `(let ((form (if (and ,identity-with-one-argument (null (rest primary)))
-                     `(call-method ,(first primary))
-                     (cons ',operator (mapcar #'(lambda (method)
-                                                 `(call-method ,method))
-                                              primary)))))
-       (if around
-           `(call-method ,(first around) (,@(rest around) (make-method ,form)))
-           form)))
-  (let ((combination-type (gethash name *method-combination-types*)))
-    (setf (method-combination-type-short-form-options combination-type)
-          `(:documentation ,documentation
-                           :operator ,operator
-                           :identity-with-one-argument ,identity-with-one-argument)))
-  name)
+;; (defun define-short-form-method-combination
+;;   (name &key identity-with-one-argument (documentation "") (operator name))
+;;   (aver nil)
+;;   (define-long-form-method-combination name
+;;     '(&optional (order :most-specific-first))
+;;     `((around (:around))
+;;       (primary (,name) :order order :required t))
+;;     documentation
+;;     `(let ((form (if (and ,identity-with-one-argument (null (rest primary)))
+;;                      `(call-method ,(first primary))
+;;                      (cons ',operator (mapcar #'(lambda (method)
+;;                                                  `(call-method ,method))
+;;                                               primary)))))
+;;        (if around
+;;            `(call-method ,(first around) (,@(rest around) (make-method ,form)))
+;;            form)))
+;;   (let ((combination-type (gethash name *method-combination-types*)))
+;;     (setf (method-combination-type-short-form-options combination-type)
+;;           `(:documentation ,documentation
+;;                            :operator ,operator
+;;                            :identity-with-one-argument ,identity-with-one-argument)))
+;;   name)
 
-#+nil
-(defmacro define-method-combination (name &rest args) ; clos
-  "Define new types of method combination."
-  (format t "~&define-method-combination: ~S~%" name)
-  `(let ((*message-prefix*
-          ,(format nil "DEFINE-METHOD-COMBINATION ~S: " name)))
-     (apply #',(if (listp (first args))
-                   'define-long-form-method-combination
-                   'define-short-form-method-combination) ',name ',args)))
+;; (defmacro define-method-combination (name &rest args) ; clos
+;;   "Define new types of method combination."
+;;   (format t "~&define-method-combination: ~S~%" name)
+;;   `(let ((*message-prefix*
+;;           ,(format nil "DEFINE-METHOD-COMBINATION ~S: " name)))
+;;      (apply #',(if (listp (first args))
+;;                    'define-long-form-method-combination
+;;                    'define-short-form-method-combination) ',name ',args)))
 
 ;; ) ; end sacla
 
@@ -381,14 +403,19 @@
                                       :documentation ',documentation))
        ',name)))
 
-(defun expand-long-defcombin (whole)
-  (declare (ignore whole))
-  (error "The long form of DEFINE-METHOD-COMBINATION is not implemented."))
+;; (defun expand-long-defcombin (whole)
+;;   (declare (ignore whole))
+;;   (error "The long form of DEFINE-METHOD-COMBINATION is not implemented."))
 
 (defmacro define-method-combination (&whole form name &rest args)
-  (declare (ignore name))
+;;   (declare (ignore name))
   (cond ((and args
               (listp (car args)))
-         (expand-long-defcombin form))
+;;          (expand-long-defcombin form)
+         (mumble "define-method-combination long form name = ~S~%" name)
+         (error "unsupported")
+         `(let ((*message-prefix*
+                 ,(format nil "DEFINE-METHOD-COMBINATION ~S: " name)))
+            (apply #'define-long-form-method-combination ',name ',args)))
         (t
          (expand-short-defcombin form))))
