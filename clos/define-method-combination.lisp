@@ -431,7 +431,7 @@
   `(macrolet
      ((call-method (method next-methods &environment env)
                    (flet ((method-form (form)
-                                       (apply #'<make-instance>
+                                       (apply #|#'<make-instance>|# #'make-instance
                                               (generic-function-method-class ,gf)
                                               (method-initargs-form
                                                ',gf env :null-lexical-environment-p t

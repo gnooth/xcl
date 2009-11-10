@@ -1554,22 +1554,16 @@
 ;;       `(funcall (coerce-to-function ,(second method)) args) ; REVIEW
 ;;       `(funcall (method-function ,method) args ,next-method-list)))
 
+;; standard method combination
 (defun compute-standard-effective-method (gf methods)
-  (let* (;(mc (generic-function-method-combination gf))
-;;          (mc-name (if (atom mc) mc (%car mc)))
-;;          (options (if (atom mc) nil (%cdr mc)))
-;;          (order (car options))
-         (befores nil)
+  (let* ((befores nil)
          (primaries nil)
          (afters nil)
          (arounds nil))
     (dolist (method methods)
       (let ((qualifiers (method-qualifiers method)))
         (cond ((null qualifiers)
-;;                (if (eq mc-name 'standard)
-                   (push method primaries)
-;;                    (error "Method combination type mismatch."))
-               )
+               (push method primaries))
               ((cdr qualifiers)
                (error "Invalid method qualifiers."))
               ((equal '(:before) qualifiers)
@@ -1578,66 +1572,36 @@
                (push method afters))
               ((equal '(:around) qualifiers)
                (push method arounds))
-;;               ((eq (car qualifiers) mc-name)
-;;                (push method primaries))
               (t
                (error "Invalid method qualifiers.")))))
-;;     (unless (eq order :most-specific-last)
-      (setq primaries (nreverse primaries))
-;;     )
-    (setq befores (nreverse befores)
-	  afters  (nreverse afters)
-	  arounds (nreverse arounds))
     (when (null primaries)
       (error "No primary method for the generic function ~S." gf))
-    ;;     (when (and (null befores) (null afters))
-    ;;       (format t "std-compute-effective-method-function no befores or afters ~S~%"
-    ;;               (generic-function.name gf)))
+    (setq primaries (nreverse primaries)
+          befores   (nreverse befores)
+	  afters    (nreverse afters)
+	  arounds   (nreverse arounds))
     (let ((main-effective-method-lambda-form
-;;            (cond ((eq mc-name 'standard)
-                  (cond ((and (null befores) (null afters) (null arounds))
-                         `(lambda (,+gf-args-var+)
-                            (macrolet ((call-method (method &optional next-method-list)
-                                                    `(funcall (method-function ,method) ,+gf-args-var+ ',next-method-list)))
-                              (call-method ,(first primaries) ,(rest primaries))
-                              )
-                            ))
-                        (t
-                         `(lambda (,+gf-args-var+)
-                            (multiple-value-prog1
-                              (progn
-                                ,(make-call-methods befores)
-                                (call-method ,(first primaries) ',(rest primaries)))
-                              ,(make-call-methods (nreverse afters))))))))
-;;                  (t
-;;                   (let ((mc-obj (get mc-name 'method-combination-object)))
-;;                     (unless mc-obj
-;;                       (error "Unsupported method combination type ~A." mc-name))
-;;                     (let* ((operator (method-combination-operator mc-obj))
-;;                            (ioa (method-combination-identity-with-one-argument mc-obj)))
-;;                       (if (and (null (cdr primaries))
-;;                                (not (null ioa)))
-;;                           `(lambda (,+gf-args-var+)
-;;                              (call-method ,(first primaries) nil))
-;;                           `(lambda (,+gf-args-var+)
-;;                              (,operator ,@(mapcar
-;;                                            (lambda (primary)
-;;                                              `(call-method ,primary nil))
-;;                                            primaries)))))))
-;;                  )
-;;            ))
+           (cond ((and (null befores) (null afters) (null arounds))
+                  `(lambda (,+gf-args-var+)
+                     (macrolet ((call-method (method &optional next-method-list)
+                                             `(funcall (method-function ,method) ,+gf-args-var+ ',next-method-list)))
+                       (call-method ,(first primaries) ,(rest primaries)))))
+                 (t
+                  `(lambda (,+gf-args-var+)
+                     (multiple-value-prog1
+                       (progn
+                         ,(make-call-methods befores)
+                         (call-method ,(first primaries) ',(rest primaries)))
+                       ,(make-call-methods (nreverse afters))))))))
       (cond (arounds
              (let ((lambda-form
                     `(lambda (,+gf-args-var+)
                        (call-method ,(first arounds)
                                     '(,@(rest arounds)
-                                      ,(coerce-to-function main-effective-method-lambda-form)
-                                      ))
-                       )))
+                                      ,(coerce-to-function main-effective-method-lambda-form))))))
                (coerce-to-function (precompile-form lambda-form))))
             (t
              (coerce-to-function (precompile-form main-effective-method-lambda-form)))))))
-
 
 ;; FIXME "The METHOD-COMBINATION argument is a method combination metaobject." MOP p.176
 (defun std-compute-effective-method (gf mc methods)
@@ -2747,8 +2711,7 @@
 ;; FIXME
 (defgeneric function-keywords (method))
 
-;;; built-in method combination types
-
+;; built-in method combination types
 (define-method-combination +      :identity-with-one-argument t)
 (define-method-combination and    :identity-with-one-argument t)
 (define-method-combination append :identity-with-one-argument nil)
