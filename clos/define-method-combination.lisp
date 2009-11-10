@@ -419,3 +419,43 @@
             (apply #'define-long-form-method-combination ',name ',args)))
         (t
          (expand-short-defcombin form))))
+
+(defun make-method-form-p (object)
+  (and (consp object) (eq 'make-method (first object))))
+
+(defun make-method-description (gf form)
+  `(:method 'make-method ,(generic-function-lambda-list gf)
+            (with-call-method ,gf ,form)))
+
+(defmacro with-call-method (gf &body body)
+  `(macrolet
+     ((call-method (method next-methods &environment env)
+                   (flet ((method-form (form)
+                                       (apply #'<make-instance>
+                                              (generic-function-method-class ,gf)
+                                              (method-initargs-form
+                                               ',gf env :null-lexical-environment-p t
+                                               (method-spec (make-method-description ,gf form))))))
+                     (when (make-method-form-p method)
+                       (setq method (method-form (second method))))
+                     (setq next-methods
+                           (mapcar #'(lambda (method)
+                                      (if (make-method-form-p method)
+                                          (method-form (second method))
+                                          `(quote ,method)))
+                                   next-methods)))
+                   `(funcall (method-function ,method)
+                             ,+gf-args-variable+ (list ,@next-methods))))
+     ,@body))
+
+(defun %compute-effective-method (generic-function method-combination methods)
+  (let* ((type (method-combination-type method-combination))
+         (type-function (method-combination-type-function type))
+         (arguments (method-combination-arguments method-combination))
+         (effective-method
+          (apply type-function generic-function methods arguments)))
+    (values `(with-call-method ,generic-function
+              ,effective-method)
+            `(:arguments ,(method-combination-type-args-lambda-list type)
+              :generic-function
+              ,(method-combination-type-generic-function-symbol type)))))
