@@ -25,27 +25,21 @@
 ;; (defclass method-combination (metaobject) ())
 
 ;; short form
-(defstruct (%method-combination (:conc-name method-combination-)
-                                (:constructor make-method-combination))
-  name
-  operator
-  identity-with-one-argument
-  documentation)
-
 (defun expand-short-defcombin (whole)
   (let* ((name (cadr whole))
          (documentation
           (getf (cddr whole) :documentation ""))
-         (identity-with-one-arg
+         (identity-with-one-argument
           (getf (cddr whole) :identity-with-one-argument nil))
          (operator
           (getf (cddr whole) :operator name)))
     `(progn
        (setf (get ',name 'method-combination-object)
-             (make-method-combination :name ',name
-                                      :operator ',operator
-                                      :identity-with-one-argument ',identity-with-one-arg
-                                      :documentation ',documentation))
+             (make-instance 'short-method-combination
+                            :name ',name
+                            :operator ',operator
+                            :identity-with-one-argument ',identity-with-one-argument
+                            :documentation ',documentation))
        ',name)))
 
 ;; long form

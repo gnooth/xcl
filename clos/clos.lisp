@@ -1683,8 +1683,9 @@
                   (let ((mc-obj (get mc-name 'method-combination-object)))
                     (unless mc-obj
                       (error "Unsupported method combination type ~A." mc-name))
-                    (let* ((operator (method-combination-operator mc-obj))
-                           (ioa (method-combination-identity-with-one-argument mc-obj)))
+                    (aver (typep mc-obj 'short-method-combination))
+                    (let* ((operator (short-combination-operator mc-obj))
+                           (ioa (short-combination-identity-with-one-argument mc-obj)))
                       (if (and (null (cdr primaries))
                                (not (null ioa)))
                           `(lambda (,+gf-args-var+)
@@ -2726,6 +2727,21 @@
 
 ;; FIXME
 (defgeneric function-keywords (method))
+
+(defclass short-method-combination (method-combination)
+  ((name
+    :reader short-combination-name
+    :initarg :name)
+   (operator
+    :reader short-combination-operator
+    :initarg :operator)
+   (identity-with-one-argument
+    :reader short-combination-identity-with-one-argument
+    :initarg :identity-with-one-argument)
+   ;; REVIEW
+   (%documentation
+    :initform nil
+    :initarg :documentation)))
 
 ;; built-in method combination types
 (define-method-combination +      :identity-with-one-argument t)
