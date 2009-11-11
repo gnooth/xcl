@@ -22,7 +22,7 @@
 (defun declarationp (expr)
   (and (consp expr) (eq (car expr) 'declare)))
 
-(defclass method-combination (metaobject) ())
+;; (defclass method-combination (metaobject) ())
 
 ;; short form
 (defstruct (%method-combination (:conc-name method-combination-)

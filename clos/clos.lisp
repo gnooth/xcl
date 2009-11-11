@@ -997,6 +997,15 @@
                            all-keys))
            gf))))
 
+(defun make-instance-standard-method-combination ()
+  (let* ((class (find-class 'standard-method-combination))
+         (instance (allocate-standard-instance (or (class.layout class)
+                                                   (make-layout class nil nil)))))
+    instance))
+
+(defparameter *standard-method-combination*
+  (make-instance-standard-method-combination))
+
 (defun make-instance-standard-generic-function (generic-function-class
                                                 &key
                                                 name
@@ -1012,6 +1021,8 @@
     (setf (generic-function.lambda-list gf) lambda-list)
     (setf (generic-function.methods gf) nil)
     (setf (generic-function.method-class gf) method-class)
+    (when (eq method-combination 'standard)
+      (setq method-combination *standard-method-combination*))
     (setf (generic-function.method-combination gf) method-combination)
     (setf (generic-function.initial-methods gf) nil)
     (setf (generic-function.classes-to-emf-table gf) (make-hash-table :test #'equal))
@@ -1607,10 +1618,12 @@
 
 ;; FIXME "The METHOD-COMBINATION argument is a method combination metaobject." MOP p.176
 (defun std-compute-effective-method (gf mc methods)
-  (when (eq mc 'standard)
+;;   (when (eq mc 'standard)
+  (when (eq mc *standard-method-combination*)
 ;;     (mumble "delegating to compute-standard-effective-method for generic function ~S~%"
 ;;             (generic-function-name gf))
     (return-from std-compute-effective-method (compute-standard-effective-method gf methods)))
+  (aver (neq mc 'standard))
 ;;   (mumble "std-compute-effective-method non-standard case generic function ~S~%"
 ;;           (generic-function-name gf))
   (let* (;(mc (generic-function-method-combination gf))
@@ -1621,6 +1634,7 @@
          (primaries nil)
          (afters nil)
          (arounds nil))
+    (aver (neq mc-name 'standard))
     (dolist (method methods)
       (let ((qualifiers (method-qualifiers method)))
         (cond ((null qualifiers)
