@@ -116,4 +116,9 @@ DEFINE_STANDARD_CLASS(standard_class);
 DEFINE_STANDARD_CLASS(structure_class);
 DEFINE_STANDARD_CLASS(funcallable_standard_class);
 
+DEFINE_STANDARD_CLASS(method_combination);
+DEFINE_STANDARD_CLASS(standard_method_combination);
+DEFINE_STANDARD_CLASS(short_method_combination);
+// DEFINE_STANDARD_CLASS(long_method_combination);
+
 DEFINE_STRUCTURE_CLASS(structure_object);

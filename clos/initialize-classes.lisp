@@ -319,6 +319,15 @@
 (initialize-standard-class 'standard-effective-slot-definition
                            '(standard-slot-definition effective-slot-definition)
                            '(standard-effective-slot-definition standard-slot-definition effective-slot-definition slot-definition metaobject standard-object t))
+(initialize-standard-class 'method-combination
+                           '(metaobject)
+                           '(method-combination metaobject standard-object t))
+(initialize-standard-class 'standard-method-combination
+                           '(method-combination)
+                           '(standard-method-combination method-combination metaobject standard-object t))
+(initialize-standard-class 'short-method-combination
+                           '(method-combination)
+                           '(short-method-combination method-combination metaobject standard-object t))
 
 ;; slot-definition
 (defmacro slot-definition.name                          (arg) `(iref ,arg 0))

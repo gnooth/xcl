@@ -802,6 +802,7 @@
   (setf (slot-value gf 'method-class) new-value))
 
 ;; MOP p. 217 (generic function)
+;; should return a method combination metaobject
 (defun generic-function-method-combination (gf)
   (generic-function.method-combination gf))
 
@@ -1388,13 +1389,14 @@
 
 (defun slow-method-lookup (gf args classes)
   (let* ((applicable-methods (compute-applicable-methods gf args))
-         (emfun (if (eq (class-of gf) +the-class-standard-generic-function+)
-                    (std-compute-effective-method gf
-                                                  (generic-function.method-combination gf)
-                                                  applicable-methods)
-                    (compute-effective-method gf
-                                              (generic-function-method-combination gf)
-                                              applicable-methods))))
+         (emfun (cond ((eq (class-of gf) +the-class-standard-generic-function+)
+                       (std-compute-effective-method gf
+                                                     (generic-function.method-combination gf)
+                                                     applicable-methods))
+                      (t
+                       (compute-effective-method gf
+                                                 (generic-function-method-combination gf)
+                                                 applicable-methods)))))
     (when classes
       (setf (gethash classes (classes-to-emf-table gf)) emfun))
     (funcall emfun args)))

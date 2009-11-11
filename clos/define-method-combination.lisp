@@ -24,6 +24,31 @@
 
 (defclass method-combination (metaobject) ())
 
+;; short form
+(defstruct (%method-combination (:conc-name method-combination-)
+                                (:constructor make-method-combination))
+  name
+  operator
+  identity-with-one-argument
+  documentation)
+
+(defun expand-short-defcombin (whole)
+  (let* ((name (cadr whole))
+         (documentation
+          (getf (cddr whole) :documentation ""))
+         (identity-with-one-arg
+          (getf (cddr whole) :identity-with-one-argument nil))
+         (operator
+          (getf (cddr whole) :operator name)))
+    `(progn
+       (setf (get ',name 'method-combination-object)
+             (make-method-combination :name ',name
+                                      :operator ',operator
+                                      :identity-with-one-argument ',identity-with-one-arg
+                                      :documentation ',documentation))
+       ',name)))
+
+;; long form
 (defstruct method-combination-type
   name
   lambda-list
@@ -34,53 +59,29 @@
   function
   short-form-options)
 
-(defclass standard-method-combination (method-combination) ; clos
+(defclass long-method-combination (method-combination)
   ((type :reader method-combination-type :initarg :type)
    (arguments :reader method-combination-arguments :initarg :arguments)))
+
+(defparameter *method-combination-types* (make-hash-table))
 
 ;; MOP p. 191
 ;; "The METHOD-COMBINATION-OPTIONS argument is a list of arguments to the
 ;; method combination type."
-(defgeneric find-method-combination
-  (generic-function method-combination-type-name method-combination-options))
+(defgeneric find-method-combination (generic-function
+                                     method-combination-type-name ; a symbol
+                                     method-combination-options))
 
-(defmethod find-method-combination
-  ((gf standard-generic-function) method-combination-type method-combination-options)
+(defmethod find-method-combination ((gf standard-generic-function)
+                                    method-combination-type-name
+                                    method-combination-options)
   (multiple-value-bind (type presentp)
-      (gethash method-combination-type *method-combination-types*)
+      (gethash method-combination-type-name *method-combination-types*)
     (if presentp
-        (make-instance 'standard-method-combination
+        (make-instance 'long-method-combination
                        :type type
                        :arguments method-combination-options)
-        (error "Method combination ~S does not exist." method-combination-type))))
-
-;; (defstruct (%method-combination (:conc-name method-combination-)
-;;                                 (:constructor make-method-combination))
-;;   name
-;;   operator
-;;   identity-with-one-argument
-;;   documentation)
-
-;; (defun expand-short-defcombin (whole)
-;;   (let* ((name (cadr whole))
-;;          (documentation
-;;           (getf (cddr whole) :documentation ""))
-;;          (identity-with-one-arg
-;;           (getf (cddr whole) :identity-with-one-argument nil))
-;;          (operator
-;;           (getf (cddr whole) :operator name)))
-;;     `(progn
-;;        (setf (get ',name 'method-combination-object)
-;;              (make-method-combination :name ',name
-;;                                       :operator ',operator
-;;                                       :identity-with-one-argument ',identity-with-one-arg
-;;                                       :documentation ',documentation))
-;;        ',name)))
-
-;; (defun expand-long-defcombin (whole)
-;;   (declare (ignore whole))
-;;   (error "The long form of DEFINE-METHOD-COMBINATION is not implemented."))
-
+        (error "Method combination ~S does not exist." method-combination-type-name))))
 
 ;; #+sacla
 ;; (progn
@@ -89,22 +90,6 @@
 (defun %keyword (designator)
   (intern (string designator) "KEYWORD"))
 
-
-;; (defclass method-combination (metaobject) ()) ; clos
-;; (defstruct method-combination-type
-;;   (name)
-;;   (lambda-list)
-;;   (group-specifiers)
-;;   (args-lambda-list)
-;;   (generic-function-symbol)
-;;   (documentation)
-;;   (function)
-;;   (short-form-options))
-;; (defclass standard-method-combination (method-combination) ; clos
-;;   ((type :reader method-combination-type :initarg :type)
-;;    (arguments :reader method-combination-arguments :initarg :arguments)))
-
-(defparameter *method-combination-types* (make-hash-table))
 
 (defun define-method-combination-type (name &rest initargs)
   (let ((combination-type (apply #'make-method-combination-type
@@ -379,29 +364,6 @@
 ;;                    'define-short-form-method-combination) ',name ',args)))
 
 ;; ) ; end sacla
-
-(defstruct (%method-combination (:conc-name method-combination-)
-                                (:constructor make-method-combination))
-  name
-  operator
-  identity-with-one-argument
-  documentation)
-
-(defun expand-short-defcombin (whole)
-  (let* ((name (cadr whole))
-         (documentation
-          (getf (cddr whole) :documentation ""))
-         (identity-with-one-arg
-          (getf (cddr whole) :identity-with-one-argument nil))
-         (operator
-          (getf (cddr whole) :operator name)))
-    `(progn
-       (setf (get ',name 'method-combination-object)
-             (make-method-combination :name ',name
-                                      :operator ',operator
-                                      :identity-with-one-argument ',identity-with-one-arg
-                                      :documentation ',documentation))
-       ',name)))
 
 ;; (defun expand-long-defcombin (whole)
 ;;   (declare (ignore whole))
