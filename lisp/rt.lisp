@@ -11,7 +11,10 @@
 (export '(my-aref deftest *failed-tests* *ansi-tests-directory*))
 
 (defparameter *ansi-tests-directory*
-  (pathname (directory-namestring (merge-pathnames "ansi-tests/" ext:*xcl-home*))))
+  #+xcl
+  (pathname (directory-namestring (merge-pathnames "ansi-tests/" ext:*xcl-home*)))
+  #-xcl
+  (pathname "/home/peter/xcl/ansi-tests/"))
 
 (defvar *precompile-tests* t)
 
@@ -257,7 +260,7 @@ does not improperly introduce sharing during constant folding."
 #+xcl
 (sys:load-system-file "lisp/universe.lisp")
 #-xcl
-(load "x/universe.lisp")
+(load "/home/peter/xcl/lisp/universe.lisp")
 (compile-and-load "ansi-aux.lsp")
 (compile-and-load "char-aux.lsp")
 (compile-and-load "cl-symbol-names.lsp")
