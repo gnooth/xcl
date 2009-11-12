@@ -1030,11 +1030,7 @@
                   (mc (get type-name 'method-combination-object)))
 ;;              (mumble "type-name = ~S options = ~S~%" type-name options)
              (cond (mc
-;;                     (setq mc (copy-short-method-combination mc))
-;;                     (setf (short-combination-options mc) (copy-list options))
-                    (setq method-combination (method-combination-with-options mc options))
-;;                     (setq method-combination mc)
-                    )
+                    (setq method-combination (method-combination-with-options mc options)))
                    (t
                     (error "Unsupported method combination type ~A." type-name))))))
 
@@ -1413,16 +1409,16 @@
         (setq dfun (or (autocompile dfun) dfun))))
     dfun))
 
+(defconstant +the-class-standard-method-combination+ (find-class 'standard-method-combination))
+
 (defun slow-method-lookup (gf args classes)
   (let* ((applicable-methods (compute-applicable-methods gf args))
-         (emfun (cond ((eq (class-of gf) +the-class-standard-generic-function+)
-                       (std-compute-effective-method gf
-                                                     (generic-function.method-combination gf)
-                                                     applicable-methods))
+         (mc (generic-function-method-combination gf))
+         (emfun (cond ((and (eq (class-of gf) +the-class-standard-generic-function+)
+                            (eq (class-of mc) +the-class-standard-method-combination+))
+                       (compute-standard-effective-method gf applicable-methods))
                       (t
-                       (compute-effective-method gf
-                                                 (generic-function-method-combination gf)
-                                                 applicable-methods)))))
+                       (compute-effective-method gf mc applicable-methods)))))
     (when classes
       (setf (gethash classes (classes-to-emf-table gf)) emfun))
     (funcall emfun args)))
@@ -2247,9 +2243,9 @@
 ;; FIXME "The METHOD-COMBINATION argument is a method combination metaobject."
 (defgeneric compute-effective-method (generic-function method-combination methods))
 
-(defmethod compute-effective-method ((generic-function standard-generic-function)
-                                     method-combination methods)
-  (std-compute-effective-method generic-function method-combination methods))
+;; (defmethod compute-effective-method ((generic-function standard-generic-function)
+;;                                      method-combination methods)
+;;   (std-compute-effective-method generic-function method-combination methods))
 
 ;; CL
 (defgeneric no-applicable-method (generic-function &rest args))
@@ -2744,6 +2740,68 @@
     (setq mc (copy-short-method-combination mc))
     (setf (short-combination-options mc) (copy-list options)))
   mc)
+
+(defmethod compute-effective-method ((generic-function standard-generic-function)
+                                     (method-combination standard-method-combination)
+                                     methods)
+  (compute-standard-effective-method generic-function methods))
+
+(defmethod compute-effective-method ((gf standard-generic-function)
+                                     (mc short-method-combination)
+                                     methods)
+  (aver (typep mc 'short-method-combination))
+  (let* ((mc-name (short-combination-name mc))
+         (options (short-combination-options mc))
+         (order (car options))
+         (befores nil)
+         (primaries nil)
+         (afters nil)
+         (arounds nil))
+    (aver (neq mc-name 'standard))
+    (dolist (method methods)
+      (let ((qualifiers (method-qualifiers method)))
+        (cond ((null qualifiers)
+               (error "Method combination type mismatch."))
+              ((cdr qualifiers)
+               (error "Invalid method qualifiers."))
+              ((equal '(:before) qualifiers) ; FIXME short form does not support :before
+               (push method befores))
+              ((equal '(:after) qualifiers) ; FIXME short form does not support :after
+               (push method afters))
+              ((equal '(:around) qualifiers)
+               (push method arounds))
+              ((eq (car qualifiers) mc-name)
+               (push method primaries))
+              (t
+               (error "Invalid method qualifiers.")))))
+    (unless (eq order :most-specific-last)
+      (setq primaries (nreverse primaries)))
+    (setq befores (nreverse befores)
+	  afters  (nreverse afters)
+	  arounds (nreverse arounds))
+    (when (null primaries)
+      (error "No primary method for the generic function ~S." gf))
+    (let* ((operator (short-combination-operator mc))
+           (ioa (short-combination-identity-with-one-argument mc))
+           (main-effective-method-lambda-form
+            (if (and (null (cdr primaries))
+                     (not (null ioa)))
+                `(lambda (,+gf-args-var+)
+                   (call-method ,(first primaries) nil))
+                `(lambda (,+gf-args-var+)
+                   (,operator ,@(mapcar
+                                 (lambda (primary)
+                                   `(call-method ,primary nil))
+                                 primaries))))))
+      (cond (arounds
+             (let ((lambda-form
+                    `(lambda (,+gf-args-var+)
+                       (call-method ,(first arounds)
+                                    '(,@(rest arounds)
+                                      ,(coerce-to-function main-effective-method-lambda-form))))))
+               (coerce-to-function (precompile-form lambda-form))))
+            (t
+             (coerce-to-function (precompile-form main-effective-method-lambda-form)))))))
 
 ;; built-in method combination types
 (define-method-combination +      :identity-with-one-argument t)
