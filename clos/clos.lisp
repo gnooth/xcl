@@ -1021,8 +1021,15 @@
     (setf (generic-function.lambda-list gf) lambda-list)
     (setf (generic-function.methods gf) nil)
     (setf (generic-function.method-class gf) method-class)
-    (when (eq method-combination 'standard)
-      (setq method-combination *standard-method-combination*))
+
+    (cond ((eq method-combination 'standard)
+           (setq method-combination *standard-method-combination*))
+;;           ((consp method-combination)
+;;            (let ((type-name (car method-combination))
+;;                  (options (cdr method-combination)))
+;;              (mumble "type-name = ~S options = ~S~%" type-name options)))
+          )
+
     (setf (generic-function.method-combination gf) method-combination)
     (setf (generic-function.initial-methods gf) nil)
     (setf (generic-function.classes-to-emf-table gf) (make-hash-table :test #'equal))
@@ -1638,14 +1645,12 @@
     (dolist (method methods)
       (let ((qualifiers (method-qualifiers method)))
         (cond ((null qualifiers)
-               (if (eq mc-name 'standard)
-                   (push method primaries)
-                   (error "Method combination type mismatch.")))
+               (error "Method combination type mismatch."))
               ((cdr qualifiers)
                (error "Invalid method qualifiers."))
-              ((equal '(:before) qualifiers)
+              ((equal '(:before) qualifiers) ; FIXME short form does not support :before
                (push method befores))
-              ((equal '(:after) qualifiers)
+              ((equal '(:after) qualifiers) ; FIXME short form does not support :after
                (push method afters))
               ((equal '(:around) qualifiers)
                (push method arounds))
@@ -1660,62 +1665,28 @@
 	  arounds (nreverse arounds))
     (when (null primaries)
       (error "No primary method for the generic function ~S." gf))
-;;     (when (and (null befores) (null afters))
-;;       (format t "std-compute-effective-method-function no befores or afters ~S~%"
-;;               (generic-function.name gf)))
     (let ((main-effective-method-lambda-form
-           (cond ((eq mc-name 'standard)
-                  (cond ((and (null befores) (null afters) (null arounds))
-                         `(lambda (,+gf-args-var+)
-                            (macrolet ((call-method (method &optional next-method-list)
-                                                    `(funcall (method-function ,method) ,+gf-args-var+ ',next-method-list)))
-                              (call-method ,(first primaries) ,(rest primaries))
-                            )
-                            ))
-                        (t
-                         `(lambda (,+gf-args-var+)
-                            (multiple-value-prog1
-                              (progn
-                                ,(make-call-methods befores)
-                                (call-method ,(first primaries) ',(rest primaries)))
-                              ,(make-call-methods (nreverse afters)))))))
-                 (t
-                  (let ((mc-obj (get mc-name 'method-combination-object)))
-                    (unless mc-obj
-                      (error "Unsupported method combination type ~A." mc-name))
-                    (aver (typep mc-obj 'short-method-combination))
-                    (let* ((operator (short-combination-operator mc-obj))
-                           (ioa (short-combination-identity-with-one-argument mc-obj)))
-                      (if (and (null (cdr primaries))
-                               (not (null ioa)))
-                          `(lambda (,+gf-args-var+)
-                             (call-method ,(first primaries) nil))
-                          `(lambda (,+gf-args-var+)
-                             (,operator ,@(mapcar
-                                           (lambda (primary)
-                                             `(call-method ,primary nil))
-                                           primaries))))))))))
+           (let ((mc-obj (get mc-name 'method-combination-object)))
+             (unless mc-obj
+               (error "Unsupported method combination type ~A." mc-name))
+             (aver (typep mc-obj 'short-method-combination))
+             (let* ((operator (short-combination-operator mc-obj))
+                    (ioa (short-combination-identity-with-one-argument mc-obj)))
+               (if (and (null (cdr primaries))
+                        (not (null ioa)))
+                   `(lambda (,+gf-args-var+)
+                      (call-method ,(first primaries) nil))
+                   `(lambda (,+gf-args-var+)
+                      (,operator ,@(mapcar
+                                    (lambda (primary)
+                                      `(call-method ,primary nil))
+                                    primaries))))))))
       (cond (arounds
              (let ((lambda-form
                     `(lambda (,+gf-args-var+)
-;;                        (macrolet ((call-method (method &optional next-method-list)
-;;                                                ;;                                     (if (and (consp method) (eq (%car method) 'make-method))
-;;                                                ;;                                         `(funcall (coerce-to-function (second ,method)) args) ; REVIEW
-;;                                                ;;                                         `(funcall (method-function ,method) args ,next-method-list))
-;;                                     (if (typep method 'method)
-;;                                         `(funcall (method-function ,method) ,+gf-args-var+ ',next-method-list)
-;;                                         `(funcall ,method ,+gf-args-var+))
-;;                                                )
-;; ;;                                   (make-method (form)
-;; ;;                                     (coerce-to-function form))
-;;                                   )
                          (call-method ,(first arounds)
                                       '(,@(rest arounds)
-;;                                        (make-method ,main-effective-method-lambda-form)
-                                        ,(coerce-to-function main-effective-method-lambda-form)
-                                       ))
-;;                          )
-                       )))
+                                        ,(coerce-to-function main-effective-method-lambda-form))))))
                (coerce-to-function (precompile-form lambda-form))))
             (t
              (coerce-to-function (precompile-form main-effective-method-lambda-form)))))))
@@ -2738,6 +2709,10 @@
    (identity-with-one-argument
     :reader short-combination-identity-with-one-argument
     :initarg :identity-with-one-argument)
+   (options
+    :reader short-combination-options
+    :initform nil
+    :initarg :options)
    ;; REVIEW
    (%documentation
     :initform nil

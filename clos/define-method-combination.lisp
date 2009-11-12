@@ -22,8 +22,6 @@
 (defun declarationp (expr)
   (and (consp expr) (eq (car expr) 'declare)))
 
-;; (defclass method-combination (metaobject) ())
-
 ;; short form
 (defun expand-short-defcombin (whole)
   (let* ((name (cadr whole))
