@@ -1024,11 +1024,19 @@
 
     (cond ((eq method-combination 'standard)
            (setq method-combination *standard-method-combination*))
-;;           ((consp method-combination)
-;;            (let ((type-name (car method-combination))
-;;                  (options (cdr method-combination)))
-;;              (mumble "type-name = ~S options = ~S~%" type-name options)))
-          )
+          ((consp method-combination)
+           (let* ((type-name (car method-combination))
+                  (options (cdr method-combination))
+                  (mc (get type-name 'method-combination-object)))
+;;              (mumble "type-name = ~S options = ~S~%" type-name options)
+             (cond (mc
+;;                     (setq mc (copy-short-method-combination mc))
+;;                     (setf (short-combination-options mc) (copy-list options))
+                    (setq method-combination (method-combination-with-options mc options))
+;;                     (setq method-combination mc)
+                    )
+                   (t
+                    (error "Unsupported method combination type ~A." type-name))))))
 
     (setf (generic-function.method-combination gf) method-combination)
     (setf (generic-function.initial-methods gf) nil)
@@ -1633,9 +1641,12 @@
   (aver (neq mc 'standard))
 ;;   (mumble "std-compute-effective-method non-standard case generic function ~S~%"
 ;;           (generic-function-name gf))
+  (aver (typep mc 'short-method-combination))
   (let* (;(mc (generic-function-method-combination gf))
-         (mc-name (if (atom mc) mc (%car mc)))
-         (options (if (atom mc) nil (%cdr mc)))
+;;          (mc-name (if (atom mc) mc (%car mc)))
+;;          (options (if (atom mc) nil (%cdr mc)))
+         (mc-name (short-combination-name mc))
+         (options (short-combination-options mc))
          (order (car options))
          (befores nil)
          (primaries nil)
@@ -1666,7 +1677,8 @@
     (when (null primaries)
       (error "No primary method for the generic function ~S." gf))
     (let ((main-effective-method-lambda-form
-           (let ((mc-obj (get mc-name 'method-combination-object)))
+;;            (let ((mc-obj (get mc-name 'method-combination-object)))
+           (let ((mc-obj mc)) ;; FIXME
              (unless mc-obj
                (error "Unsupported method combination type ~A." mc-name))
              (aver (typep mc-obj 'short-method-combination))
@@ -2710,13 +2722,28 @@
     :reader short-combination-identity-with-one-argument
     :initarg :identity-with-one-argument)
    (options
-    :reader short-combination-options
+    :accessor short-combination-options
     :initform nil
     :initarg :options)
    ;; REVIEW
    (%documentation
     :initform nil
     :initarg :documentation)))
+
+(defun copy-short-method-combination (mc)
+  (make-instance 'short-method-combination
+                 :name (short-combination-name mc)
+                 :operator (short-combination-operator mc)
+                 :identity-with-one-argument (short-combination-identity-with-one-argument mc)
+                 :options (short-combination-options mc)
+                 ;; REVIEW documentation
+                 ))
+
+(defun method-combination-with-options (mc options)
+  (when options
+    (setq mc (copy-short-method-combination mc))
+    (setf (short-combination-options mc) (copy-list options)))
+  mc)
 
 ;; built-in method combination types
 (define-method-combination +      :identity-with-one-argument t)
