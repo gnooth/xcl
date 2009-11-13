@@ -53,7 +53,12 @@
 
 (defclass long-method-combination (method-combination)
   ((type :reader method-combination-type :initarg :type)
-   (arguments :reader method-combination-arguments :initarg :arguments)))
+   (arguments :accessor method-combination-arguments :initarg :arguments :initform nil)))
+
+(defun copy-long-method-combination (mc arguments)
+  (make-instance 'long-method-combination
+                 :type (method-combination-type mc)
+                 :arguments arguments))
 
 (defparameter *method-combination-types* (make-hash-table))
 
@@ -86,7 +91,10 @@
 (defun define-method-combination-type (name &rest initargs)
   (let ((combination-type (apply #'make-method-combination-type
                                  :allow-other-keys t :name name initargs)))
-    (setf (gethash name *method-combination-types*) combination-type)))
+    (setf (gethash name *method-combination-types*) combination-type)
+    (setf (get name 'method-combination-object)
+          (make-instance 'long-method-combination :type combination-type))
+    ))
 
 (defun method-group-p (selecter qualifiers)
   ;; selecter::= qualifier-pattern | predicate
@@ -132,8 +140,8 @@
             :order ,order
             :required ,required-p)))
 
-(defconstant +gf-args-variable+ (gensym "GF-ARGS-VARIABLE-")
-  "A Variable name whose value is a list of all arguments to a generic function.")
+;; (defconstant +gf-args-variable+ (gensym "GF-ARGS-VARIABLE-")
+;;   "A Variable name whose value is a list of all arguments to a generic function.")
 
 (defun extract-required-part (lambda-list)
   (flet ((skip (key lambda-list)
@@ -205,15 +213,15 @@
       `(let* ((,gf-lambda-list (slot-value ,generic-function-symbol 'lambda-list))
               (,nrequired (length (extract-required-part ,gf-lambda-list)))
               (,noptional (length (extract-optional-part ,gf-lambda-list)))
-              (,rest-args (subseq ,+gf-args-variable+ (+ ,nrequired ,noptional)))
-              ,@(when whole `((,whole ,+gf-args-variable+)))
+              (,rest-args (subseq ,+gf-args-var+ (+ ,nrequired ,noptional)))
+              ,@(when whole `((,whole ,+gf-args-var+)))
               ,@(loop for var in required and i upfrom 0
                   collect `(,var (when (< ,i ,nrequired)
-                                   (nth ,i ,+gf-args-variable+))))
+                                   (nth ,i ,+gf-args-var+))))
               ,@(loop for (var init-form) in optional and i upfrom 0
                   collect
                   `(,var (if (< ,i ,noptional)
-                             (nth (+ ,nrequired ,i) ,+gf-args-variable+)
+                             (nth (+ ,nrequired ,i) ,+gf-args-var+)
                              ,init-form)))
               ,@(when rest `((,rest ,rest-args)))
               ,@(loop for ((key var) init-form) in keys and i upfrom 0
@@ -321,7 +329,8 @@
            `(,@initargs
 ;;              :function ,(compile nil lambda-expression)
              :function ,(coerce-to-function lambda-expression)
-             :short-form-options nil))))
+             :short-form-options nil))
+    name))
 
 ;; (defun define-short-form-method-combination
 ;;   (name &key identity-with-one-argument (documentation "") (operator name))
@@ -366,8 +375,8 @@
   (cond ((and args
               (listp (car args)))
 ;;          (expand-long-defcombin form)
-         (mumble "define-method-combination long form name = ~S~%" name)
-         (error "unsupported")
+;;          (mumble "define-method-combination long form name = ~S~%" name)
+;;          (error "unsupported")
          `(let ((*message-prefix*
                  ,(format nil "DEFINE-METHOD-COMBINATION ~S: " name)))
             (apply #'define-long-form-method-combination ',name ',args)))
@@ -383,7 +392,7 @@
 
 (defmacro with-call-method (gf &body body)
   `(macrolet
-     ((call-method (method next-methods &environment env)
+     ((call-method (method &optional next-methods &environment env)
                    (flet ((method-form (form)
                                        (apply #|#'<make-instance>|# #'make-instance
                                               (generic-function-method-class ,gf)
@@ -399,7 +408,7 @@
                                           `(quote ,method)))
                                    next-methods)))
                    `(funcall (method-function ,method)
-                             ,+gf-args-variable+ (list ,@next-methods))))
+                             ,+gf-args-var+ (list ,@next-methods))))
      ,@body))
 
 (defun %compute-effective-method (generic-function method-combination methods)
@@ -408,8 +417,15 @@
          (arguments (method-combination-arguments method-combination))
          (effective-method
           (apply type-function generic-function methods arguments)))
-    (values `(with-call-method ,generic-function
-              ,effective-method)
+    (values `(lambda (,+gf-args-var+)
+               (with-call-method ,generic-function
+                 ,effective-method))
             `(:arguments ,(method-combination-type-args-lambda-list type)
               :generic-function
               ,(method-combination-type-generic-function-symbol type)))))
+
+(defmethod compute-effective-method ((generic-function standard-generic-function)
+                                     (method-combination long-method-combination)
+                                     methods)
+;;   (mumble "compute-effective-method long-method-combination~%")
+  (%compute-effective-method generic-function method-combination methods))

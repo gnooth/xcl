@@ -1028,8 +1028,10 @@
            (let* ((type-name (car method-combination))
                   (options (cdr method-combination))
                   (mc (get type-name 'method-combination-object)))
-;;              (mumble "type-name = ~S options = ~S~%" type-name options)
+;;              (mumble "make-instance-standard-generic-function type-name = ~S options = ~S~%"
+;;                      type-name options)
              (cond (mc
+;;                     (mumble "make-instance-standard-generic-function mc = ~S~%" mc)
                     (setq method-combination (method-combination-with-options mc options)))
                    (t
                     (error "Unsupported method combination type ~A." type-name))))))
@@ -1418,7 +1420,15 @@
                             (eq (class-of mc) +the-class-standard-method-combination+))
                        (compute-standard-effective-method gf applicable-methods))
                       (t
-                       (compute-effective-method gf mc applicable-methods)))))
+                       (let ((form (compute-effective-method gf mc applicable-methods)))
+;;                          (pprint form)
+;;                          (setq form (macroexpand form))
+;;                          (pprint form)
+;;                          (mumble "~%calling precompile-form~%")
+                         (setq form (precompile-form form))
+;;                          (pprint form)
+                         (coerce-to-function form))
+                         ))))
     (when classes
       (setf (gethash classes (classes-to-emf-table gf)) emfun))
     (funcall emfun args)))
@@ -2665,8 +2675,14 @@
 
 (defun method-combination-with-options (mc options)
   (when options
-    (setq mc (copy-short-method-combination mc))
-    (setf (short-combination-options mc) (copy-list options)))
+    (cond ((typep mc 'short-method-combination)
+           (setq mc (copy-short-method-combination mc))
+           (setf (short-combination-options mc) (copy-list options)))
+          ((typep mc 'long-method-combination)
+;;            (mumble "method-combination-with-options long-method-combination case~%")
+           (setq mc (copy-long-method-combination mc options)))
+          (t
+           (error "unsupported"))))
   mc)
 
 (defmethod compute-effective-method ((generic-function standard-generic-function)
