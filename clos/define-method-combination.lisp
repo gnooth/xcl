@@ -371,15 +371,9 @@
 ;;   (error "The long form of DEFINE-METHOD-COMBINATION is not implemented."))
 
 (defmacro define-method-combination (&whole form name &rest args)
-;;   (declare (ignore name))
   (cond ((and args
               (listp (car args)))
-;;          (expand-long-defcombin form)
-;;          (mumble "define-method-combination long form name = ~S~%" name)
-;;          (error "unsupported")
-         `(let ((*message-prefix*
-                 ,(format nil "DEFINE-METHOD-COMBINATION ~S: " name)))
-            (apply #'define-long-form-method-combination ',name ',args)))
+         `(apply #'define-long-form-method-combination ',name ',args))
         (t
          (expand-short-defcombin form))))
 

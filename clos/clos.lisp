@@ -1414,24 +1414,20 @@
 (defconstant +the-class-standard-method-combination+ (find-class 'standard-method-combination))
 
 (defun slow-method-lookup (gf args classes)
-  (let* ((applicable-methods (compute-applicable-methods gf args))
-         (mc (generic-function-method-combination gf))
-         (emfun (cond ((and (eq (class-of gf) +the-class-standard-generic-function+)
-                            (eq (class-of mc) +the-class-standard-method-combination+))
-                       (compute-standard-effective-method gf applicable-methods))
-                      (t
-                       (let ((form (compute-effective-method gf mc applicable-methods)))
-;;                          (pprint form)
-;;                          (setq form (macroexpand form))
-;;                          (pprint form)
-;;                          (mumble "~%calling precompile-form~%")
-                         (setq form (precompile-form form))
-;;                          (pprint form)
-                         (coerce-to-function form))
-                         ))))
-    (when classes
-      (setf (gethash classes (classes-to-emf-table gf)) emfun))
-    (funcall emfun args)))
+  (let ((applicable-methods (compute-applicable-methods gf args)))
+    (unless applicable-methods
+      (apply #'no-applicable-method gf args))
+    (let* ((mc (generic-function-method-combination gf))
+           (emfun (cond ((and (eq (class-of gf) +the-class-standard-generic-function+)
+                              (eq (class-of mc) +the-class-standard-method-combination+))
+                         (compute-standard-effective-method gf applicable-methods))
+                        (t
+                         (let ((form (compute-effective-method gf mc applicable-methods)))
+                           (setq form (precompile-form form))
+                           (coerce-to-function form))))))
+      (when classes
+        (setf (gethash classes (classes-to-emf-table gf)) emfun))
+      (funcall emfun args))))
 
 (defun method-applicable-p (method args)
   (do* ((specializers (method-specializers method) (cdr specializers))
