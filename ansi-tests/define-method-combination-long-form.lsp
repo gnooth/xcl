@@ -99,7 +99,6 @@
   (report-and-ignore-errors
    (defparameter *dmc-long-04*
      (let ((order :most-specific-last))
-       (format t "order = ~S~%" order)
        (define-method-combination mc-long-04 nil ((method-list * :order order))
 	 `(vector ,@(mapcar #'(lambda (m) `(call-method ,m)) method-list))))))
   (report-and-ignore-errors
