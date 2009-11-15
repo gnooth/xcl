@@ -16,6 +16,36 @@
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+;;; Adapted from Sacla.
+
+;; Copyright (C) 2002-2004, Yuji Minejima <ggb01164@nifty.ne.jp>
+;; ALL RIGHTS RESERVED.
+;;
+;; $Id: clos.lisp,v 1.28 2004/09/24 07:31:33 yuji Exp $
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions
+;; are met:
+;;
+;;  * Redistributions of source code must retain the above copyright
+;;    notice, this list of conditions and the following disclaimer.
+;;  * Redistributions in binary form must reproduce the above copyright
+;;    notice, this list of conditions and the following disclaimer in
+;;    the documentation and/or other materials provided with the
+;;    distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+;; "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+;; LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+;; A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+;; OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+;; SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+;; LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+;; DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+;; THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 (in-package "SYSTEM")
 
 ;; FIXME where does this belong?
@@ -132,24 +162,13 @@
          (description (getf rest :description ""))
          (order (getf rest :order :most-specific-first))
          (required-p (getf rest :required)))
-;;     `(:name ,name
-;;             :predicate (lambda (qualifiers)
-;;                          (loop for item in ',selecters
-;;                            thereis (method-group-p item qualifiers)))
-;;             :description ,description
-;;             :order ,order
-;;             :required ,required-p)
     `(list :name ',name
-            :predicate (lambda (qualifiers)
-                         (loop for item in ',selecters
-                           thereis (method-group-p item qualifiers)))
-            :description ',description
-            :order ,order
-            :required ',required-p)
-    ))
-
-;; (defconstant +gf-args-variable+ (gensym "GF-ARGS-VARIABLE-")
-;;   "A Variable name whose value is a list of all arguments to a generic function.")
+           :predicate (lambda (qualifiers)
+                        (loop for item in ',selecters
+                          thereis (method-group-p item qualifiers)))
+           :description ',description
+           :order ,order
+           :required ',required-p)))
 
 (defun extract-required-part (lambda-list)
   (flet ((skip (key lambda-list)
@@ -325,19 +344,11 @@
 
 (defun define-long-form-method-combination (name lambda-list method-group-specs
                                                  &rest args)
-;;   (mumble "method-group-specs = ~S~%" method-group-specs)
-;;   (mumble "canonicalized = ~S~%" (mapcar #'canonicalize-method-group-spec method-group-specs))
-;;   (mumble "canonicalized 3 = ~S~%" method-group-specs)
   (let* ((initargs `(:name ,name
-                           :lambda-list ,lambda-list
-
-                           :method-group-specs
-;;                            ,(mapcar #'canonicalize-method-group-spec method-group-specs)
-                           ,method-group-specs
-
-                           ,@(long-form-method-combination-args args)))
+                     :lambda-list ,lambda-list
+                     :method-group-specs ,method-group-specs
+                     ,@(long-form-method-combination-args args)))
          (lambda-expression (apply #'method-combination-type-lambda initargs)))
-    ;;(format t "~&~S~%" lambda-expression)
     (apply #'define-method-combination-type name
            `(,@initargs
 ;;              :function ,(compile nil lambda-expression)
@@ -349,25 +360,11 @@
   (cond ((and args
               (listp (car args)))
          (destructuring-bind (lambda-list method-groups &rest body) args
-;;            (mumble "method-groups = ~S~%" method-groups)
-;;            (mumble "canonicalized 1 = ~S~%" (mapcar #'canonicalize-method-group-spec method-groups))
-;;            (mumble "canonicalized 2 = ~S~%" `(,@(mapcar #'canonicalize-method-group-spec method-groups)))
            `(apply #'define-long-form-method-combination
                    ',name
                    ',lambda-list
-
-;;                    ',method-groups
-;;                    ',(mapcar #'canonicalize-method-group-spec method-groups) ; works
-;;                    '(,@(mapcar #'canonicalize-method-group-spec method-groups)) ; works
                    (list ,@(mapcar #'canonicalize-method-group-spec method-groups))
-
-;;                    (list ,@(mapcar #'canonicalize-method-group-spec method-groups)) ; no
-;;                    `(,@(mapcar #'canonicalize-method-group-spec method-groups)) ; no
-
-                   ',body)
-           )
-;;          `(apply #'define-long-form-method-combination ',name ',args)
-         )
+                   ',body)))
         (t
          (expand-short-defcombin form))))
 
@@ -399,6 +396,7 @@
                              ,+gf-args-var+ (list ,@next-methods))))
      ,@body))
 
+#+nil
 (defun %compute-effective-method (generic-function method-combination methods)
   (let* ((type (method-combination-type method-combination))
          (type-function (method-combination-type-function type))
@@ -415,5 +413,16 @@
 (defmethod compute-effective-method ((generic-function standard-generic-function)
                                      (method-combination long-method-combination)
                                      methods)
-;;   (mumble "compute-effective-method long-method-combination~%")
-  (%compute-effective-method generic-function method-combination methods))
+;;   (%compute-effective-method generic-function method-combination methods)
+  (let* ((type (method-combination-type method-combination))
+         (type-function (method-combination-type-function type))
+         (arguments (method-combination-arguments method-combination))
+         (effective-method
+          (apply type-function generic-function methods arguments)))
+    (values `(lambda (,+gf-args-var+)
+               (with-call-method ,generic-function
+                 ,effective-method))
+            `(:arguments ,(method-combination-type-args-lambda-list type)
+              :generic-function
+              ,(method-combination-type-generic-function-symbol type))))
+  )
