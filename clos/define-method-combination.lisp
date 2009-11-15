@@ -132,13 +132,21 @@
          (description (getf rest :description ""))
          (order (getf rest :order :most-specific-first))
          (required-p (getf rest :required)))
-    `(:name ,name
-            :predicate #'(lambda (qualifiers)
-                          (loop for item in ',selecters
-                            thereis (method-group-p item qualifiers)))
-            :description ,description
+;;     `(:name ,name
+;;             :predicate (lambda (qualifiers)
+;;                          (loop for item in ',selecters
+;;                            thereis (method-group-p item qualifiers)))
+;;             :description ,description
+;;             :order ,order
+;;             :required ,required-p)
+    `(list :name ',name
+            :predicate (lambda (qualifiers)
+                         (loop for item in ',selecters
+                           thereis (method-group-p item qualifiers)))
+            :description ',description
             :order ,order
-            :required ,required-p)))
+            :required ',required-p)
+    ))
 
 ;; (defconstant +gf-args-variable+ (gensym "GF-ARGS-VARIABLE-")
 ;;   "A Variable name whose value is a list of all arguments to a generic function.")
@@ -239,7 +247,7 @@
 
 (defmacro with-method-groups (method-group-specs methods-form &body forms)
   (flet ((grouping-form (spec methods-var)
-                        (let ((predicate (getf spec :predicate))
+                        (let ((predicate (coerce-to-function (getf spec :predicate)))
                               (group (gensym))
                               (leftovers (gensym))
                               (method (gensym)))
@@ -266,8 +274,7 @@
                         method-group-specs))
          (dolist (,method ,rest)
            (invalid-method-error ,method
-                                 "Method ~S with qualifiers ~S does not~ belong ~
-                                  to any method group."
+                                 "Method ~S with qualifiers ~S does not belong to any method group."
                                  ,method (slot-value ,method 'qualifiers)))
          ,@forms))))
 
@@ -318,10 +325,16 @@
 
 (defun define-long-form-method-combination (name lambda-list method-group-specs
                                                  &rest args)
+;;   (mumble "method-group-specs = ~S~%" method-group-specs)
+;;   (mumble "canonicalized = ~S~%" (mapcar #'canonicalize-method-group-spec method-group-specs))
+  (mumble "canonicalized 3 = ~S~%" method-group-specs)
   (let* ((initargs `(:name ,name
                            :lambda-list ,lambda-list
+
                            :method-group-specs
-                           ,(mapcar #'canonicalize-method-group-spec method-group-specs)
+;;                            ,(mapcar #'canonicalize-method-group-spec method-group-specs)
+                           ,method-group-specs
+
                            ,@(long-form-method-combination-args args)))
          (lambda-expression (apply #'method-combination-type-lambda initargs)))
     ;;(format t "~&~S~%" lambda-expression)
@@ -332,48 +345,29 @@
              :short-form-options nil))
     name))
 
-;; (defun define-short-form-method-combination
-;;   (name &key identity-with-one-argument (documentation "") (operator name))
-;;   (aver nil)
-;;   (define-long-form-method-combination name
-;;     '(&optional (order :most-specific-first))
-;;     `((around (:around))
-;;       (primary (,name) :order order :required t))
-;;     documentation
-;;     `(let ((form (if (and ,identity-with-one-argument (null (rest primary)))
-;;                      `(call-method ,(first primary))
-;;                      (cons ',operator (mapcar #'(lambda (method)
-;;                                                  `(call-method ,method))
-;;                                               primary)))))
-;;        (if around
-;;            `(call-method ,(first around) (,@(rest around) (make-method ,form)))
-;;            form)))
-;;   (let ((combination-type (gethash name *method-combination-types*)))
-;;     (setf (method-combination-type-short-form-options combination-type)
-;;           `(:documentation ,documentation
-;;                            :operator ,operator
-;;                            :identity-with-one-argument ,identity-with-one-argument)))
-;;   name)
-
-;; (defmacro define-method-combination (name &rest args) ; clos
-;;   "Define new types of method combination."
-;;   (format t "~&define-method-combination: ~S~%" name)
-;;   `(let ((*message-prefix*
-;;           ,(format nil "DEFINE-METHOD-COMBINATION ~S: " name)))
-;;      (apply #',(if (listp (first args))
-;;                    'define-long-form-method-combination
-;;                    'define-short-form-method-combination) ',name ',args)))
-
-;; ) ; end sacla
-
-;; (defun expand-long-defcombin (whole)
-;;   (declare (ignore whole))
-;;   (error "The long form of DEFINE-METHOD-COMBINATION is not implemented."))
-
 (defmacro define-method-combination (&whole form name &rest args)
   (cond ((and args
               (listp (car args)))
-         `(apply #'define-long-form-method-combination ',name ',args))
+         (destructuring-bind (lambda-list method-groups &rest body) args
+           (mumble "method-groups = ~S~%" method-groups)
+           (mumble "canonicalized 1 = ~S~%" (mapcar #'canonicalize-method-group-spec method-groups))
+           (mumble "canonicalized 2 = ~S~%" `(,@(mapcar #'canonicalize-method-group-spec method-groups)))
+           `(apply #'define-long-form-method-combination
+                   ',name
+                   ',lambda-list
+
+;;                    ',method-groups
+;;                    ',(mapcar #'canonicalize-method-group-spec method-groups) ; works
+;;                    '(,@(mapcar #'canonicalize-method-group-spec method-groups)) ; works
+                   (list ,@(mapcar #'canonicalize-method-group-spec method-groups))
+
+;;                    (list ,@(mapcar #'canonicalize-method-group-spec method-groups)) ; no
+;;                    `(,@(mapcar #'canonicalize-method-group-spec method-groups)) ; no
+
+                   ',body)
+           )
+;;          `(apply #'define-long-form-method-combination ',name ',args)
+         )
         (t
          (expand-short-defcombin form))))
 
