@@ -327,7 +327,7 @@
                                                  &rest args)
 ;;   (mumble "method-group-specs = ~S~%" method-group-specs)
 ;;   (mumble "canonicalized = ~S~%" (mapcar #'canonicalize-method-group-spec method-group-specs))
-  (mumble "canonicalized 3 = ~S~%" method-group-specs)
+;;   (mumble "canonicalized 3 = ~S~%" method-group-specs)
   (let* ((initargs `(:name ,name
                            :lambda-list ,lambda-list
 
@@ -349,9 +349,9 @@
   (cond ((and args
               (listp (car args)))
          (destructuring-bind (lambda-list method-groups &rest body) args
-           (mumble "method-groups = ~S~%" method-groups)
-           (mumble "canonicalized 1 = ~S~%" (mapcar #'canonicalize-method-group-spec method-groups))
-           (mumble "canonicalized 2 = ~S~%" `(,@(mapcar #'canonicalize-method-group-spec method-groups)))
+;;            (mumble "method-groups = ~S~%" method-groups)
+;;            (mumble "canonicalized 1 = ~S~%" (mapcar #'canonicalize-method-group-spec method-groups))
+;;            (mumble "canonicalized 2 = ~S~%" `(,@(mapcar #'canonicalize-method-group-spec method-groups)))
            `(apply #'define-long-form-method-combination
                    ',name
                    ',lambda-list
