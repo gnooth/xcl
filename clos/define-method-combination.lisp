@@ -377,23 +377,24 @@
 
 (defmacro with-call-method (gf &body body)
   `(macrolet
-     ((call-method (method &optional next-methods &environment env)
-                   (flet ((method-form (form)
-                                       (apply #|#'<make-instance>|# #'make-instance
-                                              (generic-function-method-class ,gf)
-                                              (method-initargs-form
-                                               ',gf env :null-lexical-environment-p t
-                                               (method-spec (make-method-description ,gf form))))))
-                     (when (make-method-form-p method)
-                       (setq method (method-form (second method))))
-                     (setq next-methods
-                           (mapcar #'(lambda (method)
-                                      (if (make-method-form-p method)
-                                          (method-form (second method))
-                                          `(quote ,method)))
-                                   next-methods)))
-                   `(funcall (method-function ,method)
-                             ,+gf-args-var+ (list ,@next-methods))))
+;;      ((call-method (method &optional next-methods &environment env)
+;;                    (flet ((method-form (form)
+;;                                        (apply #|#'<make-instance>|# #'make-instance
+;;                                               (generic-function-method-class ,gf)
+;;                                               (method-initargs-form
+;;                                                ',gf env :null-lexical-environment-p t
+;;                                                (method-spec (make-method-description ,gf form))))))
+;;                      (when (make-method-form-p method)
+;;                        (setq method (method-form (second method))))
+;;                      (setq next-methods
+;;                            (mapcar #'(lambda (method)
+;;                                       (if (make-method-form-p method)
+;;                                           (method-form (second method))
+;;                                           `(quote ,method)))
+;;                                    next-methods)))
+;;                    `(funcall (method-function ,method)
+;;                              ,+gf-args-var+ (list ,@next-methods))))
+     ()
      ,@body))
 
 #+nil
@@ -414,11 +415,14 @@
                                      (method-combination long-method-combination)
                                      methods)
 ;;   (%compute-effective-method generic-function method-combination methods)
+;;   (mumble "c-e-m long-method-combination case~%")
   (let* ((type (method-combination-type method-combination))
          (type-function (method-combination-type-function type))
          (arguments (method-combination-arguments method-combination))
          (effective-method
           (apply type-function generic-function methods arguments)))
+;;     (pprint effective-method)
+;;     (terpri)
     (values `(lambda (,+gf-args-var+)
                (with-call-method ,generic-function
                  ,effective-method))

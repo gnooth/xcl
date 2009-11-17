@@ -1576,7 +1576,7 @@
 ;;        (funcall (method-function ,method) args ,next-method-list)))
 
   (if (typep method 'method)
-      `(funcall (method-function ,method) ,+gf-args-var+ ,next-method-list)
+      `(funcall (method-function ,method) ,+gf-args-var+ ',next-method-list)
       `(funcall ,method ,+gf-args-var+)))
 
 ;; (defmacro call-method (method &optional next-method-list)
@@ -1612,23 +1612,27 @@
 	  arounds   (nreverse arounds))
     (let ((main-effective-method-lambda-form
            (cond ((and (null befores) (null afters) (null arounds))
+;;                   (mumble "c-s-e-m primaries-only case~%")
                   `(lambda (,+gf-args-var+)
-                     (macrolet ((call-method (method &optional next-method-list)
-                                             `(funcall (method-function ,method) ,+gf-args-var+ ',next-method-list)))
-                       (call-method ,(first primaries) ,(rest primaries)))))
+;;                      (macrolet ((call-method (method &optional next-method-list)
+;;                                   `(funcall (method-function ,method) ,+gf-args-var+ ,next-method-list)))
+                       (call-method ,(first primaries) ,(rest primaries))
+;;                        )
+                     ))
                  (t
                   `(lambda (,+gf-args-var+)
                      (multiple-value-prog1
                        (progn
                          ,(make-call-methods befores)
-                         (call-method ,(first primaries) ',(rest primaries)))
+                         (call-method ,(first primaries) ,(rest primaries)))
                        ,(make-call-methods (nreverse afters))))))))
       (cond (arounds
+;;              (mumble "c-s-e-m arounds case~%")
              (let ((lambda-form
                     `(lambda (,+gf-args-var+)
                        (call-method ,(first arounds)
-                                    '(,@(rest arounds)
-                                      ,(coerce-to-function main-effective-method-lambda-form))))))
+                                    (,@(rest arounds)
+                                     ,(coerce-to-function main-effective-method-lambda-form))))))
                (coerce-to-function (precompile-form lambda-form))))
             (t
              (coerce-to-function (precompile-form main-effective-method-lambda-form)))))))
@@ -1780,6 +1784,9 @@
 ;;       (compile nil lambda-expr)
 ;;       (eval `(function ,lambda-expr))))
 
+;; MOP p. 207
+;; "This generic function returns two values. The first is a lambda expression,
+;; the second is a list of initialization arguments and values."
 (defgeneric make-method-lambda (generic-function method lambda-expression environment))
 
 (defmethod make-method-lambda ((generic-function standard-generic-function)
@@ -2737,8 +2744,8 @@
              (let ((lambda-form
                     `(lambda (,+gf-args-var+)
                        (call-method ,(first arounds)
-                                    '(,@(rest arounds)
-                                      ,(coerce-to-function main-effective-method-lambda-form))))))
+                                    (,@(rest arounds)
+                                     ,(coerce-to-function main-effective-method-lambda-form))))))
                (coerce-to-function (precompile-form lambda-form))))
             (t
              (coerce-to-function (precompile-form main-effective-method-lambda-form)))))))
