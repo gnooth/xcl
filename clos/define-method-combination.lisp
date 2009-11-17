@@ -423,9 +423,8 @@
           (apply type-function generic-function methods arguments)))
 ;;     (pprint effective-method)
 ;;     (terpri)
-    (values `(lambda (,+gf-args-var+)
-               (with-call-method ,generic-function
-                 ,effective-method))
+    (values `(with-call-method ,generic-function
+               ,effective-method)
             `(:arguments ,(method-combination-type-args-lambda-list type)
               :generic-function
               ,(method-combination-type-generic-function-symbol type))))
