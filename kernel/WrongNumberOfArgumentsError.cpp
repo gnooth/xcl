@@ -71,7 +71,7 @@ AbstractString * WrongNumberOfArgumentsError::write_to_string()
           s->append("at least ");
           s->append_long(_min);
         }
-      s->append(", but received only ");
+      s->append(", but received ");
       s->append_long(_numargs);
       s->append_char(')');
     }
