@@ -1587,7 +1587,7 @@
   (cond ((typep method 'method)
          `(funcall (method-function ,method) ,+gf-args-var+ ',next-method-list))
         (t
-         (mumble "call-method method = ~S~%" method)
+;;          (mumble "call-method method = ~S~%" method)
          `(funcall ,method ,+gf-args-var+))))
 
 ;; (defmacro call-method (method &optional next-method-list)

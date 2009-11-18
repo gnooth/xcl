@@ -54,13 +54,13 @@
                                      ;; (call-method (car next-methods) (cdr next-methods))
                                      (let ((next-method (car ,next-methods)))
                                        (cond ((typep next-method 'method)
-                                              (mumble "case 1~%")
+;;                                               (mumble "case 1~%")
                                               (funcall (method-function next-method)
                                                        ,+gf-args-var+
                                                        (cdr ,next-methods)))
                                              ((and (consp next-method)
                                                    (eq (%car next-method) 'MAKE-METHOD))
-                                              (mumble "MAKE-METHOD case~%")
+;;                                               (mumble "MAKE-METHOD case~%")
 ;;                                               (funcall next-method ,+gf-args-var+)
                                               (let* ((form (second next-method))
                                                      (lambda-form
@@ -69,7 +69,7 @@
                                               )
                                              (t
                                               (aver nil)
-                                              (mumble "case 3 ~S~%" (type-of next-method))
+;;                                               (mumble "case 3 ~S~%" (type-of next-method))
                                               (funcall next-method ,+gf-args-var+)
                                               )))
                                      ))

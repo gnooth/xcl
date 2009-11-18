@@ -376,6 +376,7 @@
             (with-call-method ,gf ,form)))
 
 (defmacro with-call-method (gf &body body)
+  (declare (ignore gf)) ; FIXME
   `(macrolet
 ;;      ((call-method (method &optional next-methods &environment env)
 ;;                    (flet ((method-form (form)
