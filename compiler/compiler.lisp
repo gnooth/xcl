@@ -2604,9 +2604,10 @@ for special variables."
       (%compile name definition)
       (precompile name definition)))
 
+;; replaces do-nothing stub defined in kernel
 (defun autocompile (function)
-  (when *enable-autocompile*
-    (let* ((verbose *autocompile-verbose*)
+  (when *enable-autocompile* ; true by default
+    (let* ((verbose *autocompile-verbose*) ; false by default
            (*compile-verbose* verbose)
            (*mumble* verbose))
       (values (compile nil function)))))

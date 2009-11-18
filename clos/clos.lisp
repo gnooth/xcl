@@ -1420,21 +1420,28 @@
     (unless applicable-methods
       (apply #'no-applicable-method gf args))
     (let* ((mc (generic-function-method-combination gf))
-           (emfun nil))
+           effective-method
+           form
+           emfun)
       (cond ((and (eq (class-of gf) +the-class-standard-generic-function+)
                   (eq (class-of mc) +the-class-standard-method-combination+))
-             (let* ((effective-method (compute-standard-effective-method gf applicable-methods))
-                    (form (list 'LAMBDA (list +gf-args-var+) effective-method)))
-               (setq emfun (coerce-to-function (precompile-form form)))))
+;;              (let* ((effective-method (compute-standard-effective-method gf applicable-methods))
+;;                     (form (list 'LAMBDA (list +gf-args-var+) effective-method)))
+             (setq effective-method (compute-standard-effective-method gf applicable-methods))
+;;              (setq form (list 'LAMBDA (list +gf-args-var+) effective-method))
+;;              (setq emfun (coerce-to-function (precompile-form form)))
+             )
             (t
-;;              (let ((form (compute-effective-method gf mc applicable-methods)))
-;;                (setq form (precompile-form form))
-;;                (setq emfun (coerce-to-function form)))
-             (let* ((effective-method (compute-effective-method gf mc applicable-methods))
-                    (form (list 'LAMBDA (list +gf-args-var+) effective-method)))
-               (setq form (precompile-form form))
-               (setq emfun (coerce-to-function form)))
+;;              (let* ((effective-method (compute-effective-method gf mc applicable-methods))
+;;                     (form (list 'LAMBDA (list +gf-args-var+) effective-method)))
+             (setq effective-method (compute-effective-method gf mc applicable-methods))
+;;              (setq form (list 'LAMBDA (list +gf-args-var+) effective-method))
+;;              (setq form (precompile-form form))
+;;              (setq emfun (coerce-to-function form))
              ))
+      (setq form (list 'LAMBDA (list +gf-args-var+) effective-method))
+      (setq form (precompile-form form))
+      (setq emfun (coerce-to-function form))
       (when classes
         (setf (gethash classes (classes-to-emf-table gf)) emfun))
       (funcall emfun args))))
@@ -1595,60 +1602,6 @@
 ;;       `(funcall (coerce-to-function ,(second method)) args) ; REVIEW
 ;;       `(funcall (method-function ,method) args ,next-method-list)))
 
-;; ;; standard method combination
-;; #+nil
-;; (defun compute-standard-effective-method (gf methods)
-;;   (let* ((befores nil)
-;;          (primaries nil)
-;;          (afters nil)
-;;          (arounds nil))
-;;     (dolist (method methods)
-;;       (let ((qualifiers (method-qualifiers method)))
-;;         (cond ((null qualifiers)
-;;                (push method primaries))
-;;               ((cdr qualifiers)
-;;                (error "Invalid method qualifiers."))
-;;               ((equal '(:before) qualifiers)
-;;                (push method befores))
-;;               ((equal '(:after) qualifiers)
-;;                (push method afters))
-;;               ((equal '(:around) qualifiers)
-;;                (push method arounds))
-;;               (t
-;;                (error "Invalid method qualifiers.")))))
-;;     (when (null primaries)
-;;       (error "No primary method for the generic function ~S." gf))
-;;     (setq primaries (nreverse primaries)
-;;           befores   (nreverse befores)
-;; 	  afters    (nreverse afters)
-;; 	  arounds   (nreverse arounds))
-;;     (let ((main-effective-method-lambda-form
-;;            (cond ((and (null befores) (null afters) (null arounds))
-;; ;;                   (mumble "c-s-e-m primaries-only case~%")
-;;                   `(lambda (,+gf-args-var+)
-;; ;;                      (macrolet ((call-method (method &optional next-method-list)
-;; ;;                                   `(funcall (method-function ,method) ,+gf-args-var+ ,next-method-list)))
-;;                        (call-method ,(first primaries) ,(rest primaries))
-;; ;;                        )
-;;                      ))
-;;                  (t
-;;                   `(lambda (,+gf-args-var+)
-;;                      (multiple-value-prog1
-;;                        (progn
-;;                          ,(make-call-methods befores)
-;;                          (call-method ,(first primaries) ,(rest primaries)))
-;;                        ,(make-call-methods (nreverse afters))))))))
-;;       (cond (arounds
-;; ;;              (mumble "c-s-e-m arounds case~%")
-;;              (let ((lambda-form
-;;                     `(lambda (,+gf-args-var+)
-;;                        (call-method ,(first arounds)
-;;                                     (,@(rest arounds)
-;;                                      ,(coerce-to-function main-effective-method-lambda-form))))))
-;;                (coerce-to-function (precompile-form lambda-form))))
-;;             (t
-;;              (coerce-to-function (precompile-form main-effective-method-lambda-form)))))))
-
 ;; standard method combination
 (defun compute-standard-effective-method (gf methods)
   (let* ((befores nil)
@@ -1675,27 +1628,6 @@
           befores   (nreverse befores)
 	  afters    (nreverse afters)
 	  arounds   (nreverse arounds))
-;;     (let ((main-effective-method-lambda-form
-;;            (cond ((and (null befores) (null afters) (null arounds))
-;;                   `(lambda (,+gf-args-var+)
-;;                      (call-method ,(first primaries) ,(rest primaries))
-;;                      ))
-;;                  (t
-;;                   `(lambda (,+gf-args-var+)
-;;                      (multiple-value-prog1
-;;                        (progn
-;;                          ,(make-call-methods befores)
-;;                          (call-method ,(first primaries) ,(rest primaries)))
-;;                        ,(make-call-methods (nreverse afters))))))))
-;;       (cond (arounds
-;;              (let ((lambda-form
-;;                     `(lambda (,+gf-args-var+)
-;;                        (call-method ,(first arounds)
-;;                                     (,@(rest arounds)
-;;                                      ,(coerce-to-function main-effective-method-lambda-form))))))
-;;                (coerce-to-function (precompile-form lambda-form))))
-;;             (t
-;;              (coerce-to-function (precompile-form main-effective-method-lambda-form)))))
     (let ((main-effective-method
            (cond ((and (null befores) (null afters) (null arounds))
                   `(call-method ,(first primaries) ,(rest primaries)))
@@ -1709,50 +1641,7 @@
              `(call-method ,(first arounds)
                            (,@(rest arounds) (make-method ,main-effective-method))))
             (t
-             main-effective-method)))
-    ))
-
-;; #+nil
-;; ;; PCL combin.lisp:299
-;; (defun standard-compute-effective-method (generic-function combin applicable-methods)
-;;   (declare (ignore combin))
-;;   (let ((before ())
-;; 	(primary ())
-;; 	(after ())
-;; 	(around ()))
-;;     (dolist (m applicable-methods)
-;;       (let ((qualifiers (if (listp m)
-;; 			    (early-method-qualifiers m)
-;; 			    (method-qualifiers m))))
-;; 	(cond ((member ':before qualifiers)  (push m before))
-;; 	      ((member ':after  qualifiers)  (push m after))
-;; 	      ((member ':around  qualifiers) (push m around))
-;; 	      (t
-;; 	       (push m primary)))))
-;;     (setq before  (reverse before)
-;; 	  after   (reverse after)
-;; 	  primary (reverse primary)
-;; 	  around  (reverse around))
-;;     (cond ((null primary)
-;; 	   `(error "No primary method for the generic function ~S." ',generic-function))
-;; 	  ((and (null before) (null after) (null around))
-;; 	   ;;
-;; 	   ;; By returning a single call-method `form' here we enable an important
-;; 	   ;; implementation-specific optimization.
-;; 	   ;;
-;; 	   `(call-method ,(first primary) ,(rest primary)))
-;; 	  (t
-;; 	   (let ((main-effective-method
-;;                   (if (or before after)
-;;                       `(multiple-value-prog1
-;;                         (progn ,(make-call-methods before)
-;;                           (call-method ,(first primary) ,(rest primary)))
-;;                         ,(make-call-methods (reverse after)))
-;;                       `(call-method ,(first primary) ,(rest primary)))))
-;; 	     (if around
-;; 		 `(call-method ,(first around)
-;; 			       (,@(rest around) (make-method ,main-effective-method)))
-;; 		 main-effective-method))))))
+             main-effective-method)))))
 
 ;;; N.B. The function kludge-arglist is used to pave over the differences
 ;;; between argument keyword compatibility for regular functions versus
@@ -1850,14 +1739,6 @@
                           (apply #'no-next-method ,generic-function ,method
                                  ,(first lambda-list)))))
              ,@forms))))))
-
-;; (defvar compile-methods nil)      ; by default, run everything interpreted
-
-;; (defun compile-in-lexical-environment (env lambda-expr)
-;;   (declare (ignore env))
-;;   (if compile-methods
-;;       (compile nil lambda-expr)
-;;       (eval `(function ,lambda-expr))))
 
 ;; MOP p. 207
 ;; "This generic function returns two values. The first is a lambda expression,
@@ -2753,14 +2634,12 @@
 
 (defun method-combination-with-options (mc options)
   (when options
-    (cond ((typep mc 'short-method-combination)
-           (setq mc (copy-short-method-combination mc))
-           (setf (short-combination-options mc) (copy-list options)))
-          ((typep mc 'long-method-combination)
-;;            (mumble "method-combination-with-options long-method-combination case~%")
-           (setq mc (copy-long-method-combination mc options)))
-          (t
-           (error "unsupported"))))
+    (etypecase mc
+      (short-method-combination
+       (setq mc (copy-short-method-combination mc))
+       (setf (short-combination-options mc) (copy-list options)))
+      (long-method-combination
+       (setq mc (copy-long-method-combination mc options)))))
   mc)
 
 (defmethod compute-effective-method ((generic-function standard-generic-function)
@@ -2803,57 +2682,21 @@
 	  arounds (nreverse arounds))
     (when (null primaries)
       (error "No primary method for the generic function ~S." gf))
-;;     (let* ((operator (short-combination-operator mc))
-;;            (ioa (short-combination-identity-with-one-argument mc))
-;;            (main-effective-method-lambda-form
-;;             (if (and (null (cdr primaries))
-;;                      (not (null ioa)))
-;;                 `(lambda (,+gf-args-var+)
-;;                    (call-method ,(first primaries) nil))
-;;                 `(lambda (,+gf-args-var+)
-;;                    (,operator ,@(mapcar
-;;                                  (lambda (primary)
-;;                                    `(call-method ,primary nil))
-;;                                  primaries))))))
-;;       (cond (arounds
-;;              (let ((lambda-form
-;;                     `(lambda (,+gf-args-var+)
-;;                        (call-method ,(first arounds)
-;;                                     (,@(rest arounds)
-;;                                      ,(coerce-to-function main-effective-method-lambda-form))))))
-;;                (coerce-to-function (precompile-form lambda-form))))
-;;             (t
-;;              (coerce-to-function (precompile-form main-effective-method-lambda-form)))))
     (let* ((operator (short-combination-operator mc))
            (ioa (short-combination-identity-with-one-argument mc))
            (main-effective-method
             (if (and (null (cdr primaries))
                      (not (null ioa)))
-;;                 `(lambda (,+gf-args-var+)
                    `(call-method ,(first primaries) nil)
-;;                    )
-;;                 `(lambda (,+gf-args-var+)
                    `(,operator ,@(mapcar
                                   (lambda (primary)
                                     `(call-method ,primary nil))
-                                  primaries))
-;;                    )
-                )))
-;;       (cond (arounds
-;;              (let ((lambda-form
-;;                     `(lambda (,+gf-args-var+)
-;;                        (call-method ,(first arounds)
-;;                                     (,@(rest arounds)
-;;                                      ,(coerce-to-function main-effective-method-lambda-form))))))
-;;                (coerce-to-function (precompile-form lambda-form))))
-;;             (t
-;;              (coerce-to-function (precompile-form main-effective-method-lambda-form))))
+                                  primaries)))))
       (cond (arounds
              `(call-method ,(first arounds)
                            (,@(rest arounds) (make-method ,main-effective-method))))
             (t
-             main-effective-method)))
-    ))
+             main-effective-method)))))
 
 ;; built-in method combination types
 (define-method-combination +      :identity-with-one-argument t)

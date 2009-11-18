@@ -18,6 +18,10 @@
 
 (in-package "SYSTEM")
 
+(declaim (inline make-method-form-p))
+(defun make-method-form-p (object)
+  (and (consp object) (eq (%car object) 'make-method)))
+
 (defvar *call-next-method-p*)
 (defvar *next-method-p-p*)
 
@@ -58,8 +62,9 @@
                                               (funcall (method-function next-method)
                                                        ,+gf-args-var+
                                                        (cdr ,next-methods)))
-                                             ((and (consp next-method)
-                                                   (eq (%car next-method) 'MAKE-METHOD))
+;;                                              ((and (consp next-method)
+;;                                                    (eq (%car next-method) 'MAKE-METHOD))
+                                             ((make-method-form-p next-method)
 ;;                                               (mumble "MAKE-METHOD case~%")
 ;;                                               (funcall next-method ,+gf-args-var+)
                                               (let* ((form (second next-method))
@@ -75,8 +80,7 @@
                                      ))
                                (next-method-p ()
                                  (not (null ,next-methods))))
-                          (apply #'(lambda ,lambda-list ,@declarations ,@body) ,+gf-args-var+))))
-               )
+                          (apply #'(lambda ,lambda-list ,@declarations ,@body) ,+gf-args-var+)))))
               ((null (intersection lambda-list lambda-list-keywords))
                (setq method-lambda
                      (case numargs
