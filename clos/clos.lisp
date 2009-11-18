@@ -1335,11 +1335,9 @@
          (method-function `(lambda (,+gf-args-var+ next-methods)
                              (declare (ignore next-methods))
                              (,operator (car ,+gf-args-var+) ',slot-name)))
-
          (method-fast-function (compute-method-fast-function
                                 `(lambda ,lambda-list (,operator ,(car lambda-list) ',slot-name))
-                                (list class)))
-         )
+                                (list class))))
     (ensure-method function-name
                    :lambda-list lambda-list
                    :qualifiers nil
@@ -1420,28 +1418,15 @@
     (unless applicable-methods
       (apply #'no-applicable-method gf args))
     (let* ((mc (generic-function-method-combination gf))
-           effective-method
-           form
-           emfun)
-      (cond ((and (eq (class-of gf) +the-class-standard-generic-function+)
-                  (eq (class-of mc) +the-class-standard-method-combination+))
-;;              (let* ((effective-method (compute-standard-effective-method gf applicable-methods))
-;;                     (form (list 'LAMBDA (list +gf-args-var+) effective-method)))
-             (setq effective-method (compute-standard-effective-method gf applicable-methods))
-;;              (setq form (list 'LAMBDA (list +gf-args-var+) effective-method))
-;;              (setq emfun (coerce-to-function (precompile-form form)))
-             )
-            (t
-;;              (let* ((effective-method (compute-effective-method gf mc applicable-methods))
-;;                     (form (list 'LAMBDA (list +gf-args-var+) effective-method)))
-             (setq effective-method (compute-effective-method gf mc applicable-methods))
-;;              (setq form (list 'LAMBDA (list +gf-args-var+) effective-method))
-;;              (setq form (precompile-form form))
-;;              (setq emfun (coerce-to-function form))
-             ))
-      (setq form (list 'LAMBDA (list +gf-args-var+) effective-method))
-      (setq form (precompile-form form))
-      (setq emfun (coerce-to-function form))
+           (effective-method
+            (if (and (eq (class-of gf) +the-class-standard-generic-function+)
+                     (eq (class-of mc) +the-class-standard-method-combination+))
+                (compute-standard-effective-method gf applicable-methods)
+                (compute-effective-method gf mc applicable-methods)))
+           (form (list 'LAMBDA (list +gf-args-var+) (precompile-form effective-method)))
+           (emfun (coerce-to-function form)))
+      ;; REVIEW
+      (setq emfun (or (autocompile emfun) emfun))
       (when classes
         (setf (gethash classes (classes-to-emf-table gf)) emfun))
       (funcall emfun args))))
@@ -1458,7 +1443,8 @@
           (unless (subclassp (class-of arg) specializer)
             (return nil))))))
 
-;; MOP p. 170 (generic function)
+;; CL generic function
+;; MOP p. 170
 (defun compute-applicable-methods (gf args)
   (let ((required-classes (required-classes gf args))
         (methods nil))
@@ -1592,7 +1578,7 @@
 
 
   (cond ((typep method 'method)
-         `(funcall (method-function ,method) ,+gf-args-var+ ',next-method-list))
+         `(funcall ,(method-function method) ,+gf-args-var+ ',next-method-list))
         (t
 ;;          (mumble "call-method method = ~S~%" method)
          `(funcall ,method ,+gf-args-var+))))

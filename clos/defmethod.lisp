@@ -230,7 +230,6 @@
               (t
                (push `',specializer specializers-form))))
       (setq specializers-form `(list ,@(nreverse specializers-form)))
-;;       (format t "calling make-method-lambda ~S ~S ~S~%" name qualifiers specializers)
       (let* ((method-lambda
               (if *mop-working-p*
                   (multiple-value-bind (proto-gf proto-method)
@@ -252,6 +251,4 @@
                         :qualifiers ',qualifiers
                         :specializers ,specializers-form
                         :function (function ,method-function)
-                        :fast-function (if ,method-fast-function
-                                           (function ,method-fast-function)
-                                           nil))))))
+                        ,@(if method-fast-function `(:fast-function (function ,method-fast-function))))))))
