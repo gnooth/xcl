@@ -54,11 +54,6 @@
       (setq datum (concatenate 'string *message-prefix* datum)))
     (apply #'cl:warn datum arguments))
 
-
-  (defun %list (designator)
-    (if (listp designator) designator (list designator)))
-  (defun %keyword (designator)
-    (intern (string designator) "KEYWORD"))
   (define-modify-macro appendf (&rest args) append "Append onto list")
 ;;   (defun mapappend (function &rest lists)
 ;;     (apply #'append (apply #'mapcar function lists)))
@@ -151,15 +146,15 @@
 (defun keyword? (&optional keyword-list-designator)
   (and *loop-tokens*
        (symbolp (car *loop-tokens*))
-       (let ((keyword-list (%list keyword-list-designator))
-             (keyword (%keyword (car *loop-tokens*))))
+       (let ((keyword-list (designator-list keyword-list-designator))
+             (keyword (make-keyword (car *loop-tokens*))))
          (and (or (null keyword-list) (list-find-eq keyword keyword-list))
               (setq *current-clause* *loop-tokens*
                     *loop-tokens* (rest *loop-tokens*)
                     *current-keyword* keyword)))))
 
 (defun keyword1 (keyword-list-designator &key prepositionp)
-  (let ((keywords (%list keyword-list-designator)))
+  (let ((keywords (designator-list keyword-list-designator)))
     (or (keyword? keywords)
         (let ((length (length keywords))
               (kind (if prepositionp "preposition" "keyword")))
