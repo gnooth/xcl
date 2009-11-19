@@ -1,6 +1,6 @@
 ;;; define-method-combination.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -50,7 +50,7 @@
 
 ;; FIXME where does this belong?
 (defun declarationp (expr)
-  (and (consp expr) (eq (car expr) 'declare)))
+  (and (consp expr) (eq (%car expr) 'DECLARE)))
 
 ;; short form
 (defun expand-short-defcombin (whole)
@@ -82,15 +82,13 @@
   short-form-options)
 
 (defclass long-method-combination (method-combination)
-  ((type :reader method-combination-type :initarg :type)
-   (arguments :accessor method-combination-arguments :initarg :arguments :initform nil)))
+  ((type :reader long-combination-type :initarg :type)
+   (arguments :accessor long-combination-arguments :initarg :arguments :initform nil)))
 
-(defun copy-long-method-combination (mc arguments)
+(defun copy-long-method-combination (mc)
+  (declare (type long-method-combination mc))
   (make-instance 'long-method-combination
-                 :type (method-combination-type mc)
-                 :arguments arguments))
-
-(defparameter *method-combination-types* (make-hash-table))
+                 :type (long-combination-type mc)))
 
 ;; MOP p. 191
 ;; "The METHOD-COMBINATION-OPTIONS argument is a list of arguments to the
@@ -102,18 +100,19 @@
 (defmethod find-method-combination ((gf standard-generic-function)
                                     method-combination-type-name
                                     method-combination-options)
-  (multiple-value-bind (type presentp)
-      (gethash method-combination-type-name *method-combination-types*)
-    (if presentp
-        (make-instance 'long-method-combination
-                       :type type
-                       :arguments method-combination-options)
-        (error "Method combination ~S does not exist." method-combination-type-name))))
+  (let ((mc (get method-combination-type-name 'method-combination-object)))
+    (cond ((null mc)
+           (error "Method combination ~S does not exist." method-combination-type-name))
+          ((eq mc *standard-method-combination*)
+           (when method-combination-options
+             (error "The STANDARD method combination accepts no options."))
+           mc)
+          (t
+           (method-combination-with-options mc method-combination-options)))))
 
 (defun define-method-combination-type (name &rest initargs)
   (let ((combination-type (apply #'make-method-combination-type
                                  :allow-other-keys t :name name initargs)))
-    (setf (gethash name *method-combination-types*) combination-type)
     (setf (get name 'method-combination-object)
           (make-instance 'long-method-combination :type combination-type))))
 
@@ -304,19 +303,19 @@
   (let ((rest args))
     (labels ((nextp (key) (and (consp (car rest)) (eq key (caar rest))))
              (args-lambda-list ()
-                               (when (nextp :arguments)
-                                 (prog1 (cdr (car rest)) (setq rest (cdr rest)))))
+               (when (nextp :arguments)
+                 (prog1 (cdr (car rest)) (setq rest (cdr rest)))))
              (generic-function-symbol ()
-                                      (if (nextp :generic-function)
-                                          (prog1 (second (car rest)) (setq rest (cdr rest)))
-                                          (gensym)))
+                (if (nextp :generic-function)
+                    (prog1 (second (car rest)) (setq rest (cdr rest)))
+                    (gensym)))
              (declaration* ()
-                           (let ((end (position-if-not #'declarationp rest)))
-                             (when end
-                               (prog1 (subseq rest 0 end) (setq rest (nthcdr end rest))))))
+               (let ((end (position-if-not #'declarationp rest)))
+                 (when end
+                   (prog1 (subseq rest 0 end) (setq rest (nthcdr end rest))))))
              (documentation? ()
-                             (when (stringp (car rest))
-                               (prog1 (car rest) (setq rest (cdr rest)))))
+               (when (stringp (car rest))
+                 (prog1 (car rest) (setq rest (cdr rest)))))
              (form* () rest))
       (let ((declarations '()))
         `(:args-lambda-list ,(args-lambda-list)
@@ -355,9 +354,9 @@
 (defmethod compute-effective-method ((generic-function standard-generic-function)
                                      (method-combination long-method-combination)
                                      methods)
-  (let* ((type (method-combination-type method-combination))
+  (let* ((type (long-combination-type method-combination))
          (type-function (method-combination-type-function type))
-         (arguments (method-combination-arguments method-combination))
+         (arguments (long-combination-arguments method-combination))
          (effective-method (apply type-function generic-function methods arguments)))
     (values effective-method
             `(:arguments ,(method-combination-type-args-lambda-list type)

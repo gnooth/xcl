@@ -801,7 +801,7 @@
 (defun (setf generic-function-method-class) (new-value gf)
   (setf (slot-value gf 'method-class) new-value))
 
-;; MOP p. 217 (generic function)
+;; MOP p. 217 generic function
 ;; should return a method combination metaobject
 (defun generic-function-method-combination (gf)
   (generic-function.method-combination gf))
@@ -845,7 +845,7 @@
 (defun (setf method-qualifiers) (new-value method)
   (setf (slot-value method 'qualifiers) new-value))
 
-;; MOP p.219 (generic function)
+;; MOP p.219 generic function
 (defun method-specializers (method) (slot-value method 'specializers))
 (defun (setf method-specializers) (new-value method)
   (setf (slot-value method 'specializers) new-value))
@@ -865,6 +865,53 @@
 (defun (setf method-fast-function) (new-value method)
   (setf (slot-value method 'fast-function) new-value))
 
+(defun make-instance-standard-method-combination ()
+  (let* ((class (find-class 'standard-method-combination))
+         (instance (allocate-standard-instance (or (class.layout class)
+                                                   (make-layout class nil nil)))))
+    instance))
+
+(defparameter *standard-method-combination*
+  (setf (get 'standard 'method-combination-object) (make-instance-standard-method-combination)))
+
+(defun canonicalize-method-combination (thing)
+  (cond ((eq thing 'standard)
+         *standard-method-combination*)
+        ((consp thing)
+         (let* ((type-name (%car thing))
+                (options (%cdr thing))
+                (mc (get type-name 'method-combination-object)))
+           (cond (mc
+                  (method-combination-with-options mc options))
+                 (t
+                  (error "Unsupported method combination type ~A." type-name)))))))
+
+(defun canonicalize-defgeneric-options (options)
+  (mapappend #'canonicalize-defgeneric-option options))
+
+(defun canonicalize-defgeneric-option (option)
+  (case (car option)
+    (:generic-function-class
+     (list ':generic-function-class
+           `(find-class ',(cadr option))))
+    (:method-class
+     (list ':method-class
+           `(find-class ',(cadr option))))
+    (:method-combination
+     (list :method-combination (canonicalize-method-combination (cdr option))))
+    (:argument-precedence-order
+     (list :argument-precedence-order `',(cdr option)))
+    (t
+     (list `',(car option) `',(cadr option)))))
+
+;; "The :METHOD-COMBINATION option is followed by a symbol that names a type of
+;; method combination. The arguments (if any) that follow that symbol depend on
+;; the type of method combination. Note that the standard method combination
+;; type does not support any arguments. However, all types of method
+;; combination defined by the short form of define-method-combination accept an
+;; optional argument named order, defaulting to :MOST-SPECIFIC-FIRST, where a
+;; value of :MOST-SPECIFIC-LAST reverses the order of the primary methods
+;; without affecting the order of the auxiliary methods."
 (defmacro defgeneric (function-name lambda-list &rest options-and-method-descriptions)
   (let ((options nil)
         (methods nil)
@@ -894,24 +941,6 @@
         :lambda-list ',lambda-list
         ,@(canonicalize-defgeneric-options options))
        ,@methods)))
-
-(defun canonicalize-defgeneric-options (options)
-  (mapappend #'canonicalize-defgeneric-option options))
-
-(defun canonicalize-defgeneric-option (option)
-  (case (car option)
-    (:generic-function-class
-      (list ':generic-function-class
-            `(find-class ',(cadr option))))
-    (:method-class
-      (list ':method-class
-            `(find-class ',(cadr option))))
-    (:method-combination
-     (list :method-combination `',(cdr option)))
-    (:argument-precedence-order
-     (list :argument-precedence-order `',(cdr option)))
-    (t
-     (list `',(car option) `',(cadr option)))))
 
 ;; Adapted from OpenMCL.
 (defun canonicalize-argument-precedence-order (apo req)
@@ -953,13 +982,16 @@
     (eql (length args1) (length args2))))
 
 ;; CL
+;; "The keyword arguments correspond to the option arguments of defgeneric,
+;; except that the :METHOD-CLASS and :GENERIC-FUNCTION-CLASS arguments can be
+;; class objects as well as names."
 (defun ensure-generic-function (function-name
                                 &rest all-keys
                                 &key
                                 lambda-list
                                 (generic-function-class +the-class-standard-generic-function+)
                                 (method-class +the-class-standard-method+)
-                                (method-combination 'standard)
+                                (method-combination *standard-method-combination*)
                                 (argument-precedence-order nil apo-p)
                                 &allow-other-keys)
   (let ((gf (find-generic-function function-name nil)))
@@ -997,15 +1029,6 @@
                            all-keys))
            gf))))
 
-(defun make-instance-standard-method-combination ()
-  (let* ((class (find-class 'standard-method-combination))
-         (instance (allocate-standard-instance (or (class.layout class)
-                                                   (make-layout class nil nil)))))
-    instance))
-
-(defparameter *standard-method-combination*
-  (make-instance-standard-method-combination))
-
 (defun make-instance-standard-generic-function (generic-function-class
                                                 &key
                                                 name
@@ -1015,27 +1038,12 @@
                                                 argument-precedence-order
                                                 documentation)
   (declare (ignore generic-function-class)) ; REVIEW
-;;   (mumble "make-instance-standard-generic-function method-combination = ~S~%" method-combination)
+  (declare (type method-combination method-combination))
   (let ((gf (allocate-instance-standard-generic-function +standard-generic-function-layout+)))
     (setf (generic-function.name gf) name)
     (setf (generic-function.lambda-list gf) lambda-list)
     (setf (generic-function.methods gf) nil)
     (setf (generic-function.method-class gf) method-class)
-
-    (cond ((eq method-combination 'standard)
-           (setq method-combination *standard-method-combination*))
-          ((consp method-combination)
-           (let* ((type-name (car method-combination))
-                  (options (cdr method-combination))
-                  (mc (get type-name 'method-combination-object)))
-;;              (mumble "make-instance-standard-generic-function type-name = ~S options = ~S~%"
-;;                      type-name options)
-             (cond (mc
-;;                     (mumble "make-instance-standard-generic-function mc = ~S~%" mc)
-                    (setq method-combination (method-combination-with-options mc options)))
-                   (t
-                    (error "Unsupported method combination type ~A." type-name))))))
-
     (setf (generic-function.method-combination gf) method-combination)
     (setf (generic-function.initial-methods gf) nil)
     (setf (generic-function.classes-to-emf-table gf) (make-hash-table :test #'equal))
@@ -2619,13 +2627,15 @@
                  ))
 
 (defun method-combination-with-options (mc options)
+  (declare (type method-combination mc))
   (when options
     (etypecase mc
       (short-method-combination
        (setq mc (copy-short-method-combination mc))
        (setf (short-combination-options mc) (copy-list options)))
       (long-method-combination
-       (setq mc (copy-long-method-combination mc options)))))
+       (setq mc (copy-long-method-combination mc))
+       (setf (long-combination-arguments mc) (copy-list options)))))
   mc)
 
 (defmethod compute-effective-method ((generic-function standard-generic-function)

@@ -5,6 +5,8 @@
 
 #+sbcl
 (use-package "SB-MOP")
+#+sbcl
+(defmacro aver (expr) `(sb-int:aver ,expr))
 
 (aver (eq (class-of (find-class 'class))           (find-class 'standard-class)))
 (aver (eq (type-of  (find-class 'class))           'standard-class))
@@ -66,3 +68,10 @@
 (aver (eql (test7 42) 42))
 (aver (eql (test7 45) 45))
 (aver (eql (test7 'a) t))
+
+#+xcl
+(aver (typep (find-method-combination #'test7 'standard nil) 'standard-method-combination))
+#+sbcl
+(aver (typep (find-method-combination #'test7 'standard nil) 'method-combination))
+
+(fmakunbound 'test7)
