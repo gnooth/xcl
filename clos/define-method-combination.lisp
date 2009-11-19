@@ -110,18 +110,12 @@
                        :arguments method-combination-options)
         (error "Method combination ~S does not exist." method-combination-type-name))))
 
-;; FIXME also in loop.lisp
-(defun %keyword (designator)
-  (intern (string designator) "KEYWORD"))
-
-
 (defun define-method-combination-type (name &rest initargs)
   (let ((combination-type (apply #'make-method-combination-type
                                  :allow-other-keys t :name name initargs)))
     (setf (gethash name *method-combination-types*) combination-type)
     (setf (get name 'method-combination-object)
-          (make-instance 'long-method-combination :type combination-type))
-    ))
+          (make-instance 'long-method-combination :type combination-type))))
 
 (defun method-group-p (selecter qualifiers)
   ;; selecter::= qualifier-pattern | predicate
@@ -209,7 +203,7 @@
             (mapcar #'(lambda (spec)
                        (let ((key (if (consp spec) (car spec) spec))
                              (rest (when (consp spec) (rest spec))))
-                         `(,(if (consp key) key `(,(%keyword key) ,key))
+                         `(,(if (consp key) key `(,(make-keyword key) ,key))
                            ,(car rest)
                            ,@(cdr rest))))
                     keys)
