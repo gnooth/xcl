@@ -91,7 +91,7 @@
             (return))
           (terpri stream)))))
   (let ((flags (symbol-flags object)))
-    (when flags
+    (unless (zerop flags)
       (format stream "Flags:" flags)
       (dotimes (i +bits-per-word+)
         (when (logbitp i flags)
