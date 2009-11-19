@@ -1509,10 +1509,10 @@ Value SYS_lambda_expression_p(Value arg)
   return T;
 }
 
-// ### make-keyword symbol => keyword
+// ### make-keyword string-designator => keyword
 Value SYS_make_keyword(Value arg)
 {
-  Value value = PACKAGE_KEYWORD->intern(check_symbol(arg)->name(), true);
+  Value value = PACKAGE_KEYWORD->intern(string(arg), true);
   current_thread()->clear_values();
   return value;
 }
