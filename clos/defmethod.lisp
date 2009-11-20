@@ -54,29 +54,18 @@
                                    (setq cnm-args ,+gf-args-var+))
                                  (if (null ,next-methods)
                                      (error "No next method for generic function.")
-                                     ;; (call-method (car next-methods) (cdr next-methods))
                                      (let ((next-method (car ,next-methods)))
                                        (cond ((typep next-method 'method)
-;;                                               (mumble "case 1~%")
                                               (funcall (method-function next-method)
                                                        ,+gf-args-var+
                                                        (cdr ,next-methods)))
-;;                                              ((and (consp next-method)
-;;                                                    (eq (%car next-method) 'MAKE-METHOD))
                                              ((make-method-form-p next-method)
-;;                                               (mumble "MAKE-METHOD case~%")
-;;                                               (funcall next-method ,+gf-args-var+)
                                               (let* ((form (second next-method))
                                                      (lambda-form
                                                       (list 'LAMBDA (list +gf-args-var+) form)))
-                                                (funcall (coerce-to-function lambda-form) ,+gf-args-var+))
-                                              )
+                                                (funcall (coerce-to-function lambda-form) ,+gf-args-var+)))
                                              (t
-                                              (aver nil)
-;;                                               (mumble "case 3 ~S~%" (type-of next-method))
-                                              (funcall next-method ,+gf-args-var+)
-                                              )))
-                                     ))
+                                              (aver nil))))))
                                (next-method-p ()
                                  (not (null ,next-methods))))
                           (apply #'(lambda ,lambda-list ,@declarations ,@body) ,+gf-args-var+)))))
@@ -116,13 +105,10 @@
                              ,@declarations
                              ,@body)))
                        (t
-;;                         (format t "%make-method-lambda numargs > 3 case~%")
                         `(lambda (,+gf-args-var+ ,next-methods)
                            (declare (ignore ,next-methods))
-                           (apply #'(lambda ,lambda-list ,@declarations ,@body) ,+gf-args-var+))
-                        ))))
+                           (apply #'(lambda ,lambda-list ,@declarations ,@body) ,+gf-args-var+))))))
               (t
-;;                (format t "%make-method-lambda default case~%")
                (setq method-lambda
                      `(lambda (,+gf-args-var+ ,next-methods)
                         (declare (ignore ,next-methods))

@@ -42,12 +42,6 @@
 
 (defvar *debug-clos* t)
 
-;;;
-;;; Standard instances
-;;;
-
-;;; Standard instance allocation
-
 (defun instance-slot-p (slot)
   (eq (slot-definition-allocation slot) ':instance))
 
@@ -1133,6 +1127,10 @@
         (t
          (error "Unknown specializer: ~S" specializer))))
 
+(defun gf-required-arglist (gf)
+  (let ((plist (analyze-lambda-list (generic-function-lambda-list gf))))
+    (getf plist :required-args)))
+
 (defun required-classes (gf args)
   (declare (optimize speed (safety 0)))
   (let ((numargs (length args))
@@ -1144,15 +1142,10 @@
       (error 'program-error
              :format-control "Wrong number of arguments for generic function ~S."
              :format-arguments (list (generic-function-name gf))))
-    (let ((args args)
-          result)
+    (let (result)
       (dotimes (i minargs (nreverse result))
         (push (class-of (%car args)) result)
         (setq args (%cdr args))))))
-
-(defun gf-required-arglist (gf)
-  (let ((plist (analyze-lambda-list (generic-function-lambda-list gf))))
-    (getf plist :required-args)))
 
 (defun extract-lambda-list (specialized-lambda-list)
   (let* ((plist (analyze-lambda-list specialized-lambda-list))
