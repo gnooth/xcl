@@ -47,7 +47,6 @@
             method-lambda)
         (walk-form body)
         (cond ((or *call-next-method-p* *next-method-p-p*)
-;;                (format t "%make-method-lambda hairy case numargs = ~D~%" numargs)
                (setq method-lambda
                      `(lambda (,+gf-args-var+ ,next-methods)
                         (flet ((call-next-method (&rest cnm-args)

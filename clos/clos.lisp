@@ -1632,10 +1632,11 @@
                          (call-method ,(first primaries) ,(rest primaries)))
                        ,(make-call-methods (nreverse afters)))))))
       (cond (arounds
-             `(call-method ,(first arounds)
-                           (,@(rest arounds) (make-method ,main-effective-method))))
+             (values `(call-method ,(first arounds)
+                                   (,@(rest arounds) (make-method ,main-effective-method)))
+                     nil))
             (t
-             main-effective-method)))))
+             (values main-effective-method nil))))))
 
 ;;; N.B. The function kludge-arglist is used to pave over the differences
 ;;; between argument keyword compatibility for regular functions versus
@@ -2683,16 +2684,18 @@
            (main-effective-method
             (if (and (null (cdr primaries))
                      (not (null ioa)))
-                   `(call-method ,(first primaries) nil)
-                   `(,operator ,@(mapcar
-                                  (lambda (primary)
-                                    `(call-method ,primary nil))
-                                  primaries)))))
+                `(call-method ,(first primaries) nil)
+                `(,operator ,@(mapcar
+                               (lambda (primary)
+                                 `(call-method ,primary nil))
+                               primaries)))))
       (cond (arounds
-             `(call-method ,(first arounds)
-                           (,@(rest arounds) (make-method ,main-effective-method))))
+             (values `(call-method ,(first arounds)
+                                   (,@(rest arounds) (make-method ,main-effective-method)))
+                     nil))
             (t
-             main-effective-method)))))
+             (values main-effective-method
+                     nil))))))
 
 ;; built-in method combination types
 (define-method-combination +      :identity-with-one-argument t)
