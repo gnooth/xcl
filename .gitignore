@@ -1,5 +1,10 @@
 *.o
 *.xcl
+*.fas
+*.fasl
+*.lib
+*.lx64fsl
+*.trace
 *.d
 *.lo
 *.la
