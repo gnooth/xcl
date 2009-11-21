@@ -90,26 +90,6 @@
   (make-instance 'long-method-combination
                  :type (long-combination-type mc)))
 
-;; MOP p. 191
-;; "The METHOD-COMBINATION-OPTIONS argument is a list of arguments to the
-;; method combination type."
-(defgeneric find-method-combination (generic-function
-                                     method-combination-type-name ; a symbol
-                                     method-combination-options))
-
-(defmethod find-method-combination ((gf standard-generic-function)
-                                    method-combination-type-name
-                                    method-combination-options)
-  (let ((mc (get method-combination-type-name 'method-combination-object)))
-    (cond ((null mc)
-           (error "Method combination ~S does not exist." method-combination-type-name))
-          ((eq mc *standard-method-combination*)
-           (when method-combination-options
-             (error "The STANDARD method combination accepts no options."))
-           mc)
-          (t
-           (method-combination-with-options mc method-combination-options)))))
-
 (defun define-method-combination-type (name &rest initargs)
   (let ((combination-type (apply #'make-method-combination-type
                                  :allow-other-keys t :name name initargs)))

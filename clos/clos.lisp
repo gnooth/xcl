@@ -868,17 +868,25 @@
 (defparameter *standard-method-combination*
   (setf (get 'standard 'method-combination-object) (make-instance-standard-method-combination)))
 
+;; (defun canonicalize-method-combination (thing)
+;;   (cond ((eq thing 'standard)
+;;          *standard-method-combination*)
+;;         ((consp thing)
+;;          (let* ((type-name (%car thing))
+;;                 (options (%cdr thing))
+;;                 (mc (get type-name 'method-combination-object)))
+;;            (cond (mc
+;;                   (method-combination-with-options mc options))
+;;                  (t
+;;                   (error "Unsupported method combination type ~A." type-name)))))))
+
 (defun canonicalize-method-combination (thing)
   (cond ((eq thing 'standard)
-         *standard-method-combination*)
+         '*standard-method-combination*)
         ((consp thing)
          (let* ((type-name (%car thing))
-                (options (%cdr thing))
-                (mc (get type-name 'method-combination-object)))
-           (cond (mc
-                  (method-combination-with-options mc options))
-                 (t
-                  (error "Unsupported method combination type ~A." type-name)))))))
+                (options (%cdr thing)))
+           `(%find-method-combination ',type-name ',options)))))
 
 (defun canonicalize-defgeneric-options (options)
   (mapappend #'canonicalize-defgeneric-option options))
@@ -2631,6 +2639,29 @@
        (setq mc (copy-long-method-combination mc))
        (setf (long-combination-arguments mc) (copy-list options)))))
   mc)
+
+(defun %find-method-combination (method-combination-type-name method-combination-options)
+  (let ((mc (get method-combination-type-name 'method-combination-object)))
+    (cond ((null mc)
+           (error "Method combination ~S does not exist." method-combination-type-name))
+          ((eq mc *standard-method-combination*)
+           (when method-combination-options
+             (error "The STANDARD method combination accepts no options."))
+           mc)
+          (t
+           (method-combination-with-options mc method-combination-options)))))
+
+;; MOP p. 191
+;; "The METHOD-COMBINATION-OPTIONS argument is a list of arguments to the
+;; method combination type."
+(defgeneric find-method-combination (generic-function
+                                     method-combination-type-name ; a symbol
+                                     method-combination-options))
+
+(defmethod find-method-combination ((gf standard-generic-function)
+                                    method-combination-type-name
+                                    method-combination-options)
+  (%find-method-combination method-combination-type-name method-combination-options))
 
 (defmethod compute-effective-method ((generic-function standard-generic-function)
                                      (method-combination standard-method-combination)
