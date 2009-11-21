@@ -238,7 +238,7 @@
     (declare (ignore sec))
     (let (pm)
       (format stream "~A ~D ~D ~D:~2,'0D ~A~%"
-              (case month
+              (ecase month
                 ( 1 "Jan")
                 ( 2 "Feb")
                 ( 3 "Mar")
@@ -249,7 +249,7 @@
                 ( 8 "Aug")
                 ( 9 "Sep")
                 (10 "Oct")
-                (ll "Nov")
+                (11 "Nov")
                 (12 "Dec"))
               date
               year
@@ -266,35 +266,35 @@
               (if pm "PM" "AM")))))
 
 (defun run-tests ()
-    (with-open-stream (log (open (merge-pathnames "bench-clos.log"
-                                                  (user-homedir-pathname))
-                                 :direction :output
-                                 :if-exists :append
-                                 :if-does-not-exist :create))
-      (with-open-stream (out (make-broadcast-stream *standard-output* log))
-        (let ((*compile-verbose* nil)
-              (*compile-print* nil)
-              #+xcl
-              (sys:*mumble* nil))
-          (stamp out)
-          (format out "~&~A ~A~%" (lisp-implementation-type) (lisp-implementation-version))
-          (dolist (test '(run-defclass
-                          run-defmethod
-                          make-instances
-                          make-instances/simple
-                          methodcalls/simple
-                          methodcalls/simple+after
-                          methodcalls/complex
-;;                           run-eql-fib
-                          ))
-            (let ((start (get-internal-run-time))
-                  end)
-              (funcall test)
-              (setq end (get-internal-run-time))
-              (format out "~&  ~S~32T~7,3F seconds~%"
-                      test
-                      (/ (float (- end start))
-                         internal-time-units-per-second))))
-          (terpri out)))))
+  (with-open-stream (log (open (merge-pathnames "bench-clos.log"
+                                                (user-homedir-pathname))
+                               :direction :output
+                               :if-exists :append
+                               :if-does-not-exist :create))
+    (with-open-stream (out (make-broadcast-stream *standard-output* log))
+      (let ((*compile-verbose* nil)
+            (*compile-print* nil)
+            #+xcl
+            (sys:*mumble* nil))
+        (stamp out)
+        (format out "~&~A ~A~%" (lisp-implementation-type) (lisp-implementation-version))
+        (dolist (test '(run-defclass
+                        run-defmethod
+                        make-instances
+                        make-instances/simple
+                        methodcalls/simple
+                        methodcalls/simple+after
+                        methodcalls/complex
+;;                         run-eql-fib
+                        ))
+          (let ((start (get-internal-run-time))
+                end)
+            (funcall test)
+            (setq end (get-internal-run-time))
+            (format out "~&  ~S~32T~7,3F seconds~%"
+                    test
+                    (/ (float (- end start))
+                       internal-time-units-per-second))))
+        (terpri out)))))
 
 ;; EOF
