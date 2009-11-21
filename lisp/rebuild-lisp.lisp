@@ -80,7 +80,7 @@
                           "and"
                           "apply-key"
                           "apropos"
-;;                           "asdf"
+                          "asdf"
                           "asin"
                           "asinh"
                           "assert"

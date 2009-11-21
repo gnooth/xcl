@@ -163,6 +163,7 @@
 (autoload-macro '(defgeneric defmethod define-condition) "clos/clos")
 (autoload '(ensure-class documentation find-method-combination) "clos/clos")
 (autoload-macro 'define-method-combination "clos/define-method-combination")
+(autoload 'define-long-form-method-combination "clos/define-method-combination")
 (autoload-macro 'defmethod "clos/defmethod")
 (autoload '(%make-method-lambda compute-method-fast-function) "clos/defmethod")
 
