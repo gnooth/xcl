@@ -1406,7 +1406,7 @@
   (let* ((lambda-expression
           (cond ((methods-contain-eql-specializer-p (generic-function-methods gf))
                  `(lambda (&rest ,+gf-args-var+)
-                    (slow-method-lookup ,gf ,+gf-args-var+ nil)))
+                    (eql-specializer-method-lookup ,gf ,+gf-args-var+)))
                 (t
                  `(lambda (&rest ,+gf-args-var+)
                     (let* ((classes (required-classes ,gf ,+gf-args-var+))
@@ -1421,6 +1421,21 @@
     dfun))
 
 (defconstant +the-class-standard-method-combination+ (find-class 'standard-method-combination))
+
+(defun eql-specializer-method-lookup (gf args)
+  (let ((applicable-methods (compute-applicable-methods gf args)))
+    (unless applicable-methods
+      (apply #'no-applicable-method gf args))
+    (let* ((mc (generic-function-method-combination gf))
+           (effective-method
+            (if (and (eq (class-of gf) +the-class-standard-generic-function+)
+                     (eq (class-of mc) +the-class-standard-method-combination+))
+                (compute-standard-effective-method gf applicable-methods)
+                (compute-effective-method gf mc applicable-methods)))
+           (form (list 'LAMBDA (list +gf-args-var+) (precompile-form effective-method)))
+           (emfun (coerce-to-function form)))
+      ;; FIXME compile and cache emfun
+      (funcall emfun args))))
 
 (defun slow-method-lookup (gf args classes)
   (let ((applicable-methods (compute-applicable-methods gf args)))
