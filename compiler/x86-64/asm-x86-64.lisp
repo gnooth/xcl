@@ -300,6 +300,15 @@
                   (when (extended-register-p reg2)
                     (setq prefix-byte (logior prefix-byte rex.b)))
                   (emit-bytes prefix-byte #x89 modrm-byte)))
+               ((and (length-eql operand2 1)
+                     (reg64-p (%car operand2))
+                     (reg8-p operand1))
+                (let* ((reg1 operand1)
+                       (reg2 (%car operand2))
+                       (modrm-byte (make-modrm-byte #xb00
+                                                    (register-number reg1)
+                                                    (register-number reg2))))
+                  (emit-bytes #x88 modrm-byte)))
                (t
                 (unsupported))))
         ((and (integerp operand1)

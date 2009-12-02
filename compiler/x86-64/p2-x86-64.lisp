@@ -2138,12 +2138,13 @@
 (defknown p2-schar (t t) t)
 (defun p2-set-schar (form target)
   (when (length-eql form 4)
-    (mumble "p2-set-schar~%")
     (let* ((args (%cdr form))
-           (arg1 (%car args))
-           (arg2 (%cadr args))
-           type1)
+;;            (arg1 (%car args))
+;;            (arg2 (%cadr args))
+;;            type1
+           )
       (cond ((zerop *safety*)
+             (mumble "p2-set-schar zero safety case~%")
              (process-3-args args '(:rax :rdx :rcx) t) ; string in rax, index in rdx, char in rcx
              (inst :add (- +simple-string-data-offset+ +typed-object-lowtag+) :rax)
              (unbox-fixnum :rdx)
@@ -2161,8 +2162,8 @@
 
              ;; store it in the array
 ;;              (emit-bytes #x88 #x10) ; mov %dl,(%rax)
-;;              (inst :mov :cl '(:rax))
-             (emit-bytes #x88 #x08) ; mov %cl,(%rax)
+             (inst :mov :cl '(:rax))
+;;              (emit-bytes #x88 #x08) ; mov %cl,(%rax)
 
              ;; return value
              (when target
@@ -2170,6 +2171,7 @@
 
              (move-result-to-target target))
             (t
+             (mumble "p2-set-schar default case~%")
              (p2-function-call form target)))
       )
     t))
