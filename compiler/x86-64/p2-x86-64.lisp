@@ -2135,6 +2135,45 @@
              (p2-function-call form target))))
     t))
 
+(defknown p2-schar (t t) t)
+(defun p2-set-schar (form target)
+  (when (length-eql form 4)
+    (mumble "p2-set-schar~%")
+    (let* ((args (%cdr form))
+           (arg1 (%car args))
+           (arg2 (%cadr args))
+           type1)
+      (cond ((zerop *safety*)
+             (process-3-args args '(:rax :rdx :rcx) t) ; string in rax, index in rdx, char in rcx
+             (inst :add (- +simple-string-data-offset+ +typed-object-lowtag+) :rax)
+             (unbox-fixnum :rdx)
+             (clear-register-contents :rax :rdx)
+             (inst :add :rdx :rax)
+;;              (emit-bytes #x48 #x0f #xb6 #x02)                   ; movzbq (%rdx),%rax
+;;              (inst :shl +character-shift+ :rax)
+;;              (emit-bytes #x48 #x83 #xc8 +character-lowtag+)     ; or $0x6,%rax
+
+             (when target
+               (inst :push :rcx)) ; save char for return value
+
+             ;; unbox it
+             (unbox-character :rcx)
+
+             ;; store it in the array
+;;              (emit-bytes #x88 #x10) ; mov %dl,(%rax)
+;;              (inst :mov :cl '(:rax))
+             (emit-bytes #x88 #x08) ; mov %cl,(%rax)
+
+             ;; return value
+             (when target
+               (inst :pop :rax))
+
+             (move-result-to-target target))
+            (t
+             (p2-function-call form target)))
+      )
+    t))
+
 (defknown p2-svref (t t) t)
 (defun p2-svref (form target)
   (when (check-arg-count form 2)

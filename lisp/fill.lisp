@@ -1,6 +1,6 @@
 ;;; fill.lisp
 ;;;
-;;; Copyright (C) 2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2009 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 
 (in-package "SYSTEM")
 
-(defun list-fill (sequence item start end)
+(defun list-fill-range (sequence item start end)
   (declare (type list sequence))
   (do ((current (nthcdr start sequence) (cdr current))
        (index start (1+ index)))
@@ -29,10 +29,44 @@
     (declare (type fixnum index))
     (rplaca current item)))
 
-(defun vector-fill (sequence item start end)
+(defun simple-string-fill (sequence item)
+  (declare (type simple-string sequence))
+  (declare (type character item))
+  (dotimes (i (length sequence) sequence)
+    (declare (optimize speed (safety 0)))
+    (declare (type index i))
+    (setf (schar sequence i) item)))
+
+(defun simple-string-fill-range (sequence item start end)
+  (declare (type simple-string sequence))
+  (declare (type index start))
+  (if end
+      (require-type end 'index)
+      (setq end (length sequence)))
+  (do ((index start (1+ index)))
+      ((eql index end) sequence)
+    (declare (type index index))
+    (declare (optimize speed (safety 0)))
+    (setf (aref sequence index) item)))
+
+(defun simple-vector-fill-range (sequence item start end)
+  (declare (type simple-vector sequence))
+  (declare (type index start))
+  (if end
+      (require-type end 'index)
+      (setq end (length sequence)))
+  (do ((index start (1+ index)))
+      ((eql index end) sequence)
+    (declare (type index index))
+    (declare (optimize speed (safety 0)))
+    (setf (aref sequence index) item)))
+
+(defun vector-fill-range (sequence item start end)
   (declare (type vector sequence))
-  (unless end
-    (setq end (length sequence)))
+  (declare (type index start))
+  (if end
+      (require-type end 'index)
+      (setq end (length sequence)))
   (do ((index start (1+ index)))
       ((eql index end) sequence)
     (declare (type index index))
@@ -41,6 +75,10 @@
 
 (defun fill (sequence item &key (start 0) end)
   (cond ((listp sequence)
-         (list-fill sequence item start end))
+         (list-fill-range sequence item start end))
+        ((simple-string-p sequence)
+         (simple-string-fill-range sequence item start end))
+        ((simple-vector-p sequence)
+         (simple-vector-fill-range sequence item start end))
         (t
-         (vector-fill sequence item start end))))
+         (vector-fill-range sequence item start end))))
