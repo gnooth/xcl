@@ -604,7 +604,6 @@
 
 (defknown p2-fill (t t) t)
 (defun p2-fill (form target)
-  ;; FIXME
   (let* ((args (cdr form))
          (numargs (length args))
          (arg1 (car args))
@@ -619,8 +618,8 @@
                   (mumble "p2-fill simple-string-fill case~%")
                   (p2-function-call `(simple-string-fill ,arg1 ,(%cadr args)) target))
                  ((subtypep type1 'SIMPLE-VECTOR)
-                  (mumble "p2-fill simple-vector-fill-range case~%")
-                  (p2-function-call `(simple-vector-fill-range ,arg1 ,(%cadr args) 0 nil) target))
+                  (mumble "p2-fill simple-vector-fill case~%")
+                  (p2-function-call `(simple-vector-fill ,arg1 ,(%cadr args)) target))
                  ((subtypep type1 'VECTOR)
                   (mumble "p2-fill vector-fill-range case~%")
                   (p2-function-call `(vector-fill-range ,arg1 ,(%cadr args) 0 nil) target))

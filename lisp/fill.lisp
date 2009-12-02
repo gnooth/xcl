@@ -49,6 +49,13 @@
     (declare (optimize speed (safety 0)))
     (setf (aref sequence index) item)))
 
+(defun simple-vector-fill (sequence item)
+  (declare (type simple-vector sequence))
+  (dotimes (i (length sequence) sequence)
+    (declare (optimize speed (safety 0)))
+    (declare (type index i))
+    (setf (svref sequence i) item)))
+
 (defun simple-vector-fill-range (sequence item start end)
   (declare (type simple-vector sequence))
   (declare (type index start))

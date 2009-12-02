@@ -188,10 +188,15 @@
 (autoload 'tree-equal)
 (autoload '(map-into maplist mapcon))
 (autoload '(nsubstitute nsubstitute-if nsubstitute-if-not))
-(export '(list-fill-range simple-string-fill simple-string-fill-range simple-vector-fill-range
+(export '(list-fill-range
+          simple-string-fill simple-string-fill-range
+          simple-vector-fill simple-vector-fill-range
           vector-fill-range))
-(autoload '(fill list-fill-range simple-string-fill simple-string-fill-range
-            simple-vector-fill-range vector-fill-range)
+(autoload '(fill
+            list-fill-range
+            simple-string-fill simple-string-fill-range
+            simple-vector-fill simple-vector-fill-range
+            vector-fill-range)
           "lisp/fill")
 (autoload-macro 'with-accessors)
 (autoload 'write-to-string)
