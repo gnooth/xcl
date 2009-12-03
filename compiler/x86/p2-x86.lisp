@@ -2099,6 +2099,30 @@
                    (add-type-constraint var 'SIMPLE-STRING)))))))
     t))
 
+(defknown p2-schar (t t) t)
+(defun p2-set-schar (form target)
+  (when (length-eql form 4)
+    (let* ((args (%cdr form)))
+      (cond ((zerop *safety*)
+             (mumble "p2-set-schar zero safety case~%")
+             (process-3-args args '(:eax :edx :ecx) t) ; string in eax, index in edx, char in ecx
+             (inst :add (- +simple-string-data-offset+ +typed-object-lowtag+) :eax)
+             (unbox-fixnum :edx)
+             (clear-register-contents :eax :edx)
+             (inst :add :edx :eax)
+             (when target
+               (inst :push :ecx)) ; save char for return value
+             (unbox-character :ecx)
+             ;; store it in the array
+             (inst :mov :cl '(:eax))
+             (when target
+               (inst :pop :eax)) ; return value
+             (move-result-to-target target))
+            (t
+             (mumble "p2-set-schar default case~%")
+             (p2-function-call form target))))
+    t))
+
 (defknown p2-svref (t t) t)
 (defun p2-svref (form target)
   (when (check-arg-count form 2)
@@ -2224,10 +2248,41 @@
   (when (check-arg-count form 3)
     (let* ((args (%cdr form))
            (arg1 (%car args))
-           (type1 (derive-type arg1)))
-      (cond ((and (neq type1 :unknown)
+           (arg2 (%cadr args))
+           (arg3 (%caddr args))
+           (type1 (derive-type arg1))
+           (type2 (derive-type arg2))
+           size)
+      (cond ((or (zerop *safety*)
+                 (and (integer-type-p type2)
+                      (subtypep type1 'SIMPLE-VECTOR)
+                      (setq size (derive-vector-size type1))
+                      (subtypep type2 (list 'INTEGER 0 (1- size)))))
+             (mumble "p2-svset new case~%")
+             (process-3-args args '(:eax :edx :ecx) t) ; vector in eax, index in edx, new element in ecx
+             (clear-register-contents :eax :edx)
+             (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :eax)
+             ;; index is in edx
+             ;; unbox it
+             (unbox-fixnum :edx)
+             (inst :shl 2 :edx) ; multiply by 4 to get byte offset
+             (inst :add :edx :eax)
+             ;; new element is in ecx
+             (when target
+               (inst :push :ecx)) ; save it for return value
+             ;; store it in the array
+             (inst :mov :ecx '(:eax))
+             ;; return value
+             (cond ((reg32-p target)
+                    (inst :pop target))
+                   (target
+                    (inst :pop :eax)
+                    (move-result-to-target target)))
+             t)
+            ((and (neq type1 :unknown)
                   (subtypep type1 'SIMPLE-VECTOR))
-             (p2-function-call (list* '%SVSET args) target)
+             (mumble "p2-svset known simple-vector case~%")
+             (p2-function-call `(%svset ,arg1 ,arg2 ,arg3) target)
              t)
             (t
              nil)))))
@@ -2347,6 +2402,22 @@
                   (emit-bytes #x89 #x44 #x24 #x08) ; mov %eax,0x8(%esp)
                   (when clear-values-p
                     (maybe-emit-clear-values arg1 arg2 arg3)))))
+          ((and (consp targets)
+                (length-eql targets 3)
+                (memq (%car targets) '(:eax :ecx :edx))
+                (memq (%cadr targets) '(:eax :ecx :edx))
+                (memq (%caddr targets) '(:eax :ecx :edx)))
+           (let ((reg1 (%car targets))
+                 (reg2 (%cadr targets))
+                 (reg3 (%caddr targets)))
+             (p2 arg1 :stack)
+             (p2 arg2 :stack)
+             (p2 arg3 :stack)
+             (maybe-emit-clear-values arg1 arg2 arg3)
+             (inst :pop reg3)
+             (inst :pop reg2)
+             (inst :pop reg1)
+             (clear-register-contents reg1 reg2 reg3)))
           (t
            (compiler-unsupported "PROCESS-3-ARGS unsupported targets ~S" targets)))))
 
@@ -4004,7 +4075,6 @@
            (arg1 (%car args)))
       (when (or (eq op '%rplacd)
                 (cons-type-p (derive-type arg1)))
-        (mumble "p2-rplacd op = ~S~%" op)
         (process-2-args args '(:eax :edx) t)
         (inst :mov :edx '(3 :eax))
         (move-result-to-target target)
