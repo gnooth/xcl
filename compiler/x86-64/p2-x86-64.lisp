@@ -2409,34 +2409,35 @@
                       (subtypep type1 'SIMPLE-VECTOR)
                       (setq size (derive-vector-size type1))
                       (subtypep type2 (list 'INTEGER 0 (1- size)))))
-             (mumble "p2-svset optimized case~%")
-             (process-3-args args '(:rax :rdx :rcx) t) ; vector in rax, index in rdx, new element in rcx
-             (clear-register-contents :rax :rdx)
-             (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
-             ;; index is in rdx
-             ;; unbox it
-             (unbox-fixnum :rdx)
-             (inst :shl 3 :rdx) ; multiply by 8 to get byte offset
-             (inst :add :rdx :rax)
-             ;; store new element in the array
-             (inst :mov :rcx '(:rax))
-             ;; return value
-             (cond ((reg64-p target)
-                    (mumble "p2-svset new case 1~%")
-                    (inst :mov :rcx target)
-                    )
-                   (target
-                    (mumble "p2-svset new case 2~%")
-                    (inst :mov :rcx :rax)
-                    (move-result-to-target target)))
+             (let ((reg1 :rcx)
+                   (reg2 :rdx)
+                   (reg3 :rax))
+               (process-3-args args (list reg1 reg2 reg3) t) ; vector in reg1, index in reg2, new element in reg3
+               (clear-register-contents :rcx :rdx)
+               ;; index is in reg2
+               ;; unbox it
+               (unbox-fixnum reg2)
+               ;; adjust reg1 to point to first data cell
+               (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) reg1)
+               (inst :shl 3 reg2) ; multiply index by 8 to get byte offset of data cell
+               (inst :add reg2 reg1) ; address of data cell in reg1
+               ;; store new element in the array
+               (inst :mov reg3 `(,reg1))
+               ;; return value
+               (cond ((reg64-p target)
+                      (unless (eq target reg3)
+                        (inst :mov reg3 target)))
+                     (target
+                      ;;                     (inst :mov :rcx :rax)
+                      (unless (eq reg3 :rax)
+                        (inst :mov reg3 :rax))
+                      (move-result-to-target target))))
              t)
             ((and (neq type1 :unknown)
                   (subtypep type1 'SIMPLE-VECTOR))
-             (mumble "p2-svset known simple-vector case~%")
              (p2-function-call (list '%SVSET arg1 arg2 arg3) target)
              t)
             (t
-             (mumble "p2-svset default case~%")
              nil)))))
 
 (defknown p2-symbol (symbol t) t)
