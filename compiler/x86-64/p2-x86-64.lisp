@@ -2183,8 +2183,7 @@
                              (inst :mov `(,offset :rax) target))
                             (t
                              (inst :mov `(,offset :rax) :rax)
-                             (move-result-to-target target))))
-                    )
+                             (move-result-to-target target)))))
                    (t
                     (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
                     (clear-register-contents :rax :rdx)
@@ -2192,7 +2191,7 @@
                     ;; index is in rdx
                     ;; unbox it
                     (unbox-fixnum :rdx)
-                    (inst :shl 3 :rdx) ; multiply by 8 to get byte offset
+                    (inst :shl 3 :rdx) ; multiply by +bytes-per-word+ to get byte offset
                     (inst :add :rdx :rax)
                     (cond ((reg64-p target)
                            (inst :mov '(:rax) target))
@@ -2410,6 +2409,7 @@
                       (subtypep type1 'SIMPLE-VECTOR)
                       (setq size (derive-vector-size type1))
                       (subtypep type2 (list 'INTEGER 0 (1- size)))))
+             (mumble "p2-svset optimized case~%")
              (process-3-args args '(:rax :rdx :rcx) t) ; vector in rax, index in rdx, new element in rcx
              (clear-register-contents :rax :rdx)
              (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
@@ -2418,23 +2418,25 @@
              (unbox-fixnum :rdx)
              (inst :shl 3 :rdx) ; multiply by 8 to get byte offset
              (inst :add :rdx :rax)
-             ;; new element is in rcx
-             (when target
-               (inst :push :rcx)) ; save it for return value
-             ;; store it in the array
+             ;; store new element in the array
              (inst :mov :rcx '(:rax))
              ;; return value
              (cond ((reg64-p target)
-                    (inst :pop target))
+                    (mumble "p2-svset new case 1~%")
+                    (inst :mov :rcx target)
+                    )
                    (target
-                    (inst :pop :rax)
+                    (mumble "p2-svset new case 2~%")
+                    (inst :mov :rcx :rax)
                     (move-result-to-target target)))
              t)
             ((and (neq type1 :unknown)
                   (subtypep type1 'SIMPLE-VECTOR))
+             (mumble "p2-svset known simple-vector case~%")
              (p2-function-call (list '%SVSET arg1 arg2 arg3) target)
              t)
             (t
+             (mumble "p2-svset default case~%")
              nil)))))
 
 (defknown p2-symbol (symbol t) t)
@@ -4454,12 +4456,12 @@
                       (mumble "p2-length reg64-p target reg = ~S~%" reg)
                       (inst :mov `(,displacement ,reg) target)
                       (clear-register-contents target)
-                      (inst :shl +fixnum-shift+ target))
+                      (box-fixnum target))
                      (t
                       (mumble "p2-length other target reg = ~S~%" reg)
                       (inst :mov `(,displacement ,reg) :rax)
                       (clear-register-contents :rax)
-                      (inst :shl +fixnum-shift+ :rax)
+                      (box-fixnum :rax)
                       (move-result-to-target target)))))
             ((and (neq type :unknown)
                   (subtypep type 'VECTOR))
