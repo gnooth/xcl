@@ -28,8 +28,7 @@
 (defun emit-raw-qword (x)
   (dotimes (i 8)
     (declare (type (integer 0 8) i)) ; REVIEW this should not be necessary!
-    (vector-push-extend (ldb (byte 8 (* i 8)) x) *output*)
-    ))
+    (vector-push-extend (ldb (byte 8 (* i 8)) x) *output*)))
 
 (define-assembler :add
   (cond ((and (fixnump operand1)
@@ -322,7 +321,8 @@
            (emit-bytes prefix-byte #xc7 modrm-byte)
            (emit-raw-dword operand1)))
         ((and (integerp operand1)
-              (typep operand1 '(unsigned-byte 64))
+              (or (typep operand1 '(signed-byte 64))
+                  (typep operand1 '(unsigned-byte 64)))
               (reg64-p operand2))
          (let* ((prefix-byte (if (extended-register-p operand2) #x49 #x48)))
            (emit-bytes prefix-byte (+ #xb8 (register-number operand2)))

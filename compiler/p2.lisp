@@ -38,6 +38,7 @@
 
 (defknown fixnumize (integer) integer)
 (defun fixnumize (n)
+  (declare (type fixnum n))
   (ash n +fixnum-shift+))
 
 (defknown unbox-character (t) t)
