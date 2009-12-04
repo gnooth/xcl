@@ -140,6 +140,7 @@
 (install-p2-handler 'set-schar                  'p2-set-schar)
 (install-p2-handler 'setcar                     'p2-setcar)
 (install-p2-handler 'setcdr                     'p2-setcdr)
+(install-p2-handler 'string-find                'p2-string-find)
 (install-p2-handler 'structure-ref              'p2-structure-ref)
 (install-p2-handler 'structure-set              'p2-structure-set)
 (install-p2-handler 'svref                      'p2-svref)

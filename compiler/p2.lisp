@@ -660,8 +660,8 @@
                       (p2-function-call `(find-eql ,arg1 ,arg2) target)
                       t)))
               ((and (eql numargs 4)
-                    (or (eq test 'char=)
-                        (eq test 'two-arg-char=)
+                    (or (equal test '(quote char=))
+                        (equal test '(quote two-arg-char=))
                         (equal test '(function char=))
                         (equal test '(function two-arg-char=))))
                (cond ((zerop *safety*)
@@ -673,11 +673,34 @@
                            (subtypep type2 'STRING))
                       (p2-function-call `(string-find ,arg1 ,arg2) target)
                       t)
+                     ((and (neq type2 :unknown)
+                           (subtypep type2 'STRING))
+                      (p2 `(string-find (require-character ,arg1) ,arg2) target)
+                      t)
                      (t
                       (mumble "p2-find no optimization~%")
                       nil)))
               (t
                (mumble "p2-find no optimization~%")
+               nil))))))
+
+(defknown p2-string-find (t t) t)
+(defun p2-string-find (form target)
+  (let ((args (cdr form)))
+    (when (length-eql args 2)
+      (let* ((arg1 (%car args))
+             (arg2 (%cadr args))
+             (type1 (derive-type arg1))
+             (type2 (derive-type arg2)))
+        (cond ((and (neq type1 :unknown)
+                    (neq type2 :unknown)
+                    (subtypep type1 'character)
+                    (subtypep type2 'string))
+               ;; safe call
+               (process-2-args args :default t)
+               (emit-call-2 'string-find target)
+               t)
+              (t
                nil))))))
 
 (defknown p2-floor (t t) t)
@@ -858,7 +881,6 @@
                   (numberp arg2)
                   (not (zerop arg2)))
              ;; safe call
-             (mumble "p2-mod safe call~%")
              (process-2-args args :default t)
              (emit-call-2 'mod target)
              t)
@@ -878,7 +900,6 @@
                   (numberp arg2)
                   (not (zerop arg2)))
              ;; safe call
-             (mumble "p2-rem safe call~%")
              (process-2-args args :default t)
              (emit-call-2 'rem target)
              t)
