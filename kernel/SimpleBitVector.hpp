@@ -22,10 +22,18 @@
 class SimpleBitVector : public AbstractBitVector
 {
 private:
-  unsigned int * _data;
+  unsigned int _data[0];
 public:
-  SimpleBitVector(INDEX length);
-  SimpleBitVector(INDEX length, Value data[]);
+  void * operator new(size_t size, INDEX capacity)
+  {
+    INDEX data_length = capacity >> BIT_VECTOR_SHIFT;
+    if ((capacity & BIT_VECTOR_MASK) != 0)
+      ++data_length;
+    return GC_malloc_ignore_off_page(sizeof(SimpleBitVector) + data_length * sizeof(unsigned int));
+  }
+
+  SimpleBitVector(INDEX capacity);
+  SimpleBitVector(INDEX capacity, Value bits[]);
   SimpleBitVector(AbstractString * string);
 
   unsigned int * data()
@@ -151,6 +159,16 @@ public:
                                            INDEX offset);
 };
 
+inline SimpleBitVector * new_simple_bit_vector(INDEX capacity)
+{
+  return new(capacity) SimpleBitVector(capacity);
+}
+
+inline SimpleBitVector * new_simple_bit_vector(AbstractString * string)
+{
+  return new(string->length()) SimpleBitVector(string);
+}
+
 inline bool simple_bit_vector_p(Value value)
 {
   return (typed_object_p(value)
@@ -168,7 +186,7 @@ inline SimpleBitVector * check_simple_bit_vector(Value value)
   if (simple_bit_vector_p(value))
     return the_simple_bit_vector(value);
   signal_type_error(value, S_simple_bit_vector);
-  // Not reached.
+  // not reached
   return NULL;
 }
 

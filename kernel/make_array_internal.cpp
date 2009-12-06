@@ -142,7 +142,7 @@ Value SYS_make_array_internal(unsigned int numargs, Value args[])
           if (fill_pointer != NIL || adjustable != NIL)
             vector = new BitVector(size, fill_pointer != NIL);
           else
-            vector = new SimpleBitVector(size);
+            vector = new_simple_bit_vector(size);
         }
       else if (upgraded_type == NIL)
         vector = new NilVector(size, fill_pointer);

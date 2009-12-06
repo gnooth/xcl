@@ -40,26 +40,14 @@ void SimpleBitVector::set_bit(INDEX index, BIT bit)
   inline_setbit(index, bit);
 }
 
-SimpleBitVector::SimpleBitVector(INDEX length)
-  : AbstractBitVector(WIDETAG_SIMPLE_BIT_VECTOR, length)
+SimpleBitVector::SimpleBitVector(INDEX capacity)
+  : AbstractBitVector(WIDETAG_SIMPLE_BIT_VECTOR, capacity)
 {
-  INDEX size = length >> BIT_VECTOR_SHIFT;
-  if ((length & BIT_VECTOR_MASK) != 0)
-    ++size;
-  _data = (unsigned int *) GC_malloc_atomic(size * sizeof(unsigned int));
-  for (INDEX i = size; i-- > 0;)
+  INDEX data_length = capacity >> BIT_VECTOR_SHIFT;
+  if ((capacity & BIT_VECTOR_MASK) != 0)
+    ++data_length;
+  for (INDEX i = data_length; i-- > 0;)
     _data[i] = 0;
-}
-
-SimpleBitVector::SimpleBitVector(INDEX length, Value bits[])
-  : AbstractBitVector(WIDETAG_SIMPLE_BIT_VECTOR, length)
-{
-  INDEX size = length >> BIT_VECTOR_SHIFT;
-  if ((length & BIT_VECTOR_MASK) != 0)
-    ++size;
-  _data = (unsigned int *) GC_malloc_atomic(size * sizeof(unsigned int));
-  for (INDEX i = length; i-- > 0;)
-    inline_setbit(i, check_bit(bits[i]));
 }
 
 SimpleBitVector::SimpleBitVector(AbstractString * string)
@@ -67,10 +55,6 @@ SimpleBitVector::SimpleBitVector(AbstractString * string)
 {
   const INDEX len = string->length();
   _capacity = len;
-  INDEX size = len >> BIT_VECTOR_SHIFT;
-  if ((len & BIT_VECTOR_MASK) != 0)
-    ++size;
-  _data = (unsigned int *) GC_malloc_atomic(size * sizeof(unsigned int));
   for (INDEX i = len; i-- > 0;)
     {
       char c = string->fast_char_at(i);
@@ -190,7 +174,7 @@ Value SimpleBitVector::elt(INDEX i) const
 Value SimpleBitVector::reverse() const
 {
   const INDEX capacity = _capacity;
-  SimpleBitVector * result = new SimpleBitVector(capacity);
+  SimpleBitVector * result = new_simple_bit_vector(capacity);
   INDEX i, j;
   for (i = 0, j = capacity - 1; i < capacity; i++, j--)
     result->inline_setbit(i, inline_getbit(j));
@@ -221,7 +205,7 @@ AbstractVector * SimpleBitVector::adjust_vector(INDEX new_capacity,
 {
   if (initial_contents != NIL)
     {
-      SimpleBitVector * bv = new SimpleBitVector(new_capacity);
+      SimpleBitVector * bv = new_simple_bit_vector(new_capacity);
       if (listp(initial_contents))
         {
           Value list = initial_contents;
@@ -243,7 +227,7 @@ AbstractVector * SimpleBitVector::adjust_vector(INDEX new_capacity,
     }
   if (_capacity != new_capacity)
     {
-      SimpleBitVector * bv = new SimpleBitVector(new_capacity);
+      SimpleBitVector * bv = new_simple_bit_vector(new_capacity);
       INDEX limit = (_capacity < new_capacity) ? _capacity : new_capacity;
       for (INDEX i = 0; i < limit; i++)
         bv->inline_setbit(i, inline_getbit(i));

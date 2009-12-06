@@ -807,7 +807,7 @@ Value Stream::read_bit_vector(long n, Thread * thread, Readtable * rt)
           return signal_lisp_error(new ReaderError(this, message));
         }
     }
-  return make_value(new SimpleBitVector(s));
+  return make_value(new_simple_bit_vector(s));
 }
 
 Value Stream::read_binary_data(INDEX length)

@@ -38,7 +38,7 @@ unsigned long AbstractBitVector::hash()
 Value AbstractBitVector::subseq(unsigned long start, unsigned long end) const
 {
   assert(end >= start);
-  SimpleBitVector * vector = new SimpleBitVector(end - start);
+  SimpleBitVector * vector = new_simple_bit_vector(end - start);
   unsigned long i = start, j = 0;
   while (i < end)
     if (get_bit(i++) == 0)

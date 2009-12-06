@@ -143,9 +143,9 @@ inline SimpleVector * new_simple_vector(INDEX capacity)
   return new(capacity) SimpleVector(capacity);
 }
 
-inline SimpleVector * new_simple_vector(INDEX length, Value data[])
+inline SimpleVector * new_simple_vector(INDEX capacity, Value data[])
 {
-  return new(length) SimpleVector(length, data);
+  return new(capacity) SimpleVector(capacity, data);
 }
 
 inline SimpleVector * new_simple_vector(Value list)

@@ -283,7 +283,7 @@ Value BitVector::pop()
 Value BitVector::reverse() const
 {
   const unsigned long len = length();
-  SimpleBitVector * result = new SimpleBitVector(len);
+  SimpleBitVector * result = new_simple_bit_vector(len);
   unsigned long i, j;
   for (i = 0, j = len - 1; i < len; i++, j--)
     result->set_bit(i, get_bit(j));
