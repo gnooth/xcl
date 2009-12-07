@@ -254,22 +254,8 @@ inline bool streamp(Value value)
 {
   if (typed_object_p(value))
     {
-      switch (the_typed_object(value)->widetag())
-        {
-        case WIDETAG_STREAM:
-        case WIDETAG_STRING_INPUT_STREAM:
-        case WIDETAG_STRING_OUTPUT_STREAM:
-        case WIDETAG_FILE_STREAM:
-        case WIDETAG_BROADCAST_STREAM:
-        case WIDETAG_TWO_WAY_STREAM:
-        case WIDETAG_SOCKET_STREAM:
-        case WIDETAG_CONCATENATED_STREAM:
-        case WIDETAG_ECHO_STREAM:
-        case WIDETAG_SYNONYM_STREAM:
-        case WIDETAG_SLIME_INPUT_STREAM:
-        case WIDETAG_SLIME_OUTPUT_STREAM:
-          return true;
-        }
+      if (the_typed_object(value)->widetag() & WIDETAG_STREAM_BIT)
+        return true;
     }
   return false;
 }
