@@ -207,6 +207,7 @@ void initialize_symbols()
 
   the_symbol(S_typed_object_lowtag)->initialize_constant(make_fixnum(LOWTAG_TYPED_OBJECT));
 
+  the_symbol(S_widetag_stream_bit)->initialize_constant(make_number(WIDETAG_STREAM_BIT));
   the_symbol(S_widetag_vector_bit)->initialize_constant(make_number(WIDETAG_VECTOR_BIT));
 
   the_symbol(S_simple_vector_widetag)->initialize_constant(make_number(WIDETAG_SIMPLE_VECTOR));
@@ -296,4 +297,6 @@ void initialize_symbols()
   the_symbol(S_autocompile_verbose)->initialize_special(NIL);
 
   the_symbol(S_invoke_debugger_hook)->initialize_special(NIL);
+
+  the_symbol(S_widetag_offset)->initialize_constant(make_fixnum(STANDARD_INPUT->widetag_offset()));
 }

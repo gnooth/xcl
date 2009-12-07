@@ -2219,7 +2219,7 @@
                  (emit-jmp-short :ne SVREF-ERROR-NOT-SIMPLE-VECTOR)
                  (inst :mov :rdi :rax)
                  (inst :sub +typed-object-lowtag+ :rax)
-                 (inst :mov '(8 :rax) :rax) ; widetag in rax
+                 (inst :mov `(,+widetag-offset+ :rax) :rax) ; widetag in rax
                  (aver (typep +simple-vector-widetag+ '(signed-byte 32)))
                  (inst :cmp +simple-vector-widetag+ :rax)
                  (emit-jmp-short :ne SVREF-ERROR-NOT-SIMPLE-VECTOR)
@@ -5259,7 +5259,7 @@
              (emit-jmp-short :ne REQUIRE-VECTOR-ERROR)
              (inst :mov :rdi :rax)
              (inst :sub +typed-object-lowtag+ :rax)
-             (inst :mov '(8 :rax) :rax) ; widetag in rax
+             (inst :mov `(,+widetag-offset+ :rax) :rax) ; widetag in rax
              (aver (typep +widetag-vector-bit+ '(signed-byte 32)))
              (inst :and +widetag-vector-bit+ :rax)
              (emit-jmp-short :z REQUIRE-VECTOR-ERROR)
@@ -5298,7 +5298,7 @@
              (emit-jmp-short :ne REQUIRE-SIMPLE-VECTOR-ERROR)
              (inst :mov :rdi :rax)
              (inst :sub +typed-object-lowtag+ :rax)
-             (inst :mov '(8 :rax) :rax) ; widetag in rax
+             (inst :mov `(,+widetag-offset+ :rax) :rax) ; widetag in rax
              (aver (typep +simple-vector-widetag+ '(signed-byte 32)))
              (inst :cmp +simple-vector-widetag+ :rax)
              (emit-jmp-short :ne REQUIRE-SIMPLE-VECTOR-ERROR)

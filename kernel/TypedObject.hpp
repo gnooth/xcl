@@ -39,6 +39,11 @@ public:
     return _widetag;
   }
 
+  long widetag_offset()
+  {
+    return ((long)(&(this->_widetag))) - ((long)this);
+  }
+
   virtual Value type_of() const;
 
   virtual Value class_of() const;
