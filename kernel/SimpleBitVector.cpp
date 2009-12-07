@@ -40,16 +40,6 @@ void SimpleBitVector::set_bit(INDEX index, BIT bit)
   inline_setbit(index, bit);
 }
 
-SimpleBitVector::SimpleBitVector(INDEX capacity)
-  : AbstractBitVector(WIDETAG_SIMPLE_BIT_VECTOR, capacity)
-{
-  INDEX data_length = capacity >> BIT_VECTOR_SHIFT;
-  if ((capacity & BIT_VECTOR_MASK) != 0)
-    ++data_length;
-  for (INDEX i = data_length; i-- > 0;)
-    _data[i] = 0;
-}
-
 SimpleBitVector::SimpleBitVector(AbstractString * string)
   : AbstractBitVector(WIDETAG_SIMPLE_BIT_VECTOR)
 {
@@ -239,7 +229,7 @@ AbstractVector * SimpleBitVector::adjust_vector(INDEX new_capacity,
         }
       return bv;
     }
-  // No change.
+  // no change
   return this;
 }
 
@@ -254,6 +244,12 @@ AbstractVector * SimpleBitVector::displace_vector(INDEX new_capacity,
 Value CL_simple_bit_vector_p(Value object)
 {
   return simple_bit_vector_p(object) ? T : NIL;
+}
+
+// ### make-simple-bit-vector size => simple-bit-vector
+Value SYS_make_simple_bit_vector(Value arg)
+{
+  return make_value(new_simple_bit_vector(check_index(arg, 0, ARRAY_DIMENSION_LIMIT - 1)));
 }
 
 // ### sbit1 simple-bit-vector index => bit

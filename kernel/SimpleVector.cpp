@@ -262,7 +262,7 @@ Value CL_simple_vector_p(Value arg)
 // ### make-simple-vector size => simple-vector
 Value SYS_make_simple_vector(Value arg)
 {
-  return make_value(new_simple_vector(check_index(arg)));
+  return make_value(new_simple_vector(check_index(arg, 0, ARRAY_DIMENSION_LIMIT - 1)));
 }
 
 // ### vector

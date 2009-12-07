@@ -1274,6 +1274,7 @@ DEFINE_SYMBOL(make_package_internal, PACKAGE_SYS, "%MAKE-PACKAGE");
 DEFINE_SYMBOL(make_primitive, PACKAGE_SYS, "MAKE-PRIMITIVE");
 DEFINE_SYMBOL(make_restart_internal, PACKAGE_SYS, "%MAKE-RESTART");
 DEFINE_SYMBOL(make_simple_vector, PACKAGE_SYS, "MAKE-SIMPLE-VECTOR");
+DEFINE_SYMBOL(make_simple_bit_vector, PACKAGE_SYS, "MAKE-SIMPLE-BIT-VECTOR");
 DEFINE_SYMBOL(make_socket_internal, PACKAGE_SYS, "%MAKE-SOCKET");
 DEFINE_SYMBOL(make_string_internal, PACKAGE_SYS, "%MAKE-STRING");
 DEFINE_SYMBOL(make_string_output_stream_internal, PACKAGE_SYS, "%MAKE-STRING-OUTPUT-STREAM");

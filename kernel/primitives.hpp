@@ -627,6 +627,7 @@ extern Value SYS_make_package_internal(Value arg1, Value arg2, Value arg3);
 extern Value SYS_make_primitive(Value arg1, Value arg2, Value arg3, Value arg4);
 extern Value SYS_make_restart_internal(Value name, Value function, Value report_function,
                                        Value interactive_function, Value test_function);
+extern Value SYS_make_simple_bit_vector(Value arg);
 extern Value SYS_make_simple_vector(Value arg);
 extern Value SYS_make_socket_internal(unsigned int numargs, Value args[]);
 extern Value SYS_make_string_internal(Value size, Value initial_element, Value element_type);

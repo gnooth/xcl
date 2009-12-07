@@ -32,8 +32,16 @@ public:
     return GC_malloc_ignore_off_page(sizeof(SimpleBitVector) + data_length * sizeof(unsigned int));
   }
 
-  SimpleBitVector(INDEX capacity);
-  SimpleBitVector(INDEX capacity, Value bits[]);
+  SimpleBitVector(INDEX capacity)
+    : AbstractBitVector(WIDETAG_SIMPLE_BIT_VECTOR, capacity)
+  {
+    INDEX data_length = capacity >> BIT_VECTOR_SHIFT;
+    if ((capacity & BIT_VECTOR_MASK) != 0)
+      ++data_length;
+    for (INDEX i = data_length; i-- > 0;)
+      _data[i] = 0;
+  }
+
   SimpleBitVector(AbstractString * string);
 
   unsigned int * data()

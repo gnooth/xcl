@@ -934,6 +934,18 @@
              (p2-function-call (list 'MAKE-SIMPLE-VECTOR arg) target)
              t)
             (t
+             nil))))
+  (when (and (length-eql form 4)
+             (eq (third form) :element-type)
+             (and (quoted-form-p (fourth form))
+                  (eq (%cadr (fourth form)) 'BIT)))
+    (let* ((arg (%cadr form))
+           (type (derive-type arg)))
+      (cond ((fixnum-type-p type)
+             (mumble "p2-make-array make-simple-bit-vector case~%")
+             (p2-function-call (list 'MAKE-SIMPLE-BIT-VECTOR arg) target)
+             t)
+            (t
              nil)))))
 
 (defknown p2-test-form (t t) t)
