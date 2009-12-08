@@ -582,20 +582,49 @@
         (p2 form target)
         t))))
 
+(defun eq-comparable-type-p (type)
+  ;; assumes type is canonical
+  (cond ((fixnum-type-p type)
+         t)
+        ((subtypep type 'NUMBER)
+         nil)
+        ((subtypep type 'ARRAY)
+         t)
+        ((consp type) ; other compound types
+         nil)
+        ((eq type :unknown)
+         nil)
+        (t
+         t)))
+
+(defknown eq-comparable-types-p (t t) t)
+(defun eq-comparable-types-p (type1 type2)
+  ;; returns true if EQL comparisons can be simplified to EQ
+  (cond ((and (eq type1 :unknown)
+              (eq type2 :unknown))
+         nil)
+        ((and (eq type1 :unknown)
+              (eq-comparable-type-p type2))
+         t)
+        ((and (eq type2 :unknown)
+              (eq-comparable-type-p type1))
+         t)
+        ((and (neq type1 :unknown)
+              (neq type2 :unknown)
+              (or (eq-comparable-type-p type1)
+                  (eq-comparable-type-p type2)))
+         t)
+        (t
+         nil)))
+
 (defun p2-eql (form target)
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
            (arg1 (%car args))
            (arg2 (%cadr args))
            (type1 (derive-type arg1))
-           type2)
-      (cond ((or (fixnum-type-p type1)
-                 (eq type1 'CHARACTER)
-                 (eq type1 'SYMBOL)
-                 (fixnum-type-p (setq type2 (derive-type arg2)))
-                 (eq type2 'CHARACTER)
-                 (eq type2 'SYMBOL))
-             ;; EQL fixnums, characters and symbols are EQ
+           (type2 (derive-type arg2)))
+      (cond ((eq-comparable-types-p type1 type2)
              (p2-eq form target)
              t)
             (t
