@@ -26,7 +26,7 @@
                 (not (memq :r12 preserve)))
            (inst :movb #xff `(,+values-length-offset+ :r12)))
           (t
-           (note "EMIT-CLEAR-VALUES: emitting call to RT_current_thread_clear_values~%")
+           (mumble "EMIT-CLEAR-VALUES: emitting call to RT_current_thread_clear_values~%")
            (dolist (reg preserve)
              (inst :push reg))
            (emit-call "RT_current_thread_clear_values")

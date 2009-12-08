@@ -60,7 +60,7 @@
   constants
   closure-data-index
   called-names
-  needs-thread-var-p
+  (needs-thread-var-p t)
   leaf-p
   unwind-protect-p
   setjmp-p

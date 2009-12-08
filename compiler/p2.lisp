@@ -1274,7 +1274,9 @@
                   (subtypep type required-type))
              (process-1-arg arg target t))
             (t
-             (mumble "%p2-require-type full call to ~S~%" op)
+             (if (var-ref-p arg)
+                 (mumble "%p2-require-type full call to ~S var = ~S~%" op (var-name (var-ref-var arg)))
+                 (mumble "%p2-require-type full call to ~S~%" op))
              (process-1-arg arg :default t)
              (emit-call-1 op target)
              (when (var-ref-p arg)
