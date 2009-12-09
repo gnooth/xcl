@@ -25,17 +25,13 @@
   (declare (optimize speed))
   (declare (type cons object))
   (declare (type stream stream))
-  (cond ((and (eq (%car object) 'QUOTE)
-              (length-eql object 2))
+  (cond ((quoted-form-p object)
          (%stream-write-char stream #\')
          (dump-object (%cadr object) stream))
         (t
          (%stream-write-char stream #\()
          (loop
            (dump-object (%car object) stream)
-;;            (setq object (%cdr object))
-;;            (when (null object)
-;;              (return))
            (let ((tail (%cdr object)))
              (when (null tail)
                (return))
@@ -55,12 +51,11 @@
   (declare (type vector vector))
   (let ((length (length vector)))
     (cond ((equal (array-element-type vector) '(unsigned-byte 8)) ; FIXME type=
-;;            (mumble "dump-vector ub-8 case~%")
            (%stream-write-char stream #\#)
            (%stream-write-object stream (length vector))
            (%stream-write-char stream #\%)
            (dotimes (i (length vector))
-             (sys:%stream-write-char stream (code-char (aref vector i)))))
+             (%stream-write-char stream (code-char (aref vector i)))))
           (t
            (%stream-write-char stream #\#)
            (%stream-write-object stream length)
