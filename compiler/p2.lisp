@@ -1312,9 +1312,6 @@
                (set-register-contents +call-return-register+ (var-ref-var arg))))))
     t))
 
-;; (defun p2-require-character (form target)
-;;   (%p2-require-type form target 'character))
-
 (defun p2-require-hash-table (form target)
   (%p2-require-type form target 'hash-table))
 

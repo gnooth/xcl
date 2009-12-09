@@ -52,6 +52,39 @@
                       :operand1 (make-immediate-operand byte2)
                       :operand2 (make-register-operand :al))))
 
+(define-disassembler #x80
+  (with-modrm-byte (mref-8 start 1)
+    (cond ((and (eql mod 3)
+                (eql reg 4))
+           (make-instruction :start start
+                             :length 3
+                             :mnemonic :and
+                             :operand1 (make-immediate-operand (mref-8 start 2))
+                             :operand2 (make-register-operand (byte-register rm))))
+          ((and (eql mod 3)
+                (eql reg 7))
+           (make-instruction :start start
+                             :length 3
+                             :mnemonic :cmp
+                             :operand1 (make-immediate-operand (mref-8 start 2))
+                             :operand2 (make-register-operand (byte-register rm))))
+          (t
+           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
+
+(define-disassembler #x88
+  ;; /r MOV r/m8,r8
+  (with-modrm-byte (mref-8 start 1)
+    (cond ((eql mod 3)
+           (make-instruction :start start
+                             :length 2
+                             :mnemonic :mov
+                             :operand1 (make-register-operand (byte-register reg))
+                             :operand2 (make-register-operand (byte-register rm))))
+          (t
+           (format t "~%modrm-byte = #x~x mod = ~s reg = ~s rm = ~s~%"
+                   modrm-byte mod reg rm)
+           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
+
 (define-disassembler #x8f
   (with-modrm-byte (mref-8 start 1)
     (cond ((and (eql mod #b00)

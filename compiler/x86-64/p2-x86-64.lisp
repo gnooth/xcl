@@ -4042,6 +4042,7 @@
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-character common-labels) ERROR)))
                (inst :mov :al :dl)
+               (clear-register-contents :rdx)
                (inst :and +lowtag-mask+ :dl)
                (inst :cmp +character-lowtag+ :dl)
                (emit-jmp-short :ne ERROR)
@@ -4098,6 +4099,7 @@
                (inst :compare-immediate nil :rax)
                (emit-jmp-short :e EXIT)
                (inst :mov :al :dl)
+               (clear-register-contents :rdx)
                (inst :and +lowtag-mask+ :dl)
                (inst :cmp +symbol-lowtag+ :dl)
                (emit-jmp-short :ne ERROR)
