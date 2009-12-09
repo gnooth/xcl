@@ -235,6 +235,8 @@
     ((:mov :al (:rcx))          #(#x88 #x01))
     ((:mov :al (:rdx))          #(#x88 #x02))
     ((:mov :bl (:rax))          #(#x88 #x18))
+    ((:mov :al :dl)             #(#x88 #xc2))
+    ((:mov :dl :al)             #(#x88 #xd0))
     ((:movb 2 (64 :r12))        #(#x41 #xc6 #x44 #x24 #x40 #x02))
     ((:movq -1 (8 :rsp))        #(#x48 #xc7 #x44 #x24 #x08 #xff #xff #xff #xff))
     ((:movq -1 (8 :rax))        #(#x48 #xc7 #x40 #x08 #xff #xff #xff #xff))

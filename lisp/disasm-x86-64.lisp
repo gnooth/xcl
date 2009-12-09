@@ -58,6 +58,25 @@
                      :operand1 (make-absolute-operand absolute-address))
    ))
 
+(define-handler #x80
+  (with-modrm-byte (mref-8 start (1+ offset))
+  (cond ((and (eql mod 3)
+              (eql reg 4))
+         (make-instruction :start start
+                           :length 3
+                           :mnemonic :and
+                           :operand1 (make-immediate-operand (mref-8 start (+ offset 2)))
+                           :operand2 (make-register-operand (byte-register rm))))
+        ((and (eql mod 3)
+              (eql reg 7))
+         (make-instruction :start start
+                           :length 3
+                           :mnemonic :cmp
+                           :operand1 (make-immediate-operand (mref-8 start (+ offset 2)))
+                           :operand2 (make-register-operand (byte-register rm))))
+        (t
+         (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
+
 (define-handler #xd1
   (with-modrm-byte (mref-8 start (1+ offset))
 ;;     (format t "mod = ~S reg = ~S rm = ~S~%" mod reg rm)
@@ -715,6 +734,11 @@
                                 operand2 (make-operand :kind :relative
                                                        :register (register rm #x48)
                                                        :data 0)))
+                         ((eql mod 3)
+                          (setq length 2
+                                mnemonic :mov
+                                operand1 (make-register-operand (byte-register reg))
+                                operand2 (make-register-operand (byte-register rm))))
                          (t
                           (format t "~%modrm-byte = #x~x mod = ~s reg = ~s rm = ~s~%"
                                   modrm-byte mod reg rm)

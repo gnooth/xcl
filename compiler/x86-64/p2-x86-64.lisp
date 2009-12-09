@@ -4019,6 +4019,37 @@
                  (move-result-to-target target))))))
     t))
 
+(defun p2-require-character (form target)
+  (when (check-arg-count form 1)
+    (let ((arg (%cadr form)))
+      (cond ((or (zerop *safety*)
+                 (eq (derive-type arg) 'CHARACTER))
+             (p2 arg target))
+            (t
+             (mumble "p2-require-character new case~%")
+             (process-1-arg arg :rax t)
+             (let* ((EXIT (make-label))
+                    (common-labels (compiland-common-labels *current-compiland*))
+                    (ERROR (gethash :error-not-character common-labels)))
+               (unless ERROR
+                 (setq ERROR (make-label))
+                 (let ((*current-segment* :elsewhere))
+                   (label ERROR)
+                   ;; arg is in rax
+                   (inst :mov :rax :rdi)
+                   (p2-symbol 'CHARACTER :rsi)
+                   (emit-call '%type-error)
+                   (emit-exit) ; FIXME
+                   (setf (gethash :error-not-character common-labels) ERROR)))
+               (inst :mov :al :dl)
+               (inst :and +lowtag-mask+ :dl)
+               (inst :cmp +character-lowtag+ :dl)
+               (emit-jmp-short :ne ERROR)
+               (label EXIT)
+               (when target
+                 (move-result-to-target target))))))
+    t))
+
 (defun p2-require-list (form target)
   (when (check-arg-count form 1)
     (let ((arg (%cadr form))
@@ -4044,13 +4075,12 @@
 
 (defun p2-require-symbol (form target)
   (when (check-arg-count form 1)
-    (let ((arg (%cadr form))
-          type)
-      (cond ((zerop *safety*)
-             (p2 arg target))
-            ((eq (setq type (derive-type arg)) 'SYMBOL)
+    (let ((arg (%cadr form)))
+      (cond ((or (zerop *safety*)
+                 (eq (derive-type arg) 'SYMBOL))
              (p2 arg target))
             (t
+             (mumble "p2-require-symbol new case~%")
              (process-1-arg arg :rax t)
              (let* ((EXIT (make-label))
                     (common-labels (compiland-common-labels *current-compiland*))
@@ -4059,19 +4089,17 @@
                  (setq ERROR (make-label))
                  (let ((*current-segment* :elsewhere))
                    (label ERROR)
-                   ;; arg is already in rdi
+                   ;; arg is in rax
+                   (inst :mov :rax :rdi)
                    (p2-symbol 'SYMBOL :rsi)
                    (emit-call '%type-error)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-symbol common-labels) ERROR)))
                (inst :compare-immediate nil :rax)
                (emit-jmp-short :e EXIT)
-               (when target
-                 (inst :push :rax))
-               (inst :and +lowtag-mask+ :al)
-               (inst :cmp +symbol-lowtag+ :al)
-               (when target
-                 (inst :pop :rax))
+               (inst :mov :al :dl)
+               (inst :and +lowtag-mask+ :dl)
+               (inst :cmp +symbol-lowtag+ :dl)
                (emit-jmp-short :ne ERROR)
                (label EXIT)
                (when target
@@ -5190,7 +5218,6 @@
                   (fixnump arg3))
              (aver (typep (fixnumize arg2) '(signed-byte 64)))
              (aver (typep (fixnumize arg3) '(signed-byte 64)))
-             (mumble "p2-check-fixnum-bounds new case~%")
              (let ((ERROR (make-label)))
                (let ((*current-segment* :elsewhere)
                      (*register-contents* nil))

@@ -4218,7 +4218,7 @@
                    (inst :push :eax)
                    (emit-call-2 '%type-error nil)
                    (inst :exit) ; FIXME
-                   (setf (gethash :error-not-list common-labels) ERROR)))
+                   (setf (gethash :error-not-symbol common-labels) ERROR)))
                (inst :compare-immediate nil :eax)
                (emit-jmp-short :e EXIT)
                (when target
