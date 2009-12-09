@@ -928,6 +928,7 @@
       (cond ((eq-comparable-types-p type1 type2)
              (%p2-test-eq test-form label-if-true label-if-false))
             (t
+             (mumble "%p2-test-eql full call type1 = ~S type2 = ~S~%" type1 type2)
              (process-2-args args '(:rdi :rsi) t)
              (emit-call "RT_eql")
              (inst :test :al :al)

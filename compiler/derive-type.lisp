@@ -170,6 +170,8 @@
          (list 'INTEGER form form))
         ((characterp form)
          'CHARACTER)
+        ((symbolp form)
+         'SYMBOL)
         ((single-float-p form)
          'SINGLE-FLOAT)
         ((double-float-p form)
@@ -180,6 +182,8 @@
          'STRING)
         ((simple-bit-vector-p form)
          'SIMPLE-BIT-VECTOR)
+        ((classp form)
+         'CLASS)
         ((var-ref-p form)
 ;;          (let ((derived-type (derive-type-var-ref form)))
 ;;            (cond ((neq derived-type :unknown)
@@ -654,7 +658,9 @@
           ((integerp arg)
            (list 'INTEGER arg arg))
           ((numberp arg)
-           'NUMBER))))
+           'NUMBER)
+          (t
+           (canonicalize-type (type-of arg))))))
 
 (defun derive-type-require-structure-type (form)
   (cadr form))
