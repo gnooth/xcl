@@ -972,7 +972,7 @@
 (defun main-clause* ()
   (loop
    (if (keyword? '(:do :doing :return :if :when :unless :initially :finally
-                   :while :until :repeat :always :never :thereis
+                   :for :as :while :until :repeat :always :never :thereis
                    :collect :collecting :append :appending :nconc :nconcing
                    :count :counting :sum :summing :maximize :maximizing
                    :minimize :minimizing))
