@@ -1902,6 +1902,10 @@ for special variables."
                                  (:ge :l)
                                  (:g  :ng)
                                  (:ng :g)
+                                 (:a  :na)
+                                 (:ae :nae)
+                                 (:na :a)
+                                 (:nae :ae)
                                  (t
                                   (aver nil)
                                   nil))))
