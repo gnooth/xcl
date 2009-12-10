@@ -19,12 +19,14 @@
 (defun-compile test5 (x) (1+ x))
 (aver (eql (test5 7) 8))
 (aver (eql (test5 (1+ most-positive-fixnum)) (+ most-positive-fixnum 2)))
+(fmakunbound 'test5)
 
 (defun-compile test6 (n) (< n 2))
 (aver (eql (test6 1) t))
 (aver (eql (test6 3) nil))
 (aver (eql (test6 (1+ most-positive-fixnum)) nil))
 (aver (eql (test6 (1- most-negative-fixnum)) t))
+(fmakunbound 'test6)
 
 (defun-compile test7 (n) (- n 4))
 (aver (eql (test7 0) -4))
@@ -32,6 +34,7 @@
 (aver (eql (test7 42) 38))
 (aver (eql (test7 (1+ most-negative-fixnum)) (- most-negative-fixnum 3)))
 (aver (eql (test7 (1- most-negative-fixnum)) (- most-negative-fixnum 5)))
+(fmakunbound 'test7)
 
 (defun-compile test8 () (let* ((x 3)) x))
 (aver (eql (test8) 3))
