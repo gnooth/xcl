@@ -96,6 +96,7 @@
 (install-p2-handler 'length                     'p2-length)
 (install-p2-handler 'list3                      'p2-list3)
 (install-p2-handler 'list4                      'p2-list4)
+(install-p2-handler 'listp                      'p2-listp)
 (install-p2-handler 'logand                     'p2-logand)
 (install-p2-handler 'logior                     'p2-logior/logxor)
 (install-p2-handler 'logxor                     'p2-logior/logxor)

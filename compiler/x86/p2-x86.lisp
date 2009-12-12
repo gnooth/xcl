@@ -844,11 +844,9 @@
              (process-2-args args '(:eax :edx) t)
              ;; arg1 in eax, arg2 in edx
              (unless (fixnum-type-p type1)
-;;                (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x3,%al
                (inst :test +fixnum-tag-mask+ :al)
                (emit-jmp-short :nz FULL-CALL))
              (unless (fixnum-type-p type2)
-;;                (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x3,%dl
                (inst :test +fixnum-tag-mask+ :dl)
                (emit-jmp-short :nz FULL-CALL))
              ;; falling through, both args are fixnums
