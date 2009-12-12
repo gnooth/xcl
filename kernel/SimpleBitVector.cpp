@@ -255,7 +255,7 @@ Value SYS_make_simple_bit_vector(Value arg)
 // ### %sbit1 simple-bit-vector index => bit
 Value SYS_xsbit1(Value arg1, Value arg2)
 {
-  return the_simple_bit_vector(arg1)->inline_aref(xlong(arg2));
+  return make_fixnum(the_simple_bit_vector(arg1)->inline_getbit(xlong(arg2)));
 }
 
 // ### sbit1 simple-bit-vector index => bit

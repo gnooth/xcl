@@ -582,6 +582,20 @@
         (p2 form target)
         t))))
 
+(defun p2-elt (form target)
+  (when (length-eql form 3)
+    (let* ((args (%cdr form))
+           (arg1 (%car args))
+           (arg2 (%cadr args))
+           (type1 (derive-type arg1)))
+      (cond ((subtypep type1 '(SIMPLE-ARRAY * (*)))
+             (mumble "p2-elt simple-array case type1 = ~S~%" type1)
+             (p2 `(vector-ref ,arg1 ,arg2) target))
+            (t
+             (mumble "p2-elt default case type1 = ~S~%" type1)
+             (p2-function-call form target))))
+    t))
+
 (defun eq-comparable-type-p (type)
   ;; assumes type is canonical
   (cond ((fixnum-type-p type)

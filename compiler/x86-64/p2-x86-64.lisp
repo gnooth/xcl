@@ -2340,7 +2340,7 @@
                     (move-result-to-target target)
                     t)
                    (t
-                    (p2 (list* '%VECTOR-REF args) target)
+                    (p2 `(%VECTOR-REF ,@args) target)
                     t)))
             ((subtypep type1 '(simple-array (unsigned-byte 32) (*)))
              (cond ((or (zerop *safety*)
@@ -2364,10 +2364,10 @@
                     (move-result-to-target target)
                     t)
                    (t
-                    (p2 (list* '%VECTOR-REF args) target)
+                    (p2 `(%VECTOR-REF ,@args) target)
                     t)))
             ((subtypep type1 'vector)
-             (p2 (list* '%VECTOR-REF args) target)
+             (p2 `(%VECTOR-REF ,@args) target)
              t)
             (t
              nil)))))
@@ -4116,7 +4116,6 @@
                  (eq (derive-type arg) 'SYMBOL))
              (p2 arg target))
             (t
-             (mumble "p2-require-symbol new case~%")
              (process-1-arg arg :rax t)
              (let* ((EXIT (make-label))
                     (common-labels (compiland-common-labels *current-compiland*))
