@@ -930,6 +930,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_xmake_structure, SYS_xmake_structure, 3, 3);
   ADD_PRIMITIVE(S_xrplaca, SYS_xrplaca, 2, 2);
   ADD_PRIMITIVE(S_xrplacd, SYS_xrplacd, 2, 2);
+  ADD_PRIMITIVE(S_xsbit1, SYS_xsbit1, 2, 2);
   ADD_PRIMITIVE(S_xschar, SYS_xschar, 2, 2);
   ADD_PRIMITIVE(S_xsetcar, SYS_xsetcar, 2, 2);
   ADD_PRIMITIVE(S_xsetcdr, SYS_xsetcdr, 2, 2);

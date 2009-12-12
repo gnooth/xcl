@@ -59,6 +59,7 @@
 (install-p2-handler '%cdr                       'p2-%cdr)
 (install-p2-handler '%dpb                       'p2-%dpb)
 (install-p2-handler '%rplacd                    'p2-rplacd)
+(install-p2-handler '%sbit1                     'p2-sbit1)
 (install-p2-handler '%type-error                'p2-%type-error)
 (install-p2-handler '%typep                     'p2-typep)
 (install-p2-handler 'apply                      'p2-apply)

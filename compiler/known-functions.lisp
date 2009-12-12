@@ -424,7 +424,7 @@
 (defknown assql (t t) list)
 (defknown atom (t) boolean (:safe))
 (defknown bignump (t) boolean (:safe))
-(defknown (bit sbit sbit1) (*) (integer 0 1))
+(defknown (bit sbit sbit1 %sbit1) (*) (integer 0 1))
 (defknown bit-vector-p (t) boolean (:safe))
 (defknown (butlast nbutlast) (*) list)
 (defknown byte-position (*) (integer 0 *))

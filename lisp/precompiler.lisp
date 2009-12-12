@@ -828,7 +828,7 @@
                 (mapcar         mapcar2)
                 (member         memql)
                 (position       position-eql)
-                (sbit           sbit1)
+;;                 (sbit           sbit1)
                 (subsetp        subsetp-eql)
                 (typep          %typep)))
   (puthash3 (%car pair) +two-arg-operators+ (%cadr pair)))

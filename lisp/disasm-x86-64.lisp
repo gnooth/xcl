@@ -55,8 +55,7 @@
    (make-instruction :start start
                      :length 2
                      :mnemonic :ja
-                     :operand1 (make-absolute-operand absolute-address))
-   ))
+                     :operand1 (make-absolute-operand absolute-address))))
 
 (define-handler #x80
   (with-modrm-byte (mref-8 start (1+ offset))
@@ -806,50 +805,6 @@
                          (t
                           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)
                           ))))
-;;                 (#x8b
-;;                  ;; /r move r/m dword to dword register
-;;                  (with-modrm-byte (mref-8 block-start (1+ offset))
-;;                    (cond ((= mod #b00)
-;;                           (let ((source (register reg)))
-;;                             (cond ((= rm #b001)
-;;                                    (let* ((displacement (mref-32 block-start (+ offset 2)))
-;;                                           (absolute-address (ldb (byte 32 0) (+ block-start offset 5 displacement))))
-;;                                      (setq length 6
-;;                                            mnemonic :mov
-;;                                            operand1 (make-register-operand source)
-;;                                            operand2 (make-absolute-operand absolute-address))))
-;;                                   ((= rm #b101)
-;;                                    (let* ((displacement (mref-32 block-start (+ offset 2))))
-;;                                      (setq length 6
-;;                                            mnemonic :mov
-;;                                            operand1 (make-operand :kind :relative
-;;                                                                   :register :rip
-;;                                                                   :data displacement)
-;;                                            operand2 (make-register-operand (register reg prefix-byte))))))))
-;;                          ((= mod #b01)
-;;                           (let ((displacement (mref-8-signed block-start (+ offset 2))))
-;;                             (setq length 3
-;;                                   mnemonic :mov
-;;                                   operand1 (make-operand :kind :relative
-;;                                                          :register (register-rm rm prefix-byte)
-;;                                                          :data displacement)
-;;                                   operand2 (make-register-operand (register-reg reg prefix-byte)))
-;;                             (when (eq (register-rm rm prefix-byte) :rbp)
-;;                               (let ((index (/ (+ displacement 8) -8)))
-;;                                 (setq annotation (cdr (assoc index *locals*)))))))
-;;                          ((= mod #b10)
-;;                           (let ((displacement (mref-32-signed block-start (+ offset 2))))
-;;                             (setq length 6
-;;                                   mnemonic :mov
-;;                                   operand1 (make-operand :kind :relative
-;;                                                          :register (register rm prefix-byte)
-;;                                                          :data displacement)
-;;                                   operand2 (make-register-operand (register reg prefix-byte)))
-;;                             (when (eq (register rm prefix-byte) :rbp)
-;;                               (let ((index (/ (+ displacement 8) -8)))
-;;                                 (setq annotation (cdr (assoc index *locals*)))))))
-;;                          (t
-;;                           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
                 (#x8d
                  (with-modrm-byte (mref-8 block-start (1+ offset))
                    (cond ((= mod #b01)
@@ -1121,10 +1076,7 @@
                )
               (t
                (error "shouldn't happen")))
-;;         (when done
         (when (memq byte1 '(#xc3 #xe9 #xeb))
           (return))
-        )
-      )
-    )
+        )))
   nil)

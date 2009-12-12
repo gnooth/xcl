@@ -864,6 +864,7 @@ extern Value SYS_xlist_length(Value arg);
 extern Value SYS_xmake_structure(Value name, Value values_list, Value numslots);
 extern Value SYS_xrplaca(Value cons, Value object);
 extern Value SYS_xrplacd(Value cons, Value object);
+extern Value SYS_xsbit1(Value arg1, Value arg2);
 extern Value SYS_xschar(Value string, Value index);
 extern Value SYS_xsetcar(Value cons, Value object);
 extern Value SYS_xsetcdr(Value cons, Value object);

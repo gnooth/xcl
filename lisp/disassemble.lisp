@@ -202,7 +202,7 @@
       (princ (string-downcase s)))
     (when op1
       (fill-to-pos 48 *standard-output*)
-      (if (memq mnemonic '(:jmp :jmpq :je :jz :jne :jge :jle :jnz :jo :jno :jl :jnl :jg :jng :js :call :callq))
+      (if (memq mnemonic '(:jmp :jmpq :je :jz :jne :jge :jle :jnz :jo :jno :jl :jnl :jg :jng :js :ja :jae :call :callq))
           (let* ((address (operand-data op1))
                  (label (and *labels-hash-table* (gethash address *labels-hash-table*))))
             (cond (label
@@ -379,11 +379,9 @@
     (collect-labels)
     (format t "; Disassembly of ~S~%" function)
     (when (compiled-function-p function)
-;;       (format t "; Constants:~%  ~S~%" (compiled-function-constants function))
       (format t "; Constants:~%")
       (dolist (constant  (compiled-function-constants function))
-        (format t "  ~S~%" constant))
-      )
+        (format t "  ~S~%" constant)))
     (format t "; Code:~%")
     (dolist (instruction (nreverse *instructions*))
       (print-instruction instruction))

@@ -252,6 +252,12 @@ Value SYS_make_simple_bit_vector(Value arg)
   return make_value(new_simple_bit_vector(check_index(arg, 0, ARRAY_DIMENSION_LIMIT - 1)));
 }
 
+// ### %sbit1 simple-bit-vector index => bit
+Value SYS_xsbit1(Value arg1, Value arg2)
+{
+  return the_simple_bit_vector(arg1)->inline_aref(xlong(arg2));
+}
+
 // ### sbit1 simple-bit-vector index => bit
 Value SYS_sbit1(Value arg1, Value arg2)
 {
