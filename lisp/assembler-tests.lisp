@@ -58,6 +58,8 @@
     ((:shl 4 :eax)              #(#xc1 #xe0 #x04))
     ((:sar 4 :eax)              #(#xc1 #xf8 #x04))
     ((:shr 8 :eax)              #(#xc1 #xe8 #x08))
+    ((:and :eax :edx)           #(#x21 #xc2))
+    ((:and :edx :eax)           #(#x21 #xd0))
     ((:and #xfc :al)            #(#x24 #xfc))
     ((:and 7 :dl)               #(#x80 #xe2 #x07))
     ((:and 1 :eax)              #(#x83 #xe0 #x01))

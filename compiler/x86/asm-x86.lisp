@@ -53,7 +53,14 @@
          (unsupported))))
 
 (define-assembler :and
-  (cond ((and (typep operand1 '(unsigned-byte 8))
+  (cond ((and (reg32-p operand1)
+              (reg32-p operand2))
+         (let* ((mod #b11)
+                (reg (register-number operand1))
+                (rm  (register-number operand2))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x21 modrm-byte)))
+        ((and (typep operand1 '(unsigned-byte 8))
               (eq operand2 :al))
          (emit-bytes #x24 operand1))
         ((and (typep operand1 '(unsigned-byte 8))
