@@ -1083,6 +1083,7 @@
       (cond ((equal type '(INTEGER 0 1))
              (mumble "%p2-test-plusp bit case~%")
              (process-1-arg arg :rax t)
+             (inst :test :al :al)
              (when label-if-true
                (emit-jmp-short :nz label-if-true))
              (when label-if-false
@@ -1091,28 +1092,11 @@
              (mumble "%p2-test-plusp default case~%")
              (process-1-arg arg :rdi t)
              (emit-call "RT_plusp")
-;;                (when label-if-true
-;;                  (emit-jmp-short :z label-if-true))
-;;                (emit-jmp-short :z EXIT)
-;;                (cond ((use-fast-call-p)
-;;                       (inst :mov :rax :rdi)
-;;                       (emit-call 'plusp))
-;;                      ((setq thread-register (compiland-thread-register *current-compiland*))
-;;                       (inst :mov :rax :rdx)
-;;                       (inst :move-immediate (list :function 'plusp) :rsi)
-;;                       (inst :mov thread-register :rdi)
-;;                       (emit-call "RT_thread_call_function_1"))
-;;                      (t
-;;                       (inst :mov :rax :rsi)
-;;                       (inst :move-immediate (list :function 'plusp) :rdi)
-;;                       (emit-call "RT_current_thread_call_function_1")))
-;;                (inst :compare-immediate nil :rax)
              (inst :test :al :al)
              (when label-if-true
                (emit-jmp-short :nz label-if-true))
              (when label-if-false
-               (emit-jmp-short :z label-if-false))
-             )))
+               (emit-jmp-short :z label-if-false)))))
     t))
 
 (defknown p2-test-plusp (t t) t)

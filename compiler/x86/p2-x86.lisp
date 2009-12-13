@@ -1023,6 +1023,26 @@
       (emit-jmp-short :ne label))
     t))
 
+(defknown %p2-test-listp (t t t) t)
+(defun %p2-test-listp (form label-if-true label-if-false)
+  (when (check-arg-count form 1)
+    (let* ((arg (%cadr form))
+           (EXIT (make-label)))
+      (process-1-arg arg :eax t)
+      (inst :and +lowtag-mask+ :al)
+      (clear-register-contents :eax)
+      (inst :cmp +list-lowtag+ :al)
+      (when label-if-true
+        (emit-jmp-short :e label-if-true))
+      (when label-if-false
+        (emit-jmp-short :ne label-if-false))
+      (label EXIT))
+    t))
+
+(defknown p2-test-listp (t t) t)
+(defun p2-test-listp (test-form label)
+  (%p2-test-listp test-form nil label))
+
 (defun p2-test-symbolp (test-form label)
   (when (check-arg-count test-form 1)
     (let ((arg (cadr test-form))
@@ -1083,6 +1103,33 @@
     (inst :test +fixnum-tag-mask+ :al)
     (emit-jmp-short :nz label))
   t)
+
+(defun %p2-test-plusp (form label-if-true label-if-false)
+  (when (check-arg-count form 1)
+    (let* ((arg (cadr form))
+           (type (derive-type arg)))
+      (cond ((equal type '(INTEGER 0 1))
+             (mumble "%p2-test-plusp bit case~%")
+             (process-1-arg arg :eax t)
+             (inst :test :al :al)
+             (when label-if-true
+               (emit-jmp-short :nz label-if-true))
+             (when label-if-false
+               (emit-jmp-short :z label-if-false)))
+            (t
+             (mumble "%p2-test-plusp default case~%")
+             (process-1-arg arg :stack t)
+             (emit-call "RT_plusp")
+             (inst :test :al :al)
+             (when label-if-true
+               (emit-jmp-short :nz label-if-true))
+             (when label-if-false
+               (emit-jmp-short :z label-if-false)))))
+    t))
+
+(defknown p2-test-plusp (t t) t)
+(defun p2-test-plusp (test-form label)
+  (%p2-test-plusp test-form nil label))
 
 (defun p2-test-zerop (test-form label)
   (unless (check-arg-count test-form 1)
@@ -4397,6 +4444,23 @@
         (inst :push :eax)
         (emit-call-1 'bignump target)
         (emit-jmp-short t EXIT)))
+    t))
+
+(defun p2-listp (form target)
+  (when (check-arg-count form 1)
+    (let* ((arg (%cadr form))
+           (NO (make-label))
+           (EXIT (make-label)))
+      (process-1-arg arg :eax t)
+      (inst :and +lowtag-mask+ :al)
+      (clear-register-contents :eax)
+      (inst :cmp +list-lowtag+ :al)
+      (emit-jmp-short :ne NO)
+      (p2 t target)
+      (emit-jmp-short t EXIT)
+      (label NO)
+      (p2 nil target)
+      (label EXIT))
     t))
 
 (defun p2-symbolp (form target)
