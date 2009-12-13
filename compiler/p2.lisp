@@ -1419,8 +1419,7 @@
       (cond ((eq op '%sbit1)
              (mumble "p2-sbit1 %sbit1 case~%")
              (process-2-args args :default t)
-             (emit-call '%sbit1)
-             (move-result-to-target target))
+             (emit-call-2 '%sbit1 target))
             (t
              (mumble "p2-sbit1 default case~%")
              (p2-function-call form target))))

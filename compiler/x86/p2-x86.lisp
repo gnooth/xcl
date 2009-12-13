@@ -1119,7 +1119,7 @@
             (t
              (mumble "%p2-test-plusp default case~%")
              (process-1-arg arg :stack t)
-             (emit-call "RT_plusp")
+             (emit-call-1 "RT_plusp" :eax)
              (inst :test :al :al)
              (when label-if-true
                (emit-jmp-short :nz label-if-true))
