@@ -2261,11 +2261,37 @@
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
            (arg1 (%car args))
-           (type1 (derive-type arg1)))
+           (arg2 (%cadr args))
+           (type1 (derive-type arg1))
+           type2
+           size)
       (cond ((eq type1 :unknown)
              nil)
             ((subtypep type1 'simple-vector)
              (p2-svref form target))
+            ((subtypep type1 '(simple-array (unsigned-byte 8) (*)))
+             (cond ((or (zerop *safety*)
+                        (and (neq (setq type2 (derive-type arg2)) :unknown)
+                             (integer-type-p type2)
+                             (setq size (derive-vector-size type1))
+                             (subtypep type2 `(INTEGER 0 ,(1- size)))))
+                    (mumble "p2-vector-ref new case~%")
+                    (process-2-args args '(:eax :edx) t) ; vector in rax, index in rdx
+                    (clear-register-contents :eax :edx)
+                    (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :eax)
+
+                    ;; index is in edx
+                    ;; get rid of the fixnum shift
+                    (unbox-fixnum :edx)
+
+                    (inst :add :edx :eax)
+                    (emit-bytes #x0f #xb6 #x00) ; movzbl (%eax),%eax
+                    (box-fixnum :eax)
+                    (move-result-to-target target)
+                    t)
+                   (t
+                    (p2 `(%VECTOR-REF ,@args) target)
+                    t)))
             ((subtypep type1 'vector)
              (p2 (list* '%VECTOR-REF args) target)
              t)
@@ -4837,9 +4863,9 @@
              (inst :cmp +typed-object-lowtag+ :al)
              (emit-jmp-short :ne FAIL)
              (inst :mov :edx :eax)
-             (inst :sub +typed-object-lowtag+ :eax)
-             (inst :mov `(,+bytes-per-word+ :eax) :eax) ; widetag
-             (inst :and #x100 :eax)
+             (inst :mov `(,(- +widetag-offset+ +typed-object-lowtag+) :eax) :eax) ; widetag in rax
+             (aver (typep +widetag-vector-bit+ '(signed-byte 32)))
+             (inst :and +widetag-vector-bit+ :eax)
              (emit-jmp-short :z FAIL)
              (when target
                (inst :mov :edx :eax)
