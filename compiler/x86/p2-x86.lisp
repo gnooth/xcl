@@ -146,6 +146,7 @@
   (inst :save-registers)
   (inst :enter-frame)
   (trivial-allocate-locals compiland)
+  (inst :align-stack)
   (inst :initialize-thread-var)
   (clear-register-contents)
   t)

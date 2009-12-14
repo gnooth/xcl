@@ -37,7 +37,7 @@
       (map nil #'delete-file (directory "test-vectors/*.lx64fsl"))
       (map nil #'delete-file (directory "test-vectors/*.fas"))
       (map nil #'delete-file (directory "test-vectors/*.lib"))
-      (asdf:oos 'asdf:load-op :ironclad :force t)
+      (time (asdf:oos 'asdf:load-op :ironclad :force t))
       #+xcl (ext:gc)
       (time (asdf:oos 'asdf:test-op  :ironclad)))))
 
