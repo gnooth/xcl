@@ -6,6 +6,7 @@
   (let* ((ansi-tests-directory
           (pathname (directory-namestring (merge-pathnames "ansi-tests/" *xcl-home*)))))
     (let ((*default-pathname-defaults* ansi-tests-directory))
+      (run-shell-command "make clean")
       (load "gclload1.lsp")
       (load "random-int-form.lsp")
       (let ((f (find-symbol "TEST-RANDOM-INTEGER-FORMS" "CL-TEST")))
