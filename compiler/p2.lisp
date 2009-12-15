@@ -606,7 +606,7 @@
          t)
         ((consp type) ; other compound types
          nil)
-        ((eq type :unknown)
+        ((memq type '(:unknown t))
          nil)
         (t
          t)))
