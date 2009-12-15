@@ -93,12 +93,11 @@
 (defknown integer-constant-value (t) t)
 (defun integer-constant-value (type)
   (when (and type (integer-type-p type))
-    (let ((low (integer-type-low type))
-          high)
+    (let ((low (integer-type-low type)))
       (when (integerp low)
-        (setq high (integer-type-high type))
-        (when (and (integerp high) (eql high low))
-          high)))))
+        (let ((high (integer-type-high type)))
+          (when (eql high low)
+            high))))))
 
 (defknown float-type-p (t) t)
 (defun float-type-p (type)
@@ -518,6 +517,11 @@
                               (setq result-type (list 'INTEGER
                                                       (+ low1  low2)
                                                       (+ high1 high2))))
+                             ((and (integerp low1)
+                                   (integerp low2))
+                              (setq result-type (list 'INTEGER
+                                                      (+ low1 low2)
+                                                      '*)))
                              (t
                               (setq result-type '(INTEGER * *))))))
                     ((and (float-type-p type1)
