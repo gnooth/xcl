@@ -1447,7 +1447,7 @@
 ;;                (clear-register-contents :eax)
                )
               (t
-               (note "P2-LET/LET*: emitting call to RT_current_thread_last_special_binding~%")
+               (mumble "P2-LET/LET*: emitting call to RT_current_thread_last_special_binding~%")
                (emit-call "RT_current_thread_last_special_binding"))))
       (inst :mov :eax (block-last-special-binding-var block)))
     (if (eq (%car form) 'LET)
@@ -1478,6 +1478,7 @@
                     )
                    (t
                     (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
+                    (mumble "P2-LET/LET*: emitting call to RT_current_thread_set_last_special_binding~%")
                     (emit-call-1 "RT_current_thread_set_last_special_binding" nil)))
              (inst :pop :eax)
              (move-result-to-target target))
@@ -2394,21 +2395,23 @@
                   (p2 arg1 :stack))
                  ((or (numberp arg1) (characterp arg1))
                   (p2 arg2 :stack)
-                  (unless (single-valued-p arg2)
-                    (emit-clear-values))
+                  (when clear-values-p
+                    (unless (single-valued-p arg2)
+                      (emit-clear-values)))
                   (p2 arg1 :stack))
                  ((or (numberp arg2) (characterp arg2))
                   (p2 arg2 :stack)
                   (p2 arg1 :stack)
-                  (unless (single-valued-p arg1)
-                    (emit-clear-values)))
+                  (when clear-values-p
+                    (unless (single-valued-p arg1)
+                      (emit-clear-values))))
                  (t
                   ;; order of evaluation may matter
-                  (emit-bytes #x83 #xec #x08) ; sub $0x8,%esp
+                  (inst :sub (* +bytes-per-word+ 2) :esp)
                   (p2 arg1 :eax)
                   (emit-bytes #x89 #x04 #x24) ; mov %eax,(%esp)
                   (p2 arg2 :eax)
-                  (emit-bytes #x89 #x44 #x24 #x04) ; mov %eax,0x4(%esp)
+                  (inst :mov :eax `(,+bytes-per-word+ :esp))
                   (when clear-values-p
                     (maybe-emit-clear-values arg1 arg2)))))
           ((and (consp targets)
@@ -2444,7 +2447,8 @@
                    (t
                     (p2 arg1 :stack)
                     (p2 arg2 :stack)
-                    (maybe-emit-clear-values arg1 arg2)
+                    (when clear-values-p
+                      (maybe-emit-clear-values arg1 arg2))
                     (inst :pop reg2)
                     (inst :pop reg1)
                     (clear-register-contents reg1 reg2)))
