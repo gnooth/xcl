@@ -432,7 +432,7 @@
                              (>= low1 0)
                              (integerp low2)
                              (>= low2 0))
-                        ;; Both arguments are non-negative.
+                        ;; both arguments are non-negative
                         (setq result-low 0)
                         (setq result-high (if (and (integerp high1)
                                                    (integerp high2))
