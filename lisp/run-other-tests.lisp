@@ -62,6 +62,17 @@
     (asdf:oos 'asdf:load-op :ironclad :force t)
     (time (prof:with-profiling (:max-depth max-depth) (asdf:oos 'asdf:test-op  :ironclad)))))
 
+#+xcl
+(defun profile-ironclad-load-op (&key (max-depth most-positive-fixnum))
+  (let* ((ironclad-directory
+          #+windows #p"c:/cygwin/home/peter/ironclad_0.22/"
+          #-windows #p"/home/peter/ironclad_0.22/")
+         (*default-pathname-defaults* ironclad-directory)
+         (*load-verbose* t))
+    (map nil #'delete-file (directory "*.xcl"))
+    (map nil #'delete-file (directory "test-vectors/*.xcl"))
+    (time (prof:with-profiling (:max-depth max-depth) (asdf:oos 'asdf:load-op :ironclad :force t)))))
+
 (defun run-mop-tests ()
   (let ((lw-compat-directory
          #+windows #p"c:/cygwin/home/peter/lw-compat/"
