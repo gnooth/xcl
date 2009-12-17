@@ -958,13 +958,21 @@
                  (setq length 1
                        mnemonic :int3))
                 (#xd3
-                 ;; D3   /7 ib      SAR r/m32,CL
                  (with-modrm-byte (mref-8 block-start (1+ offset))
                    (cond ((eql reg 7)
+                          ;; D3   /7 ib      SAR r/m32,CL
                           (setq length 2
                                 mnemonic :sar
                                 operand1 (make-register-operand :cl)
                                 operand2 (make-register-operand (register rm prefix-byte))))
+                         ((eql reg 4)
+                          ;; D3   /4         SHL r/m32,CL
+                          (setq length 2
+                                mnemonic :shl
+                                operand1 (make-register-operand :cl)
+                                operand2 (make-register-operand (register rm prefix-byte))))
+                         (t
+                          (unsupported))
                          )))
                 (#xe8
                  ;; call near, displacement relative to next instruction
