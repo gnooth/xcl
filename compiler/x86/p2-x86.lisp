@@ -2331,26 +2331,35 @@
                       (subtypep type1 'SIMPLE-VECTOR)
                       (setq size (derive-vector-size type1))
                       (subtypep type2 (list 'INTEGER 0 (1- size)))))
-             (mumble "p2-svset new case~%")
              (process-3-args args '(:eax :edx :ecx) t) ; vector in eax, index in edx, new element in ecx
              (clear-register-contents :eax :edx)
              (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :eax)
-             ;; index is in edx
+             ;; boxed index is in edx
              ;; unbox it
-             (unbox-fixnum :edx)
-             (inst :shl 2 :edx) ; multiply by 4 to get byte offset
+             ;; (inst :sar +fixnum-shift+ :edx)
+             ;; multiply by +bytes-per-word+ to get the offset in bytes
+             ;; (inst :shl 2 :edx)
+             ;; nothing to do as long as +bytes-per-word+ is 4 and +fixnum-shift+ is 2
+             (aver (eql +bytes-per-word+ 4))
+             (aver (eql +fixnum-shift+ 2))
              (inst :add :edx :eax)
              ;; new element is in ecx
-             (when target
-               (inst :push :ecx)) ; save it for return value
              ;; store it in the array
              (inst :mov :ecx '(:eax))
              ;; return value
-             (cond ((reg32-p target)
-                    (inst :pop target))
-                   (target
-                    (inst :pop :eax)
-                    (move-result-to-target target)))
+             (cond ((null target)
+                    ; nothing to do
+                    )
+                   ((reg32-p target)
+                    (unless (eq target :ecx)
+                      (inst :mov :ecx target)
+                      (clear-register-contents target)))
+                   ((eq target :stack)
+                    (inst :push :ecx))
+                   ((eq target :return)
+                    (inst :mov :ecx :eax))
+                   (t
+                    (compiler-unsupported "p2-svset target = ~S" target)))
              t)
             ((and (neq type1 :unknown)
                   (subtypep type1 'SIMPLE-VECTOR))
@@ -2486,14 +2495,20 @@
            (let ((reg1 (%car targets))
                  (reg2 (%cadr targets))
                  (reg3 (%caddr targets)))
-             (p2 arg1 :stack)
-             (p2 arg2 :stack)
-             (p2 arg3 :stack)
-             (maybe-emit-clear-values arg1 arg2 arg3)
-             (inst :pop reg3)
-             (inst :pop reg2)
-             (inst :pop reg1)
-             (clear-register-contents reg1 reg2 reg3)))
+             (cond ((every #'constant-or-local-var-ref-p args)
+                    (p2 arg1 reg1)
+                    (p2 arg2 reg2)
+                    (p2 arg3 reg3))
+                   (t
+                    (p2 arg1 :stack)
+                    (p2 arg2 :stack)
+                    (p2 arg3 :stack)
+                    (when clear-values-p
+                      (maybe-emit-clear-values arg1 arg2 arg3))
+                    (inst :pop reg3)
+                    (inst :pop reg2)
+                    (inst :pop reg1)
+                    (clear-register-contents reg1 reg2 reg3)))))
           (t
            (compiler-unsupported "PROCESS-3-ARGS unsupported targets ~S" targets)))))
 
