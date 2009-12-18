@@ -236,8 +236,8 @@
                        (label (cadr args))
                        (size (instruction-size instruction))
                        (displacement (- (+ (vector-data code-vector) (symbol-global-value label)) (+ here size))))
-                  (aver (eql (length args) 2))
-                  (aver (or (keywordp test) (eq test t)))
+;;                   (aver (eql (length args) 2))
+;;                   (aver (or (keywordp test) (eq test t)))
                   (when short
                     (when (or (< displacement -128) (> displacement 127))
                       ;; displacement is out of range for short jump
@@ -270,7 +270,7 @@
                (dotimes (j (length instruction))
                  (emit (aref instruction j))))
              )))
-     (aver (eql i length))
+;;      (aver (eql i length))
      (return-from generate-code-vector (values code-vector constants)))))
 
 #+x86-64
