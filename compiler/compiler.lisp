@@ -2052,10 +2052,7 @@ for special variables."
     changed))
 
 (defknown optimize-ir2-7 () t)
-#+x86-64
 (defun optimize-ir2-7 ()
-;;   (let ((*dump-code* t))
-;;     (dump-code))
   (let ((code *code*)
         (changed nil))
     (declare (type simple-vector code))
@@ -2065,12 +2062,12 @@ for special variables."
           (aver (ir2-instruction-p instruction-1)))
         (when (and instruction-1
                    (eq (operator instruction-1) :push)
-;;                    (reg64-p (second instruction-1))
-                   (memq (operand1 instruction-1) '(:rax :rcx :rdx :rbx)) ; FIXME
-                   )
-;;           (mumble "considering instruction ~S~%" i)
-          (let ((reg (operand1 instruction-1))
-                (j (1+ i)))
+                   (memq (operand1 instruction-1)
+                         #+x86-64 '(:rax :rcx :rdx :rbx)
+                         #+x86    '(:eax :ecx :edx :ebx)))
+          (let* ((reg (operand1 instruction-1))
+                 (regs (list reg (reg8 reg) #+x86-64 (reg32 reg)))
+                 (j (1+ i)))
             (loop
               (when (eql j (length code))
                 (return))
@@ -2089,7 +2086,6 @@ for special variables."
                      (return))
                     (:pop
                      (cond ((eq (operand1 instruction) reg)
-;;                             (mumble "found match for instruction ~S at instruction ~S~%" i j)
                             (setf (svref code i) nil)
                             (setf (svref code j) nil)
                             (setq changed t)
@@ -2097,15 +2093,15 @@ for special variables."
                            (t
                             (return))))
                     (t
-                     (when (memq (operand2 instruction) (list reg (reg8 reg) (reg32 reg)))
+                     ;; FIXME this test should be tightened up
+                     (when (or (memq (operand2 instruction) regs)
+                               (and (memq (operator instruction) '(:dec :inc))
+                                    (memq (operand1 instruction) regs)))
                        ;; reg used
                        (return))))))
               (incf j))))))
     (when changed
-      (setq *code* (delete nil code))
-;;       (let ((*dump-code* t))
-;;         (dump-code))
-      )
+      (setq *code* (delete nil code)))
     changed))
 
 ;; TCO
@@ -2142,7 +2138,6 @@ for special variables."
       (setq changed (or (optimize-ir2-3)  changed))
       (setq changed (or (optimize-ir2-4)  changed))
       (setq changed (or (optimize-ir2-5)  changed))
-      #+x86-64
       (setq changed (or (optimize-ir2-7)  changed))
       (unless changed
         (return))))
