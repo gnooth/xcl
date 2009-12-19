@@ -36,16 +36,10 @@
           (case operator
             (:exit
              (unless (compiland-omit-frame-pointer compiland)
-               ;;                    (vector-push-extend '(:leave) new-code)
-               (vector-push-extend (make-ir2-instruction :leave nil nil) new-code)
-               )
+               (add-ir2-instruction (make-ir2-instruction :leave nil nil) new-code))
              (dolist (reg (reverse (compiland-registers-to-be-saved compiland)))
-               ;;                    (vector-push-extend `(:pop ,reg) new-code)
-               (vector-push-extend (make-ir2-instruction :pop reg nil) new-code)
-               )
-             ;;                  (vector-push-extend '(:ret) new-code)
-             (vector-push-extend (make-ir2-instruction :ret nil nil) new-code)
-             )
+               (add-ir2-instruction (make-ir2-instruction :pop reg nil) new-code))
+             (add-ir2-instruction (make-ir2-instruction :ret nil nil) new-code))
             (:align-stack
              (aver (not locals-allocated-p))
              (unless (zerop local-var-count)
@@ -63,25 +57,17 @@
                  (incf local-var-count))))
             (:enter-frame
              (unless (compiland-omit-frame-pointer compiland)
-               ;;                    (vector-push-extend '(:push :ebp) new-code)
-               (vector-push-extend (make-ir2-instruction :push :ebp nil) new-code)
-               ;;                    (vector-push-extend '(:mov :esp :ebp) new-code)
-               (vector-push-extend (make-ir2-instruction :mov :esp :ebp) new-code)
-               ))
+               (add-ir2-instruction (make-ir2-instruction :push :ebp nil) new-code)
+               (add-ir2-instruction (make-ir2-instruction :mov :esp :ebp) new-code)))
             (:initialize-thread-var
              (when (compiland-thread-var compiland)
-               ;;                    (vector-push-extend '(:call "RT_current_thread") new-code)
-               (vector-push-extend (make-ir2-instruction :call "RT_current_thread" nil) new-code)
-               ;;                    (vector-push-extend `(:mov :eax ,(compiland-thread-var compiland)) new-code)
-               (vector-push-extend (make-ir2-instruction :mov :eax (compiland-thread-var compiland)) new-code)
-               ))
+               (add-ir2-instruction (make-ir2-instruction :call "RT_current_thread" nil) new-code)
+               (add-ir2-instruction (make-ir2-instruction :mov :eax (compiland-thread-var compiland)) new-code)))
             (:save-registers
              (dolist (reg (compiland-registers-to-be-saved compiland))
-               ;;                    (vector-push-extend `(:push ,reg) new-code)
-               (vector-push-extend (make-ir2-instruction :push reg nil) new-code)
-               ))
+               (add-ir2-instruction (make-ir2-instruction :push reg nil) new-code)))
             (t
-             (vector-push-extend instruction new-code))))))
+             (add-ir2-instruction instruction new-code))))))
     (setq *code* (coerce new-code 'simple-vector))))
 
 (defun assemble-ir2 ()
