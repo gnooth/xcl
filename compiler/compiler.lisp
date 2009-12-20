@@ -2438,7 +2438,7 @@ for special variables."
     (aver (vectorp *main*))
     (if *elsewhere*
         (setq *code* (concatenate 'simple-vector *main* *elsewhere*))
-        (setq *code* (concatenate 'simple-vector *main*)))
+        (setq *code* (coerce *main* 'simple-vector)))
 
     (when *dump-code*
       (mumble "code before generating prolog:~%")

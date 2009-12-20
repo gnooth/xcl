@@ -2531,13 +2531,13 @@
            (p2 arg2 reg2))
           (t
            (p2 arg1 :stack)
-           (inst :push :rax) ; align stack
+           (inst :sub +bytes-per-word+ :rsp) ; align stack
            (p2 arg2 reg2)
+           (inst :add +bytes-per-word+ :rsp) ; align stack
            (when clear-values-p
              (unless (and (single-valued-p arg1)
                           (single-valued-p arg2))
                (emit-clear-values :preserve reg2)))
-           (inst :pop reg1) ; unalign stack
            (inst :pop reg1) ; this is the value we want in reg1
            (clear-register-contents reg1)))))
 
