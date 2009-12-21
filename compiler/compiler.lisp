@@ -2258,6 +2258,8 @@ for special variables."
              (let ((arg-index 0))
                (dolist (name required)
                  (let ((var (make-var :name name :kind :required :arg-index arg-index)))
+                   (let ((*print-structure* nil))
+                     (format t "var ~S ~S arg-index = ~S~%" var (var-name var) (var-arg-index var)))
                    (push var vars))
                  (incf arg-index))
                (let ((var (make-var :name rest :kind :rest :arg-index arg-index)))
@@ -2411,6 +2413,27 @@ for special variables."
          (<= arity 6)
          (null *closure-vars*))))
 
+(defun repeat-p2 (compiland)
+  (mumble "repeat-p2~%")
+  (setq *code* nil
+        *main* nil
+        *elsewhere* nil)
+  (dolist (var *all-variables*)
+    (setf (var-derived-type var) :unknown)
+    (setf (var-index var) nil)
+    (setf (var-register-worthiness var) 0)
+    (setf (var-register var) nil))
+  (clrhash (compiland-common-labels compiland))
+  (clear-register-contents)
+  (p2-trivial-function-prolog compiland)
+  (p2-check-argument-types compiland)
+  (p2 (compiland-p1-body compiland) :return)
+  (aver (vectorp *main*))
+  (if *elsewhere*
+      (setq *code* (concatenate 'simple-vector *main* *elsewhere*))
+      (setq *code* (coerce *main* 'simple-vector)))
+  (analyze-ir2))
+
 (defun p2-compiland (compiland)
   (declare (type compiland compiland))
   (let ((*local-variables* (compiland-local-vars compiland))
@@ -2446,6 +2469,32 @@ for special variables."
       )
 
     (analyze-ir2)
+
+;;     (when (and (trivial-p compiland)
+;;                (null (compiland-parent compiland))
+;;                (not (compiland-needs-thread-var-p compiland)))
+;;       (mumble "repeating p2~%")
+;;       (setq *code* nil
+;;             *main* nil
+;;             *elsewhere* nil)
+;;       (dolist (var *all-variables*)
+;;         (setf (var-derived-type var) :unknown)
+;;         (setf (var-index var) nil)
+;;         (setf (var-register-worthiness var) 0)
+;;         (setf (var-register var) nil))
+;;       (clrhash (compiland-common-labels compiland))
+;;       (p2-trivial-function-prolog compiland)
+;;       (p2-check-argument-types compiland)
+;;       (p2 (compiland-p1-body compiland) :return)
+;;       (aver (vectorp *main*))
+;;       (if *elsewhere*
+;;           (setq *code* (concatenate 'simple-vector *main* *elsewhere*))
+;;           (setq *code* (coerce *main* 'simple-vector)))
+;;       (analyze-ir2))
+    (when (and (trivial-p compiland)
+               (not (compiland-child-p compiland))
+               (not (compiland-needs-thread-var-p compiland)))
+      (repeat-p2 compiland))
 
 ;;     (when (trivial-p compiland)
 ;;       (let ((*code* nil)
