@@ -2420,11 +2420,16 @@ for special variables."
         *elsewhere* nil)
   (dolist (var *all-variables*)
     (setf (var-derived-type var) :unknown)
+    #+x86-64
     (setf (var-index var) nil)
+;;     #+x86
+;;     (when (eq (var-kind var) :required)
+;;       (setf (var-index var) nil))
     (setf (var-register-worthiness var) 0)
     (setf (var-register var) nil))
   (clrhash (compiland-common-labels compiland))
   (clear-register-contents)
+  (clear-constraints)
   (p2-trivial-function-prolog compiland)
   (p2-check-argument-types compiland)
   (p2 (compiland-p1-body compiland) :return)

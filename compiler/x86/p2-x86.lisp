@@ -104,7 +104,7 @@
         (declare (type var var))
         (unless (var-special-p var)
           (when (eq (var-compiland-id var) (compiland-id compiland))
-            (aver (null (var-index var)))
+;;             (aver (null (var-index var)))
             (unless (or (var-register var) (var-closure-index var))
               (setf (var-index var) index)
               (decf index)))))
@@ -134,7 +134,7 @@
         (declare (type var var))
         (unless (var-special-p var)
           (when (eq (var-compiland-id var) (compiland-id compiland))
-            (aver (null (var-index var)))
+;;             (aver (null (var-index var)))
             (aver (null (var-register var)))
             (aver (null (var-closure-index var)))
             (inst :allocate-local var)))))))
@@ -410,7 +410,7 @@
                         (inst :pop :ecx))
                        (t
                         (aver (var-arg-index var))
-                        (aver (null (var-index var)))
+;;                         (aver (null (var-index var)))
                         (aver (null (var-closure-index var)))
                         (setf (var-index var) (+ base (var-arg-index var))))))))
             ((null (compiland-arity compiland))
@@ -426,7 +426,7 @@
                (case (var-kind var)
                  (:required
                   (aver (var-arg-index var))
-                  (aver (null (var-index var)))
+;;                   (aver (null (var-index var)))
                   (emit-move-relative-to-register :ecx (var-arg-index var) :eax)
                   (cond ((var-closure-index var)
                          (inst :push :ecx)
@@ -437,7 +437,7 @@
                          (decf index)
                          (inst :push :eax))))
                  (:rest
-                  (aver (null (var-index var)))
+;;                   (aver (null (var-index var)))
                   (cond ((var-closure-index var)
                          ; nothing to do
                          (aver (fixnump (var-closure-index var))))
@@ -2971,7 +2971,7 @@
     (declare (type local-function local-function))
     (mumble "p2-local-function-call called compiland = ~S~%" (compiland-name compiland))
     (aver local-function)
-    (aver thread-var)
+;;     (aver thread-var)
     (unless (<= 0 numargs 6)
       (compiler-unsupported "P2-LOCAL-FUNCTION-CALL numargs = ~D not supported" numargs))
     (when args
@@ -3029,6 +3029,7 @@
            (emit-call-n (format nil "RT_fast_call_function_~D" numargs)
                         target  (+ 1 numargs)))
           (t
+           (aver thread-var)
            (inst :push thread-var)
            (emit-call-n (format nil "RT_thread_call_function_~D" numargs)
                         target (+ 2 numargs))))))
@@ -4993,7 +4994,7 @@
   (let* ((args (cdr form))
          (numargs (length args))
          (thread-var (compiland-thread-var *current-compiland*)))
-    (declare (type var thread-var))
+;;     (declare (type var thread-var))
     (case numargs
       (0
        (inst :mov thread-var :eax)

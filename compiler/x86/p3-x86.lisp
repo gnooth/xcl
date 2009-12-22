@@ -50,7 +50,7 @@
              (aver (not locals-allocated-p))
              (let ((var (operand1 instruction)))
                (aver (var-p var))
-               (aver (null (var-index var)))
+;;                (aver (null (var-index var)))
                (unless (var-register var)
                  (setf (var-index var) index)
                  (decf index)
