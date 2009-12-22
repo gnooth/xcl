@@ -98,6 +98,9 @@
 (defun allocate-locals (compiland index)
   (declare (type compiland compiland))
   (declare (type fixnum index))
+  (when (compiland-needs-thread-var-p compiland)
+    (push (compiland-thread-var compiland) *local-variables*)
+    (push (compiland-thread-var compiland) (compiland-local-vars compiland)))
   (let ((locals (reverse *local-variables*)))
     (when locals
       (dolist (var locals)
@@ -145,7 +148,11 @@
   (clear-register-contents)
   (inst :save-registers)
   (inst :enter-frame)
-  (trivial-allocate-locals compiland)
+
+;;   (trivial-allocate-locals compiland)
+  (inst :allocate-thread-var)
+  (inst :allocate-locals)
+
   (inst :align-stack)
   (inst :initialize-thread-var)
   (clear-register-contents)

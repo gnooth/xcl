@@ -2392,8 +2392,6 @@ for special variables."
   (setf (compiland-thread-register compiland) :r12)
   #+x86
   (let ((var (make-var :name (gensym "THREAD-") :kind :local)))
-    (push var *local-variables*)
-    (push var (compiland-local-vars compiland))
     (setf (compiland-thread-var compiland) var)))
 
 (defknown p2-check-argument-types (compiland) t)
@@ -2475,27 +2473,6 @@ for special variables."
 
     (analyze-ir2)
 
-;;     (when (and (trivial-p compiland)
-;;                (null (compiland-parent compiland))
-;;                (not (compiland-needs-thread-var-p compiland)))
-;;       (mumble "repeating p2~%")
-;;       (setq *code* nil
-;;             *main* nil
-;;             *elsewhere* nil)
-;;       (dolist (var *all-variables*)
-;;         (setf (var-derived-type var) :unknown)
-;;         (setf (var-index var) nil)
-;;         (setf (var-register-worthiness var) 0)
-;;         (setf (var-register var) nil))
-;;       (clrhash (compiland-common-labels compiland))
-;;       (p2-trivial-function-prolog compiland)
-;;       (p2-check-argument-types compiland)
-;;       (p2 (compiland-p1-body compiland) :return)
-;;       (aver (vectorp *main*))
-;;       (if *elsewhere*
-;;           (setq *code* (concatenate 'simple-vector *main* *elsewhere*))
-;;           (setq *code* (coerce *main* 'simple-vector)))
-;;       (analyze-ir2))
     (when (and (trivial-p compiland)
                (not (compiland-child-p compiland))
                (not (compiland-needs-thread-var-p compiland)))
