@@ -2145,15 +2145,16 @@ for special variables."
   (optimize-ir2-6))
 
 (defun analyze-ir2 ()
-  (let ((code *code*)
-        (thread-var-used-p nil)
-        (need-stack-frame-p nil)
-        (leaf-p t)
-        #+x86-64
-        (thread-var :r12)
-        #+x86
-        (thread-var (compiland-thread-var *current-compiland*))
-        )
+  (let* ((code *code*)
+         (thread-var-used-p nil)
+         (need-stack-frame-p nil)
+         (leaf-p t)
+         (compiland *current-compiland*)
+         #+x86-64
+         (thread-var :r12)
+         #+x86
+         (thread-var (compiland-thread-var compiland))
+         )
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
@@ -2183,22 +2184,25 @@ for special variables."
                  (setq thread-var-used-p t))
                 ((or (var-p operand1)
                      (var-p operand2))
-                 (setq need-stack-frame-p t))))))
-;;     (mumble "analyze-ir2 thread-var-used-p = ~S need-stack-frame-p = ~S~%" thread-var-used-p need-stack-frame-p)
+;;                  (mumble "~S ~S ~S~%" operator operand1 operand2)
+                 (unless (eq operator :initialize-arg-var)
+                   (setq need-stack-frame-p t)))))))
+;;     (mumble "analyze-ir2 thread-var-used-p = ~S need-stack-frame-p = ~S leaf-p = ~S~%"
+;;             thread-var-used-p need-stack-frame-p leaf-p)
     (unless thread-var-used-p
-      (when (compiland-needs-thread-var-p *current-compiland*)
+      (when (compiland-needs-thread-var-p compiland)
 ;;         (mumble "analyze-ir2 thread var not used~%")
-        (setf (compiland-needs-thread-var-p *current-compiland*) nil)
+        (setf (compiland-needs-thread-var-p compiland) nil)
         #+x86
-        (setf (compiland-thread-var *current-compiland*) nil)))
+        (setf (compiland-thread-var compiland) nil)))
     (when leaf-p
 ;;       (mumble "analyze-ir2 leaf-p~%")
-      (setf (compiland-leaf-p *current-compiland*) leaf-p)
-;;       (unless need-stack-frame-p
-;;         (mumble "analyze-ir2 omit frame pointer~%")
-;;         (setf (compiland-omit-frame-pointer *current-compiland*) t))
-      )
-  ))
+      (setf (compiland-leaf-p compiland) leaf-p)
+      (unless need-stack-frame-p
+        (when (trivial-p compiland)
+          (mumble "analyze-ir2 omit frame pointer~%")
+          (setf (compiland-omit-frame-pointer compiland) t)))
+      )))
 
 (defconstant +assemble-instruction-output+
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
@@ -2476,7 +2480,10 @@ for special variables."
     (when (and (trivial-p compiland)
                (not (compiland-child-p compiland))
                (not (compiland-needs-thread-var-p compiland)))
-      (repeat-p2 compiland))
+      (repeat-p2 compiland)
+;;       (when (compiland-omit-frame-pointer compiland)
+;;         (repeat-p2 compiland))
+      )
 
 ;;     (when (trivial-p compiland)
 ;;       (let ((*code* nil)
