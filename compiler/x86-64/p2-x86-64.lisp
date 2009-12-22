@@ -5555,7 +5555,12 @@
   (trivial-allocate-locals compiland)
   (inst :align-stack)
   (inst :initialize-thread-register)
-  (clear-register-contents)
+;;   (clear-register-contents)
+  (cond ((compiland-needs-thread-var-p compiland)
+         (clear-register-contents))
+        (t
+         (dolist (var (compiland-arg-vars compiland))
+           (set-register-contents (var-arg-register var) var))))
   t)
 
 (defknown allocate-closure-data-vector (t t) t)
