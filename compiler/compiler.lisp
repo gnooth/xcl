@@ -2416,17 +2416,13 @@ for special variables."
          (null *closure-vars*))))
 
 (defun repeat-p2 (compiland)
-  (mumble "repeat-p2~%")
   (setq *code* nil
         *main* nil
         *elsewhere* nil)
   (dolist (var *all-variables*)
     (setf (var-derived-type var) :unknown)
     #+x86-64
-    (setf (var-index var) nil)
-;;     #+x86
-;;     (when (eq (var-kind var) :required)
-;;       (setf (var-index var) nil))
+    (setf (var-index var) nil) ; REVIEW
     (setf (var-register-worthiness var) 0)
     (setf (var-register var) nil))
   (clrhash (compiland-common-labels compiland))
