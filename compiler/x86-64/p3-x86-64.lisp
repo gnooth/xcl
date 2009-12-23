@@ -27,7 +27,8 @@
          (new-code (make-array initial-size :fill-pointer 0))
          (index 0)
          (local-var-count 0)
-         (locals-allocated-p nil))
+         (locals-allocated-p nil)
+         (stack-used 0))
     (declare (type simple-vector code))
     (dotimes (i (length code))
       (let ((instruction (svref code i)))
@@ -52,7 +53,7 @@
                  (unless (compiland-omit-frame-pointer compiland)
                    (let ((numwords local-var-count))
                      (unless (compiland-leaf-p compiland)
-                       (when (oddp index)
+                       (when (evenp stack-used)
                          (incf numwords)))
                      (unless (zerop numwords)
                        (add-ir2-instruction (make-ir2-instruction :sub (* numwords +bytes-per-word+) :rsp)
@@ -66,7 +67,8 @@
                    (unless (var-register var)
                      (setf (var-index var) index)
                      (incf index)
-                     (incf local-var-count))))
+                     (incf local-var-count)
+                     (incf stack-used))))
                 (:initialize-arg-var
                  ;; FIXME move this case to FINALIZE-VARS
                  (unless (compiland-omit-frame-pointer compiland)
@@ -76,14 +78,13 @@
                      (aver (null (var-register var)))
                      (aver (var-arg-register var))
                      (add-ir2-instruction (make-ir2-instruction :push (var-arg-register var) nil) new-code)
+                     (incf stack-used)
                      (setf (var-index var) index)
-                     (incf index)
-;;                    (setf (var-register var) nil)
-                     ))
-                 )
+                     (incf index))))
                 (:enter-frame
                  (unless (compiland-omit-frame-pointer compiland)
                    (add-ir2-instruction (make-ir2-instruction :push :rbp nil) new-code)
+                   (incf stack-used)
                    (add-ir2-instruction (make-ir2-instruction :mov :rsp :rbp) new-code)))
                 (:initialize-thread-register
                  (when (compiland-needs-thread-var-p compiland)
@@ -91,10 +92,12 @@
                    (add-ir2-instruction (make-ir2-instruction :mov :rax :r12) new-code)))
                 (:save-registers
                  (dolist (reg (compiland-registers-to-be-saved compiland))
-                   (add-ir2-instruction (make-ir2-instruction :push reg nil) new-code)))
+                   (add-ir2-instruction (make-ir2-instruction :push reg nil) new-code)
+                   (incf stack-used)))
                 (:save-thread-register
                  (when (compiland-needs-thread-var-p compiland)
-                   (add-ir2-instruction (make-ir2-instruction :push :r12 nil) new-code)))
+                   (add-ir2-instruction (make-ir2-instruction :push :r12 nil) new-code)
+                   (incf stack-used)))
                 (t
                  (add-ir2-instruction instruction new-code)))))))
     (setq *code* (coerce new-code 'simple-vector))))
@@ -170,8 +173,7 @@
                  (setq instructions (nreverse instructions))
                  (let ((bytes (assemble instructions)))
                    (add-instruction (make-instruction :exit (length bytes) (coerce bytes 'list))
-                                    new-code compile-file-p))
-                 )
+                                    new-code compile-file-p)))
                (add-instruction (make-instruction :jmp 5 (list t target)) new-code compile-file-p)))
             (:call
              (add-instruction (make-instruction :call 5 operand1) new-code compile-file-p))
@@ -225,8 +227,8 @@
                (if (eq register :rax)
                    (add-instruction (make-instruction :bytes 2 '(#x48 #x3d)) new-code compile-file-p)
                    (add-instruction (make-instruction :bytes 3
-                                                         (list #x48 #x81 (+ #xf8 (register-number register))))
-                                       new-code compile-file-p))
+                                                      (list #x48 #x81 (+ #xf8 (register-number register))))
+                                    new-code compile-file-p))
                (add-instruction (make-instruction :constant-32 4 form) new-code compile-file-p)))
             (:byte
              (add-instruction (make-instruction :bytes 1 (list operand1)) new-code compile-file-p))
