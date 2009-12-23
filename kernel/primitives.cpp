@@ -726,9 +726,12 @@ Value SYS_designator_list(Value arg)
 Value CL_boundp(Value arg)
 {
   Symbol * symbol = check_symbol(arg);
-  if (current_thread()->lookup_special(arg) != NULL_VALUE)
+//   if (current_thread()->lookup_special(arg) != NULL_VALUE)
+//     return T;
+//   return (symbol->value() != NULL_VALUE) ? T : NIL;
+  if (symbol->value() != NULL_VALUE)
     return T;
-  return (symbol->value() != NULL_VALUE) ? T : NIL;
+  return (current_thread()->lookup_special(arg) != NULL_VALUE) ? T : NIL;
 }
 
 // ### makunbound

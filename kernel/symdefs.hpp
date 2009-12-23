@@ -1449,6 +1449,7 @@ DEFINE_SYMBOL(std_instance_layout, PACKAGE_SYS, "STD-INSTANCE-LAYOUT");
 DEFINE_SYMBOL(std_instance_slot_value, PACKAGE_SYS, "STD-INSTANCE-SLOT-VALUE");
 DEFINE_SYMBOL(stop_profiler, PACKAGE_SYS, "STOP-PROFILER");
 DEFINE_SYMBOL(stream_charpos_internal, PACKAGE_SYS, "%STREAM-CHARPOS");
+DEFINE_SYMBOL(stream_close_internal, PACKAGE_SYS, "%STREAM-CLOSE");
 DEFINE_SYMBOL(stream_fresh_line_internal, PACKAGE_SYS, "%STREAM-FRESH-LINE");
 DEFINE_SYMBOL(stream_princ_internal, PACKAGE_SYS, "%STREAM-PRINC");
 DEFINE_SYMBOL(stream_set_charpos_internal, PACKAGE_SYS, "%STREAM-SET-CHARPOS");

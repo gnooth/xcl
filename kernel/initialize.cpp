@@ -850,6 +850,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_profiler_sample_count, SYS_profiler_sample_count, 0, 0);
   ADD_PRIMITIVE(S_stop_profiler, SYS_stop_profiler, 0, 0);
   ADD_PRIMITIVE(S_stream_charpos_internal, SYS_stream_charpos_internal, 1, 1);
+  ADD_PRIMITIVE(S_stream_close_internal, SYS_stream_close_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_fresh_line_internal, SYS_stream_fresh_line_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_princ_internal, SYS_stream_princ_internal, 2, 2);
   ADD_PRIMITIVE(S_stream_set_charpos_internal, SYS_stream_set_charpos_internal, 2, 2);

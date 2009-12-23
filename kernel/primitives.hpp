@@ -785,6 +785,7 @@ extern Value SYS_std_instance_layout(Value arg);
 extern Value SYS_std_instance_slot_value(Value arg1, Value arg2);
 extern Value SYS_stop_profiler();
 extern Value SYS_stream_charpos_internal(Value stream);
+extern Value SYS_stream_close_internal(Value arg);
 extern Value SYS_stream_fresh_line_internal(Value arg);
 extern Value SYS_stream_princ_internal(Value stream, Value object);
 extern Value SYS_stream_set_charpos_internal(Value stream, Value position);

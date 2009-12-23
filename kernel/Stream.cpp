@@ -1897,6 +1897,12 @@ Value CL_force_output(unsigned int numargs, Value args[])
   return NIL;
 }
 
+// ### %stream-close stream => result
+Value SYS_stream_close_internal(Value arg)
+{
+  return check_stream(arg)->close();
+}
+
 // ### close stream &key abort => result
 Value CL_close(unsigned int numargs, Value args[])
 {

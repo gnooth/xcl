@@ -339,3 +339,9 @@
          )
         (t
          form)))
+
+(define-source-transform close (&whole form stream &rest ignored)
+  (cond ((length-eql form 2)
+         `(%stream-close ,stream))
+        (t
+         form)))
