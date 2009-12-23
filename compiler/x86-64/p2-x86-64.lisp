@@ -3934,11 +3934,20 @@
 (defknown p2-%cdr (t t) t)
 (defun p2-%cdr (form target)
   (when (check-arg-count form 1)
-    (let ((arg (%cadr form)))
+    (let* ((arg (%cadr form))
+           (reg (and (var-ref-p arg)
+                     (find-register-containing-var (var-ref-var arg)))))
       (cond ((reg64-p target)
-             (process-1-arg arg target t)
-             (inst :mov `(7 ,target) target)
+             (cond (reg
+                    (inst :mov `(7 ,reg) target))
+                   (t
+                    (process-1-arg arg target t)
+                    (inst :mov `(7 ,target) target)))
              (clear-register-contents target))
+            (reg
+             (inst :mov `(7 ,reg) :rax)
+             (clear-register-contents :rax)
+             (move-result-to-target target))
             (t
              (process-1-arg arg :rax t)
              (inst :mov '(7 :rax) :rax)
