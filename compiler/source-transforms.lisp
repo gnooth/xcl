@@ -345,3 +345,15 @@
          `(%stream-close ,stream))
         (t
          form)))
+
+(define-source-transform cadr (&whole form arg)
+  (cond ((length-eql form 2)
+         `(car (cdr ,arg)))
+        (t
+         form)))
+
+(define-source-transform caddr (&whole form arg)
+  (cond ((length-eql form 2)
+         `(car (cdr (cdr ,arg))))
+        (t
+         form)))
