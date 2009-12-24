@@ -67,21 +67,24 @@
   (and (consp type)
        (eq (%car type) 'OR)))
 
+(declaim (inline integer-type-p))
 (defknown integer-type-p (cons) t)
 (defun integer-type-p (type)
   (and (consp type)
        (eq (%car type) 'INTEGER)))
 
+(declaim (inline integer-type-low))
 (defknown integer-type-low (cons) t)
 (defun integer-type-low (type)
   (declare (type cons type))
-  (aver (eq (%car type) 'INTEGER))
+;;   (aver (eq (%car type) 'INTEGER))
   (cadr type))
 
+(declaim (inline integer-type-high))
 (defknown integer-type-high (cons) t)
 (defun integer-type-high (type)
   (declare (type cons type))
-  (aver (eq (%car type) 'INTEGER))
+;;   (aver (eq (%car type) 'INTEGER))
   (caddr type))
 
 (defknown fixnum-type-p (t) t)
@@ -92,7 +95,7 @@
 
 (defknown integer-constant-value (t) t)
 (defun integer-constant-value (type)
-  (when (and type (integer-type-p type))
+  (when (integer-type-p type)
     (let ((low (integer-type-low type)))
       (when (integerp low)
         (let ((high (integer-type-high type)))
