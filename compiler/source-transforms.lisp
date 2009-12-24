@@ -346,14 +346,26 @@
         (t
          form)))
 
-(define-source-transform cadr (&whole form arg)
+(defun transform-cadr (form arg)
   (cond ((length-eql form 2)
          `(car (cdr ,arg)))
         (t
          form)))
 
-(define-source-transform caddr (&whole form arg)
+(define-source-transform cadr (&whole form arg)
+  (transform-cadr form arg))
+
+(define-source-transform second (&whole form arg)
+  (transform-cadr form arg))
+
+(defun transform-caddr (form arg)
   (cond ((length-eql form 2)
          `(car (cdr (cdr ,arg))))
         (t
          form)))
+
+(define-source-transform caddr (&whole form arg)
+  (transform-caddr form arg))
+
+(define-source-transform third (&whole form arg)
+  (transform-caddr form arg))

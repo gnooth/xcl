@@ -2195,14 +2195,15 @@ for special variables."
         (setf (compiland-needs-thread-var-p compiland) nil)
         #+x86
         (setf (compiland-thread-var compiland) nil)))
+    #+x86-64
     (when leaf-p
 ;;       (mumble "analyze-ir2 leaf-p~%")
       (setf (compiland-leaf-p compiland) leaf-p)
       (unless need-stack-frame-p
         (when (trivial-p compiland)
           (mumble "analyze-ir2 omit frame pointer~%")
-          (setf (compiland-omit-frame-pointer compiland) t)))
-      )))
+          (setf (compiland-omit-frame-pointer compiland) t))))
+    ))
 
 (defconstant +assemble-instruction-output+
   (make-array 16 :element-type '(unsigned-byte 8) :fill-pointer 0))
