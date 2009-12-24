@@ -2435,6 +2435,7 @@ for special variables."
   (if *elsewhere*
       (setq *code* (concatenate 'simple-vector *main* *elsewhere*))
       (setq *code* (coerce *main* 'simple-vector)))
+  (optimize-ir2)
   (analyze-ir2))
 
 (defun p2-compiland (compiland)
@@ -2471,15 +2472,8 @@ for special variables."
       (dump-code) ; IR2
       )
 
+    (optimize-ir2)
     (analyze-ir2)
-
-    (when (and (trivial-p compiland)
-               (not (compiland-child-p compiland))
-               (not (compiland-needs-thread-var-p compiland)))
-      (repeat-p2 compiland)
-;;       (when (compiland-omit-frame-pointer compiland)
-;;         (repeat-p2 compiland))
-      )
 
 ;;     (when (trivial-p compiland)
 ;;       (let ((*code* nil)
@@ -2492,7 +2486,14 @@ for special variables."
 ;;       (setq *code* (concatenate 'simple-vector (compiland-prolog compiland) *code*)))
 
 ;;     (dump-code) ; IR2
-    (optimize-ir2)
+
+    (when (and (trivial-p compiland)
+               (not (compiland-child-p compiland))
+               (not (compiland-needs-thread-var-p compiland)))
+      (repeat-p2 compiland)
+      ;;       (when (compiland-omit-frame-pointer compiland)
+      ;;         (repeat-p2 compiland))
+      )
 
     #+x86-64
     (when (trivial-p compiland)
