@@ -236,6 +236,12 @@ Value SYS_type_error_internal(Value datum, Value expected_type)
   return signal_lisp_error(new TypeError(datum, expected_type));
 }
 
+// ### error-not-cons
+Value SYS_error_not_cons(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, S_cons));
+}
+
 // ### error-not-list
 Value SYS_error_not_list(Value datum)
 {
