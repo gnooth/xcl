@@ -198,6 +198,7 @@
         (op1 (instruction-operand1 instruction))
         (op2 (instruction-operand2 instruction))
         (annotation (instruction-annotation instruction)))
+;;     (mumble "annotation = ~S~%" annotation)
     (let* ((s (string mnemonic)))
       (princ (string-downcase s)))
     (when op1
@@ -232,15 +233,13 @@
 ;;                         (format t "; ~S" value))
 ;;                        (t
 ;;                         (format t "; ~A" value)))
-                 (format t "; ~A" value)
-                 )))
+                 (format t "; ~A" value))))
             ((and annotation (symbolp annotation))
              (fill-to-pos (if (< (charpos *standard-output*) annotation-pos)
                               annotation-pos
                               (+ annotation-pos 8))
                           *standard-output*)
-             (format t "; ~A" annotation))))
-    ))
+             (format t "; ~A" annotation))))))
 
 (defun print-inst (inst)
   (let* ((s (princ-to-string inst))
@@ -442,9 +441,8 @@
         (when (compiled-function-p function)
           (let ((constants (compiled-function-constants function)))
             (dolist (constant constants)
-              (when (or (symbolp constant) (functionp constant))
-                (process constant)))))
-        )
+              (when (or (symbolp constant) (functionp constant) (listp constant))
+                (process constant))))))
       (disassemble-function function)))
   nil)
 

@@ -369,3 +369,18 @@
 
 (define-source-transform third (&whole form arg)
   (transform-caddr form arg))
+
+(define-source-transform memq (&whole form item-arg list-arg)
+  (cond ((and (quoted-form-p list-arg)
+              (listp (%cadr list-arg)))
+         (mumble "memq source transform list = ~S~%" (%cadr list-arg))
+         (let ((item (gensym)))
+           (labels ((rec (tail)
+                         (if tail
+                             `(if (eq item ',(car tail))
+                                  ',tail
+                                  ,(rec (cdr tail)))
+                             nil)))
+             `(let ((item ,item-arg)) ,(rec (%cadr list-arg))))))
+        (t
+         form)))
