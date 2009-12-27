@@ -991,6 +991,35 @@
             (t
              nil)))))
 
+(defknown p2-puthash (t t) t)
+(defun p2-puthash (form target)
+  (let ((operator (first form))
+        (args (rest form)))
+  (cond ((and (eq operator 'puthash3)
+              (length-eql args 3))
+         (mumble "p2-puthash puthash3 case~%")
+         (let ((type (derive-type (%cadr args))))
+           (cond ((and (neq type :unknown)
+                       (subtypep type 'hash-table))
+                  (process-3-args args :default t)
+                  (emit-call-3 operator target)
+                  t)
+                 (t
+                  nil))))
+        ((and (eq operator 'puthash4)
+              (length-eql args 4))
+         (mumble "p2-puthash puthash4 case~%")
+         (let ((type (derive-type (%cadr args))))
+           (cond ((and (neq type :unknown)
+                       (subtypep type 'hash-table))
+                  (process-4-args args :default t)
+                  (emit-call-4 operator target)
+                  t)
+                 (t
+                  nil))))
+        (t
+         nil))))
+
 (defknown p2-test-form (t t) t)
 (defun p2-test-form (test-form label) ; jump to label if test fails
   (cond ((eq test-form t)

@@ -115,6 +115,8 @@
 (install-p2-handler 'oddp                       'p2-oddp/evenp)
 (install-p2-handler 'plusp                      'p2-plusp/minusp)
 (install-p2-handler 'position-eql               'p2-position-eql)
+(install-p2-handler 'puthash3                   'p2-puthash)
+(install-p2-handler 'puthash4                   'p2-puthash)
 (install-p2-handler 'rem                        'p2-rem)
 (install-p2-handler 'require-boolean            'p2-require-boolean)
 (install-p2-handler 'require-character          'p2-require-character)
