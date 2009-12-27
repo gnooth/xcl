@@ -260,7 +260,7 @@ inline Value make_value(Symbol * symbol)
 inline bool symbolp(Value value)
 {
   if (value == NIL)
-    return T;
+    return true;
   return (value & LOWTAG_MASK) == LOWTAG_SYMBOL;
 }
 
