@@ -2593,6 +2593,8 @@
 
 (defknown process-4-args (t t t) t)
 (defun process-4-args (args regs clear-values-p)
+  (when (eq regs :default)
+    (setq regs '(:rdi :rsi :rdx :rcx)))
   (let* ((arg1 (%car args))
          (arg2 (%cadr args))
          (arg3 (%caddr args))
