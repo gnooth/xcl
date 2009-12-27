@@ -2538,15 +2538,15 @@
                   (p2 arg2 :stack)
                   (p2 arg1 :stack))
                  (t
-                  (emit-bytes #x83 #xec #x10) ; sub $0x10,%esp
+                  (inst :sub (* +bytes-per-word+ 4) :esp)
                   (p2 arg1 :eax)
-                  (emit-bytes #x89 #x04 #x24) ; mov %eax,(%esp)
+                  (inst :mov :eax '(:esp))
                   (p2 arg2 :eax)
-                  (emit-bytes #x89 #x44 #x24 #x04) ; mov %eax,0x4(%esp)
+                  (inst :mov :eax `(,+bytes-per-word+ :esp))
                   (p2 arg3 :eax)
-                  (emit-bytes #x89 #x44 #x24 #x08) ; mov %eax,0x8(%esp)
+                  (inst :mov :eax `(,(* +bytes-per-word+ 2) :esp))
                   (p2 arg4 :eax)
-                  (emit-bytes #x89 #x44 #x24 #x0c) ; mov %eax,0xc(%esp)
+                  (inst :mov :eax `(,(* +bytes-per-word+ 3) :esp))
                   (when clear-values-p
                     (maybe-emit-clear-values arg1 arg2 arg3 arg4)))))
           (t
