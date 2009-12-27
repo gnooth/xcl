@@ -350,6 +350,8 @@
                 pathname-as-file
                 putf
                 puthash
+                puthash3
+                puthash4
                 read-8-bits
                 require-type
                 row-major-aset
