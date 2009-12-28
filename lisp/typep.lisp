@@ -40,14 +40,10 @@
         t)))
 
 (defun integer-typep (object type-specifier)
-  (declare (type cons type-specifier))
-  (and (integerp object) (in-interval-p object (%cdr type-specifier))))
-
-;; (defun monitor (x) (declare (ignore x)))
+  (and (integerp object) (in-interval-p object (cdr type-specifier))))
 
 (defun %typep (object type-specifier)
   (setq type-specifier (canonicalize-type type-specifier))
-;;   (monitor type-specifier)
   (if (atom type-specifier)
       (case type-specifier
         (list
