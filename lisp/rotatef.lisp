@@ -28,14 +28,14 @@
 ;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(in-package #:system)
+(in-package "SYSTEM")
 
 (defmacro rotatef (&rest places &environment env)
   (if (< (length places) 2)
       nil
-    (multiple-value-bind (temps vars newvals setter getter)
-	(get-setf-expansion (car places) env)
-      `(let (,@(mapcar #'list temps vars))
-	 (multiple-value-bind ,newvals (shiftf ,@(cdr places) ,getter)
-	   ,setter)
-	 nil))))
+      (multiple-value-bind (temps vars newvals setter getter)
+          (get-setf-expansion (car places) env)
+        `(let (,@(mapcar #'list temps vars))
+           (multiple-value-bind ,newvals (shiftf ,@(cdr places) ,getter)
+             ,setter)
+           nil))))
