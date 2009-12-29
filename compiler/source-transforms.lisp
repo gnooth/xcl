@@ -373,7 +373,6 @@
 (define-source-transform memq (&whole form item-arg list-arg)
   (cond ((and (quoted-form-p list-arg)
               (listp (%cadr list-arg)))
-         (mumble "memq source transform list = ~S~%" (%cadr list-arg))
          (let ((item (gensym)))
            (labels ((rec (tail)
                          (if tail
