@@ -2578,7 +2578,7 @@
            (cond ((constant-or-local-var-ref-p arg2)
                   (p2 arg2 :stack))
                  (t
-                  (inst :push :rax) ; realign stack before call
+                  (inst :sub +bytes-per-word+ :rsp) ; realign stack before call
                   (p2 arg2 :rax)
                   (inst :mov :rax '(:rsp))))
            (p2 arg3 reg3)
@@ -5550,11 +5550,7 @@
                               (incf count))))))
              (numbytes (* numvars +bytes-per-word+)))
         (incf stack-used numvars)
-        (cond ((<= numvars 4)
-               (dotimes (i numvars)
-                 (inst :push :rax)))
-              (t
-               (inst :sub numbytes :rsp)))))
+        (inst :sub numbytes :rsp)))
     stack-used))
 
 (defknown trivial-allocate-locals (t) t)
@@ -5742,15 +5738,7 @@
                (let* ((names (lambda-list-names lambda-list))
                       (n (length names))
                       (numbytes (* n +bytes-per-word+)))
-                 (cond ((<= n 4)
-                        (dotimes (i n)
-                          (inst :push :rax)))
-                       ((< numbytes 128)
-                        (emit-bytes #x48 #x83 #xec) ; sub imm8,%rsp
-                        (emit-byte numbytes))
-                       (t
-                        (emit-bytes #x48 #x81 #xec) ; sub imm32,%rsp
-                        (emit-raw-dword numbytes)))
+                 (inst :sub numbytes :rsp)
                  (inst :mov :rsp :rcx)
                  ;; REVIEW do we need to make sure the stack is aligned for this call?
                  ;; fix stack alignment
@@ -5801,7 +5789,7 @@
                         (aver (null (var-index var)))
                         ;; reserve space for rest var
                         (unless (var-closure-index var)
-                          (inst :push :rax)
+                          (inst :sub +bytes-per-word+ :rsp)
                           (incf stack-used)
                           (setf (var-index var) index)
                           (incf index)))
@@ -5869,13 +5857,11 @@
 
       (incf stack-used (allocate-locals compiland index))
       (when (oddp stack-used)
-        (inst :push :rax))
+        (inst :sub +bytes-per-word+ :rsp))
 
       (when (compiland-thread-register compiland)
         (emit-call "RT_current_thread")
-        (inst :mov :rax (compiland-thread-register compiland)))
-
-      ))
+        (inst :mov :rax (compiland-thread-register compiland)))))
   t)
 
 (defknown p2-function-prolog (compiland) t)
@@ -6000,7 +5986,7 @@
                                )
                               (t
                                ;; reserve space for rest var
-                               (inst :push :rax)
+                               (inst :sub +bytes-per-word+ :rsp)
                                (incf stack-used)
                                (setf (var-index var) index)
                                (incf index))))
@@ -6065,18 +6051,15 @@
                         (mumble "P2-FUNCTION-PROLOG shouldn't happen~%")
                         (aver nil))
                        (t
-                        (compiler-unsupported "unsupported var-kind ~S" (var-kind var))))))
-              ))
+                        (compiler-unsupported "unsupported var-kind ~S" (var-kind var))))))))
 
       (incf stack-used (allocate-locals compiland index))
 
       ;; fix stack alignment if necessary
       (when (oddp stack-used)
-        (inst :push :rax))
+        (inst :sub +bytes-per-word+ :rsp))
 
       (when (compiland-thread-register compiland)
         (emit-call "RT_current_thread")
-        (inst :mov :rax (compiland-thread-register compiland)))
-
-      ))
+        (inst :mov :rax (compiland-thread-register compiland)))))
   t)
