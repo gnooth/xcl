@@ -383,3 +383,17 @@
              `(let ((item ,item-arg)) ,(rec (%cadr list-arg))))))
         (t
          form)))
+
+(define-source-transform byte-size (&whole form arg)
+  (mumble "byte-size source-transform~%")
+  (cond ((length-eql form 2)
+         `(car ,arg))
+        (t
+         form)))
+
+(define-source-transform byte-position (&whole form arg)
+  (mumble "byte-position source-transform~%")
+  (cond ((length-eql form 2)
+         `(cdr ,arg))
+        (t
+         form)))
