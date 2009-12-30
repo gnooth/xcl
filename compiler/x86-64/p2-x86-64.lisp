@@ -785,7 +785,7 @@
         (label label)
         (unless (eq register :rdi)
           (inst :mov register :rdi))
-        (emit-call 'error-not-cons)
+        (inst :call 'error-not-cons) ; don't clear register contents!
         (emit-exit)
         (setf (gethash key common-labels) label)))
     label))
@@ -803,7 +803,7 @@
         (label label)
         (unless (eq register :rdi)
           (inst :mov register :rdi))
-        (emit-call 'error-not-list)
+        (inst :call 'error-not-list) ; don't clear register contents!
         (emit-exit)
         (setf (gethash key common-labels) label)))
     label))
