@@ -5,7 +5,7 @@
   #-windows #p"/home/peter/sbcl/")
 
 (setq *default-pathname-defaults* *sbcl-directory*)
-(setq *load-verbose* t)
+;; (setq *load-verbose* t)
 (setq *compile-verbose* t)
 
 #+xcl
