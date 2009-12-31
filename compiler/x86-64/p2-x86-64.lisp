@@ -2334,7 +2334,6 @@
            (type1 (derive-type arg1))
            type2
            size)
-      (mumble "p2-vector-ref type1 = ~S~%" type1)
       (cond ((eq type1 :unknown)
              nil)
             ((subtypep type1 'simple-vector)
@@ -5298,7 +5297,7 @@
                (process-1-arg arg :rax t)
                (inst :compare-immediate nil :rax)
                (emit-jmp-short :e ERROR-NOT-CONS)
-               (inst :mov :al :dl)
+               (inst :mov :eax :edx)
                (clear-register-contents :rdx)
                (inst :and +lowtag-mask+ :dl)
                (inst :cmp +list-lowtag+ :dl)
