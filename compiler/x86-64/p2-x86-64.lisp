@@ -792,44 +792,14 @@
              (setf (gethash key common-labels) label)))
          label))))
 
-(define-common-label-for-error common-label-error-not-cons "ERROR-NOT-CONS-" error-not-cons)
-(define-common-label-for-error common-label-error-not-list "ERROR-NOT-LIST-" error-not-list)
-
-;; (defknown common-label-error-not-cons (t) t)
-;; (defun common-label-error-not-cons (compiland register)
-;;   (declare (type compiland compiland))
-;;   (declare (type keyword register))
-;;   (let* ((common-labels (compiland-common-labels compiland))
-;;          (key (intern (concatenate 'string "ERROR-NOT-CONS-" (symbol-name register))))
-;;          (label (gethash key common-labels)))
-;;     (unless label
-;;       (setq label (make-label))
-;;       (let ((*current-segment* :elsewhere))
-;;         (label label)
-;;         (unless (eq register :rdi)
-;;           (inst :mov register :rdi))
-;;         (inst :call 'error-not-cons) ; don't clear register contents!
-;;         (emit-exit)
-;;         (setf (gethash key common-labels) label)))
-;;     label))
-
-;; (defknown common-label-error-not-list (t) t)
-;; (defun common-label-error-not-list (compiland register)
-;;   (declare (type compiland compiland))
-;;   (declare (type keyword register))
-;;   (let* ((common-labels (compiland-common-labels compiland))
-;;          (key (intern (concatenate 'string "ERROR-NOT-LIST-" (symbol-name register))))
-;;          (label (gethash key common-labels)))
-;;     (unless label
-;;       (setq label (make-label))
-;;       (let ((*current-segment* :elsewhere))
-;;         (label label)
-;;         (unless (eq register :rdi)
-;;           (inst :mov register :rdi))
-;;         (inst :call 'error-not-list) ; don't clear register contents!
-;;         (emit-exit)
-;;         (setf (gethash key common-labels) label)))
-;;     label))
+(define-common-label-for-error common-label-error-not-cons
+  "ERROR-NOT-CONS-" error-not-cons)
+(define-common-label-for-error common-label-error-not-list
+  "ERROR-NOT-LIST-" error-not-list)
+(define-common-label-for-error common-label-error-not-vector
+  "ERROR-NOT-VECTOR-" error-not-vector)
+(define-common-label-for-error common-label-error-not-simple-bit-vector
+  "ERROR-NOT-SIMPLE-BIT-VECTOR-" error-not-simple-bit-vector)
 
 (defun p2-test-endp (test-form label-if-false)
   (when (check-arg-count test-form 1)
@@ -4175,18 +4145,13 @@
                   (subtypep type 'LIST))
              (p2 arg target))
             ((and reg
-                  (neq reg :rdx))
+                  (neq reg :rdx)) ; FIXME handle this case too!
              (let ((ERROR-NOT-LIST (common-label-error-not-list *current-compiland* reg)))
-;;                (inst :mov :al :dl)
                (inst :mov (reg32 reg) :edx)
                (clear-register-contents :rdx)
                (inst :and +lowtag-mask+ :dl)
                (inst :cmp +list-lowtag+ :dl)
                (emit-jmp-short :ne ERROR-NOT-LIST)
-;;                (when (var-ref-p arg)
-;;                  (set-register-contents :rax (var-ref-var arg)))
-;;                (when target
-;;                  (move-result-to-target target))
                (cond ((null target)) ; nothing to do
                      ((reg64-p target)
                       (inst :mov reg target)
@@ -5474,29 +5439,26 @@
                 (subtypep type 'VECTOR))
            (p2 arg target))
           (t
-           (mumble "p2-require-vector~%")
-           (let* ((common-labels (compiland-common-labels *current-compiland*))
-                  (REQUIRE-VECTOR-ERROR (gethash :require-vector-error common-labels)))
-             (unless REQUIRE-VECTOR-ERROR
-               (setq REQUIRE-VECTOR-ERROR (make-label))
-               (let ((*current-segment* :elsewhere))
-                 (label REQUIRE-VECTOR-ERROR)
-                 (p2-symbol 'VECTOR :rsi)
-                 (emit-call '%type-error)
-                 ;; FIXME
-                 (emit-exit))
-               (setf (gethash :require-vector-error common-labels) REQUIRE-VECTOR-ERROR))
-             (process-1-arg arg :rax t)
-             (inst :mov :rax :rdi)
+           (let ((ERROR-NOT-VECTOR (common-label-error-not-vector *current-compiland* :rdi))
+                 (reg (and (var-ref-p arg)
+                           (find-register-containing-var (var-ref-var arg)))))
+             (cond ((eq reg :rdi)
+                    (inst :mov :edi :eax))
+                   ((eq reg :rax)
+                    (inst :mov :rax :rdi)
+                    (set-register-contents :rdi (var-ref-var arg)))
+                   (t
+                    (process-1-arg arg :rax t)
+                    (inst :mov :rax :rdi)
+                    (clear-register-contents :rdi)))
+             (clear-register-contents :rax)
              (inst :and +lowtag-mask+ :al)
-             (clear-register-contents :rax :rdi)
              (inst :cmp +typed-object-lowtag+ :al)
-             (emit-jmp-short :ne REQUIRE-VECTOR-ERROR)
-             (inst :mov :rdi :rax)
-             (inst :mov `(,(- +widetag-offset+ +typed-object-lowtag+) :rax) :rax) ; widetag in rax
+             (emit-jmp-short :ne ERROR-NOT-VECTOR)
+             (inst :mov `(,(- +widetag-offset+ +typed-object-lowtag+) :rdi) :rax) ; widetag in rax
              (aver (typep +widetag-vector-bit+ '(signed-byte 32)))
              (inst :and +widetag-vector-bit+ :rax)
-             (emit-jmp-short :z REQUIRE-VECTOR-ERROR)
+             (emit-jmp-short :z ERROR-NOT-VECTOR)
              (when target
                (inst :mov :rdi :rax)
                (move-result-to-target target))))))
