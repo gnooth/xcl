@@ -515,6 +515,8 @@ extern Value SYS_environment_empty_p(Value arg);
 extern Value SYS_equals_2(Value arg1, Value arg2);
 extern Value SYS_error_not_cons(Value datum);
 extern Value SYS_error_not_list(Value datum);
+extern Value SYS_error_not_simple_bit_vector(Value datum);
+extern Value SYS_error_not_vector(Value datum);
 extern Value SYS_fasl_read_backquote(Value streamarg, Value ignored);
 extern Value SYS_fasl_read_comma(Value streamarg, Value ignored);
 extern Value SYS_fasl_read_comment(Value streamarg, Value character);
