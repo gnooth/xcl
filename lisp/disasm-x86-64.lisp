@@ -1,6 +1,6 @@
 ;;; disasm-x86-64.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -130,15 +130,13 @@
                    operand1 (make-operand :kind :relative
                                           :register :rax
                                           :data 0)
-                   operand2 (make-register-operand (register 0 prefix-byte)))
-             )
+                   operand2 (make-register-operand (register 0 prefix-byte))))
             ((eql modrm-byte 2)
              (setq length 2
                    operand1 (make-operand :kind :relative
                                           :register :rdx
                                           :data 0)
                    operand2 (make-register-operand :rax)))
-
             ((eql mod #b00)
              (let ((source (register reg)))
                (cond ((eql rm #b001)
@@ -156,8 +154,8 @@
                               operand2 (make-register-operand (register reg prefix-byte)))))
                      (t
                       (setq length 2
-                            operand1 (make-indirect-operand (register rm prefix-byte))
-                            operand2 (make-register-operand (register reg prefix-byte)))))))
+                            operand1 (make-indirect-operand (register-rm rm prefix-byte))
+                            operand2 (make-register-operand (register-reg reg prefix-byte)))))))
             ((eql mod #b01)
              ;; 1-byte displacement
              (cond ((eql rm #b100)
