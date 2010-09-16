@@ -2,18 +2,18 @@
 ;; ALL RIGHTS RESERVED.
 ;;
 ;; $Id: must-sequence.lisp,v 1.31 2004/08/09 02:49:54 yuji Exp $
-;; 
+;;
 ;; Redistribution and use in source and binary forms, with or without
 ;; modification, are permitted provided that the following conditions
 ;; are met:
-;; 
+;;
 ;;  * Redistributions of source code must retain the above copyright
 ;;    notice, this list of conditions and the following disclaimer.
 ;;  * Redistributions in binary form must reproduce the above copyright
 ;;    notice, this list of conditions and the following disclaimer in
 ;;    the documentation and/or other materials provided with the
 ;;    distribution.
-;; 
+;;
 ;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ;; "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 ;; LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -27,7 +27,7 @@
 ;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (eql (length "abc") 3)
-(let ((str (make-array '(3) :element-type 'character 
+(let ((str (make-array '(3) :element-type 'character
                             :initial-contents "abc"
                             :fill-pointer t)))
   (and (eql (length str) 3)
@@ -96,7 +96,7 @@
 (simple-string-p (copy-seq (make-array 3
 				       :displaced-to "0123456789"
 				       :displaced-index-offset 3
-				       :element-type 'base-char)))
+				       :element-type #+sbcl 'character #-sbcl 'base-char)))
 (simple-string-p (copy-seq (make-array 20
 				       :fill-pointer t
 				       :element-type 'base-char
@@ -638,7 +638,7 @@
 		  '(2 3 4 5)))
        (equal list '(3))))
 
-  
+
 
 (equalp (map '(vector * 2) #'+ #*01 #*10) #(1 1))
 (equalp (map '(simple-vector 2) #'+ #*01 #*10) #(1 1))
@@ -697,14 +697,14 @@
 
 
 (let ((list (list 0 1 2)))
-  (and (eq (map-into list 'identity) list)
+  (and (eq (map-into list 'identity list) list)
        (equal list '(0 1 2))))
 (let ((list (list 0 1 2)))
   (and (eq (map-into list 'identity '()) list)
        (equal list '(0 1 2))))
 
 (let ((vec (vector 0 1 2)))
-  (and (eq (map-into vec 'identity) vec)
+  (and (eq (map-into vec 'identity vec) vec)
        (equalp vec #(0 1 2))))
 (let ((vec (vector 0 1 2)))
   (and (eq (map-into vec 'identity #()) vec)
@@ -790,7 +790,7 @@
 (eql (reduce #'* '(1 2 3 4 5)) 120)
 (equal (reduce #'append '((1) (2)) :initial-value '(i n i t)) '(I N I T 1 2))
 (equal (reduce #'append '((1) (2))
-	       :from-end t                  
+	       :from-end t
 	       :initial-value '(i n i t))
        '(1 2 I N I T))
 (eql (reduce #'- '(1 2 3 4)) -8)
@@ -1133,7 +1133,7 @@
 
 (char= (find #\d "edcba" :test #'char>) #\c)
 (eql (find-if #'oddp '(1 2 3 4 5) :end 3 :from-end t) 3)
-(null (find-if-not #'complexp                                    
+(null (find-if-not #'complexp
 		   '#(3.5 2 #C(1.0 0.0) #C(0.0 1.0))
 		   :start 2))
 
@@ -7055,7 +7055,7 @@
   (equal (merge 'string test1 test2 #'char-lessp) "BnOosYy"))
 (let ((test1 (vector '(red . 1) '(blue . 4)))
       (test2 (vector '(yellow . 2) '(green . 7))))
-  (equalp (merge 'vector test1 test2 #'< :key #'cdr) 
+  (equalp (merge 'vector test1 test2 #'< :key #'cdr)
 	  #((RED . 1) (YELLOW . 2) (BLUE . 4) (GREEN . 7))))
 
 
@@ -9533,7 +9533,7 @@
 (equal (remove-duplicates '((foo #\a) (bar #\%) (baz #\A))
 			  :test #'char-equal :key #'cadr)
        '((BAR #\%) (BAZ #\A)))
-(equal (remove-duplicates '((foo #\a) (bar #\%) (baz #\A)) 
+(equal (remove-duplicates '((foo #\a) (bar #\%) (baz #\A))
 			  :test #'char-equal :key #'cadr :from-end t)
        '((FOO #\a) (BAR #\%)))
 (let* ((list0 (list 0 1 2 3 4 5 6))
