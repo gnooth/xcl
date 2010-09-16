@@ -1,6 +1,6 @@
 // main.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -116,7 +116,7 @@ int __main(int argc, char * argv[])
       s->append_char(')');
     }
   s->append_char('\n');
-  s->append("Copyright (C) 2006-2009 Peter Graves\n");
+  s->append("Copyright (C) 2006-2010 Peter Graves\n");
   s->append("Low-level initialization completed in ");
   s->append(uptime_as_string());
   s->append(".\n");
