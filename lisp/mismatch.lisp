@@ -1,5 +1,21 @@
 ;;; mismatch.lisp
 
+;;; Copyright (C) 2010 Peter Graves <peter@armedbear.org>
+;;;
+;;; This program is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU General Public License
+;;; as published by the Free Software Foundation; either version 2
+;;; of the License, or (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU General Public License
+;;; along with this program; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
 ;; Copyright (C) 2002-2004, Yuji Minejima <ggb01164@nifty.ne.jp>
 ;; ALL RIGHTS RESERVED.
 ;;
@@ -30,9 +46,64 @@
 
 (in-package "SYSTEM")
 
+(defun trivial-mismatch (sequence1 sequence2)
+  (let* ((length1 (length sequence1))
+         (length2 (length sequence2))
+         (length  (min length1 length2)))
+    (cond ((and (simple-string-p sequence1)
+                (simple-string-p sequence2))
+           (let ((string1 sequence1)
+                 (string2 sequence2))
+             (declare (optimize speed (safety 0)))
+             (declare (type simple-string string1 string2))
+             (dotimes (i length)
+               (declare (type index i))
+               (unless (eql (schar string1 i) (schar string2 i))
+                 (return-from trivial-mismatch i)))))
+          ((and (vectorp sequence1)
+                (vectorp sequence2))
+           (let ((vector1 sequence1)
+                 (vector2 sequence2))
+             (declare (optimize speed (safety 0)))
+             (declare (type vector vector1 vector2))
+             (dotimes (i length)
+               (declare (type index i))
+               (unless (eql (aref vector1 i) (aref vector2 i))
+                 (return-from trivial-mismatch i)))))
+          ((and (listp sequence1)
+                (listp sequence2))
+           (let ((list1 sequence1)
+                 (list2 sequence2))
+             (declare (optimize speed (safety 0)))
+             (declare (type list list1 list2))
+             (dotimes (i length)
+               (declare (type index i))
+               (unless (eql (car list1) (car list2))
+                 (return-from trivial-mismatch i))
+               (setq list1 (cdr list1)
+                     list2 (cdr list2)))))
+          (t
+           (dotimes (i length)
+             (unless (eql (elt sequence1 i) (elt sequence2 i))
+               (return-from trivial-mismatch i)))))
+    (if (eql length1 length2)
+        nil
+        length)))
+
 (defun mismatch (sequence1 sequence2 &key from-end (test #'eql) test-not key
 			   (start1 0) (start2 0) end1 end2)
   "Return the first position where SEQUENCE1 and SEQUENCE2 differ."
+
+  (when (and (null from-end)
+             (eq test #'eql)
+             (null test-not)
+             (null key)
+             (eql start1 0)
+             (eql start2 0)
+             (null end1)
+             (null end2))
+    (return-from mismatch (trivial-mismatch sequence1 sequence2)))
+
   (when test-not (setq test (complement test-not)))
   (let* ((length1 (length sequence1))
 	 (length2 (length sequence2))
