@@ -1,6 +1,6 @@
 ;;; source-transforms.lisp
 ;;;
-;;; Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -186,6 +186,23 @@
            `(two-arg-logxor ,(%car args) ,(%cadr args)))
           (t
            form))))
+
+(define-source-transform mapc2 (&whole form &rest args)
+  (cond ((or (> *debug* *speed*)
+             (> *space* *speed*))
+         form)
+        ((length-eql args 2)
+         (let ((arg1 (%car args))
+               (arg2 (%cadr args))
+               (list (gensym)))
+           `(let* ((,list ,arg2))
+              (loop
+                (when (endp ,list)
+                  (return ,arg2))
+                (funcall ,arg1 (%car ,list))
+                (setq ,list (%cdr ,list))))))
+        (t
+         form)))
 
 (define-source-transform mapcar2 (&whole form &rest args)
   (cond ((or (> *debug* *speed*)
