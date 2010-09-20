@@ -1,6 +1,6 @@
 ;;; every.lisp
 ;;;
-;;; Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -35,7 +35,12 @@
            (unless (funcall predicate x)
              (return nil))))
         (t
-         (dotimes (i (length sequence) t)
-           (declare (type fixnum i))
-           (unless (funcall predicate (elt sequence i))
-             (return nil))))))
+         (let ((vector sequence))
+           (declare (type vector vector))
+           (dotimes (i (length vector) t)
+             (declare (type index i))
+             (unless (funcall predicate
+                              (locally
+                                (declare (optimize speed (safety 0)))
+                                (aref vector i)))
+               (return nil)))))))
