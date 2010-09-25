@@ -34,13 +34,23 @@
          (dolist (x sequence t)
            (unless (funcall predicate x)
              (return nil))))
-        (t
-         (let ((vector sequence))
-           (declare (type vector vector))
-           (dotimes (i (length vector) t)
+        ((simple-vector-p sequence)
+         (locally
+           (declare (type simple-vector sequence))
+           (dotimes (i (length sequence) t)
              (declare (type index i))
              (unless (funcall predicate
                               (locally
                                 (declare (optimize speed (safety 0)))
-                                (aref vector i)))
+                                (aref sequence i)))
+               (return nil)))))
+        (t
+         (locally
+           (declare (type vector sequence))
+           (dotimes (i (length sequence) t)
+             (declare (type index i))
+             (unless (funcall predicate
+                              (locally
+                                (declare (optimize speed (safety 0)))
+                                (aref sequence i)))
                (return nil)))))))
