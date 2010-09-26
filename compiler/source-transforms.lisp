@@ -363,6 +363,12 @@
         (t
          form)))
 
+(define-source-transform caar (&whole form arg)
+  (cond ((length-eql form 2)
+         `(car (car ,arg)))
+        (t
+         form)))
+
 (defun transform-cadr (form arg)
   (cond ((length-eql form 2)
          `(car (cdr ,arg)))
