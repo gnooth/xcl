@@ -1,6 +1,6 @@
 // initialize_symbols.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -210,6 +210,7 @@ void initialize_symbols()
   the_symbol(S_widetag_stream_bit)->initialize_constant(make_number(WIDETAG_STREAM_BIT));
   the_symbol(S_widetag_vector_bit)->initialize_constant(make_number(WIDETAG_VECTOR_BIT));
 
+  the_symbol(S_simple_string_widetag)->initialize_constant(make_number(WIDETAG_SIMPLE_STRING));
   the_symbol(S_simple_vector_widetag)->initialize_constant(make_number(WIDETAG_SIMPLE_VECTOR));
 
   the_symbol(S_modules)->initialize_special(NIL);

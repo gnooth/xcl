@@ -1,6 +1,6 @@
 // symdefs.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1429,6 +1429,7 @@ DEFINE_SYMBOL(simple_bit_vector_bit_orc2, PACKAGE_SYS, "SIMPLE-BIT-VECTOR-BIT-OR
 DEFINE_SYMBOL(simple_bit_vector_bit_xor, PACKAGE_SYS, "SIMPLE-BIT-VECTOR-BIT-XOR");
 DEFINE_SYMBOL(simple_bit_vector_fill, PACKAGE_SYS, "SIMPLE-BIT-VECTOR-FILL");
 DEFINE_SYMBOL(simple_string_data_offset, PACKAGE_SYS, "+SIMPLE-STRING-DATA-OFFSET+");
+DEFINE_SYMBOL(simple_string_widetag, PACKAGE_SYS, "+SIMPLE-STRING-WIDETAG+");
 DEFINE_SYMBOL(simple_vector_data_offset, PACKAGE_SYS, "+SIMPLE-VECTOR-DATA-OFFSET+");
 DEFINE_SYMBOL(simple_vector_widetag, PACKAGE_SYS, "+SIMPLE-VECTOR-WIDETAG+");
 DEFINE_SYMBOL(single_float_bits, PACKAGE_SYS, "SINGLE-FLOAT-BITS");

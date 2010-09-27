@@ -1,6 +1,6 @@
 ;;; p2-x86-64.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -5461,6 +5461,46 @@
              (when target
                (inst :mov :rdi :rax)
                (move-result-to-target target))))))
+  t)
+
+(defun p2-require-simple-string (form target)
+  (let ((op (%car form))
+        (arg (%cadr form))
+        type)
+    (aver (eq op 'require-simple-string))
+    (cond ((zerop *safety*)
+           (p2 arg target))
+          ((and (neq (setq type (derive-type arg)) :unknown)
+                (subtypep type 'SIMPLE-STRING))
+           (p2 arg target))
+          (t
+           (let* ((common-labels (compiland-common-labels *current-compiland*))
+                  (REQUIRE-SIMPLE-STRING-ERROR (gethash :require-simple-string-error common-labels)))
+             (unless REQUIRE-SIMPLE-STRING-ERROR
+               (setq REQUIRE-SIMPLE-STRING-ERROR (make-label))
+               (let ((*current-segment* :elsewhere))
+                 (label REQUIRE-SIMPLE-STRING-ERROR)
+                 (p2-symbol 'SIMPLE-STRING :rsi)
+                 (emit-call '%type-error)
+                 ;; FIXME
+                 (emit-exit))
+               (setf (gethash :require-simple-string-error common-labels) REQUIRE-SIMPLE-STRING-ERROR))
+             (process-1-arg arg :rax t)
+             (inst :mov :rax :rdi)
+             (inst :and +lowtag-mask+ :al)
+             (clear-register-contents :rax :rdi)
+             (inst :cmp +typed-object-lowtag+ :al)
+             (emit-jmp-short :ne REQUIRE-SIMPLE-STRING-ERROR)
+             (inst :mov :rdi :rax)
+             (inst :mov `(,(- +widetag-offset+ +typed-object-lowtag+) :rax) :rax) ; widetag in rax
+             (aver (typep +simple-string-widetag+ '(signed-byte 32)))
+             (inst :cmp +simple-string-widetag+ :rax)
+             (emit-jmp-short :ne REQUIRE-SIMPLE-STRING-ERROR)
+             (when target
+               (inst :mov :rdi :rax)
+               (move-result-to-target target))
+             (when (var-ref-p arg)
+               (add-type-constraint (var-ref-var arg) 'SIMPLE-STRING))))))
   t)
 
 (defun p2-require-simple-vector (form target)
