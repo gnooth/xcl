@@ -1,6 +1,6 @@
 ;;; p2-x86.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -4916,6 +4916,53 @@
                (emit-call-2 '%type-error nil)
                (inst :exit) ; FIXME
                )))))
+  t)
+
+(defun p2-require-simple-string (form target)
+  (let ((op (%car form))
+        (arg (%cadr form))
+        type)
+    (aver (eq op 'require-simple-string))
+    (cond ((zerop *safety*)
+           (p2 arg target))
+          ((and (neq (setq type (derive-type arg)) :unknown)
+                (subtypep type 'SIMPLE-STRING))
+           (p2 arg target))
+          (t
+           (mumble "p2-require-simple-string~%")
+           (let* ((common-labels (compiland-common-labels *current-compiland*))
+                  (REQUIRE-SIMPLE-STRING-ERROR (gethash :require-simple-string-error common-labels)))
+             (when REQUIRE-SIMPLE-STRING-ERROR
+               (mumble "p2-require-simple-string re-using label~%"))
+             (unless REQUIRE-SIMPLE-STRING-ERROR
+               (setq REQUIRE-SIMPLE-STRING-ERROR (make-label))
+               (let ((*current-segment* :elsewhere))
+                 (label REQUIRE-SIMPLE-STRING-ERROR)
+                 (p2-symbol 'SIMPLE-STRING :stack)
+                 (inst :push :edx)
+                 (emit-call-2 '%type-error nil)
+                 ;; FIXME
+                 (inst :exit))
+               (setf (gethash :require-simple-string-error common-labels) REQUIRE-SIMPLE-STRING-ERROR))
+             (process-1-arg arg :eax t)
+             (inst :mov :eax :edx)
+             (inst :and +lowtag-mask+ :al)
+             (clear-register-contents :eax :edx)
+             (inst :cmp +typed-object-lowtag+ :al)
+             (emit-jmp-short :ne REQUIRE-SIMPLE-STRING-ERROR)
+             (inst :mov :edx :eax)
+             (inst :sub +typed-object-lowtag+ :eax)
+             (inst :mov `(,+bytes-per-word+ :eax) :eax) ; widetag in eax
+             (aver (typep +simple-string-widetag+ '(signed-byte 32)))
+             (inst :cmp +simple-string-widetag+ :eax)
+             (emit-jmp-short :ne REQUIRE-SIMPLE-STRING-ERROR)
+             (when target
+               (inst :mov :edx :eax)
+               (move-result-to-target target))
+             (when (var-ref-p arg)
+               (mumble "p2-require-simple-string adding type constraint for ~S~%"
+                       (var-name (var-ref-var arg)))
+               (add-type-constraint (var-ref-var arg) 'SIMPLE-STRING))))))
   t)
 
 (defun p2-require-simple-vector (form target)

@@ -1,6 +1,6 @@
 ;;; p2.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -1407,8 +1407,8 @@
 (defun p2-require-stream (form target)
   (%p2-require-type form target 'stream))
 
-(defun p2-require-simple-string (form target)
-  (%p2-require-type form target 'simple-string))
+;; (defun p2-require-simple-string (form target)
+;;   (%p2-require-type form target 'simple-string))
 
 (defun p2-require-string (form target)
   (%p2-require-type form target 'string))
