@@ -1,6 +1,6 @@
 // primitives.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -2413,15 +2413,6 @@ Value SYS_proclaim_special(Value arg)
 {
   check_symbol(arg)->proclaim_special();
   return T;
-}
-
-// ### set
-Value CL_set(Value name, Value value)
-{
-  if (symbolp(name))
-    return current_thread()->set_symbol_value(name, value);
-  else
-    return signal_type_error(name, S_symbol);
 }
 
 // ### check-subsequence sequence start end => T

@@ -1,6 +1,6 @@
 // lisp.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -542,6 +542,13 @@ Value CL_load_time_value(Value args, Environment * env, Thread * thread)
     }
 }
 
+static Value error_attempt_to_modify_constant(Symbol * sym)
+{
+  String * s = new String(sym->prin1_to_string());
+  s->append(" is a constant and may not be set.");
+  return signal_lisp_error(new ProgramError(s));
+}
+
 // ### setq
 Value CL_setq(Value args, Environment * env, Thread * thread)
 {
@@ -554,11 +561,7 @@ Value CL_setq(Value args, Environment * env, Thread * thread)
         return signal_lisp_error(new ProgramError("Odd number of arguments for SETQ."));
       Symbol * sym = check_symbol(arg1);
       if (sym->is_constant())
-        {
-          String * s = new String(sym->prin1_to_string());
-          s->append(" is a constant and may not be set.");
-          return signal_lisp_error(new ProgramError(s));
-        }
+        return error_attempt_to_modify_constant(sym);
       Value arg2 = car(args);
       args = xcdr(args);
       if (sym->is_special_variable() || env->is_declared_special(arg1))
@@ -593,6 +596,15 @@ Value CL_setq(Value args, Environment * env, Thread * thread)
   // return the primary value of the last form
   thread->clear_values();
   return value;
+}
+
+// ### set
+Value CL_set(Value name, Value value)
+{
+  Symbol * sym = check_symbol(name);
+  if (sym->is_constant())
+    return error_attempt_to_modify_constant(sym);
+  return current_thread()->set_symbol_value(name, value);
 }
 
 // ### incq symbol number => result
