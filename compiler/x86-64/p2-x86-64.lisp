@@ -3190,10 +3190,8 @@
                   (clear-register-contents op-register))
                  (t
                   (mumble "p2-local-function-call local-function-var case~%")
-                  (p2-var-ref (make-var-ref (local-function-var local-function)) :rax)
-                  (inst :push :rax)
                   (process-args args arg-registers use-fast-call-p)
-                  (inst :pop op-register)
+                  (p2-var-ref (make-var-ref (local-function-var local-function)) op-register)
                   (clear-register-contents op-register)))
            (unless use-fast-call-p
              (inst :mov thread-register :rdi))
