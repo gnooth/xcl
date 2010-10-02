@@ -18,12 +18,6 @@
 
 (in-package "SYSTEM")
 
-(defun check-sequence-bounds (start end length)
-  (declare (type index start end length))
-  (unless (<= 0 start end length)
-    (error "The bounding indices ~S and ~S are bad for a sequence of length ~S."
-           start end length)))
-
 (defun replace (sequence1 sequence2 &key (start1 0) end1 (start2 0) end2)
   (declare (type index start1 start2))
   (let* ((length1 (length sequence1))

@@ -1,6 +1,6 @@
 ;;; autoloads.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -84,6 +84,7 @@
 (autoload '(intersection nintersection))
 (autoload-macro '(psetf shiftf rotatef))
 (autoload '(sort stable-sort merge))
+(autoload 'check-sequence-bounds)
 (autoload 'replace)
 (autoload '(string-trim string-right-trim string-left-trim))
 (autoload '(delete delete-if delete-if-not) "lisp/delete")
