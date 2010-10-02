@@ -1,6 +1,6 @@
 ;;; write-sequence.lisp
 ;;;
-;;; Copyright (C) 2004-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -22,10 +22,11 @@
   (declare (type sequence sequence))
   (declare (type stream stream))
   (declare (type index start))
-  (let* ((len (length sequence))
-         (end (or end len))
+  (let* ((length (length sequence))
+         (end (or end length))
          (stream-element-type (stream-element-type stream)))
     (declare (type index end))
+    (check-sequence-bounds start end length)
     (cond ((eq stream-element-type 'character)
            (cond ((stringp sequence)
                   (%stream-write-string stream sequence start end))
@@ -35,10 +36,19 @@
                     (declare (type index i))
                     (%stream-write-char stream (elt sequence i))))))
           ((equal stream-element-type '(unsigned-byte 8))
-           (do* ((i start (1+ i)))
-                ((>= i end) sequence)
-             (declare (type index i))
-             (write-8-bits (elt sequence i) stream)))
+           (cond ((typep sequence '(simple-array (unsigned-byte 8) (*)))
+                  (locally
+                    (declare (type (simple-array (unsigned-byte 8) (*)) sequence))
+                    (do* ((i start (1+ i)))
+                         ((>= i end) sequence)
+                      (declare (optimize speed (safety 0)))
+                      (declare (type index i))
+                      (write-8-bits (aref sequence i) stream))))
+                 (t
+                  (do* ((i start (1+ i)))
+                       ((>= i end) sequence)
+                    (declare (type index i))
+                    (write-8-bits (elt sequence i) stream)))))
           (t
            (do* ((i start (1+ i)))
                 ((>= i end) sequence)
