@@ -1,6 +1,6 @@
 ;;; known-functions.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -582,7 +582,7 @@
 (defknown set-subseq (*) sequence)
 (defknown setcar (cons t) t)
 (defknown setcdr (cons t) t)
-(defknown simple-array-p (t) boolean)
+(defknown simple-array-p (t) boolean (:safe))
 (defknown simple-bit-vector-p (t) boolean (:safe))
 (defknown simple-string-p (t) boolean (:safe))
 (defknown simple-vector-p (t) boolean (:safe))
