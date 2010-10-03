@@ -877,6 +877,7 @@ extern Value SYS_xsvref(Value arg1, Value arg2);
 extern Value SYS_xsvset(Value arg1, Value arg2, Value arg3);
 extern Value SYS_xvector_ref(Value vector, Value index);
 extern Value SYS_xvector_set(Value vector, Value index, Value new_element);
+extern Value SYS_xwrite_8_bits(Value byte, Value stream);
 extern Value SYS_xxmake_structure(Value types, Value numslots);
 
 #endif // primitives.hpp

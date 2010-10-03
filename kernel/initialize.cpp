@@ -943,6 +943,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_xsvset, SYS_xsvset, 3, 3);
   ADD_PRIMITIVE(S_xvector_ref, SYS_xvector_ref, 2, 2);
   ADD_PRIMITIVE(S_xvector_set, SYS_xvector_set, 3, 3);
+  ADD_PRIMITIVE(S_xwrite_8_bits, SYS_xwrite_8_bits, 2, 2);
   ADD_PRIMITIVE(S_xxmake_structure, SYS_xxmake_structure, 2, 2);
 
   // Special operators and macros.

@@ -1780,6 +1780,14 @@ Value CL_write_char(unsigned int numargs, Value args[])
   return args[0];
 }
 
+// ### %write-8-bits byte stream => byte
+Value SYS_xwrite_8_bits(Value byte, Value stream)
+{
+  BYTE n = (BYTE) xlong(byte);
+  the_stream(stream)->write_byte(n);
+  return byte;
+}
+
 // ### write-8-bits byte stream => byte
 Value SYS_write_8_bits(Value byte, Value stream)
 {

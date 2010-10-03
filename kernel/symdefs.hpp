@@ -1566,6 +1566,7 @@ DEFINE_SYMBOL(xsvset, PACKAGE_SYS, "%SVSET");
 DEFINE_SYMBOL(xtypep, PACKAGE_SYS, "%TYPEP");
 DEFINE_SYMBOL(xvector_ref, PACKAGE_SYS, "%VECTOR-REF");
 DEFINE_SYMBOL(xvector_set, PACKAGE_SYS, "%VECTOR-SET");
+DEFINE_SYMBOL(xwrite_8_bits, PACKAGE_SYS, "%WRITE-8-BITS");
 DEFINE_SYMBOL(xxmake_structure, PACKAGE_SYS, "%%MAKE-STRUCTURE");
 
 // standard-class slot names

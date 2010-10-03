@@ -43,7 +43,7 @@
                          ((>= i end) sequence)
                       (declare (optimize speed (safety 0)))
                       (declare (type index i))
-                      (write-8-bits (aref sequence i) stream))))
+                      (%write-8-bits (aref sequence i) stream))))
                  (t
                   (do* ((i start (1+ i)))
                        ((>= i end) sequence)
