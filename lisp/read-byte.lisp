@@ -1,6 +1,6 @@
 ;;; read-byte.lisp
 ;;;
-;;; Copyright (C) 2004-2006 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -18,13 +18,13 @@
 
 (in-package "SYSTEM")
 
-(defun read-byte (stream &optional (eof-error-p t) eof-value)
+(defun %read-byte (stream eof-error-p eof-value)
   (declare (type stream stream))
   (let* ((element-type (stream-element-type stream)))
     (unless element-type
       (if eof-error-p
           (error 'end-of-file :stream stream)
-          (return-from read-byte eof-value)))
+          (return-from %read-byte eof-value)))
     (unless (consp element-type)
       (error 'type-error
              :format-control "READ-BYTE: unsupported element type ~S."
@@ -36,10 +36,16 @@
             (dotimes (i (/ width 8))
               (let ((byte (read-8-bits stream eof-error-p eof-value)))
                 (when (eq byte eof-value)
-                  (return-from read-byte eof-value))
+                  (return-from %read-byte eof-value))
                 (setf result (ash result 8))
                 (setf result (+ result byte))))
             (if (and (eq (car element-type) 'signed-byte)
                      (not (zerop (logand result (expt 2 (1- width))))))
                 (- result (expt 2 width))
                 result))))))
+
+(defun read-byte (stream &optional (eof-error-p t) eof-value)
+  (let ((read-byte-function (stream-read-byte-function stream)))
+    (if read-byte-function
+        (funcall read-byte-function stream eof-error-p eof-value)
+        (%read-byte stream eof-error-p eof-value))))

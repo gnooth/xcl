@@ -1,6 +1,6 @@
 ;;; read-sequence.lisp
 ;;;
-;;; Copyright (C) 2004-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -25,6 +25,17 @@
     (if end
         (require-type end '(or (integer 0) null))
         (setq end (length sequence))))
+
+  (let ((read-byte-function (stream-read-byte-function stream)))
+    (when read-byte-function
+      (return-from read-sequence
+                   (do ((pos start (1+ pos)))
+                       ((>= pos end) pos)
+                     (let ((element (funcall read-byte-function stream nil :eof)))
+                       (when (eq element :eof)
+                         (return pos))
+                       (setf (elt sequence pos) element))))))
+
   (let* ((element-type (stream-element-type stream)))
     (cond ((eq element-type 'character)
            (do ((pos start (1+ pos)))

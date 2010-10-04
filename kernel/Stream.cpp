@@ -1,6 +1,6 @@
 // Stream.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -38,7 +38,8 @@ Stream * ERROR_OUTPUT;
 
 Stream::Stream(long widetag)
   : TypedObject(widetag), _last_char(-1), _direction(DIRECTION_INVALID),
-    _element_type(S_character), _fd(-1), _offset(0), _charpos(0), _open(true)
+    _element_type(S_character), _fd(-1), _offset(0), _charpos(0), _open(true),
+    _read_byte_function(NIL)
 {
 #ifdef WIN32
   _h = INVALID_HANDLE_VALUE;
@@ -47,7 +48,8 @@ Stream::Stream(long widetag)
 
 Stream::Stream(long widetag, Direction direction)
   : TypedObject(widetag), _last_char(-1), _direction(direction),
-    _element_type(S_character), _fd(-1), _offset(0), _charpos(0), _open(true)
+    _element_type(S_character), _fd(-1), _offset(0), _charpos(0), _open(true),
+    _read_byte_function(NIL)
 {
 #ifdef WIN32
   _h = INVALID_HANDLE_VALUE;
@@ -56,7 +58,8 @@ Stream::Stream(long widetag, Direction direction)
 
 Stream::Stream(long widetag, Direction direction, int fd)
   : TypedObject(widetag), _last_char(-1), _direction(direction),
-    _element_type(S_character), _fd(fd), _offset(0), _charpos(0), _open(true)
+    _element_type(S_character), _fd(fd), _offset(0), _charpos(0), _open(true),
+    _read_byte_function(NIL)
 {
 #ifdef WIN32
   _h = INVALID_HANDLE_VALUE;
@@ -65,7 +68,8 @@ Stream::Stream(long widetag, Direction direction, int fd)
 
 Stream::Stream(Direction direction, int fd)
   : TypedObject(WIDETAG_STREAM), _last_char(-1), _direction(direction),
-    _element_type(S_character), _fd(fd), _offset(0), _charpos(0), _open(true)
+    _element_type(S_character), _fd(fd), _offset(0), _charpos(0), _open(true),
+    _read_byte_function(NIL)
 {
 #ifdef WIN32
   _h = INVALID_HANDLE_VALUE;
@@ -75,7 +79,8 @@ Stream::Stream(Direction direction, int fd)
 #ifdef WIN32
 Stream::Stream(Direction direction, HANDLE h)
   : TypedObject(WIDETAG_STREAM), _last_char(-1), _direction(direction),
-    _element_type(S_character), _fd(-1), _h(h), _offset(0), _charpos(0), _open(true)
+    _element_type(S_character), _fd(-1), _h(h), _offset(0), _charpos(0), _open(true),
+    _read_byte_function(NIL)
 {
 }
 #endif
@@ -1796,34 +1801,22 @@ Value SYS_write_8_bits(Value byte, Value stream)
   return byte;
 }
 
-// ### read-8-bits stream &optional eof-error-p eof-value => byte
-Value SYS_read_8_bits(unsigned int numargs, Value args[])
+// ### read-8-bits stream eof-error-p eof-value => byte
+Value SYS_read_8_bits(Value arg1, Value arg2, Value arg3)
 {
-  if (numargs >= 1 && numargs <= 3)
-    {
-      Stream * stream = check_stream(args[0]);
-      long n = stream->read_byte();
-      if (n >= 0)
-        return make_fixnum(n);
-      // eof
-      switch (numargs)
-        {
-        case 1:
-          return signal_lisp_error(new EndOfFile(stream));
-        case 2:
-          if (args[1] != NIL)
-            return signal_lisp_error(new EndOfFile(stream));
-          else
-            return NIL;
-        case 3:
-        case 4:
-          if (args[1] != NIL)
-            return signal_lisp_error(new EndOfFile(stream));
-          else
-            return args[2];
-        }
-    }
-  return wrong_number_of_arguments(S_read_8_bits, numargs, 1, 3);
+  Stream * stream = check_stream(arg1);
+  long n = stream->read_byte();
+  if (n >= 0)
+    return make_fixnum(n);
+  // eof
+  if (arg2 != NIL)
+    return signal_lisp_error(new EndOfFile(stream));
+  return arg3;
+}
+
+Value SYS_stream_read_byte_function(Value arg)
+{
+  return check_stream(arg)->read_byte_function();
 }
 
 // ### clear-input &optional input-stream => nil

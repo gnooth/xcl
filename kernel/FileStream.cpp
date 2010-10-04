@@ -1,6 +1,6 @@
 // FileStream.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -63,6 +63,12 @@ FileStream::FileStream(Value pathname, Value namestring, Value element_type,
     _direction = DIRECTION_OUTPUT;
   else if (direction == K_io)
     _direction = DIRECTION_IO;
+
+  if (direction == K_input || direction == K_io)
+    {
+      if (::equal(_element_type, UB8_TYPE))
+        _read_byte_function = S_read_8_bits;
+    }
 
 #ifdef WIN32
   if (direction == K_input && _bytes_per_unit == 1)

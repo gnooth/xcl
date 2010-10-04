@@ -736,7 +736,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_quit, EXT_quit, 0, 0);
   ADD_PRIMITIVE(S_quoted_form_p, SYS_quoted_form_p, 1, 1);
   ADD_PRIMITIVE(S_ratiop, SYS_ratiop, 1, 1);
-  ADD_PRIMITIVE(S_read_8_bits, SYS_read_8_bits, 1, 3);
+  ADD_PRIMITIVE(S_read_8_bits, SYS_read_8_bits, 3, 3);
   ADD_PRIMITIVE(S_read_backquote, SYS_read_backquote, 2, 2);
   ADD_PRIMITIVE(S_read_comma, SYS_read_comma, 2, 2);
   ADD_PRIMITIVE(S_read_comment, SYS_read_comment, 2, 2);
@@ -856,6 +856,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_stream_close_internal, SYS_stream_close_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_fresh_line_internal, SYS_stream_fresh_line_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_princ_internal, SYS_stream_princ_internal, 2, 2);
+  ADD_PRIMITIVE(S_stream_read_byte_function, SYS_stream_read_byte_function, 1, 1);
   ADD_PRIMITIVE(S_stream_set_charpos_internal, SYS_stream_set_charpos_internal, 2, 2);
   ADD_PRIMITIVE(S_stream_terpri_internal, SYS_stream_terpri_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_write_char_internal, SYS_stream_write_char_internal, 2, 2);

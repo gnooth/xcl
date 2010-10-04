@@ -1,6 +1,6 @@
 // Stream.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -52,6 +52,8 @@ protected:
   // the number of characters on the current line of output
   long _charpos;
   bool _open;
+
+  Value _read_byte_function;
 
   Stream(long widetag);
   Stream(long widetag, Direction direction);
@@ -109,6 +111,11 @@ public:
   bool is_open() const
   {
     return _open;
+  }
+  
+  Value read_byte_function() const
+  {
+    return _read_byte_function;
   }
 
   virtual Value type_of() const
