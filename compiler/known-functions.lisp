@@ -317,6 +317,7 @@
                 %class-name
                 %failed-aver
                 %member
+                %read-byte
                 %rplaca
                 %rplacd
                 %stream-terpri

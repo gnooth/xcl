@@ -19,7 +19,9 @@
 (in-package "SYSTEM")
 
 (defun %read-byte (stream eof-error-p eof-value)
-  (declare (type stream stream))
+  (let ((read-byte-function (stream-read-byte-function stream)))
+    (when read-byte-function
+        (return-from %read-byte (funcall read-byte-function stream eof-error-p eof-value))))
   (let* ((element-type (stream-element-type stream)))
     (unless element-type
       (if eof-error-p
@@ -45,7 +47,4 @@
                 result))))))
 
 (defun read-byte (stream &optional (eof-error-p t) eof-value)
-  (let ((read-byte-function (stream-read-byte-function stream)))
-    (if read-byte-function
-        (funcall read-byte-function stream eof-error-p eof-value)
-        (%read-byte stream eof-error-p eof-value))))
+  (%read-byte stream eof-error-p eof-value))

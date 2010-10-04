@@ -133,7 +133,9 @@
 (autoload-macro 'aver)
 (autoload '%failed-aver "lisp/aver")
 
-(autoload '(open write-byte read-byte write-sequence read-sequence))
+(autoload '(open write-byte write-sequence read-sequence))
+(export '%read-byte)
+(autoload '(read-byte %read-byte) "lisp/read-byte")
 (autoload-macro 'with-open-file)
 
 (autoload-macro 'with-hash-table-iterator)

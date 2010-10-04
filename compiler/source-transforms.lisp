@@ -420,3 +420,15 @@
          `(cdr ,arg))
         (t
          form)))
+
+(define-source-transform read-byte (&whole form &rest args)
+  (mumble "read-byte source-transform~%")
+  (case (length args)
+    (1
+     `(%read-byte ,(%car args) t nil))
+    (2
+     `(%read-byte ,(%car args) ,(%cadr args) nil))
+    (3
+     `(%read-byte ,(%car args) ,(%cadr args) ,(%caddr args)))
+    (t
+     form)))
