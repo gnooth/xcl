@@ -950,6 +950,22 @@
             (t
              nil)))))
 
+(defknown p2-lognot (t t) t)
+(defun p2-lognot (form target)
+  (when (check-arg-count form 1)
+    (let* ((args (%cdr form))
+           (arg (%car args))
+           (type (derive-type arg)))
+      (cond ((integer-constant-value type)
+             (mumble "p2-lognot integer-constant-value case~%")
+             (p2 arg nil)
+             (p2-constant (lognot (integer-constant-value type)) target))
+            (t
+             (mumble "p2-lognot default case~%")
+             (process-1-arg arg :default t)
+             (emit-call-1 'lognot target)))
+      t)))
+
 (defknown p2-position-eql (t t) t)
 (defun p2-position-eql (form target)
   (when (check-arg-count form 2)

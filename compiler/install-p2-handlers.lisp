@@ -1,6 +1,6 @@
 ;;; install-p2-handlers.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -99,6 +99,7 @@
 (install-p2-handler 'listp                      'p2-listp)
 (install-p2-handler 'logand                     'p2-logand)
 (install-p2-handler 'logior                     'p2-logior/logxor)
+(install-p2-handler 'lognot                     'p2-lognot)
 (install-p2-handler 'logxor                     'p2-logior/logxor)
 (install-p2-handler 'make-array                 'p2-make-array)
 (install-p2-handler 'mapc2                      'p2-mapc2)
