@@ -1,6 +1,6 @@
 ;;; compiler.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -1567,42 +1567,52 @@ for special variables."
                  (setq new-form `(require-fixnum ,arg1)))
                 ((eq type 'INTEGER)
                  (setq new-form `(require-integer ,arg1)))
-                ((or (eq type 'BOOLEAN)
-                     (equal type '(MEMBER T NIL))
-                     (equal type '(MEMBER NIL T)))
-                 (setq new-form `(require-boolean ,arg1)))
-                ((and (consp type)
-                      (memq (%car type) '(AND OR MEMBER SATISFIES)))
-                 ;; FIXME
-;;                  (mumble "p1-require-type 1 not doing type check for ~S~%" type)
-                 (unless (eql *safety* 3)
-                   (mumble "p1-require-type 1 not doing type check for ~S~%" type)
-                   (setq new-form `(progn ,arg1))))
-                ((subtypep type 'fixnum)
-                 (let ((canonical-type (canonicalize-type type)))
-                   (cond ((equal canonical-type '(INTEGER #.most-negative-fixnum #.most-positive-fixnum))
-                          (setq new-form `(require-fixnum ,arg1)))
-                         ((fixnum-type-p canonical-type)
-                          (setq new-form
-                                `(truly-the ,canonical-type
-                                            (check-fixnum-bounds ,arg1
-                                                                 ,(integer-type-low  canonical-type)
-                                                                 ,(integer-type-high canonical-type))))))))
-                ((or (eq type '(UNSIGNED-BYTE 32))
-                     (equal (canonicalize-type type) '(INTEGER 0 4294967295)))
-                 (setq new-form `(require-ub32 ,arg1)))
                 ((eq type 'NUMBER)
                  (setq new-form `(require-number ,arg1)))
                 ((eq type 'KEYWORD)
                  (setq new-form `(require-keyword ,arg1)))
                 ((eq type 'STREAM)
                  (setq new-form `(require-stream ,arg1)))
-                ((subtypep type 'SIMPLE-STRING)
+                ((or (eq type 'BOOLEAN)
+                     (equal type '(MEMBER T NIL))
+                     (equal type '(MEMBER NIL T)))
+                 (setq new-form `(require-boolean ,arg1))))
+          (when new-form
+            (return-from p1-require-type (p1 new-form))))
+        (let ((type (canonicalize-type (%cadr arg2))))
+          (cond ((subtypep type 'SIMPLE-STRING)
                  ;; REVIEW
                  (setq new-form `(require-simple-string ,arg1)))
                 ((subtypep type 'STRING)
                  ;; REVIEW
                  (setq new-form `(require-string ,arg1)))
+                ((and (consp type)
+                      (memq (%car type) '(AND OR MEMBER SATISFIES)))
+                 ;; FIXME
+                 (unless (eql *safety* 3)
+                   (mumble "p1-require-type 1 not doing type check for ~S~%" type)
+                   (setq new-form `(progn ,arg1))))
+                ;; REVIEW
+                ((subtypep type 'fixnum)
+                   (cond ((equal type '(INTEGER #.most-negative-fixnum #.most-positive-fixnum))
+                          (setq new-form `(require-fixnum ,arg1)))
+                         ((fixnum-type-p type)
+                          (setq new-form
+                                `(truly-the ,type
+                                            (check-fixnum-bounds ,arg1
+                                                                 ,(integer-type-low  type)
+                                                                 ,(integer-type-high type)))))))
+                ;; REVIEW on x86-64 this should be handled by the fixnum case
+                ((or (eq type '(UNSIGNED-BYTE 32))
+                     (equal type '(INTEGER 0 4294967295)))
+                 #+x86-64 (aver nil)
+                 (setq new-form `(require-ub32 ,arg1)))
+;;                 ((eq type 'NUMBER)
+;;                  (setq new-form `(require-number ,arg1)))
+;;                 ((eq type 'KEYWORD)
+;;                  (setq new-form `(require-keyword ,arg1)))
+;;                 ((eq type 'STREAM)
+;;                  (setq new-form `(require-stream ,arg1)))
                 ((subtypep type 'SIMPLE-VECTOR)
                  (setq new-form `(require-simple-vector ,arg1)))
                 ((subtypep type 'VECTOR)
@@ -1611,10 +1621,8 @@ for special variables."
                 ((subtypep type 'STRUCTURE-OBJECT)
                  (cond ((and (symbolp type)
                              (null (deftype-expander type)))
-;;                         (mumble "p1-require-type structure-object case 1~%")
                         (setq new-form `(require-structure-type ,arg1 ',type)))
                        (t
-;;                         (mumble "p1-require-type structure-object case 2~%")
                         (let ((sym (gensym)))
                           (setq new-form
                                 `(truly-the ,type
@@ -1633,15 +1641,10 @@ for special variables."
                  (unless (eq type t)
                    (let ((*print-structure* nil))
                      (mumble "p1-require-type 2 not doing type check for ~S~%" type)))
-                 (setq new-form `(progn ,arg1))
-;;                  (mumble "p1-require-type new-form = ~S~%" new-form)
-                 )
-                )))
+                 (setq new-form `(progn ,arg1))))))
       (if new-form
           (p1 new-form)
-          (p1-function-call form))
-;;       (p1 new-form)
-      )))
+          (p1-function-call form)))))
 
 (defun p1-ash (form)
   (cond ((and (length-eql form 3)
@@ -2201,7 +2204,7 @@ for special variables."
       (setf (compiland-leaf-p compiland) leaf-p)
       (unless need-stack-frame-p
         (when (trivial-p compiland)
-          (mumble "analyze-ir2 omit frame pointer~%")
+;;           (mumble "analyze-ir2 omit frame pointer~%")
           (setf (compiland-omit-frame-pointer compiland) t))))
     ))
 
