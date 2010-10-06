@@ -1,6 +1,6 @@
 ;;; disassemble.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -478,6 +478,6 @@
   (let ((*print-base* 16)) (format t "#x~X" n)))
 
 #+x86
-(load-system-file "lisp/disasm-x86.lisp")
+(load-system-file "lisp/disasm-x86")
 #+x86-64
-(load-system-file "lisp/disasm-x86-64.lisp")
+(load-system-file "lisp/disasm-x86-64")
