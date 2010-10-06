@@ -275,6 +275,10 @@
     ((:shr 1 :rax)              #(#x48 #xd1 #xe8))
     ((:shr 2 :rax)              #(#x48 #xc1 #xe8 #x02))
     ((:xor :eax :eax)           #(#x31 #xc0))
+    ((:xor :rax :rax)           #(#x48 #x31 #xc0))
+    ((:xor :rdx :rdx)           #(#x48 #x31 #xd2))
+    ((:xor :rax :rdx)           #(#x48 #x31 #xc2))
+    ((:xor :rdx :rax)           #(#x48 #x31 #xd0))
     ((:ret)                     #(#xc3))
     ))
 

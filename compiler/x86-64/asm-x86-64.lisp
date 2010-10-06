@@ -626,7 +626,13 @@
          (unsupported))))
 
 (define-assembler :xor
-  (cond ((and (reg32-p operand1)
+  (cond ((and (reg64-p operand1)
+              (reg64-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11
+                                            (register-number operand1)
+                                            (register-number operand2))))
+           (emit-bytes #x48 #x31 modrm-byte)))
+        ((and (reg32-p operand1)
               (reg32-p operand2))
          (let ((modrm-byte (make-modrm-byte #b11
                                             (register-number operand1)
