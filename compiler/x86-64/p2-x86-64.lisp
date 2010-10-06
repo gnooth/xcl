@@ -3831,6 +3831,27 @@
                         ;; note that we need to unbox only one of the args, so the result will end up boxed
                         (emit-bytes #x48 #x0f #xaf #xc2) ; imul %rdx,%rax
                         (move-result-to-target target))))
+                ((eql (integer-constant-value type2) 2)
+                 (mumble "p2-two-arg-* new case arg2 = 2~%")
+                 (let ((FULL-CALL (make-label))
+                       (EXIT (make-label)))
+                   (process-1-arg arg1 :rdi t)
+                   (unless (flushable arg2)
+                     (inst :push :rdi)
+                     (p2 arg2 nil)
+                     (inst :pop :rdi))
+                   (unless (fixnum-type-p type1)
+                     (inst :test +fixnum-tag-mask+ :dil)
+                     (emit-jmp-short :nz FULL-CALL))
+                   ;; falling through, arg1 is a fixnum
+                   (inst :mov :rdi :rax)
+                   (inst :add :rax :rax)
+                   (emit-jmp-short :no EXIT)
+                   (label FULL-CALL)
+                   (inst :mov :rdi :rsi)
+                   (emit-call 'two-arg-+)
+                   (label EXIT)
+                   (move-result-to-target target)))
                 (t
                  (mumble "p2-two-arg-* default case~%")
                  (let ((OVERFLOW (make-label))
@@ -3869,6 +3890,48 @@
                      (label EXIT))
                    (move-result-to-target target)))))))
     t))
+
+(defknown p2-mod (t t) t)
+(defun p2-mod (form target)
+  (when (check-arg-count form 2)
+    (let* ((args (%cdr form))
+           (arg1 (%car args))
+           (arg2 (%cadr args))
+           (type1 (derive-type arg1))
+           (type2 (derive-type arg2)))
+      (mumble "p2-mod type1 = ~S type2 = ~S~%" type1 type2)
+      (cond #+nil
+            ((eq type1 :unknown)
+             nil)
+            #+nil
+            ((eq type2 :unknown)
+             nil)
+            ((and (neq type1 :unknown)
+                  (neq type2 :unknown)
+                  (subtypep type1 '(and fixnum unsigned-byte))
+                  (subtypep type2 '(and fixnum unsigned-byte))
+                  (not (typep 0 type2)) ; don't divide by zero!
+                  )
+             (mumble "p2-mod new case!~%")
+             (process-2-args args '(:rax :rcx) t)
+             (inst :xor :edx :edx)
+             (emit-bytes #x48 #xf7 #xf1) ; div %rcx
+             (clear-register-contents :rax :rcx :rdx)
+             ;; remainder is in rdx
+             (inst :mov :rdx :rax)
+;;              (inst :shl +fixnum-shift+ :rax)
+             (move-result-to-target target)
+             t)
+            (;(and (subtypep type1 'REAL)
+             ;     (numberp arg2)
+             ;     (not (zerop arg2)))
+             t
+             (process-2-args args :default t)
+             (emit-call-2 'mod target)
+             t)
+;;             (t
+;;              nil)
+            ))))
 
 (defknown p2-%char-code (t t) t)
 (defun p2-%char-code (form target)
