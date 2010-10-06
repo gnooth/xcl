@@ -422,7 +422,6 @@
          form)))
 
 (define-source-transform read-byte (&whole form &rest args)
-  (mumble "read-byte source-transform~%")
   (case (length args)
     (1
      `(%read-byte ,(%car args) t nil))
