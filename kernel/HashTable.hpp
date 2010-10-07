@@ -1,6 +1,6 @@
 // HashTable.hpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -102,7 +102,7 @@ public:
 
   void clear()
   {
-    memset(_buckets, 0, _capacity *  sizeof(HashEntry *));
+    memset(_buckets, 0, _capacity * sizeof(HashEntry *));
     _count = 0;
   }
 
@@ -131,7 +131,7 @@ inline HashTable * check_hash_table(Value value)
   if (hash_table_p(value))
     return the_hash_table(value);
   signal_type_error(value, S_hash_table);
-  // Not reached.
+  // not reached
   return NULL;
 }
 
