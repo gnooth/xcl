@@ -1,6 +1,6 @@
 ;;; disasm-x86.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -260,6 +260,23 @@
                         :operand1   operand1
                         :operand2   operand2
                         :annotation annotation))))
+
+(define-disassembler #xf7
+  (with-modrm-byte (mref-8 start 1)
+    (cond ((and (eql mod #b11)
+                (eql reg 2))
+           (make-instruction :start start
+                             :length 2
+                             :mnemonic :not
+                             :operand1 (make-register-operand (register rm))))
+          ((and (eql mod #b11)
+                (eql reg 6))
+           (make-instruction :start start
+                             :length 2
+                             :mnemonic :div
+                             :operand1 (make-register-operand (register rm))))
+          (t
+           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
 
 (define-disassembler #xff
   (with-modrm-byte (mref-8 start 1)

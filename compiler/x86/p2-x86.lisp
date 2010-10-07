@@ -3559,6 +3559,33 @@
                    (move-result-to-target target)
                    t))))))))
 
+(defknown p2-mod (t t) t)
+(defun p2-mod (form target)
+  (when (check-arg-count form 2)
+    (let* ((args (%cdr form))
+           (arg1 (%car args))
+           (arg2 (%cadr args))
+           (type1 (derive-type arg1))
+           (type2 (derive-type arg2)))
+      (cond ((and (neq type1 :unknown)
+                  (neq type2 :unknown)
+                  (subtypep type1 '(and fixnum unsigned-byte))
+                  (subtypep type2 '(and fixnum unsigned-byte))
+                  (not (typep 0 type2)) ; don't divide by zero!
+                  )
+             (process-2-args args '(:eax :ecx) t)
+             (inst :xor :edx :edx)
+             (emit-bytes #xf7 #xf1) ; div %ecx
+             (clear-register-contents :eax :ecx :edx)
+             ;; remainder is in edx
+             (inst :mov :edx :eax)
+             (move-result-to-target target)
+             t)
+            (t
+             (process-2-args args :default t)
+             (emit-call-2 'mod target)
+             t)))))
+
 (defun p2-min/max (form target)
   (let* ((op (car form))
          (args (cdr form)))
