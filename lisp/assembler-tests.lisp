@@ -253,6 +253,7 @@
     ((:movq -1 (:rsp))          #(#x48 #xc7 #x04 #x24 #xff #xff #xff #xff))
     ((:movq -1 (0 :rax))        #(#x48 #xc7 #x00 #xff #xff #xff #xff))
     ((:movq -1 (:rax))          #(#x48 #xc7 #x00 #xff #xff #xff #xff))
+    ((:not :rax)                #(#x48 #xf7 #xd0))
     ((:sar :rax)                #(#x48 #xd1 #xf8))
     ((:sar 1 :rax)              #(#x48 #xd1 #xf8))
     ((:sar 2 :rax)              #(#x48 #xc1 #xf8 #x02))

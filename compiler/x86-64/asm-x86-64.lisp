@@ -1,6 +1,6 @@
 ;;; asm-x86-64.lisp
 ;;;
-;;; Copyright (C) 2007-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -405,6 +405,16 @@
            (when (eq reg2 :rsp)
              (emit-byte #x24))
            (emit-raw-dword operand1)))
+        (t
+         (unsupported))))
+
+(define-assembler :not
+  (cond ((reg64-p operand1)
+         (let* ((mod #b11)
+                (reg 2)
+                (rm  (register-number operand1))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x48 #xf7 modrm-byte)))
         (t
          (unsupported))))
 

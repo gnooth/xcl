@@ -1037,6 +1037,11 @@
                                 operand1 (make-immediate-operand (mref-32 block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm prefix-byte))))
                          ((and (eql mod #b11)
+                               (eql reg 2))
+                          (setq length 2
+                                mnemonic :not
+                                operand1 (make-register-operand (register rm prefix-byte))))
+                         ((and (eql mod #b11)
                                (eql reg 6))
                           (setq length 2
                                 mnemonic :div
