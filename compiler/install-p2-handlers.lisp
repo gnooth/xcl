@@ -73,6 +73,7 @@
 (install-p2-handler 'char=                      'p2-char=)
 (install-p2-handler 'characterp                 'p2-characterp)
 (install-p2-handler 'check-fixnum-bounds        'p2-check-fixnum-bounds)
+(install-p2-handler 'clrhash                    'p2-clrhash)
 (install-p2-handler 'code-char                  'p2-code-char)
 (install-p2-handler 'coerce                     'p2-coerce)
 (install-p2-handler 'consp                      'p2-consp)
