@@ -4756,15 +4756,15 @@
            (arg2 (%cadr args))
            type1
            type2)
+      (when (null target)
+        (p2 arg1 nil)
+        (p2 arg2 nil)
+        (return-from p2-ash t))
       (when (and (integerp arg1) (integerp arg2))
         (p2-constant (ash arg1 arg2) target)
         (return-from p2-ash t))
       (setq type1 (derive-type arg1)
             type2 (derive-type arg2))
-
-;;       (mumble "p2-ash result type = ~S~%" (derive-type form))
-;;       (mumble "p2-ash type1 = ~S type2 = ~S~%" type1 type2)
-
       (cond ((and (integer-constant-value type1)
                   (integer-constant-value type2))
              (let ((must-clear-values nil))
@@ -4801,27 +4801,27 @@
             ((and (fixnum-type-p type1)
                   (fixnum-type-p type2)
                   (fixnum-type-p (derive-type form)))
-;;              (mumble "arg2 = ~S~%" arg2)
              (let ((shift (integer-constant-value type2)))
-;;                (mumble "shift = ~S~%" shift)
                (cond ((and shift
                            (< shift 0)
                            (> shift -64))
                       (cond ((flushable arg2)
-;;                              (mumble "p2-ash new optimized case 1~%")
                              (process-1-arg arg1 :rax t)
-                             (emit-bytes #x48 #xc1 #xf8 (- shift)) ; sar imm8,%rax
-                             (emit-bytes #x48 #x83 #xe0 #xfc) ; and $0xfc,%rax
-;;                              (emit-bytes #x83 #xe0 #xfc) ; and $0xfc,%eax
-                             )
+                             (inst :sar (- shift) :rax)
+                             ;; zero out tag bits
+                             (inst :and #xfc :al)
+                             (clear-register-contents :rax))
                             (t
-;;                              (mumble "p2-ash new optimized case 2~%")
+                             (mumble "p2-ash new optimized case 2~%")
                              (process-2-args args '(:rax :rcx) t)
                              (unbox-fixnum :rcx)
-                             (emit-bytes #x48 #xf7 #xd9) ; neg %rcx
+;;                              (emit-bytes #x48 #xf7 #xd9) ; neg %rcx
+                             (inst :neg :rcx)
                              (emit-bytes #x48 #xd3 #xf8) ; sar %cl,%rax
                              ;; zero out tag bits
-                             (emit-bytes #x48 #x83 #xe0 #xfc) ; and $0xfc,%rax
+;;                              (emit-bytes #x48 #x83 #xe0 #xfc) ; and $0xfc,%rax
+                             (inst :and #xfc :al)
+                             (clear-register-contents :rax :rcx)
 ;;                              (emit-bytes #x83 #xe0 #xfc) ; and $0xfc,%eax
                              ))
                       (move-result-to-target target)
@@ -4833,26 +4833,31 @@
 ;;                              (mumble "p2-ash new optimized case 3~%")
                              (process-1-arg arg1 :rax t)
                              (unless (eql shift 0)
-                               (emit-bytes #x48 #xc1 #xe0 shift)) ; shl imm8,%rax
+                               (emit-bytes #x48 #xc1 #xe0 shift) ; shl imm8,%rax
+                               (clear-register-contents :rax))
                              )
                             (t
 ;;                              (mumble "p2-ash new optimized case 4~%")
                              (process-2-args args '(:rax :rcx) t)
                              (unbox-fixnum :rcx)
                              (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
+                             (clear-register-contents :rax :rcx)
                              ))
                       (move-result-to-target target)
                       t)
 ;;                      ((subtypep type2 '(INTEGER -63 -1))
-                      ((subtypep type2 '(INTEGER -63 0))
-;;                       (mumble "p2-ash new optimized case 5~%")
+                     ((subtypep type2 '(INTEGER -63 0))
+                      (mumble "p2-ash new optimized case 5~%")
                       (process-2-args args '(:rax :rcx) t)
                       (unbox-fixnum :rcx)
-                      (emit-bytes #x48 #xf7 #xd9) ; neg %rcx
+;;                       (emit-bytes #x48 #xf7 #xd9) ; neg %rcx
+                      (inst :neg :rcx)
                       (emit-bytes #x48 #xd3 #xf8) ; sar %cl,%rax
                       ;; zero out tag bits
-                      (emit-bytes #x48 #x83 #xe0 #xfc) ; and $0xfc,%rax
+;;                       (emit-bytes #x48 #x83 #xe0 #xfc) ; and $0xfc,%rax
 ;;                       (emit-bytes #x83 #xe0 #xfc) ; and $0xfc,%eax
+                      (inst :and #xfc :al)
+                      (clear-register-contents :rax)
                       (move-result-to-target target)
                       t)
                      ((subtypep type2 '(INTEGER 0 63))
@@ -4860,6 +4865,7 @@
                       (process-2-args args '(:rax :rcx) t)
                       (unbox-fixnum :rcx)
                       (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
+                      (clear-register-contents :rax)
                       (move-result-to-target target)
                       t)
                      (t
@@ -4984,6 +4990,11 @@
              (type1 (derive-type arg1))
              (type2 (derive-type arg2))
              thread-register)
+        (when (null target)
+          (mumble "p2-logand null target case~%")
+          (p2 arg1 nil)
+          (p2 arg2 nil)
+          (return-from p2-logand t))
         (when (flushable arg1)
           (let ((value (integer-constant-value type1)))
             (when value
