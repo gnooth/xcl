@@ -1586,6 +1586,8 @@ for special variables."
                 ((subtypep type 'STRING)
                  ;; REVIEW
                  (setq new-form `(require-string ,arg1)))
+                ((subtypep type 'CONS)
+                 (setq new-form `(require-cons ,arg1)))
                 ((and (consp type)
                       (memq (%car type) '(AND OR MEMBER SATISFIES)))
                  ;; FIXME
