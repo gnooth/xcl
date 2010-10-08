@@ -408,6 +408,16 @@
         (t
          (unsupported))))
 
+(define-assembler :neg
+  (cond ((reg64-p operand1)
+         (let* ((mod #b11)
+                (reg 3)
+                (rm  (register-number operand1))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x48 #xf7 modrm-byte)))
+        (t
+         (unsupported))))
+
 (define-assembler :not
   (cond ((reg64-p operand1)
          (let* ((mod #b11)
