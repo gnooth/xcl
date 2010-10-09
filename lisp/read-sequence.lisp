@@ -26,15 +26,16 @@
         (require-type end '(or (integer 0) null))
         (setq end (length sequence))))
 
-  (let ((read-byte-function (stream-read-byte-function stream)))
-    (when read-byte-function
-      (return-from read-sequence
-                   (do ((pos start (1+ pos)))
-                       ((>= pos end) pos)
-                     (let ((element (funcall read-byte-function stream nil :eof)))
-                       (when (eq element :eof)
-                         (return pos))
-                       (setf (elt sequence pos) element))))))
+  (locally (declare (optimize speed))
+    (let ((read-byte-function (stream-read-byte-function stream)))
+      (when read-byte-function
+        (return-from read-sequence
+                     (do ((pos start (1+ pos)))
+                         ((>= pos end) pos)
+                       (let ((element (funcall read-byte-function stream nil :eof)))
+                         (when (eq element :eof)
+                           (return pos))
+                         (setf (elt sequence pos) element)))))))
 
   (let* ((element-type (stream-element-type stream)))
     (cond ((eq element-type 'character)
