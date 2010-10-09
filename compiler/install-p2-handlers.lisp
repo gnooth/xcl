@@ -165,6 +165,8 @@
 (install-p2-handler 'two-arg-/                  'p2-two-arg-/)
 (install-p2-handler 'two-arg-/=                 'p2-two-arg-/=)
 (install-p2-handler 'two-arg-<                  'p2-two-arg-<)
+(install-p2-handler 'two-arg-<=                 'p2-two-arg-<=)
+(install-p2-handler 'two-arg->=                 'p2-two-arg->=)
 (install-p2-handler 'two-arg-=                  'p2-two-arg-=)
 (install-p2-handler 'two-arg-char/=             'p2-char/=)
 (install-p2-handler 'two-arg-char=              'p2-char=)

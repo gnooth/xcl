@@ -3532,7 +3532,7 @@
            (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x7,%dl
            (emit-jmp-short :nz FULL-CALL)
            ;; falling through, both args are fixnums
-           (emit-bytes #x48 #x39 #xd0)   ; t %rdx,%rax
+           (emit-bytes #x48 #x39 #xd0)   ; cmp %rdx,%rax
            (emit-jmp-short :nl NOT-LESS)
            (p2-symbol t :rax)
            (emit-jmp-short t EXIT)
@@ -3543,6 +3543,130 @@
            (inst :mov :rdx :rsi)
            (inst :mov :rax :rdi)
            (emit-call 'two-arg-<)
+           (label EXIT)
+           (move-result-to-target target)
+           t))))
+
+(defun p2-two-arg-<= (form target)
+  (declare (type cons form))
+  (mumble "p2-two-arg-<=~%")
+  (let* ((args (cdr form))
+         (arg1 (car args))
+         (arg2 (cadr args))
+         (type1 (derive-type arg1))
+         (type2 (derive-type arg2))
+         (NO (make-label))
+         (FULL-CALL (make-label))
+         (EXIT (make-label)))
+    (cond ((and (length-eql args 2)
+                (fixnump arg2))
+           ;; as in (< n 2), for example
+           (p2 arg1 :rax)
+           (unless (single-valued-p arg1)
+             (emit-clear-values :preserve :rax))
+           (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x7,%al
+           (emit-jmp-short :nz FULL-CALL)
+           ;; falling through, arg1 is a fixnum
+           (emit-move-immediate arg2 :rdx)
+           (emit-bytes #x48 #x39 #xd0)   ; cmp %rdx,%rax
+           (emit-jmp-short :g NO)
+           (p2-symbol t :rax)
+           (emit-jmp-short t EXIT)
+           (label NO)
+           (p2-symbol nil :rax)
+           (emit-jmp-short t exit)
+           (label FULL-CALL)
+           ;; arg2 is a fixnum literal
+           (emit-move-immediate arg2 :rsi)
+           ;; arg1 is already in rax
+           (inst :mov :rax :rdi)
+           (emit-call 'two-arg-<=)
+           (label EXIT)
+           (move-result-to-target target)
+           t)
+          ((length-eql args 2)
+           (process-2-args args '(:rax :rdx) t)
+           (unless (fixnum-type-p type1)
+             (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x7,%al
+             (emit-jmp-short :nz FULL-CALL))
+           (unless (fixnum-type-p type2)
+             (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x7,%dl
+             (emit-jmp-short :nz FULL-CALL))
+           ;; falling through, both args are fixnums
+           (emit-bytes #x48 #x39 #xd0)   ; cmp %rdx,%rax
+           (emit-jmp-short :g NO)
+           (p2-symbol t :rax)
+           (emit-jmp-short t EXIT)
+           (label NO)
+           (p2-symbol nil :rax)
+           (emit-jmp-short t exit)
+           (unless (and (fixnum-type-p type1) (fixnum-type-p type2))
+             (label FULL-CALL)
+             (inst :mov :rdx :rsi)
+             (inst :mov :rax :rdi)
+             (emit-call 'two-arg-<=))
+           (label EXIT)
+           (move-result-to-target target)
+           t))))
+
+(defun p2-two-arg->= (form target)
+  (declare (type cons form))
+  (mumble "p2-two-arg->=~%")
+  (let* ((args (cdr form))
+         (arg1 (car args))
+         (arg2 (cadr args))
+         (type1 (derive-type arg1))
+         (type2 (derive-type arg2))
+         (NO (make-label))
+         (FULL-CALL (make-label))
+         (EXIT (make-label)))
+    (cond ((and (length-eql args 2)
+                (fixnump arg2))
+           ;; as in (>= n 2), for example
+           (p2 arg1 :rax)
+           (unless (single-valued-p arg1)
+             (emit-clear-values :preserve :rax))
+           (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x7,%al
+           (emit-jmp-short :nz FULL-CALL)
+           ;; falling through, arg1 is a fixnum
+           (emit-move-immediate arg2 :rdx)
+           (emit-bytes #x48 #x39 #xd0)   ; cmp %rdx,%rax
+           (emit-jmp-short :l NO)
+           (p2-symbol t :rax)
+           (emit-jmp-short t EXIT)
+           (label NO)
+           (p2-symbol nil :rax)
+           (emit-jmp-short t exit)
+           (label FULL-CALL)
+           ;; arg2 is a fixnum literal
+           (emit-move-immediate arg2 :rsi)
+           ;; arg1 is already in rax
+           (inst :mov :rax :rdi)
+           (emit-call 'two-arg->=)
+           (label EXIT)
+           (move-result-to-target target)
+           t)
+          ((length-eql args 2)
+           (process-2-args args '(:rax :rdx) t)
+           (unless (fixnum-type-p type1)
+             (emit-bytes #xa8 +fixnum-tag-mask+) ; test $0x7,%al
+             (emit-jmp-short :nz FULL-CALL))
+           (unless (fixnum-type-p type2)
+             (emit-bytes #xf6 #xc2 +fixnum-tag-mask+) ; test $0x7,%dl
+             (emit-jmp-short :nz FULL-CALL))
+           ;; falling through, both args are fixnums
+           (emit-bytes #x48 #x39 #xd0)   ; cmp %rdx,%rax
+           (emit-jmp-short :l NO)
+           (p2-symbol t :rax)
+           (emit-jmp-short t EXIT)
+           (label NO)
+           (p2-symbol nil :rax)
+           (emit-jmp-short t exit)
+           (unless (and (fixnum-type-p type1) (fixnum-type-p type2))
+             (label FULL-CALL)
+             (inst :mov :rdx :rsi)
+             (inst :mov :rax :rdi)
+             (emit-call 'two-arg->=))
            (label EXIT)
            (move-result-to-target target)
            t))))
