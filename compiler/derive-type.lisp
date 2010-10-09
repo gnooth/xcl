@@ -532,6 +532,18 @@
                      (setq result-type 'FLOAT))))))))
     result-type))
 
+(defknown derive-type-- (t) t)
+(defun derive-type-- (form)
+  (let* ((args (cdr form))
+         (numargs (length args))
+         (result-type 'NUMBER))
+    (cond ((eql numargs 1)
+           (let* ((arg1 (%car args))
+                  (type1 (derive-type arg1)))
+             (when (subtypep type1 '(integer #.(1+ most-negative-fixnum) #.most-positive-fixnum))
+               (setq result-type '#.(canonicalize-type 'fixnum))))))
+    result-type))
+
 (defknown derive-type-two-arg-- (t) t)
 (defun derive-type-two-arg-- (form)
   (let ((args (cdr form))
@@ -707,6 +719,7 @@
 (defun install-derive-type-handler (op handler)
   (put op 'derive-type-handler handler))
 
+(install-derive-type-handler '-                      'derive-type--)
 (install-derive-type-handler 'aref                   'derive-type-aref)
 (install-derive-type-handler 'ash                    'derive-type-ash)
 (install-derive-type-handler 'coerce                 'derive-type-coerce)

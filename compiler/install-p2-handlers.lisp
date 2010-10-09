@@ -62,6 +62,7 @@
 (install-p2-handler '%sbit1                     'p2-sbit1)
 (install-p2-handler '%type-error                'p2-%type-error)
 (install-p2-handler '%typep                     'p2-typep)
+(install-p2-handler '-                          'p2--)
 (install-p2-handler 'apply                      'p2-apply)
 (install-p2-handler 'ash                        'p2-ash)
 (install-p2-handler 'car                        'p2-car)
