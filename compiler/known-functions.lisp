@@ -361,6 +361,7 @@
                 setcdr
                 setelt
                 special-variable-p
+                stream-read-byte-function
                 structure-ref
                 structure-set
                 svset
