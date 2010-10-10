@@ -20,6 +20,8 @@
 
 (defun check-sequence-bounds (start end length)
   (declare (type index start end length))
-  (unless (<= 0 start end length)
+;;   (unless (<= 0 start end length)
+  (unless (and (<= start end)
+               (<= end length))
     (error "The bounding indices ~S and ~S are bad for a sequence of length ~S."
            start end length)))
