@@ -228,12 +228,10 @@
                  (gethash annotation *runtime-addresses*)
                (when present-p
                  (fill-to-pos annotation-pos *standard-output*)
-;;                  (cond ((or (symbolp value)
-;;                             (functionp value))
-;;                         (format t "; ~S" value))
-;;                        (t
-;;                         (format t "; ~A" value)))
-                 (format t "; ~A" value))))
+                 (cond ((consp value)
+                        (format t "; '~A" value))
+                       (t
+                        (format t "; ~A" value))))))
             ((and annotation (symbolp annotation))
              (fill-to-pos (if (< (charpos *standard-output*) annotation-pos)
                               annotation-pos
