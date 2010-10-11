@@ -1,6 +1,6 @@
 ;;; ensure-directories-exist.lisp
 ;;;
-;;; Copyright (C) 2004-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2010 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -34,10 +34,6 @@
                                          :directory (subseq dir 0 i))))
              (unless (probe-file newpath)
                (let ((namestring (namestring newpath)))
-                 #+windows
-                 (let ((device (pathname-device pathname)))
-                   (when device
-                     (setq namestring (concatenate 'string device ":" namestring))))
                  (when verbose
                    (fresh-line)
                    (format *standard-output*
