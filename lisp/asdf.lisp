@@ -2459,7 +2459,7 @@ located."
 
 (defparameter *implementation-features*
   '(:allegro :lispworks :sbcl :clozure :digitool :cmu :clisp
-    :corman :cormanlisp :armedbear :gcl :ecl :scl))
+    :corman :cormanlisp :armedbear :gcl :ecl :scl :xcl))
 
 (defparameter *os-features*
   '((:windows :mswindows :win32 :mingw32)
