@@ -1,0 +1,25 @@
+XCL is a new native-code implementation of Common Lisp. It features a kernel
+written in C++ and an optimizing compiler written in Lisp with backends for x86
+and x86-64.
+
+XCL runs on Linux, FreeBSD (tested only on x86, but it might work on x86-64
+too), and 32-bit Windows.
+
+On Linux and FreeBSD, you should be able to build XCL by simply running make in
+the top-level source directory. If all goes well, you'll end up with an
+executable called xcl in the top-level source directory. Run this executable and
+do (REBUILD-LISP) at the REPL prompt to compile the .lisp source files, then
+restart.
+
+Building on Windows should be equally straightforward if you have the right
+toolchain setup, which is basically MinGW and MSYS (I'm currently using g++
+4.4.0 and make 3.81).
+
+License is GPL.
+
+For more information about XCL, please see:
+
+        http://armedbear.org/
+
+If you have questions or comments about this project, please email Peter Graves
+<gnooth@gmail.com>.
