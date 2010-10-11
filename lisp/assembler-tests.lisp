@@ -57,6 +57,8 @@
     ((:mov :bl (:eax))          #(#x88 #x18))
     ((:mov :al :dl)             #(#x88 #xc2))
     ((:mov :dl :al)             #(#x88 #xd0))
+    ((:neg :eax)                #(#xf7 #xd8))
+    ((:neg :ecx)                #(#xf7 #xd9))
     ((:shl 4 :eax)              #(#xc1 #xe0 #x04))
     ((:sar 4 :eax)              #(#xc1 #xf8 #x04))
     ((:shr 8 :eax)              #(#xc1 #xe8 #x08))
