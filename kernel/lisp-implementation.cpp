@@ -1,6 +1,6 @@
 // lisp-implementation.cpp
 //
-// Copyright (C) 2007-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2007-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,5 +28,5 @@ Value CL_lisp_implementation_type()
 // ### lisp-implementation-version
 Value CL_lisp_implementation_version()
 {
-  return make_simple_string("0.0.0.290");
+  return make_simple_string("0.0.0.291");
 }
