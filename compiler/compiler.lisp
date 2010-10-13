@@ -1,6 +1,6 @@
 ;;; compiler.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -2070,6 +2070,7 @@ for special variables."
                    (memq (operand1 instruction-1)
                          #+x86-64 '(:rax :rcx :rdx :rbx)
                          #+x86    '(:eax :ecx :edx :ebx)))
+          ;; found register push
           (let* ((reg (operand1 instruction-1))
                  (regs (list reg (reg8 reg) #+x86-64 (reg32 reg)))
                  (j (1+ i)))
@@ -2091,6 +2092,7 @@ for special variables."
                      (return))
                     (:pop
                      (cond ((eq (operand1 instruction) reg)
+                            ;; found pop of same register
                             (setf (svref code i) nil)
                             (setf (svref code j) nil)
                             (setq changed t)
@@ -2109,9 +2111,47 @@ for special variables."
       (setq *code* (delete nil code)))
     changed))
 
+(defknown optimize-ir2-8 () t)
+(defun optimize-ir2-8 ()
+  ;; Look for a sequence of 3 instructions like this:
+  ;;     (:compare-immediate nil reg64)
+  ;;     (:jmp :ne label)
+  ;;     (:move-immediate nil reg32)
+  ;; where reg32 is the 32-bit register corresponding to reg64. In this case we
+  ;; can get rid of the third instruction, since nil is already in reg64.
+  (let ((code *code*)
+        (changed nil))
+    (declare (type simple-vector code))
+    (dotimes (i (- (length code) 2)) ; we're looking for a sequence of 3 instructions
+      (let ((instruction-1 (svref code i)))
+        (when instruction-1
+          (aver (ir2-instruction-p instruction-1)))
+        (when (and instruction-1
+                   (eq (operator instruction-1) :compare-immediate)
+                   (eq (operand1 instruction-1) nil)
+                   (memq (operand2 instruction-1)
+                         #+x86-64 '(:rax :rcx :rdx :rbx)
+                         #+x86    '(:eax :ecx :edx :ebx)))
+          (let ((reg (operand2 instruction-1))
+                (instruction-2 (svref code (+ i 1))))
+            (when (and instruction-2
+                       (eq (operator instruction-2) :jmp-short)
+                       (eq (operand1 instruction-2) :ne))
+              (let ((instruction-3 (svref code (+ i 2))))
+                (when (and instruction-3
+                           (eq (operator instruction-3) :move-immediate)
+                           (equal (operand1 instruction-3) '(:constant-32 nil))
+                           (eq (operand2 instruction-3) (reg32 reg)))
+                  (mumble "optimizing reg = ~S~%" reg)
+                  (setf (svref code (+ i 2)) nil)
+                  (setq changed t))))))))
+    (when changed
+      (setq *code* (delete nil code)))
+    changed))
+
 ;; TCO
-(defknown optimize-ir2-6 () t)
-(defun optimize-ir2-6 ()
+(defknown optimize-tail-calls () t)
+(defun optimize-tail-calls()
   (let ((code *code*)
         (changed nil))
     (declare (type simple-vector code))
@@ -2144,10 +2184,11 @@ for special variables."
       (setq changed (or (optimize-ir2-4)  changed))
       (setq changed (or (optimize-ir2-5)  changed))
       (setq changed (or (optimize-ir2-7)  changed))
+      (setq changed (or (optimize-ir2-8)  changed))
       (unless changed
         (return))))
   #+x86-64
-  (optimize-ir2-6))
+  (optimize-tail-calls))
 
 (defun analyze-ir2 ()
   (let* ((code *code*)
