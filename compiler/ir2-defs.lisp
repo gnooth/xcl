@@ -1,6 +1,6 @@
 ;;; ir2-defs.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -34,11 +34,11 @@
   (defun operator (instruction)
     (first instruction))
 
-  (declaim (inline operatand1))
+  (declaim (inline operand1))
   (defun operand1 (instruction)
     (second instruction))
 
-  (declaim (inline operatand2))
+  (declaim (inline operand2))
   (defun operand2 (instruction)
     (third instruction))
 
