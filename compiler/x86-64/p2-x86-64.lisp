@@ -3519,6 +3519,7 @@
                         (two-arg->= :l))
                       NO)
       (p2-symbol t :rax)
+      (clear-register-contents :rax)
       (emit-jmp-short t EXIT)
       (label NO)
       (p2-symbol nil :rax)
