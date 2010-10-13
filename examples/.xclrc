@@ -24,3 +24,6 @@
 #-windows
 (when (probe-directory #p"/home/peter/cl/systems/")
   (pushnew #p"/home/peter/cl/systems/" asdf::*central-registry* :test 'equal))
+
+#+asdf2
+(asdf:disable-output-translations)
