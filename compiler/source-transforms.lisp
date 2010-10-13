@@ -1,6 +1,6 @@
 ;;; source-transforms.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -431,3 +431,47 @@
      `(%read-byte ,(%car args) ,(%cadr args) ,(%caddr args)))
     (t
      form)))
+
+(defun transform-numeric-comparison (form)
+  (let ((args (cdr form)))
+    (case (length args)
+      (3
+       (let* ((op (%car form))
+              (arg1 (%car args))
+              (arg2 (%cadr args))
+              (arg3 (%caddr args)))
+         (cond ((and (eq arg1 arg3)
+                     (memq op '(<= >=))
+                     (fixnump arg1)
+                     (fixnump arg3))
+                (let* ((x (gensym)))
+                  `(let* ((,x ,arg2))
+                     (= ,x ,arg1))))
+               (t
+                (let* ((x (gensym))
+                       (y (gensym))
+                       (z (gensym))
+                       (two-arg-op (ecase op
+                                     (< 'two-arg-<)
+                                     (> 'two-arg->)
+                                     (<= 'two-arg-<=)
+                                     (>= 'two-arg->=))))
+                  `(let* ((,x ,arg1)
+                          (,y ,arg2)
+                          (,z ,arg3))
+                     (when (,two-arg-op ,x ,y)
+                       (,two-arg-op ,y ,z))))))))
+      (t
+       form))))
+
+(define-source-transform < (&whole form &rest args)
+  (transform-numeric-comparison form))
+
+(define-source-transform > (&whole form &rest args)
+  (transform-numeric-comparison form))
+
+(define-source-transform <= (&whole form &rest args)
+  (transform-numeric-comparison form))
+
+(define-source-transform <= (&whole form &rest args)
+  (transform-numeric-comparison form))
