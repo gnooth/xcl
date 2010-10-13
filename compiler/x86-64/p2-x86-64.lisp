@@ -1,6 +1,6 @@
 ;;; p2-x86-64.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -3503,7 +3503,6 @@
          (FULL-CALL (make-label))
          (EXIT (make-label)))
     (when (length-eql args 2)
-      (mumble "p2-two-arg-numeric-comparison op = ~S~%" op)
       (process-2-args args '(:rax :rsi) t)
       (unless (fixnum-type-p type1)
         (inst :test +fixnum-tag-mask+ :al)
