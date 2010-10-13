@@ -1,6 +1,6 @@
 ;;; check-sequence-bounds.lisp
 ;;;
-;;; Copyright (C) 2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -20,8 +20,6 @@
 
 (defun check-sequence-bounds (start end length)
   (declare (type index start end length))
-;;   (unless (<= 0 start end length)
-  (unless (and (<= start end)
-               (<= end length))
+  (unless (<= start end length)
     (error "The bounding indices ~S and ~S are bad for a sequence of length ~S."
            start end length)))
