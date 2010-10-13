@@ -8,7 +8,7 @@
 (require "PROFILER")
 
 (defun run-other-tests ()
-  (declaim (optimize speed)) ; yes, this is intended to be DECLAIM, not DECLARE!
+;;   (declaim (optimize speed)) ; yes, this is intended to be DECLAIM, not DECLARE!
   (let ((cl-ppcre-directory
          #+windows #p"c:/cygwin/home/peter/cl-ppcre-1.3.0/"
          #-windows #p"/home/peter/cl-ppcre-1.3.0/")
