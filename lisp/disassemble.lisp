@@ -230,6 +230,13 @@
                  (fill-to-pos annotation-pos *standard-output*)
                  (cond ((consp value)
                         (format t "; '~A" value))
+                       ((memq value '(t nil))
+                        (format t "; ~S" value))
+                       ((symbolp value)
+                        (cond ((memq mnemonic '(:jmpq :callq))
+                               (format t "; ~S" value))
+                              (t
+                               (format t "; '~S" value))))
                        (t
                         (format t "; ~A" value))))))
             ((and annotation (symbolp annotation))
@@ -237,7 +244,7 @@
                               annotation-pos
                               (+ annotation-pos 8))
                           *standard-output*)
-             (format t "; ~A" annotation))))))
+             (format t "; ~S" annotation))))))
 
 (defun print-inst (inst)
   (let* ((s (princ-to-string inst))
