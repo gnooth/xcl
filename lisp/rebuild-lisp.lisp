@@ -1,6 +1,6 @@
 ;;; rebuild-lisp.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -111,6 +111,7 @@
                           "define-compiler-macro"
                           "define-modify-macro"
                           "define-source-transform"
+                          "define-symbol-macro"
                           "defknown"
                           "defmacro"
                           "defpackage"
@@ -252,6 +253,7 @@
                           "sort"
                           "source"
                           "stable-sort"
+                          "step"
                           "string-capitalize"
                           "string-downcase"
                           "string-left-trim"

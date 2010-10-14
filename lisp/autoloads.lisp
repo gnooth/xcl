@@ -263,6 +263,8 @@
 (autoload-macro 'define-symbol-macro)
 (autoload '%define-symbol-macro "lisp/define-symbol-macro")
 
+(autoload-macro 'step)
+
 (in-package "EXTENSIONS")
 
 ;; REVIEW
