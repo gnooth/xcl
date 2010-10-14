@@ -1,6 +1,6 @@
 ;;; autoloads.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -259,6 +259,9 @@
 (autoload 'float-precision)
 
 (autoload '(query-readline y-or-n-p yes-or-no-p) "lisp/query")
+
+(autoload-macro 'define-symbol-macro)
+(autoload '%define-symbol-macro "lisp/define-symbol-macro")
 
 (in-package "EXTENSIONS")
 

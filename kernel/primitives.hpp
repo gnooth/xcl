@@ -1,6 +1,6 @@
 // Primitives.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -638,6 +638,7 @@ extern Value SYS_make_string_output_stream_internal(Value arg);
 extern Value SYS_make_structure_class(Value name, Value include, Value slots);
 extern Value SYS_make_structure_slot_definition_internal(Value name, Value index, Value reader,
                                                          Value initform, Value type, Value read_only);
+extern Value SYS_make_symbol_macro(Value expansion);
 extern Value SYS_make_thread_internal(Value arg1, Value arg2);
 extern Value SYS_mapc2(Value arg1, Value arg2);
 extern Value SYS_mapcar2(Value arg1, Value arg2);

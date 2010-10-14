@@ -1,6 +1,6 @@
 // symdefs.hpp
 //
-// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1283,6 +1283,7 @@ DEFINE_SYMBOL(make_string_internal, PACKAGE_SYS, "%MAKE-STRING");
 DEFINE_SYMBOL(make_string_output_stream_internal, PACKAGE_SYS, "%MAKE-STRING-OUTPUT-STREAM");
 DEFINE_SYMBOL(make_structure_class, PACKAGE_SYS, "MAKE-STRUCTURE-CLASS");
 DEFINE_SYMBOL(make_structure_slot_definition_internal, PACKAGE_SYS, "%MAKE-STRUCTURE-SLOT-DEFINITION");
+DEFINE_SYMBOL(make_symbol_macro, PACKAGE_SYS, "MAKE-SYMBOL-MACRO");
 DEFINE_SYMBOL(make_thread_internal, PACKAGE_SYS, "%MAKE-THREAD");
 DEFINE_SYMBOL(mapc2, PACKAGE_SYS, "MAPC2");
 DEFINE_SYMBOL(mapcar2, PACKAGE_SYS, "MAPCAR2");

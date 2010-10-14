@@ -1,6 +1,6 @@
 // initialize.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -696,6 +696,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_make_string_output_stream_internal, SYS_make_string_output_stream_internal, 1, 1);
   ADD_PRIMITIVE(S_make_structure_class, SYS_make_structure_class, 3, 3);
   ADD_PRIMITIVE(S_make_structure_slot_definition_internal, SYS_make_structure_slot_definition_internal, 6, 6);
+  ADD_PRIMITIVE(S_make_symbol_macro, SYS_make_symbol_macro, 1, 1);
   ADD_PRIMITIVE(S_make_thread_internal, SYS_make_thread_internal, 2, 2);
   ADD_PRIMITIVE(S_mapc2, SYS_mapc2, 2, 2);
   ADD_PRIMITIVE(S_mapcar2, SYS_mapcar2, 2, 2);
