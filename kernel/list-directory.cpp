@@ -1,6 +1,6 @@
 // list-directory.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -43,7 +43,7 @@ Value SYS_list_directory(Value arg)
   String * namestring = pathname->directory_namestring();
 #endif
 
-  // Make sure namestring has a separator char at the end.
+  // make sure namestring has a separator char at the end
   unsigned long len = namestring->length();
   if (len)
     {
@@ -53,7 +53,7 @@ Value SYS_list_directory(Value arg)
 
   DIR * dir = opendir(namestring->as_c_string());
   if (!dir)
-    return signal_lisp_error("Can't open directory.");
+    return NIL;
   errno = 0;
   Value result = NIL;
   struct dirent * ent;
