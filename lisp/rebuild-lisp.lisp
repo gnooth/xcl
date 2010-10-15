@@ -25,6 +25,85 @@
         (delete-file file))))
   t)
 
+(defun write-version ()
+  (let* ((*default-pathname-defaults* *xcl-home*)
+         version
+         dirty)
+    (when (probe-directory ".git")
+      (run-shell-command "git describe --tags > version")
+      (with-open-file (stream "version" :direction :input)
+        (setq version (read-line stream)))
+      (when version
+        (run-shell-command "git status > status")
+        (with-open-file (stream "status")
+          (loop
+            (let ((line (read-line stream nil nil)))
+              (when (null line)
+                (return))
+              (when (or (string= line "# Changed but not updated:")
+                        (string= line "# Changes to be committed:"))
+                (setq dirty t)
+                (return)))))
+        (when dirty
+          (setq version (concatenate 'string version "*"))
+          (with-open-file (stream "version" :direction :output :if-exists :supersede)
+            (write-line version stream)))))))
+
+(defun write-build ()
+  (let* ((*default-pathname-defaults* *xcl-home*))
+    #+unix
+    (run-shell-command "date > build")
+    #-unix
+    (multiple-value-bind (sec min hour date month year day daylight-p zone)
+        (get-decoded-time)
+      (setq day (case day
+                  (0 "Mon")
+                  (1 "Tue")
+                  (2 "Wed")
+                  (3 "Thu")
+                  (4 "Fri")
+                  (5 "Sat")
+                  (6 "Sun")))
+      (setq month (case month
+                    (1 "Jan")
+                    (2 "Feb")
+                    (3 "Mar")
+                    (4 "Apr")
+                    (5  "May")
+                    (6 "Jun")
+                    (7 "Jul")
+                    (8 "Aug")
+                    (9 "Sep")
+                    (10 "Oct")
+                    (11 "Nov")
+                    (12 "Dec")))
+      (case zone
+        (5
+         (setq zone (if daylight-p "EDT" "EST")))
+        (6
+         (setq zone (if daylight-p "CDT" "CST")))
+        (7
+         (setq zone (if daylight-p "MDT" "MST")))
+        (8
+         (setq zone (if daylight-p "PDT" "PST")))
+        (t
+         (setq zone (format nil "~A~4,'0D"
+                            (if (plusp zone) "-" "+")
+                            (* (if daylight-p
+                                   (1- zone)
+                                   zone)
+                               100)))))
+      (with-open-file (stream "build" :direction :output :if-exists :supersede)
+        (format stream "~A ~A ~D ~D:~2,'0D:~2,'0D ~A ~D~%"
+                day
+                month
+                date
+                hour
+                min
+                sec
+                zone
+                year)))))
+
 (defun rebuild-lisp ()
   (clean)
   (load-system-file "compiler/load-compiler.lisp")
@@ -312,4 +391,6 @@
                           "defclass"
                           "defmethod"))
         (compile-file filespec)))
+    (write-version)
+    (write-build)
     t))

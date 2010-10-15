@@ -18,6 +18,7 @@
 
 #include "lisp.hpp"
 #include "primitives.hpp"
+#include "xcl_home.hpp"
 
 // ### lisp-implementation-type
 Value CL_lisp_implementation_type()
@@ -28,5 +29,25 @@ Value CL_lisp_implementation_type()
 // ### lisp-implementation-version
 Value CL_lisp_implementation_version()
 {
+  String * s = new String(xcl_home_pathname()->namestring());
+  s->append("version");
+  long fd = OPEN(s->as_c_string(), O_RDONLY);
+  if (fd >= 0)
+    {
+      char buf[256];
+      long n = READ(fd, buf, sizeof(buf));
+      CLOSE(fd);
+      if (n > 0)
+        {
+          for (unsigned long i = 0; i < sizeof(buf); i++)
+            {
+              if (buf[i] < ' ')
+                {
+                  buf[i] = 0;
+                  return make_simple_string(buf);
+                }
+            }
+        }
+    }
   return make_simple_string("0.0.0.291");
 }

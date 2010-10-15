@@ -123,6 +123,8 @@ ansi-tests/tmp.dat.bak
 FILE-THAT-WAS-RENAMED.TXT
 
 build
+version
+status
 tags
 xcl_home.h
 xcl

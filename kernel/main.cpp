@@ -1,6 +1,6 @@
 // main.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -50,7 +50,7 @@ void initialize_control_c_handler()
 
 extern Frame * primordial_frame;
 
-SimpleString * build_date()
+static SimpleString * build_date()
 {
   String * s = new String(xcl_home_pathname()->namestring());
   s->append("build");
@@ -98,7 +98,6 @@ int __main(int argc, char * argv[])
 //   GC_set_warn_proc(gc_warn_proc);
   initialize_lisp();
   process_command_line(argc, argv);
-//   String * s = new String("X Common Lisp 0.0.0");
   String * s = new String();
   // REVIEW we know it's a string (or do we?)
   s->append(check_string(CL_lisp_implementation_type()));
@@ -107,19 +106,21 @@ int __main(int argc, char * argv[])
   s->append(check_string(CL_lisp_implementation_version()));
 #ifdef __x86_64__
   s->append(" (x86-64)");
+#else
+  s->append(" (x86)");
 #endif
   SimpleString * built = build_date();
   if (built)
     {
-      s->append(" (built ");
+      s->append(" built ");
       s->append(built);
-      s->append_char(')');
+//       s->append_char(')');
     }
   s->append_char('\n');
   s->append("Copyright (C) 2006-2010 Peter Graves\n");
-  s->append("Low-level initialization completed in ");
-  s->append(uptime_as_string());
-  s->append(".\n");
+//   s->append("Low-level initialization completed in ");
+//   s->append(uptime_as_string());
+//   s->append(".\n");
   STANDARD_OUTPUT->write_string(s);
 
   initialize_control_c_handler();
