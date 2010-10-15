@@ -1,6 +1,6 @@
 ;;; precompiler.lisp
 ;;;
-;;; Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -146,16 +146,6 @@
 ;; ordinary variable.
 (defun make-var (name)
   (list name :variable))
-
-;; A symbol macro is represented by a 3-element list.
-(defun make-symbol-macro (name expansion)
-  (list3 name :symbol-macro expansion))
-
-(defun symbol-macro-p (x)
-  (eq (cadr x) :symbol-macro))
-
-(defun symbol-macro-expansion (var)
-  (caddr var))
 
 (defun find-var (name)
   (dolist (var *local-variables*)
@@ -569,7 +559,7 @@
           (error 'program-error
                  :format-control "Attempt to bind the special variable ~S with SYMBOL-MACROLET."
                  :format-arguments (list name)))
-        (push (make-symbol-macro name expansion) *local-variables*)))
+        (push (list name :symbol-macro expansion) *local-variables*)))
     (multiple-value-bind (body decls)
         (parse-body (%cddr form) nil)
       (when decls
@@ -677,8 +667,8 @@
       (let ((place (%cadr form)))
         (cond ((symbolp place)
                (let ((var (find-var place)))
-                 (if (symbol-macro-p var)
-                     (precompile1 (list* 'SETF (copy-tree (symbol-macro-expansion var)) (%cddr form)))
+                 (if (and var (eq (second var) :symbol-macro))
+                     (precompile1 (list* 'SETF (copy-tree (third var)) (%cddr form)))
                      (list 'SETQ place (precompile1 (%caddr form))))))
               ((and (consp place)
                     (eq (%car place) 'VALUES))
@@ -704,8 +694,8 @@
                (op (and (consp value-form) (%car value-form))))
           (unless (symbolp name)
             (error 'type-error :datum name :expected-type 'symbol))
-          (cond ((symbol-macro-p var)
-                 (precompile1 (list 'SETF (copy-tree (symbol-macro-expansion var)) value-form)))
+          (cond ((and var (eq (second var) :symbol-macro))
+                 (precompile1 (list 'SETF (copy-tree (third var)) value-form)))
                 ((and (eq op '+)
                       (length-eql value-form 3)
                       (eq name (%cadr value-form))
@@ -988,8 +978,8 @@
   (declare (optimize speed))
   (cond ((symbolp form)
          (let ((var (find-var form)))
-           (cond ((symbol-macro-p var)
-                  (precompile1 (copy-tree (symbol-macro-expansion var))))
+           (cond ((and var (eq (second var) :symbol-macro))
+                  (precompile1 (copy-tree (third var))))
 ;;                  ((null var)
 ;;                   (let ((expansion (expand-macro form)))
 ;;                     (if (eq expansion form)
