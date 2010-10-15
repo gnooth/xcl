@@ -1,6 +1,6 @@
 ;;; read-sequence.lisp
 ;;;
-;;; Copyright (C) 2004-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -39,12 +39,22 @@
 
   (let* ((element-type (stream-element-type stream)))
     (cond ((eq element-type 'character)
-           (do ((pos start (1+ pos)))
-               ((>= pos end) pos)
-             (let ((element (read-char stream nil :eof)))
-               (when (eq element :eof)
-                 (return pos))
-               (setf (elt sequence pos) element))))
+           (cond ((and (arrayp sequence)
+                       (equal (array-element-type sequence) '(unsigned-byte 8)))
+                  ;; bivalent stream
+                  (do ((pos start (1+ pos)))
+                      ((>= pos end) pos)
+                    (let ((element (read-8-bits stream nil :eof)))
+                      (when (eq element :eof)
+                        (return pos))
+                      (setf (elt sequence pos) element))))
+                 (t
+                  (do ((pos start (1+ pos)))
+                      ((>= pos end) pos)
+                    (let ((element (read-char stream nil :eof)))
+                      (when (eq element :eof)
+                        (return pos))
+                      (setf (elt sequence pos) element))))))
 ;;           ((equal element-type '(unsigned-byte 8))
 ;;            (if (and (vectorp sequence)
 ;;                     (equal (array-element-type sequence) '(unsigned-byte 8)))

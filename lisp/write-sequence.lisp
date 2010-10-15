@@ -1,6 +1,6 @@
 ;;; write-sequence.lisp
 ;;;
-;;; Copyright (C) 2004-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -30,6 +30,13 @@
     (cond ((eq stream-element-type 'character)
            (cond ((stringp sequence)
                   (%stream-write-string stream sequence start end))
+                 ((typep sequence '(array (unsigned-byte 8) (*)))
+                  ;; bivalent stream
+                  (do* ((i start (1+ i)))
+                       ((>= i end) sequence)
+                    (declare (optimize speed (safety 0)))
+                    (declare (type index i))
+                    (%write-8-bits (aref sequence i) stream)))
                  (t
                   (do* ((i start (1+ i)))
                        ((>= i end) sequence)
