@@ -1,6 +1,6 @@
 ;;; grovel.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -46,8 +46,10 @@
           (incf line-number))))))
 
 (defun grovel-cpp-definitions ()
-  (let ((files (directory (merge-pathnames "kernel/*.cpp" *xcl-home*))))
-    (with-open-file (stream (merge-pathnames "kernel/tags" *xcl-home*)
-                            :direction :output :if-exists :supersede)
-      (dolist (file files)
-        (grovel-cpp-definitions-in-file file stream)))))
+  (when (probe-directory (merge-pathnames "kernel" *xcl-home*))
+    (let ((files (directory (merge-pathnames "kernel/*.cpp" *xcl-home*))))
+      (when files
+        (with-open-file (stream (merge-pathnames "kernel/tags" *xcl-home*)
+                                :direction :output :if-exists :supersede)
+          (dolist (file files)
+            (grovel-cpp-definitions-in-file file stream)))))))
