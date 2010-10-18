@@ -232,6 +232,8 @@
                         (format t "; '~A" value))
                        ((memq value '(t nil))
                         (format t "; ~S" value))
+                       ((keywordp value)
+                        (format t "; ~S" value))
                        ((symbolp value)
                         (cond ((memq mnemonic '(:jmpq :callq))
                                (format t "; ~S" value))
