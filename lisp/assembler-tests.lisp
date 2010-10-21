@@ -117,6 +117,8 @@
     ((:mov :rax :r8)            #(#x49 #x89 #xc0))
     ((:mov :r8 :rax)            #(#x4c #x89 #xc0))
     ((:mov :r8 :r9)             #(#x4d #x89 #xc1))
+    ((:mov (-40 :rbp) :r8)      #(#x4c #x8b #x45 #xd8))
+    ((:mov (-32 :rbp) :r9)      #(#x4c #x8b #x4d #xe0))
     ((:add :rdx :rax)           #(#x48 #x01 #xd0))
     ((:add :rax :rdx)           #(#x48 #x01 #xc2))
     ((:add 6 :al)               #(#x04 #x06))
