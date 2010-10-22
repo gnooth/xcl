@@ -145,20 +145,20 @@
 ;;                         (setq length 6
 ;;                               operand1 (make-register-operand source)
 ;;                               operand2 (make-absolute-operand absolute-address))))
-;;                      ((eql rm #b101)
-;;                       (let* ((displacement (mref-32 start (+ offset 2))))
-;;                         (setq length 6
-;;                               operand1 (make-operand :kind :relative
-;;                                                      :register :rip
-;;                                                      :data displacement)
-;;                               operand2 (make-register-operand (register reg prefix-byte)))))
-;;                      (t
+             (cond ((eql rm #b101)
+                    (let* ((displacement (mref-32 start (+ offset 2))))
+                      (setq length 6
+                            operand1 (make-operand :kind :relative
+                                                   :register :rip
+                                                   :data displacement)
+                            operand2 (make-register-operand (register reg prefix-byte)))))
+                   (t
 ;;                       (setq length 2
 ;;                             operand1 (make-indirect-operand (register-rm rm prefix-byte))
 ;;                             operand2 (make-register-operand (register-reg reg prefix-byte))))))
-             (setq length 2
-                   operand1 (make-indirect-operand (register-rm rm prefix-byte))
-                   operand2 (make-register-operand (register-reg reg prefix-byte))))
+                    (setq length 2
+                          operand1 (make-indirect-operand (register-rm rm prefix-byte))
+                          operand2 (make-register-operand (register-reg reg prefix-byte))))))
             ((eql mod #b01)
              ;; 1-byte displacement
              (cond ((eql rm #b100)
