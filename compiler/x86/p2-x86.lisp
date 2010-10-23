@@ -3319,7 +3319,7 @@
                (unless (fixnum-type-p result-type)
                  (inst :mov :eax :ecx) ; copy arg1 to ecx in case we need to do a full call
                  (clear-register-contents :ecx))
-               (emit-bytes #x29 #xd0) ; sub %edx,%eax
+               (inst :sub :edx :eax)
                (clear-register-contents :eax)
                (unless (fixnum-type-p result-type)
                  (emit-jmp-short :no EXIT) ; no overflow, we're done
@@ -3373,7 +3373,7 @@
                ;; falling through, both args are fixnums
                (inst :mov :eax :ecx) ; we're about to trash eax
                (clear-register-contents :ecx)
-               (emit-bytes #x29 #xd0) ; sub %edx,%eax
+               (inst :sub :edx :eax)
                (clear-register-contents :eax)
                (case target
                  (:return
