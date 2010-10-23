@@ -3481,25 +3481,22 @@
                  (clear-register-contents :ecx))
                (inst :add :edx :eax)
                (clear-register-contents :eax)
-               (cond ((fixnum-type-p result-type)
-                      (move-result-to-target target))
-                     (t
-                      (case target
-                        (:return
-                         (emit-jmp-short :o OVERFLOW)
-                         ;; falling through: no overflow, we're done
-                         (inst :exit)
-                         (label OVERFLOW))
-                        (t
-                         ;; if no overflow, we're done
-                         (emit-jmp-short :no EXIT)))
-                      (inst :mov :ecx :eax)
-                      (label FULL-CALL)
-                      (inst :push :edx)
-                      (inst :push :eax)
-                      (emit-call-2 'two-arg-+ :eax)
-                      (label EXIT)
-                      (move-result-to-target target))))))
+               (case target
+                 (:return
+                  (emit-jmp-short :o OVERFLOW)
+                  ;; falling through: no overflow, we're done
+                  (inst :exit)
+                  (label OVERFLOW))
+                 (t
+                  ;; if no overflow, we're done
+                  (emit-jmp-short :no EXIT)))
+               (inst :mov :ecx :eax)
+               (label FULL-CALL)
+               (inst :push :edx)
+               (inst :push :eax)
+               (emit-call-2 'two-arg-+ :eax)
+               (label EXIT)
+               (move-result-to-target target))))
       t)))
 
 (defun p2-two-arg-* (form target)
