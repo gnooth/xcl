@@ -749,7 +749,8 @@
              (inst :push :eax) ; result
              (p2-symbol name :stack) ; name
              (inst :push thread-var)
-             (emit-call "RT_return_from")))))) ; doesn't return
+             (emit-call-3 "RT_return_from" nil) ; doesn't return
+             (inst :exit))))))
 
 (defun p2-catch (form target)
   (mumble "p2-catch~%")
@@ -1764,7 +1765,8 @@
            (p2-constant name :stack)
            (aver (compiland-thread-var compiland))
            (inst :push (compiland-thread-var compiland))
-           (emit-call-2 "RT_non_local_go" nil)))))
+           (emit-call-2 "RT_non_local_go" nil) ; doesn't return
+           (inst :exit)))))
 
 (defun p2-unwind-protect (form target)
   (aver (eql (length form) 2))
