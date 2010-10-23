@@ -375,7 +375,16 @@
                   (emit-bytes #x81 modrm-byte)
                   (emit-raw-dword operand1)))
                (t
-                (unsupported))))))
+                (unsupported))))
+        ((and (reg32-p operand1)
+              (reg32-p operand2))
+         (let* ((mod #b11)
+                (reg (register-number operand1))
+                (rm  (register-number operand2))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x29 modrm-byte)))
+        (t
+         (unsupported))))
 
 (define-assembler :ret
   (emit-byte #xc3))

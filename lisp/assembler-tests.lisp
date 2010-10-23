@@ -83,6 +83,8 @@
     ((:movb #xff (40 :eax))     #(#xc6 #x40 #x28 #xff))
     ((:movb #xff (40 :edx))     #(#xc6 #x42 #x28 #xff))
     ((:sub 12 :esp)             #(#x83 #xec #x0c))
+    ((:sub :edx :eax)           #(#x29 #xd0))
+    ((:sub :eax :edx)           #(#x29 #xc2))
     ((:pop (4 :ecx))            #(#x8f #x41 #x04))
     ((:pop (:ecx))              #(#x8f #x01))
     ((:ret)                     #(#xc3))
