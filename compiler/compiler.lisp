@@ -2085,8 +2085,13 @@ for special variables."
               (let ((instruction-3 (svref code (+ i 2))))
                 (when (and instruction-3
                            (eq (operator instruction-3) :move-immediate)
-                           (equal (operand1 instruction-3) '(:constant-32 nil))
-                           (eq (operand2 instruction-3) (reg32 reg)))
+                           (equal (operand1 instruction-3)
+                                  #+x86-64 '(:constant-32 nil)
+                                  #+x86    '(:constant nil))
+                           (eq (operand2 instruction-3)
+                               #+x86-64 (reg32 reg)
+                               #+x86    reg))
+                  (mumble "optimize-ir2-8 optimizing...~%")
                   (setf (svref code (+ i 2)) nil)
                   (setq changed t))))))))
     (when changed
