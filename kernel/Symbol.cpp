@@ -1,6 +1,6 @@
 // Symbol.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -539,7 +539,10 @@ Value CL_symbol_value(Value arg)
 // ### symbol-global-value symbol => value
 Value SYS_symbol_global_value(Value arg)
 {
-  return check_symbol(arg)->value();
+  Value value = check_symbol(arg)->value();
+  if (value != NULL_VALUE)
+    return value;
+  return signal_lisp_error(new UnboundVariable(arg));
 }
 
 // ### set-symbol-global-value symbol value => value
