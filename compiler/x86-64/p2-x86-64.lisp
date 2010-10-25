@@ -3841,7 +3841,8 @@
                         (process-2-args args '(:rax :rdx) t)
                         ;; arg1 in rax, arg2 in rdx
                         (unbox-fixnum :rax)
-                        ;; note that we need to unbox only one of the args, so the result will end up boxed
+                        ;; note that we need to unbox only one of the args, so
+                        ;; the result will end up boxed
                         (emit-bytes #x48 #x0f #xaf #xc2) ; imul %rdx,%rax
                         (move-result-to-target target))))
                 ((eql (integer-constant-value type2) 2)
@@ -3885,22 +3886,15 @@
                    (unbox-fixnum :rax)
                    ;; note that we need to unbox only one of the args, so the result will end up boxed
                    (emit-bytes #x48 #x0f #xaf #xc2) ; imul %rdx,%rax
-                   (unless (fixnum-type-p result-type)
-                     (case target
-                       (:return
-                        (emit-jmp-short :o OVERFLOW)
-                        ;; falling through: no overflow, we're done
-                        (emit-exit)
-                        (label OVERFLOW))
-                       (t
-                        ;; if no overflow, we're done
-                        (emit-jmp-short :no EXIT)))
-                     (inst :mov :rcx :rax)
-                     (label FULL-CALL)
-                     (inst :mov :rdx :rsi)
-                     (inst :mov :rax :rdi)
-                     (emit-call 'two-arg-*)
-                     (label EXIT))
+                   ;; if no overflow, we're done
+                   (emit-jmp-short :no EXIT)
+                   (label OVERFLOW)
+                   (inst :mov :rcx :rax)
+                   (label FULL-CALL)
+                   (inst :mov :rdx :rsi)
+                   (inst :mov :rax :rdi)
+                   (emit-call 'two-arg-*)
+                   (label EXIT)
                    (move-result-to-target target)))))))
     t))
 
