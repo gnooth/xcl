@@ -780,12 +780,24 @@
         (setf (block-block-var block) var)))
     (list 'BLOCK block)))
 
+(defun maybe-rewrite-return-from (form)
+  (let ((result-form (third form)))
+    (when result-form
+      (when (consp result-form)
+        (when (eq (%car result-form) 'RETURN-FROM)
+          ;; (return-from block1 (return-from block2 ...))
+          (return-from maybe-rewrite-return-from result-form)))))
+  form)
+
 (defun p1-return-from (form)
-  (let* ((name (cadr form))
+  (let* ((name (second form))
          (block (find-visible-block name)))
     (when (null block)
       (compiler-error "RETURN-FROM ~S: no block named ~S is currently visible."
                       name name))
+    (let ((new-form (maybe-rewrite-return-from form)))
+      (when (neq new-form form)
+        (return-from p1-return-from (p1 new-form))))
     (setq form (list* 'RETURN-FROM (cadr form) (mapcar #'p1 (cddr form))))
     (push form (block-return-p block))
 ;;     (cond ((eq (block-compiland block) *current-compiland*)
