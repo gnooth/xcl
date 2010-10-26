@@ -844,7 +844,11 @@
                    (unless name (fill-in :results `((cdr ,var)))))
             ((:total :limit)
              (multiple-value-bind (type supplied-p) (type-spec?)
-               (when supplied-p (push type (getf plist :types))))
+               (when supplied-p
+                 (when (eq type 'COMPLEX)
+                   ;; avoid type error when accumulator is initialized to zero
+                   (setq type '(OR BIT COMPLEX)))
+                 (push type (getf plist :types))))
              (when (eq kind :limit)
                (let ((first-p (gensym "FIRST-P-")))
                  (setf (getf plist :first-p) first-p)
