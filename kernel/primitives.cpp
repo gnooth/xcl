@@ -1,6 +1,6 @@
 // primitives.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1720,7 +1720,7 @@ Value CL_function_lambda_expression(Value function)
                                 NIL);
     }
   if (functionp(function))
-    return thread->set_values(NIL, NIL, NIL);
+    return thread->set_values(NIL, T, NIL);
   return signal_type_error(function, S_function);
 }
 
