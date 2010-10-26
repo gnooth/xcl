@@ -1,6 +1,6 @@
 ;;; signal.lisp
 ;;;
-;;; Copyright (C) 2003-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -79,7 +79,6 @@
          ;; otherwise specified by the description of the operator in question,
          ;; the arguments must be null; that is, the consequences are undefined
          ;; if any arguments were supplied." 9.1.2.1
-         #+nil
          (when arguments
            (error 'type-error
                   :datum arguments
