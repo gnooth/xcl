@@ -761,6 +761,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_require_character, SYS_require_character, 1, 1);
   ADD_PRIMITIVE(S_require_cons, SYS_require_cons, 1, 1);
   ADD_PRIMITIVE(S_require_fixnum, SYS_require_fixnum, 1, 1);
+  ADD_PRIMITIVE(S_require_function, SYS_require_function, 1, 1);
   ADD_PRIMITIVE(S_require_hash_table, SYS_require_hash_table, 1, 1);
   ADD_PRIMITIVE(S_require_integer, SYS_require_integer, 1, 1);
   ADD_PRIMITIVE(S_require_keyword, SYS_require_keyword, 1, 1);

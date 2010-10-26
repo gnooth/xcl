@@ -1,6 +1,6 @@
 ;;; install-p2-handlers.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -125,6 +125,7 @@
 (install-p2-handler 'require-character          'p2-require-character)
 (install-p2-handler 'require-cons               'p2-require-cons)
 (install-p2-handler 'require-fixnum             'p2-require-fixnum)
+(install-p2-handler 'require-function           'p2-require-function)
 (install-p2-handler 'require-hash-table         'p2-require-hash-table)
 (install-p2-handler 'require-integer            'p2-require-integer)
 (install-p2-handler 'require-keyword            'p2-require-keyword)

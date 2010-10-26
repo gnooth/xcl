@@ -1,6 +1,6 @@
 // require-type.cpp
 //
-// Copyright (C) 2007-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2007-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -52,6 +52,14 @@ Value SYS_require_fixnum(Value arg)
   if (fixnump(arg))
     return arg;
   return signal_type_error(arg, S_fixnum);
+}
+
+// ### require-fixnum arg => arg
+Value SYS_require_function(Value arg)
+{
+  if (functionp(arg))
+    return arg;
+  return signal_type_error(arg, S_function);
 }
 
 // ### require-hash-table arg => arg

@@ -1,6 +1,6 @@
 ;;; p2.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -1400,6 +1400,9 @@
              (when (var-ref-p arg)
                (set-register-contents +call-return-register+ (var-ref-var arg))))))
     t))
+
+(defun p2-require-function (form target)
+  (%p2-require-type form target 'function))
 
 (defun p2-require-hash-table (form target)
   (%p2-require-type form target 'hash-table))

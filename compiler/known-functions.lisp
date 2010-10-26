@@ -1,6 +1,6 @@
 ;;; known-functions.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -561,6 +561,7 @@
 (defknown require-character (t) character)
 (defknown require-cons (t) cons)
 (defknown require-fixnum (t) (integer #.most-negative-fixnum #.most-positive-fixnum))
+(defknown require-function (t) function)
 (defknown require-hash-table (t) hash-table)
 (defknown require-integer (t) integer)
 (defknown require-keyword (t) keyword)

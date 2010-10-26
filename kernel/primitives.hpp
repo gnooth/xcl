@@ -692,6 +692,7 @@ extern Value SYS_require_boolean(Value arg);
 extern Value SYS_require_character(Value arg);
 extern Value SYS_require_cons(Value arg);
 extern Value SYS_require_fixnum(Value arg);
+extern Value SYS_require_function(Value arg);
 extern Value SYS_require_hash_table(Value arg);
 extern Value SYS_require_integer(Value arg);
 extern Value SYS_require_keyword(Value arg);

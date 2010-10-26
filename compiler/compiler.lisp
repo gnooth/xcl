@@ -1577,6 +1577,8 @@ for special variables."
                  (setq new-form `(require-hash-table ,arg1)))
                 ((eq type 'FIXNUM)
                  (setq new-form `(require-fixnum ,arg1)))
+                ((eq type 'FUNCTION)
+                 (setq new-form `(require-function ,arg1)))
                 ((eq type 'INTEGER)
                  (setq new-form `(require-integer ,arg1)))
                 ((eq type 'NUMBER)
@@ -1607,7 +1609,7 @@ for special variables."
                    (mumble "p1-require-type 1 not doing type check for ~S~%" type)
                    (setq new-form `(progn ,arg1))))
                 ;; REVIEW
-                ((subtypep type 'fixnum)
+                ((subtypep type 'FIXNUM)
                    (cond ((equal type '(INTEGER #.most-negative-fixnum #.most-positive-fixnum))
                           (setq new-form `(require-fixnum ,arg1)))
                          ((fixnum-type-p type)
@@ -1616,6 +1618,8 @@ for special variables."
                                             (check-fixnum-bounds ,arg1
                                                                  ,(integer-type-low  type)
                                                                  ,(integer-type-high type)))))))
+                ((subtypep type 'FUNCTION)
+                 (setq new-form `(require-function ,arg1)))
                 ;; REVIEW on x86-64 this should be handled by the fixnum case
                 ((or (eq type '(UNSIGNED-BYTE 32))
                      (equal type '(INTEGER 0 4294967295)))
