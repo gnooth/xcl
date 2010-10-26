@@ -1,6 +1,6 @@
 ;;; subtypep.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -421,6 +421,18 @@
                            (%subtypep (cadr i1) (cadr i2)))
                   (yes))))
              (return-from %subtypep (values nil (known-type-p t2))))
+            ((eq t1 'function)
+             (cond ((eq t2 'function)
+                    (cond ((null i2)
+                           (yes))
+                          ((equal i2 '(*))
+                           (yes))
+                          ((equal i2 '(* *))
+                           (yes))
+                          (t
+                           (unknown))))
+                   (t
+                    (no))))
             (t
              (unknown))))))
 

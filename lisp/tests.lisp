@@ -891,6 +891,10 @@
 (aver (subtypep 'null '(and list symbol)))
 (aver (subtypep '(and list symbol) 'null))
 
+(aver (equal (multiple-value-list (subtypep '(function () null) 'function)) '(t t)))
+(aver (equal (multiple-value-list (subtypep '(function () null) '(function *))) '(t t)))
+(aver (equal (multiple-value-list (subtypep '(function () null) '(function * *))) '(t t)))
+
 ;; nil vectors
 #-abcl
 (progn
