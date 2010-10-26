@@ -242,7 +242,8 @@
                           "ldb"
                           "ldiff"
                           "list-length"
-                          "load"
+                          ;; FIXME load.xcl is broken Oct 26 2010 5:05 AM
+                          ;; "load"
                           "load-logical-pathname-translations"
                           "logical-pathname"
                           "logical-pathname-translations"
