@@ -8,7 +8,7 @@
 (load "cxr.lsp")
 (load "rplaca.lsp")
 (load "rplacd.lsp")
-#-xcl (load "copy-tree.lsp")
+(load "copy-tree.lsp")
 (load "sublis.lsp")
 (load "nsublis.lsp")
 (load "subst.lsp")
