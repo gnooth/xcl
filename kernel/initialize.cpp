@@ -665,6 +665,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_load_stream, SYS_load_stream, 4, 4);
   ADD_PRIMITIVE(S_load_system_file, SYS_load_system_file, 1, 1);
   ADD_PRIMITIVE(S_local_port, EXT_local_port, 1, 1);
+  ADD_PRIMITIVE(S_logical_namestring_p, SYS_logical_namestring_p, 1, 1);
   ADD_PRIMITIVE(S_logical_pathname_p, SYS_logical_pathname_p, 1, 1);
   ADD_PRIMITIVE(S_lt_2, SYS_lt_2, 2, 2);
   ADD_PRIMITIVE(S_make_array_internal, SYS_make_array_internal, 9, 9);

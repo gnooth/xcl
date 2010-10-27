@@ -606,6 +606,7 @@ extern Value SYS_list_find_eql(Value item, Value list);
 extern Value SYS_list_position_eql(Value arg1, Value arg2);
 extern Value SYS_load_stream(Value streamarg, Value pathname, Value verbose, Value print);
 extern Value SYS_load_system_file(Value arg);
+extern Value SYS_logical_namestring_p(Value arg);
 extern Value SYS_logical_pathname_p(Value arg);
 extern Value SYS_lt_2(Value arg1, Value arg2);
 extern Value SYS_make_array_internal(unsigned int numargs, Value args[]);

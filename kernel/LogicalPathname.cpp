@@ -1,6 +1,6 @@
 // LogicalPathname.cpp
 //
-// Copyright (C) 2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2009-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 #include "primitives.hpp"
 #include "FileError.hpp"
 #include "LogicalPathname.hpp"
+#include "TypeError.hpp"
 
 EqualHashTable * LOGICAL_PATHNAME_TRANSLATION_TABLE;
 
@@ -323,16 +324,24 @@ Value SYS_make_logical_pathname(Value arg)
           // logical pathname." 19.3.2.2
           return signal_lisp_error("Invalid logical host name: \"\"");
         }
-//       if (Pathname.LOGICAL_PATHNAME_TRANSLATIONS.get(new SimpleString(h)) != null) {
-//         // A defined logical pathname host.
-//         return new LogicalPathname(h, s.substring(s.indexOf(':') + 1));
-//       }
       if (LOGICAL_PATHNAME_TRANSLATION_TABLE->get(make_value(h)) != NULL_VALUE)
         return make_value(new LogicalPathname(h, s->substring(s->index_of(':') + 1)));
     }
-//   return NIL;
-//   return error(new TypeError("Logical namestring does not specify a host: \"" + s + '"'));
-  return signal_lisp_error("Logical namestring does not specify a valid host");
+  return signal_lisp_error(new TypeError("Logical namestring does not specify a valid host",
+                                         arg, list2(S_satisfies, S_logical_namestring_p)));
+}
+
+// ### logical-namestring-p object => generalized-boolean
+Value SYS_logical_namestring_p(Value arg)
+{
+  if (!(stringp(arg)))
+    return NIL;
+  AbstractString * host = get_host_string(the_string(arg));
+  if (host == NULL || host->length() == 0)
+    return NIL;
+  if (LOGICAL_PATHNAME_TRANSLATION_TABLE->get(make_value(host)) != NULL_VALUE)
+    return T;
+  return NIL;
 }
 
 // ### logical-pathname-p object => generalized-boolean
