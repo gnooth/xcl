@@ -1,6 +1,6 @@
 // Pathname.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -577,6 +577,39 @@ Value CL_make_pathname(unsigned int numargs, Value args[])
   return make_value(p);
 }
 
+Value make_pathname_from_list(Value arg)
+{
+  Value list = check_list(arg);
+  if (length(list) & 1)
+    signal_lisp_error(new ProgramError("Odd number of keyword arguments."));
+  Value host      = NIL;
+  Value device    = NIL;
+  Value directory = NIL;
+  Value name      = NIL;
+  Value type      = NIL;
+  Value version   = NIL;
+  while (list != NIL)
+    {
+      Value keyword = car(list);
+      Value value = car(cdr(list));
+      if (keyword == K_host)
+        host = value;
+      else if (keyword == K_device)
+        device = value;
+      else if (keyword == K_directory)
+        directory = value;
+      else if (keyword == K_name)
+        name = value;
+      else if (keyword == K_type)
+        type = value;
+      else if (keyword == K_version)
+        version = value;
+      list = cdr(cdr(list));
+    }
+  Pathname * p = new Pathname(host, device, directory, name, type, version);
+  return make_value(p);
+}
+
 String * Pathname::directory_namestring()
 {
 //   validateDirectory(true);
@@ -697,6 +730,11 @@ SimpleString * Pathname::namestring()
       // :UNSPECIFIC cause the field to be treated as if it were empty. That
       // is, both NIL and :UNSPECIFIC cause the component not to appear in
       // the namestring." 19.2.2.2.3.1
+      if (stringp(_host))
+        {
+          s->append(the_string(_host));
+          s->append_char(':');
+        }
       if (stringp(_device))
         {
           s->append(the_string(_device));

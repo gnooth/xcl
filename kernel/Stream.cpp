@@ -1,6 +1,6 @@
 // Stream.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -992,7 +992,9 @@ Value Stream::read_pathname(Thread * thread, Readtable * rt)
     return NIL;
   if (stringp(obj))
     return parse_namestring(the_string(obj));
-  return signal_lisp_error("#P requires a string argument.");
+  if (listp(obj))
+    return make_pathname_from_list(obj);
+  return signal_lisp_error("#P requires a string or list argument.");
 }
 
 Value Stream::read_structure(Thread * thread, Readtable * rt)

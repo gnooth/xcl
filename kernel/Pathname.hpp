@@ -1,6 +1,6 @@
 // Pathname.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -127,5 +127,7 @@ Value parse_namestring(AbstractString * namestring);
 Value parse_namestring(AbstractString * namestring, AbstractString * host);
 
 Value parse_directory(AbstractString * s);
+
+Value make_pathname_from_list(Value arg);
 
 #endif // Pathname.hpp
