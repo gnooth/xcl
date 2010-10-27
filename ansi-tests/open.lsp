@@ -38,7 +38,6 @@
 	       (range (1+ (- upper-bound lower-bound))))
 	   #'(lambda (i) (+ lower-bound (mod i range))))))))))
 
-#-xcl
 (compile 'generator-for-element-type)
 
 (defmacro def-open-test (name args form expected
