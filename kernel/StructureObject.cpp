@@ -1,6 +1,6 @@
 // StructureObject.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -92,12 +92,24 @@ AbstractString * StructureObject::write_to_string()
   Thread * thread = current_thread();
   if (thread->symbol_value(S_print_structure) != NIL || thread->symbol_value(S_print_readably) != NIL)
     {
+      INDEX max_length = MOST_POSITIVE_FIXNUM;
+      if (thread->symbol_value(S_print_readably) == NIL)
+        {
+          Value print_length = thread->symbol_value(S_print_length);
+          if (print_length != NIL)
+            max_length = check_index(print_length);
+        }
       String * string = new String("#S(");
       string->append(::write_to_string(xcar(_types)));
       Value cls = find_class(car(_types));
       Value slots = ((StructureClass *)check_class(cls))->slots();
       for (INDEX i = 0; i < _numslots; i++)
         {
+          if (i >= max_length)
+            {
+              string->append(" ...");
+              break;
+            }
           string->append_char(' ');
           string->append_char(':');
           string->append(the_symbol(check_structure_slot_definition(car(slots))->name())->name());
