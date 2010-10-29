@@ -1,6 +1,6 @@
 ;;; dump-form.lisp
 ;;;
-;;; Copyright (C) 2004-2009 Peter Graves
+;;; Copyright (C) 2004-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -104,6 +104,9 @@
 ;;         ((or (structure-object-p object) ;; FIXME instance-p
 ;;              (standard-object-p object))
 ;;          (dump-instance object stream))
+        ((pathnamep object)
+         (write-string "#." stream)
+         (%stream-write-object stream object))
         ((or (typep object 'structure-object)
              (typep object 'standard-object))
          (dump-instance object stream))

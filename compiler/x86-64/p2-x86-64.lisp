@@ -426,6 +426,7 @@
                (characterp form)
                (hash-table-p form)
                (packagep form)
+               (pathnamep form)
                (functionp form) ; REVIEW
                (classp form))
            ;; REVIEW following code is for small data model (-mcmodel=small)
