@@ -2960,30 +2960,25 @@
                   (emit-call "RT_fast_call_symbol_5"))))
           ((setq thread-register (compiland-thread-register compiland))
            ;; not use-fast-call-p
+           (process-5-args args '(:rdx :rcx :r8 :r9 :rax) nil)
+           (inst :sub +bytes-per-word+ :rsp) ; stack alignment
+           (inst :push :rax)
            (cond (kernel-function-p
-                  (process-5-args args '(:rdx :rcx :r8 :r9 :rax) nil)
-                  (inst :push :rax)
-                  (inst :push :rax) ; stack alignment
                   (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
-                  (emit-call "RT_thread_call_function_5")
-                  (inst :add (* +bytes-per-word+ 2) :rsp))
+                  (emit-call "RT_thread_call_function_5"))
                  (t
-                  (process-5-args args '(:rdx :rcx :r8 :r9 :rax) nil)
-                  (inst :push :rax)
-                  (inst :push :rax) ; stack alignment
                   (p2-symbol op :rsi)
                   (inst :mov thread-register :rdi)
-                  (emit-call "RT_thread_call_symbol_5")
-                  (inst :add (* +bytes-per-word+ 2) :rsp))))
+                  (emit-call "RT_thread_call_symbol_5")))
+           (inst :add (* +bytes-per-word+ 2) :rsp))
           (t
            ;; not use-fast-call-p
+           (process-5-args args '(:rsi :rdx :rcx :r8 :r9) nil)
            (cond (kernel-function-p
-                  (process-5-args args '(:rsi :rdx :rcx :r8 :r9) nil)
                   (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_current_thread_call_function_5"))
                  (t
-                  (process-5-args args '(:rsi :rdx :rcx :r8 :r9) nil)
                   (p2-symbol op :rdi)
                   (emit-call "RT_current_thread_call_symbol_5"))))))
   (move-result-to-target target))
