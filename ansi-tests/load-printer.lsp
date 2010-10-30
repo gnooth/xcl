@@ -32,8 +32,8 @@
 (load "pprint-indent.lsp")
 (load "pprint-logical-block.lsp")
 (load "pprint-exit-if-list-exhausted.lsp")
-#-xcl (load "pprint-newline.lsp")
-#-xcl (load "pprint-tab.lsp")
+(load "pprint-newline.lsp")
+(load "pprint-tab.lsp")
 (load "print-unreadable-object.lsp")
 (load "write.lsp")
 (load "print.lsp")
@@ -45,5 +45,3 @@
 (load "princ-to-string.lsp")
 (load "print-level.lsp")
 (load "print-length.lsp")
-
-;; (load "load-format.lsp")

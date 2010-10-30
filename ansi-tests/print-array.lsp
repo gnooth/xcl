@@ -311,7 +311,6 @@
      (write-to-string b :readably nil :array t)))
   "#2A((3 8) (2 67))")
 
-#-xcl
 (deftest print.array.2.21
   (trim-list
    (loop
@@ -323,7 +322,6 @@
    10)
   nil)
 
-#-xcl
 (deftest print.array.2.22
   (loop for a = (make-array (list (random 4) (random 4))
 			    :initial-element (- (random 1000000) 500000)
@@ -332,7 +330,6 @@
 						     :can-fail t))
   nil)
 
-#-xcl
 (deftest print.array.2.23
   (loop for d1 = (random 10)
 	for d2 = (random 10)
@@ -347,7 +344,6 @@
 						     :can-fail t))
   nil)
 
-#-xcl
 (deftest print.array.2.24
   (loop for i from 1 to 64
 	for type = `(unsigned-byte ,i)
@@ -357,14 +353,12 @@
 							   :can-fail t))))
   nil)
 
-#-xcl
 (deftest print.array.2.25
   (let ((a (make-array '(3 4) :initial-element #\a :element-type 'character)))
     (loop repeat 10 nconc (randomly-check-readability a :test #'is-similar
 						      :can-fail t)))
   nil)
 
-#-xcl
 (deftest print.array.2.26
   (let ((a (make-array '(3 4) :initial-element #\a :element-type 'base-char)))
     (loop repeat 10 nconc (randomly-check-readability a :test #'is-similar
