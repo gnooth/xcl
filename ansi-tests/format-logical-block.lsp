@@ -274,19 +274,16 @@
 
 ;;; Circularity detection
 
-#-xcl
 (def-pprint-test format.logical-block.circle.1
   (format nil "~:<~@{~A~^ ~}~:>" (let ((x (list 0))) (list x x)))
   "(#1=(0) #1#)"
   :circle t)
 
-#-xcl
 (def-pprint-test format.logical-block.circle.2
   (format nil "~:<~@{~A~^ ~}~:>" (let ((x (list 0))) (cons x x)))
   "(#1=(0) . #1#)"
   :circle t)
 
-#-xcl
 (def-pprint-test format.logical-block.circle.3
   (format nil "~:<~@{~A~^ ~}~:>" (let ((x (list 0)))
 				   (setf (cdr x) x)
@@ -295,12 +292,10 @@
   :circle t
   :len 500)
 
-#-xcl
 (def-pprint-test format.logical-block.circle.4
   (format nil "~:<~@{~A~^ ~}~:>" (let ((x (list 0))) (list x x)))
   "((0) (0))")
 
-#-xcl
 (def-pprint-test format.logical-block.circle.5
   (format nil "~:<~@{~A~^ ~}~:>" (let ((x (list 0))) (cons x x)))
   "((0) 0)")
