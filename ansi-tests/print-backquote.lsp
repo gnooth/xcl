@@ -127,7 +127,6 @@
      (and (not (is-similar x y)) (list :modified x y))))
   nil)
 
-#-xcl
 (deftest print.backquote.random.14
   (loop for x = (make-random-backquoted-form 100)
 	repeat 500

@@ -1,6 +1,6 @@
 ;;; print.lisp
 ;;;
-;;; Copyright (C) 2004-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License

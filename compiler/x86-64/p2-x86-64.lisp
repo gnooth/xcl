@@ -426,6 +426,7 @@
                (characterp form)
                (hash-table-p form)
                (packagep form)
+               (pathnamep form)
                (functionp form) ; REVIEW
                (classp form))
            ;; REVIEW following code is for small data model (-mcmodel=small)
@@ -608,7 +609,8 @@
              (p2-symbol name :rsi)
              (inst :mov thread-register :rdi)
              (inst :pop :rdx) ; result
-             (emit-call "RT_return_from")))))) ; doesn't return
+             (emit-call "RT_return_from") ; doesn't return
+             (emit-exit))))))
 
 (defun p2-catch (form target)
   (let* ((block (cadr form))
@@ -1758,7 +1760,6 @@
     (declare (type compiland compiland))
     (unless tag
       (error "p2-go tag ~S not found" name))
-;;     (mumble "p2-go tag ~S found in ~S~%" name (block-name tag-block))
     (cond ((eq (tag-compiland tag) compiland)
            (dolist (enclosing-block *visible-blocks*)
              (declare (type cblock enclosing-block))
@@ -1782,17 +1783,14 @@
                     (aver (compiland-thread-register compiland))
                     (p2-var-ref (make-var-ref (block-last-special-binding-var enclosing-block)) :rsi)
                     (inst :mov :r12 :rdi)
-;;                     (mumble "p2-go emitting call to RT_thread_set_last_special_binding for enclosing block ~S~%"
-;;                                (block-name enclosing-block))
                     (emit-call "RT_thread_set_last_special_binding"))))
-;;            (mumble "p2-go emitting jump to ~S~%" name)
            (emit-jmp-short t (tag-label tag)))
           (t
            (p2-constant name :rsi)
            (aver (compiland-thread-register compiland))
            (inst :mov :r12 :rdi)
-;;            (mumble "p2-go emitting call to RT_non_local_go~%")
-           (emit-call "RT_non_local_go")))))
+           (emit-call "RT_non_local_go") ; doesn't return
+           (emit-exit)))))
 
 (defun p2-unwind-protect (form target)
   (aver (length-eql form 2))
@@ -2960,30 +2958,25 @@
                   (emit-call "RT_fast_call_symbol_5"))))
           ((setq thread-register (compiland-thread-register compiland))
            ;; not use-fast-call-p
+           (process-5-args args '(:rdx :rcx :r8 :r9 :rax) nil)
+           (inst :sub +bytes-per-word+ :rsp) ; stack alignment
+           (inst :push :rax)
            (cond (kernel-function-p
-                  (process-5-args args '(:rdx :rcx :r8 :r9 :rax) nil)
-                  (inst :push :rax)
-                  (inst :push :rax) ; stack alignment
                   (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
-                  (emit-call "RT_thread_call_function_5")
-                  (inst :add (* +bytes-per-word+ 2) :rsp))
+                  (emit-call "RT_thread_call_function_5"))
                  (t
-                  (process-5-args args '(:rdx :rcx :r8 :r9 :rax) nil)
-                  (inst :push :rax)
-                  (inst :push :rax) ; stack alignment
                   (p2-symbol op :rsi)
                   (inst :mov thread-register :rdi)
-                  (emit-call "RT_thread_call_symbol_5")
-                  (inst :add (* +bytes-per-word+ 2) :rsp))))
+                  (emit-call "RT_thread_call_symbol_5")))
+           (inst :add (* +bytes-per-word+ 2) :rsp))
           (t
            ;; not use-fast-call-p
+           (process-5-args args '(:rsi :rdx :rcx :r8 :r9) nil)
            (cond (kernel-function-p
-                  (process-5-args args '(:rsi :rdx :rcx :r8 :r9) nil)
                   (inst :move-immediate `(:function ,op) :rdi)
                   (emit-call "RT_current_thread_call_function_5"))
                  (t
-                  (process-5-args args '(:rsi :rdx :rcx :r8 :r9) nil)
                   (p2-symbol op :rdi)
                   (emit-call "RT_current_thread_call_symbol_5"))))))
   (move-result-to-target target))

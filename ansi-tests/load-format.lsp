@@ -30,7 +30,7 @@
 (load "format-s.lsp")
 
 ;;; 22.3.5
-#-xcl (load "format-underscore.lsp")
+(load "format-underscore.lsp")
 (load "format-logical-block.lsp")
 (load "format-i.lsp")
 (load "format-slash.lsp")
