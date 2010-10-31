@@ -1,6 +1,6 @@
 // initialize_symbols.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -138,7 +138,7 @@ void initialize_symbols()
   the_symbol(S_print_level)->initialize_special(NIL);
   the_symbol(S_print_lines)->initialize_special(NIL);
   the_symbol(S_print_miser_width)->initialize_special(NIL);
-  the_symbol(S_print_pprint_dispatch)->initialize_special(NIL); // FIXME
+  the_symbol(S_print_pprint_dispatch)->initialize_special(NIL);
   the_symbol(S_print_pretty)->initialize_special(NIL);
   the_symbol(S_print_radix)->initialize_special(NIL);
   the_symbol(S_print_readably)->initialize_special(NIL);
