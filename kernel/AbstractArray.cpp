@@ -1,6 +1,6 @@
 // AbstractArray.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -142,11 +142,16 @@ void AbstractArray::copy_array_1(AbstractArray * a1, AbstractArray * a2,
 AbstractString * AbstractArray::write_to_string_internal(int ndims, INDEX dimv[])
 {
   Thread * thread = current_thread();
-  bool readably = (thread->symbol_value(S_print_readably) != NIL);
-  if (readably || thread->symbol_value(S_print_array) != NIL)
+  bool print_readably = (thread->symbol_value(S_print_readably) != NIL);
+  if (print_readably)
+    {
+      if (element_type() != T)
+        signal_lisp_error(new PrintNotReadable(make_value(this)));
+    }
+  if (print_readably || thread->symbol_value(S_print_array) != NIL)
     {
       long max_level = MOST_POSITIVE_FIXNUM;
-      if (readably)
+      if (print_readably)
         {
           for (int i = 0; i < ndims - 1; i++)
             {
