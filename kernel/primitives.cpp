@@ -1912,7 +1912,7 @@ Value CL_values_list(Value list)
   return thread->set_values(values_length, values);
 }
 
-// ### apropos-list string &optional package => <no values>
+// ### apropos-list string &optional package => symbols
 Value CL_apropos_list(unsigned int numargs, Value args[])
 {
   if (numargs < 1 || numargs > 2)
@@ -1926,21 +1926,28 @@ Value CL_apropos_list(unsigned int numargs, Value args[])
     packages = CL_list_all_packages();
   while (packages != NIL)
     {
-      Package * package = the_package(xcar(packages));
-      Value external_symbols = package->external_symbols();
+      Value package = xcar(packages);
+      Package * p = the_package(package);
+      Value external_symbols = p->external_symbols();
       while (external_symbols != NIL)
         {
           Symbol * sym = the_symbol(xcar(external_symbols));
-          if (sym->apropos(s))
-            list = make_cons(make_value(sym), list);
+          if (sym->package() == package)
+            {
+              if (sym->apropos(s))
+                list = make_cons(make_value(sym), list);
+            }
           external_symbols = xcdr(external_symbols);
         }
-      Value internal_symbols = package->internal_symbols();
+      Value internal_symbols = p->internal_symbols();
       while (internal_symbols != NIL)
         {
           Symbol * sym = the_symbol(xcar(internal_symbols));
-          if (sym->apropos(s))
-            list = make_cons(make_value(sym), list);
+          if (sym->package() == package)
+            {
+              if (sym->apropos(s))
+                list = make_cons(make_value(sym), list);
+            }
           internal_symbols = xcdr(internal_symbols);
         }
       packages = xcdr(packages);
