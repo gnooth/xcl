@@ -167,21 +167,16 @@
 ;;                              mnemonic :mov
 ;;                              operand1 (make-register-operand (register reg))
 ;;                              operand2 (make-absolute-operand absolute-address))))
-;;                     ((eql rm #b101)
-;;                      (setq length 6
-;;                            mnemonic :mov
-;;                            operand1 (make-absolute-operand (mref-32 start 2))
-;;                            operand2 (make-register-operand (register reg))))
-;;                     (t
-;;                      (setq length 2
-;;                            mnemonic :mov
-;;                            operand1 (make-indirect-operand (register rm))
-;;                            operand2 (make-register-operand (register reg)))))
-              (setq length 2
-                    mnemonic :mov
-                    operand1 (make-indirect-operand (register rm))
-                    operand2 (make-register-operand (register reg)))
-              )
+              (cond ((eql rm #b101)
+                     (setq length 6
+                           mnemonic :mov
+                           operand1 (make-absolute-operand (mref-32 start 2))
+                           operand2 (make-register-operand (register reg))))
+                    (t
+                     (setq length 2
+                           mnemonic :mov
+                           operand1 (make-indirect-operand (register rm))
+                           operand2 (make-register-operand (register reg))))))
              ((eql mod #b01)
               (let ((displacement (mref-8-signed start 2)))
                 (setq length 3
