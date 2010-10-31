@@ -1,6 +1,6 @@
 // ZeroRankArray.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -18,6 +18,7 @@
 
 #include "lisp.hpp"
 #include "ZeroRankArray.hpp"
+#include "PrintNotReadable.hpp"
 #include "StringOutputStream.hpp"
 
 Value ZeroRankArray::type_of() const
@@ -106,7 +107,13 @@ Value ZeroRankArray::aset(unsigned long i, Value new_value)
 AbstractString * ZeroRankArray::write_to_string()
 {
   Thread * thread = current_thread();
-  if (thread->symbol_value(S_print_array) != NIL || thread->symbol_value(S_print_readably) != NIL)
+  bool print_readably = (thread->symbol_value(S_print_readably) != NIL);
+  if (print_readably)
+    {
+      if (_element_type != T)
+        signal_lisp_error(new PrintNotReadable(make_value(this)));
+    }
+  if (print_readably || thread->symbol_value(S_print_array) != NIL)
     {
       String * s = new String("#0A");
       if (aref(0) == make_value(this) && thread->symbol_value(S_print_circle) != NIL)
