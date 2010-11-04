@@ -197,8 +197,11 @@
     (when *print-immediately*
       #+xcl
       (progn
+;;         (fresh-line)
+;;         (format t "~S~%" (list 'defun 'foo vars form))
+        (pprint (list 'defun 'foo vars form))
         (fresh-line)
-        (format t "~S~%" (list 'defun 'foo vars form)))
+        )
       #-xcl
       (with-open-file
        (s (format nil "~A~A.lsp" file-prefix index)
