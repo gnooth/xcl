@@ -2138,20 +2138,21 @@ for special variables."
 
 (defknown optimize-ir2 () t)
 (defun optimize-ir2 ()
-  (loop
-    (let ((changed nil))
-      (setq changed (or (optimize-ir2-1)  changed))
-      (setq changed (or (optimize-ir2-1b) changed))
-      (setq changed (or (optimize-ir2-1c) changed))
-      (setq changed (or (optimize-ir2-2)  changed))
-      (setq changed (or (optimize-ir2-3)  changed))
-      (setq changed (or (optimize-ir2-4)  changed))
-      (setq changed (or (optimize-ir2-5)  changed))
-      (setq changed (or (optimize-ir2-8)  changed))
-      (unless changed
-        (return))))
-  #+x86-64
-  (optimize-tail-calls))
+  (when (> *speed* 0)
+    (loop
+      (let ((changed nil))
+        (setq changed (or (optimize-ir2-1)  changed))
+        (setq changed (or (optimize-ir2-1b) changed))
+        (setq changed (or (optimize-ir2-1c) changed))
+        (setq changed (or (optimize-ir2-2)  changed))
+        (setq changed (or (optimize-ir2-3)  changed))
+        (setq changed (or (optimize-ir2-4)  changed))
+        (setq changed (or (optimize-ir2-5)  changed))
+        (setq changed (or (optimize-ir2-8)  changed))
+        (unless changed
+          (return))))
+    #+x86-64
+    (optimize-tail-calls)))
 
 (defun analyze-ir2 ()
   (let* ((code *code*)
