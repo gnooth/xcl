@@ -4994,6 +4994,7 @@
           (mumble "p2-logand null target case~%")
           (p2 arg1 nil)
           (p2 arg2 nil)
+          (maybe-emit-clear-values arg1 arg2)
           (return-from p2-logand t))
         (when (flushable arg1)
           (let ((value (integer-constant-value type1)))
