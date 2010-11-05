@@ -1808,7 +1808,7 @@
     (emit-bytes #xe8 #x00 #x00 #x00 #x00) ; call next instruction (leave return address on stack)
     (emit-jmp t START)
 
-    (label CLEANUP)
+    (label CLEANUP :external)
     (clear-register-contents)
     (clear-constraints)
     ;; This is an external entry point called by RT_unwind_to(), so we need to

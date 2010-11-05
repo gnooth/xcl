@@ -504,6 +504,13 @@
 (aver (equal (multiple-value-list (test78 most-negative-fixnum))
              (multiple-value-list (floor most-negative-fixnum 64))))
 
+(defun-compile test79 ()
+  (block b7
+    (flet ((%f15 (&key (key1 (unwind-protect (return-from b7 17) 42)))
+                 (+ key1 1)))
+      (%f15))))
+(aver (eq (test79) 17))
+
 (defun-compile fact (n)
   (labels
     ((fact1 (n m)

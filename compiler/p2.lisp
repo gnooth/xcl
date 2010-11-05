@@ -161,9 +161,9 @@
 (defun emit-bytes (&rest bytes)
   (emit (make-ir2-instruction :bytes bytes nil)))
 
-(defknown label (t) t)
-(defun label (label)
-  (emit (make-ir2-instruction :label label nil)))
+(defknown label (*) t)
+(defun label (label &optional external-p)
+  (emit (make-ir2-instruction :label label external-p)))
 
 (declaim (inline make-label))
 (defknown make-label () t)
