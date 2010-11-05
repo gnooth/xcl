@@ -3895,6 +3895,11 @@
              type1
              type2
              thread-var)
+        (when (null target)
+          (p2 arg1 nil)
+          (p2 arg2 nil)
+          (maybe-emit-clear-values arg1 arg2)
+          (return-from p2-logand t))
         (when (and (integerp arg1) (integerp arg2))
           (p2-constant (logand arg1 arg2) target)
           (return-from p2-logand t))
