@@ -901,15 +901,134 @@
                   context
                   (if (eq state '&optional) "optional" "keyword")))))))))
 
+;; Adapted from ABCL.
+(defun rewrite-lambda (form)
+  (let* ((lambda-list (cadr form)))
+    (if (not (or (memq '&optional lambda-list)
+                 (memq '&key lambda-list)))
+        ;; no need to rewrite: no arguments with possible initforms anyway
+        form
+        (multiple-value-bind (body decls doc)
+            (parse-body (cddr form))
+          (let (state let-bindings new-lambda-list
+                      (non-constants 0))
+            (do* ((vars lambda-list (cdr vars))
+                  (var (car vars) (car vars)))
+                 ((endp vars))
+              (push (car vars) new-lambda-list)
+              (let ((replacement (gensym)))
+                (flet ((parse-compound-argument (arg)
+                                                "Returns the values NAME, KEYWORD, INITFORM, INITFORM-P,
+SUPPLIED-P and SUPPLIED-P-P assuming ARG is a compound argument."
+                                                (destructuring-bind
+                                                    (name &optional (initform nil initform-supplied-p)
+                                                          (supplied-p nil supplied-p-supplied-p))
+                                                    (if (listp arg) arg (list arg))
+                                                  (if (listp name)
+                                                      (values (cadr name) (car name)
+                                                              initform initform-supplied-p
+                                                              supplied-p supplied-p-supplied-p)
+                                                      (values name (make-keyword name)
+                                                              initform initform-supplied-p
+                                                              supplied-p supplied-p-supplied-p)))))
+                  (case var
+                    (&optional (setf state :optional))
+                    (&key (setf state :key))
+                    ((&whole &environment &rest &body &allow-other-keys)
+                     ;; do nothing special
+                     )
+                    (t
+                     (cond
+                      ((atom var)
+                       (setf (car new-lambda-list)
+                             (if (eq state :key)
+                                 (list (list (make-keyword var) replacement))
+                                 replacement))
+                       (push (list var replacement) let-bindings))
+                      ((constantp (second var))
+                       ;; so, we must have a consp-type var we're looking at
+                       ;; and it has a constantp initform
+                       (multiple-value-bind
+                           (name keyword initform initform-supplied-p
+                                 supplied-p supplied-p-supplied-p)
+                           (parse-compound-argument var)
+                         (let ((var-form (if (eq state :key)
+                                             (list keyword replacement)
+                                             replacement))
+                               (supplied-p-replacement (gensym)))
+                           (setf (car new-lambda-list)
+                                 (cond
+                                  ((not initform-supplied-p)
+                                   (list var-form))
+                                  ((not supplied-p-supplied-p)
+                                   (list var-form initform))
+                                  (t
+                                   (list var-form initform
+                                         supplied-p-replacement))))
+                           (push (list name replacement) let-bindings)
+                           ;; if there was a 'supplied-p' variable, it might
+                           ;; be used in the declarations. Since those will be
+                           ;; moved below the LET* block, we need to move the
+                           ;; supplied-p parameter too.
+                           (when supplied-p-supplied-p
+                             (push (list supplied-p supplied-p-replacement)
+                                   let-bindings)))))
+                      (t
+                       (incf non-constants)
+                       ;; this is either a keyword or an optional argument
+                       ;; with a non-constantp initform
+                       (multiple-value-bind
+                           (name keyword initform initform-supplied-p
+                                 supplied-p supplied-p-supplied-p)
+                           (parse-compound-argument var)
+                         (declare (ignore initform-supplied-p))
+                         (let ((var-form (if (eq state :key)
+                                             (list keyword replacement)
+                                             replacement))
+                               (supplied-p-replacement (gensym)))
+                           (setf (car new-lambda-list)
+                                 (list var-form nil supplied-p-replacement))
+                           (push (list name `(if ,supplied-p-replacement
+                                                 ,replacement ,initform))
+                                 let-bindings)
+                           (when supplied-p-supplied-p
+                             (push (list supplied-p supplied-p-replacement)
+                                   let-bindings)))))))))))
+            (if (zerop non-constants)
+                ;; there was no reason to rewrite...
+                form
+                (let ((rv
+                       `(lambda ,(nreverse new-lambda-list)
+                          ,@(when doc (list doc))
+                          (let* ,(nreverse let-bindings)
+                            ,@decls ,@body))))
+                  rv)))))))
+
 (defun p1-flet (form)
   (setf (compiland-needs-thread-var-p *current-compiland*) t)
   (let ((*visible-variables* *visible-variables*)
         (*local-functions* *local-functions*)
         (*current-compiland* *current-compiland*)
         (local-functions nil))
-    (dolist (definition (cadr form))
-      (let ((name (car definition))
-            (lambda-list (cadr definition)))
+    (dolist (definition (second form))
+      (let* ((name (first definition))
+             (block-name (fdefinition-block-name name))
+             (lambda-list (second definition))
+             lambda-expression)
+        (multiple-value-bind (body decls)
+            (parse-body (cddr definition))
+          (setq lambda-expression
+                `(lambda ,lambda-list ,@decls (block ,block-name ,@body))))
+        (let ((rewritten-lambda-expression (rewrite-lambda lambda-expression)))
+          (when (neq rewritten-lambda-expression lambda-expression)
+            (mumble "original =")
+            (pprint lambda-expression)
+            (mumble "~%")
+            (setq lambda-expression (rewrite-lambda lambda-expression))
+            (mumble "rewritten =")
+            (pprint lambda-expression)
+            (mumble "~%")
+            (setq lambda-list (second lambda-expression))))
         (validate-name-and-lambda-list name lambda-list 'FLET)
         (let* ((compiland (make-compiland :name name
                                           :parent *current-compiland*))
@@ -921,27 +1040,20 @@
                                                     :compiland compiland
                                                     :var var)))
           (multiple-value-bind (body decls)
-              (parse-body (cddr definition))
-            (let* ((block-name (fdefinition-block-name name))
-                   (lambda-expression
-                    `(lambda ,lambda-list ,@decls (block ,block-name ,@body)))
-                   (*visible-variables* *visible-variables*)
+              (parse-body (cddr lambda-expression))
+            (let* ((*visible-variables* *visible-variables*)
                    (*local-functions* *local-functions*)
                    (*current-compiland* compiland)
-
                    ; REVIEW added (not in abcl) - probably wrong if there are closure vars
-                   (*local-variables* nil)
-                   )
+                   (*local-variables* nil))
               (setf (compiland-lambda-expression compiland) (precompile-form lambda-expression))
               (setf (local-function-inline-expansion local-function)
                     (generate-inline-expansion block-name lambda-list decls body))
               (p1-compiland compiland)))
           (push local-function local-functions)
-;;           (push var *closure-vars*)
-          (push var *all-variables*)
-          )))
+          (push var *all-variables*))))
     (setq local-functions (nreverse local-functions))
-    ;; Make the local functions visible.
+    ;; make the local functions visible
     (dolist (local-function local-functions)
       (push local-function *local-functions*)
       (let ((var (local-function-var local-function)))
@@ -951,7 +1063,6 @@
           (*space* *space*)
           (*safety* *safety*)
           (*debug* *debug*)
-;;           (*explain* *explain*)
           (*inline-declarations* *inline-declarations*))
       (multiple-value-bind (body decls)
           (parse-body (cddr form))
@@ -970,13 +1081,13 @@
                     (t
                      (push var *local-variables*)))))
           (setq local-functions
-                (remove-if #'(lambda (local-function) (and (zerop (local-function-call-count local-function))
-                                                           (not (local-function-needs-function-object-p local-function))))
-                         local-functions))
+                (remove-if #'(lambda (local-function)
+                               (and (zerop (local-function-call-count local-function))
+                                    (not (local-function-needs-function-object-p local-function))))
+                           local-functions))
           (if local-functions
               (list* 'FLET local-functions p1-body)
-              (list* 'PROGN p1-body))
-          )))))
+              (list* 'PROGN p1-body)))))))
 
 (defun p1-labels (form)
   (setf (compiland-needs-thread-var-p *current-compiland*) t)
@@ -984,12 +1095,27 @@
         (*local-functions* *local-functions*)
         (*current-compiland* *current-compiland*)
         (local-functions nil))
-    (dolist (definition (cadr form))
-      (let ((name (car definition))
-            (lambda-list (cadr definition)))
+    (dolist (definition (second form))
+      (let* ((name (first definition))
+             (block-name (fdefinition-block-name name))
+             (lambda-list (second definition))
+             lambda-expression)
+        (multiple-value-bind (body decls)
+            (parse-body (cddr definition))
+          (setq lambda-expression
+                `(lambda ,lambda-list ,@decls (block ,block-name ,@body))))
+        (let ((rewritten-lambda-expression (rewrite-lambda lambda-expression)))
+          (when (neq rewritten-lambda-expression lambda-expression)
+            (mumble "original =")
+            (pprint lambda-expression)
+            (mumble "~%")
+            (setq lambda-expression (rewrite-lambda lambda-expression))
+            (mumble "rewritten =")
+            (pprint lambda-expression)
+            (mumble "~%")
+            (setq lambda-list (second lambda-expression))))
         (validate-name-and-lambda-list name lambda-list 'LABELS)
-        (let* ((body (cddr definition))
-               (compiland (make-compiland :name name
+        (let* ((compiland (make-compiland :name name
                                           :parent *current-compiland*))
                (var (make-var :name (gensym)
                               :kind :local
@@ -998,13 +1124,13 @@
                (local-function (make-local-function :name name
                                                     :compiland compiland
                                                     :var var)))
-          (multiple-value-bind (body decls) (parse-body body)
-            (setf (compiland-lambda-expression compiland)
-                  (precompile-form `(lambda ,lambda-list ,@decls (block ,name ,@body)))))
+;;           (multiple-value-bind (body decls)
+;;               (parse-body (cddr lambda-expression))
+          (setf (compiland-lambda-expression compiland) (precompile-form lambda-expression))
           (push local-function local-functions)
           (push var *closure-vars*))))
     (setq local-functions (nreverse local-functions))
-    ;; Make the local functions visible.
+    ;; make the local functions visible
     (dolist (local-function local-functions)
       (declare (type local-function local-function))
       (push local-function *local-functions*)
@@ -1021,7 +1147,6 @@
           (*space* *space*)
           (*safety* *safety*)
           (*debug* *debug*)
-;;           (*explain* *explain*)
           (*inline-declarations* *inline-declarations*))
       (multiple-value-bind (body declarations)
           (parse-body (cddr form))
