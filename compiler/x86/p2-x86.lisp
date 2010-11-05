@@ -1783,7 +1783,7 @@
     (emit-bytes #xe8 #x00 #x00 #x00 #x00) ; call next instruction (leave return address on stack)
     (emit-jmp t START)
 
-    (label CLEANUP)
+    (label CLEANUP :external)
     (clear-register-contents)
     (clear-constraints)
     ;; "If a non-local exit occurs during execution of cleanup-forms, no special
