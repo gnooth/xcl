@@ -725,22 +725,31 @@
     (p2 result-form :eax)
     (cond ((eq (block-compiland block) compiland)
            (dolist (enclosing-block *visible-blocks*)
-             (when (eq enclosing-block block)
-               (return))
-             (when (block-tagbody-var enclosing-block)
-               (aver (compiland-thread-var compiland))
-               (inst :push :eax) ; save result
-               (inst :mov (block-tagbody-var enclosing-block) :eax) ; tagbody
-               (inst :push :eax)
-               (inst :mov (compiland-thread-var compiland) :eax) ; thread
-               (inst :push :eax)
-               (emit-call-2 "RT_leave_tagbody" :eax)
-               (inst :pop :eax)) ; restore result
-             (when (equal (block-name enclosing-block) '(UNWIND-PROTECT))
-               (aver (block-cleanup-label enclosing-block))
-               (inst :push :eax)
-               (emit-call (block-cleanup-label enclosing-block))
-               (inst :pop :eax)))
+             (cond ((eq enclosing-block block)
+                    (return))
+                   ((block-tagbody-var enclosing-block)
+                    (aver (compiland-thread-var compiland))
+                    (inst :push :eax) ; save result
+                    (inst :mov (block-tagbody-var enclosing-block) :eax) ; tagbody
+                    (inst :push :eax)
+                    (inst :mov (compiland-thread-var compiland) :eax) ; thread
+                    (inst :push :eax)
+                    (emit-call-2 "RT_leave_tagbody" :eax)
+                    (inst :pop :eax)) ; restore result
+                   ((equal (block-name enclosing-block) '(UNWIND-PROTECT))
+                    (aver (block-cleanup-label enclosing-block))
+                    (inst :push :eax)
+                    (emit-call (block-cleanup-label enclosing-block))
+                    (inst :pop :eax))
+                   ((equal (block-name enclosing-block) '(CATCH))
+                    (mumble "p2-return-from catch case~%")
+                    (inst :push :eax) ; save result
+                    (inst :mov (block-block-var enclosing-block) :eax) ; catch-frame
+                    (inst :push :eax)
+                    (inst :mov (compiland-thread-var compiland) :eax) ; thread
+                    (inst :push :eax)
+                    (emit-call-2 "RT_leave_catch" :eax)
+                    (inst :pop :eax)))) ; restore result
            (emit-jmp-short t (block-exit block)))
           (t
            ;; non-local return
