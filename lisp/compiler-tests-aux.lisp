@@ -511,6 +511,16 @@
       (%f15))))
 (aver (eq (test79) 17))
 
+(defun-compile test80 (a b c d e f g)
+  (labels ((%f10 ()
+                 (catch 'ct8
+                   (throw 'ct8
+                          (return-from %f10 42)))))
+    (catch 'ct8
+      (%f10)
+      (throw 'ct8 87))))
+(aver (eq (test80 1 2 3 4 5 6 7) 87))
+
 (defun-compile fact (n)
   (labels
     ((fact1 (n m)

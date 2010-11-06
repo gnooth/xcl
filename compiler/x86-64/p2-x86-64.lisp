@@ -585,21 +585,27 @@
     (cond ((eq (block-compiland block) compiland)
            (dolist (enclosing-block *visible-blocks*)
              (declare (type cblock enclosing-block))
-             (when (eq enclosing-block block)
-               (return))
-             (when (block-tagbody-var enclosing-block)
-               (aver (compiland-thread-register compiland))
-               (emit-move-var-to-register (block-tagbody-var enclosing-block) :rsi)
-               (inst :mov :r12 :rdi) ; thread
-               (inst :push :rax) ; save result
-               (emit-call "RT_leave_tagbody")
-               (inst :pop :rax)) ; restore result
-             (when (and (equal (block-name enclosing-block) '(UNWIND-PROTECT))
-                        (neq enclosing-block *in-cleanup*))
-               (aver (block-cleanup-label enclosing-block))
-               (inst :push :rax)
-               (emit-call (block-cleanup-label enclosing-block))
-               (inst :pop :rax)))
+             (cond ((eq enclosing-block block)
+                    (return))
+                   ((block-tagbody-var enclosing-block)
+                    (aver (compiland-thread-register compiland))
+                    (emit-move-var-to-register (block-tagbody-var enclosing-block) :rsi)
+                    (inst :mov :r12 :rdi) ; thread
+                    (inst :push :rax) ; save result
+                    (emit-call "RT_leave_tagbody")
+                    (inst :pop :rax)) ; restore result
+                   ((and (equal (block-name enclosing-block) '(UNWIND-PROTECT))
+                         (neq enclosing-block *in-cleanup*))
+                    (aver (block-cleanup-label enclosing-block))
+                    (inst :push :rax)
+                    (emit-call (block-cleanup-label enclosing-block))
+                    (inst :pop :rax))
+                   ((equal (block-name enclosing-block) '(CATCH))
+                    (inst :push :rax) ; save result
+                    (inst :mov :r12 :rdi) ; thread
+                    (emit-move-var-to-register (block-block-var enclosing-block) :rsi) ; catch-frame
+                    (emit-call "RT_leave_catch")
+                    (inst :pop :rax)))) ; restore result
            (emit-jmp-short t (block-exit block)))
           (t
            ;; non-local return
