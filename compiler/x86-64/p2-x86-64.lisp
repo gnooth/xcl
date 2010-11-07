@@ -1623,6 +1623,7 @@
     (inst :xor :eax :eax)
     (inst :mov :rax length-var)
     (clear-register-contents)
+    (emit-clear-values)
     (dolist (values-producing-form values-producing-forms)
       (p2 values-producing-form :rax)
       (clear-register-contents)

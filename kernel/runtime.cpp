@@ -1,6 +1,6 @@
 // runtime.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -757,10 +757,6 @@ INDEX RT_accumulate_values(Thread * thread, Value result, Value values[], INDEX 
 
 Value RT_thread_multiple_value_call(Thread * thread, Value callable, Value args[], unsigned int numargs)
 {
-//   printf("callable = %s\n", prin1_to_string(callable)->as_c_string());
-//   printf("numargs = %u\n", numargs);
-//   for (unsigned int i = 0; i < numargs; i++)
-//     printf("args[%u] = %s\n", i, prin1_to_string(args[i])->as_c_string());
   if (functionp(callable))
     return funcall(the_function(callable), numargs, args, thread);
   if (symbolp(callable))
@@ -768,9 +764,6 @@ Value RT_thread_multiple_value_call(Thread * thread, Value callable, Value args[
       Function * function = reinterpret_cast<Function *>(the_symbol(callable)->function());
       if (!function)
         return signal_lisp_error(new UndefinedFunction(callable));
-//       Value result = funcall(function, numargs, args, thread);
-//       printf("result = %s\n", prin1_to_string(result)->as_c_string());
-//       return result;
       return funcall(function, numargs, args, thread);
     }
   return signal_type_error(callable, S_function_designator);

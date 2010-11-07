@@ -264,6 +264,14 @@
     0))
 (aver (eq (test82 6947 231925617994586402 10 73602930704 13891693762 -22562281728870797 22) 0))
 
+(defun-compile-file test83 (a b c d e f g)
+  (declare (ignorable a b c d e f g))
+  (labels
+    ((%f15 (f15-1) 0))
+    (+ (round d)
+       (multiple-value-call #'%f15 (values 0)))))
+(aver (eql (test83 858895 -2710 1983571485 -37131871 -139862703 -1 6898163808) -37131871))
+
 (defun-compile-file fact (n)
   (labels
     ((fact1 (n m)
