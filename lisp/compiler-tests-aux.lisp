@@ -521,6 +521,18 @@
       (throw 'ct8 87))))
 (aver (eq (test80 1 2 3 4 5 6 7) 87))
 
+(defun-compile test81 (a b c d e f g)
+  (declare (ignorable a b c d e f g))
+  (reduce #'(lambda (lmv2 lmv6)
+             (catch (quote ct5)
+               (throw (quote ct5) (progn
+                                    (ash (round 0 (min -92 0))
+                                         (min 55 0))
+                                    a))))
+          (list 0 b a 0 0 0 0 0)
+          :from-end t))
+(aver (eq (test81 -69416315734252 -48704632 5626822493822 536 13 2564750168117 -118311591316) -69416315734252))
+
 (defun-compile fact (n)
   (labels
     ((fact1 (n m)
