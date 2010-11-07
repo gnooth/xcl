@@ -3686,6 +3686,11 @@
            (arg2 (%cadr args))
            type1
            type2)
+      (when (null target)
+        (p2 arg1 nil)
+        (p2 arg2 nil)
+        (maybe-emit-clear-values arg1 arg2)
+        (return-from p2-ash t))
       (when (and (integerp arg1) (integerp arg2))
         (p2-constant (ash arg1 arg2) target)
         (return-from p2-ash t))
