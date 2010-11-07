@@ -1,6 +1,6 @@
 // Thread.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -379,15 +379,14 @@ public:
   Value set_values(Values * v)
   {
     _values_length = v->values_length();
-//     if (_values_length == 1)
-//       {
-//         clear_values();
-//         return v->values()[0];
-//       }
     Value * values = v->values();
     for (int i = MULTIPLE_VALUES_LIMIT; i-- > 0;)
       _values[i] = values[i];
-    return _values_length == 0 ? NIL : values[0];
+    if (_values_length == 0)
+      return NIL;
+    if (_values_length == 1)
+      clear_values();
+    return values[0];
   }
 
   class StackFrame * stack() const

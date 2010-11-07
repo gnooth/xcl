@@ -253,6 +253,17 @@
           :from-end t))
 (aver (eql (test81 -69416315734252 -48704632 5626822493822 536 13 2564750168117 -118311591316) -69416315734252))
 
+(defun-compile-file test82 (a b c d e f g)
+  (declare (ignorable a b c d e f g))
+  (unwind-protect
+      (progn
+        (tagbody
+         (logorc1 (multiple-value-prog1 d) (go tag6))
+         tag6)
+        0)
+    0))
+(aver (eq (test82 6947 231925617994586402 10 73602930704 13891693762 -22562281728870797 22) 0))
+
 (defun-compile-file fact (n)
   (labels
     ((fact1 (n m)
