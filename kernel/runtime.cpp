@@ -1330,9 +1330,6 @@ void initialize_runtime()
                 make_number((unsigned long)setjmp));
 #endif
 
-  ht_names->put(make_simple_string("longjmp"),
-                make_number((unsigned long)longjmp));
-
   ht_names->put(make_simple_string("RT_enter_block"),
                 make_number((unsigned long)RT_enter_block));
 
