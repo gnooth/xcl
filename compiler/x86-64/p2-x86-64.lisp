@@ -4759,7 +4759,8 @@
            (arg1 (%car args))
            (arg2 (%cadr args))
            type1
-           type2)
+           type2
+           shift)
       (when (null target)
         (p2 arg1 nil)
         (p2 arg2 nil)
@@ -4769,9 +4770,10 @@
         (p2-constant (ash arg1 arg2) target)
         (return-from p2-ash t))
       (setq type1 (derive-type arg1)
-            type2 (derive-type arg2))
+            type2 (derive-type arg2)
+            shift (integer-constant-value type2))
       (cond ((and (integer-constant-value type1)
-                  (integer-constant-value type2))
+                  shift)
              (let ((must-clear-values nil))
                (unless (flushable arg1)
                  (p2 arg1 nil)
@@ -4783,10 +4785,9 @@
                    (setq must-clear-values t)))
                (when must-clear-values
                  (emit-clear-values)))
-             (p2-constant (ash (integer-constant-value type1) (integer-constant-value type2))
-                          target)
+             (p2-constant (ash (integer-constant-value type1) shift) target)
              t)
-            ((and (eql (integer-constant-value type2) 0)
+            ((and (eql shift 0)
                   (flushable arg2)
                   (or (integer-type-p type1)
                       (zerop *safety*)))
@@ -4806,7 +4807,6 @@
             ((and (fixnum-type-p type1)
                   (fixnum-type-p type2)
                   (fixnum-type-p (derive-type form)))
-             (let ((shift (integer-constant-value type2)))
                (cond ((and shift
                            (< shift 0)
                            (> shift -64))
@@ -4817,56 +4817,41 @@
                              (inst :and #xfc :al)
                              (clear-register-contents :rax))
                             (t
-                             (mumble "p2-ash new optimized case 2~%")
                              (process-2-args args '(:rax :rcx) t)
                              (unbox-fixnum :rcx)
-;;                              (emit-bytes #x48 #xf7 #xd9) ; neg %rcx
                              (inst :neg :rcx)
                              (emit-bytes #x48 #xd3 #xf8) ; sar %cl,%rax
                              ;; zero out tag bits
-;;                              (emit-bytes #x48 #x83 #xe0 #xfc) ; and $0xfc,%rax
                              (inst :and #xfc :al)
-                             (clear-register-contents :rax :rcx)
-;;                              (emit-bytes #x83 #xe0 #xfc) ; and $0xfc,%eax
-                             ))
+                             (clear-register-contents :rax :rcx)))
                       (move-result-to-target target)
                       t)
                      ((and shift
                            (>= shift 0)
                            (< shift 64))
                       (cond ((flushable arg2)
-;;                              (mumble "p2-ash new optimized case 3~%")
                              (process-1-arg arg1 :rax t)
                              (unless (eql shift 0)
                                (emit-bytes #x48 #xc1 #xe0 shift) ; shl imm8,%rax
-                               (clear-register-contents :rax))
-                             )
+                               (clear-register-contents :rax)))
                             (t
-;;                              (mumble "p2-ash new optimized case 4~%")
                              (process-2-args args '(:rax :rcx) t)
                              (unbox-fixnum :rcx)
                              (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
-                             (clear-register-contents :rax :rcx)
-                             ))
+                             (clear-register-contents :rax :rcx)))
                       (move-result-to-target target)
                       t)
-;;                      ((subtypep type2 '(INTEGER -63 -1))
                      ((subtypep type2 '(INTEGER -63 0))
-                      (mumble "p2-ash new optimized case 5~%")
                       (process-2-args args '(:rax :rcx) t)
                       (unbox-fixnum :rcx)
-;;                       (emit-bytes #x48 #xf7 #xd9) ; neg %rcx
                       (inst :neg :rcx)
                       (emit-bytes #x48 #xd3 #xf8) ; sar %cl,%rax
                       ;; zero out tag bits
-;;                       (emit-bytes #x48 #x83 #xe0 #xfc) ; and $0xfc,%rax
-;;                       (emit-bytes #x83 #xe0 #xfc) ; and $0xfc,%eax
                       (inst :and #xfc :al)
                       (clear-register-contents :rax)
                       (move-result-to-target target)
                       t)
                      ((subtypep type2 '(INTEGER 0 63))
-;;                       (mumble "p2-ash new optimized case 6~%")
                       (process-2-args args '(:rax :rcx) t)
                       (unbox-fixnum :rcx)
                       (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
@@ -4874,19 +4859,67 @@
                       (move-result-to-target target)
                       t)
                      (t
-;;                       (mumble "p2-ash not optimized 2 type1 = ~S type2 = ~S~%" type1 type2)
-                      nil))))
+                      (mumble "p2-ash not optimized 2 type1 = ~S type2 = ~S~%" type1 type2)
+                      nil)))
             ((and (integer-type-p type1)
-                  (fixnum-type-p type2)
-                  (eql (integer-constant-value type2) 0)
+                  (eql shift 0)
                   (flushable arg2))
-;;              (mumble "p2-ash new optimized case 7~%")
              (p2 arg1 target)
              t)
+            ((and shift
+                  (eql shift 0))
+             ;; zero shift general case
+             (process-2-args args '(:rax :rcx) t)
+             (inst :mov :rax :rdi)
+             (emit-call 'require-integer) ; require-integer returns its argument
+             (move-result-to-target target)
+             t)
+            ((and shift
+                  (<= shift 0)
+                  (> shift -64))
+             (let ((FULL-CALL (make-label))
+                   (EXIT (make-label)))
+               (cond ((flushable arg2)
+                      (process-1-arg arg1 :rax t)
+                      (unless (fixnum-type-p type1)
+                        (inst :test +fixnum-tag-mask+ :al)
+                        (emit-jmp-short :nz FULL-CALL))
+                      (inst :sar (- shift) :rax)
+                      ;; zero out tag bits
+                      (inst :and #xfc :al)
+                      (clear-register-contents :rax)
+                      (unless (fixnum-type-p type1)
+                        (emit-jmp-short t EXIT)
+                        (let ((*current-segment* :elsewhere))
+                          (label FULL-CALL)
+                          (inst :mov :rax :rdi)
+                          (inst :mov (fixnumize shift) :rsi)
+                          (emit-call 'ash)
+                          (emit-jmp-short t EXIT))
+                        (label EXIT)))
+                     (t
+                      (process-2-args args '(:rax :rcx) t)
+                      (unless (fixnum-type-p type1)
+                        (inst :test +fixnum-tag-mask+ :al)
+                        (emit-jmp-short :nz FULL-CALL))
+                      (inst :sar (- shift) :rax)
+                      ;; zero out tag bits
+                      (inst :and #xfc :al)
+                      (clear-register-contents :rax)
+                      (unless (fixnum-type-p type1)
+                        (emit-jmp-short t EXIT)
+                        (let ((*current-segment* :elsewhere))
+                          (label FULL-CALL)
+                          (inst :mov :rax :rdi)
+                          (inst :mov :rcx :rsi)
+                          (emit-call 'ash)
+                          (emit-jmp-short t EXIT))
+                        (label EXIT))))
+               (move-result-to-target target))
+             t)
             (t
-;;              (mumble "p2-ash not optimized 3 type1 = ~S type2 = ~S~%" type1 type2)
-             nil)
-            ))))
+             (mumble "p2-ash not optimized 5 type1 = ~S type2 = ~S~%" type1 type2)
+             nil)))))
 
 (defun p2-logior/logxor (form target)
   (let* ((args (cdr form)))

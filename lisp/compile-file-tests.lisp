@@ -272,6 +272,30 @@
        (multiple-value-call #'%f15 (values 0)))))
 (aver (eql (test83 858895 -2710 1983571485 -37131871 -139862703 -1 6898163808) -37131871))
 
+(defun-compile-file test84 (x)
+  (declare (unsigned-byte x))
+  (ash x -2))
+(dolist (x (list 0 1 2 3 43 (1- most-positive-fixnum) most-positive-fixnum (1+ most-positive-fixnum)))
+  (format t "~D~%" x)
+  (aver (eql (test84 x) (ash x -2))))
+
+(defun-compile-file test85 (x)
+  (declare (integer x))
+  (ash x -2))
+(dolist (x (list (1- most-negative-fixnum) most-negative-fixnum (1+ most-negative-fixnum)
+                 -43 -3 -2 -1 0 1 2 3 43
+                 (1- most-positive-fixnum) most-positive-fixnum (1+ most-positive-fixnum)))
+  (format t "~D~%" x)
+  (aver (eql (test85 x) (ash x -2))))
+
+(defun-compile-file test86 (x)
+  (ash x -2))
+(dolist (x (list (1- most-negative-fixnum) most-negative-fixnum (1+ most-negative-fixnum)
+                 -43 -3 -2 -1 0 1 2 3 43
+                 (1- most-positive-fixnum) most-positive-fixnum (1+ most-positive-fixnum)))
+  (format t "~D~%" x)
+  (aver (eql (test86 x) (ash x -2))))
+
 (defun-compile-file fact (n)
   (labels
     ((fact1 (n m)
