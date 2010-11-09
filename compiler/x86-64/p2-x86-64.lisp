@@ -496,7 +496,7 @@
              (emit-call "RT_frame_jmp")
              (inst :mov :rax :rdi)
              (emit-call "setjmp")
-             (inst :test :al :al)
+             (inst :test :rax :rax)
              (let ((LABEL1 (make-label)))
                (emit-jmp-short :nz LABEL1)
                (p2-progn-body (block-body block) :rax)
@@ -633,7 +633,7 @@
     (emit-call "RT_frame_jmp")
     (inst :mov :rax :rdi)
     (emit-call "setjmp")
-    (inst :test :al :al)
+    (inst :test :rax :rax)
     (let ((LABEL1 (make-label))
           (EXIT (make-label)))
       (emit-jmp-short :nz LABEL1)
@@ -1717,12 +1717,10 @@
                    (emit-call "RT_add_tag")
                    (incf index))))
              (inst :mov tagbody-var :rdi)
-;;              (mumble "p2-tagbody ~S emitting call to RT_frame_jmp~%" (block-name block))
              (emit-call "RT_frame_jmp")
              (inst :mov :rax :rdi)
-;;              (mumble "p2-tagbody ~S emitting call to setjmp~%" (block-name block))
              (emit-call "setjmp")
-             (inst :test :al :al)
+             (inst :test :rax :rax)
              (let ((LABEL1 (make-label))
                    (LABEL2 (make-label)))
                (emit-jmp-short :nz LABEL1)
@@ -1731,7 +1729,6 @@
                (label LABEL1)
                ;; non-local GO
                ;; FIXME dec %rax
-;;                (emit-bytes #x48 #x83 #xe8 #x01) ; sub $0x1,%rax
                (inst :sub 1 :rax)
                ;; convert index in rax to byte offset
                (emit-bytes #x48 #x6b #xc0 #x05) ; imul $0x5,%rax,%rax
