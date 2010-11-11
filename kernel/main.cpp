@@ -226,9 +226,14 @@ int _main(int argc, char * argv[])
 }
 #endif
 
+extern unsigned long * stack_top;
+
 int main(int argc, char * argv[])
 {
   initialize_uptime();
+
+  stack_top = current_sp();
+
   GC_init();
   GC_set_warn_proc(gc_warn_proc);
 

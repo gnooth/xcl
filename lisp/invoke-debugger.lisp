@@ -1,6 +1,6 @@
 ;;; invoke-debugger.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -57,7 +57,8 @@
            (top-level::repl)))))
 
 (defun invoke-debugger (condition)
-  (let ((*saved-backtrace* (backtrace-as-list)))
+  (let ((*saved-backtrace* (backtrace-as-list))
+        (*saved-stack* (current-stack-as-list)))
     (let ((old-hook *invoke-debugger-hook*))
       (when old-hook
         (let ((*invoke-debugger-hook* nil))

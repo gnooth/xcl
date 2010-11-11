@@ -33,8 +33,9 @@
 (defvar *break-on-signals* nil)
 
 (defun break (&optional (format-control "BREAK called") &rest format-arguments)
-  (let ((*debugger-hook* nil) ; Specifically required by ANSI.
-        (*saved-backtrace* (backtrace-as-list)))
+  (let ((*debugger-hook* nil) ; specifically required by ANSI
+        (*saved-backtrace* (backtrace-as-list))
+        (*saved-stack* (current-stack-as-list)))
     (with-simple-restart (continue "Return from BREAK.")
       (invoke-debugger
        (make-condition 'simple-condition
@@ -48,7 +49,8 @@
     (let* ((break-on-signals *break-on-signals*)
            (*break-on-signals* nil))
       (when (typep condition break-on-signals)
-        (let ((*saved-backtrace* (backtrace-as-list)))
+        (let ((*saved-backtrace* (backtrace-as-list))
+              (*saved-stack* (current-stack-as-list)))
           (break "~A~%BREAK called because of *BREAK-ON-SIGNALS* (now rebound to NIL)."
                  condition))))
     (loop

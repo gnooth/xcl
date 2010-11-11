@@ -43,6 +43,7 @@ else
 endif
 
 LIBOBJS = lisp.o xcl_home.o run-shell-command.o \
+	stack.o \
 	make-symbol-macro.o \
 	UnwindProtect.o getpid.o SlimeInputStream.o SlimeOutputStream.o \
         initialize.o initialize_symbols.o SimpleBitVector.o Thread.o Symbol.o \
