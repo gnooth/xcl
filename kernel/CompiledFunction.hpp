@@ -1,6 +1,6 @@
 // CompiledFunction.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,9 +19,7 @@
 #ifndef __COMPILED_FUNCTION_HPP
 #define __COMPILED_FUNCTION_HPP
 
-// #include "lisp.hpp"
 #include "Primitive.hpp"
-// #include "SimpleArray_UB8_1.hpp"
 
 class CompiledFunction : public Primitive
 {
@@ -29,11 +27,12 @@ private:
   Value _constants;
 
 public:
-  CompiledFunction(Value name, void * code, unsigned int minargs, unsigned int maxargs, Value constants)
-//     : Primitive(name, code, minargs, maxargs, false), _constants(constants)
+  CompiledFunction(Value name, void * code, unsigned long code_size, 
+                   unsigned int minargs, unsigned int maxargs, Value constants)
     : Primitive(WIDETAG_COMPILED_FUNCTION, name), _constants(constants)
   {
     _code = code;
+    _code_size = make_number(code_size);
     _minargs = minargs;
     _maxargs = maxargs;
     if (minargs == maxargs)
@@ -52,24 +51,6 @@ public:
 // not to be confused with CL_compiled_function_p()
 inline bool compiled_function_p(Value value)
 {
-//   if (typed_object_p(value))
-//     {
-//       switch (the_typed_object(value)->widetag())
-//         {
-//         case WIDETAG_FUNCTION:
-//         case WIDETAG_PRIMITIVE:
-//         case WIDETAG_CLOSURE:
-//         case WIDETAG_AUTOLOAD:
-//         case WIDETAG_MACRO:
-//         case WIDETAG_STANDARD_GENERIC_FUNCTION:
-//         case WIDETAG_COMPILED_CLOSURE:
-//           return true;
-//         default:
-//           ;
-//           // Fall through...
-//         }
-//     }
-//   return false;
   return (typed_object_p(value) && the_typed_object(value)->widetag() == WIDETAG_COMPILED_FUNCTION);
 }
 
@@ -84,7 +65,7 @@ inline CompiledFunction * check_compiled_function(Value value)
   if (compiled_function_p(value))
     return the_compiled_function(value);
   signal_type_error(value, S_compiled_function); // REVIEW
-  // Not reached.
+  // not reached
   return NULL;
 }
 

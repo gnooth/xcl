@@ -1,6 +1,6 @@
 // CompiledFunction.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -49,5 +49,5 @@ Value SYS_make_compiled_function(Value arg1, Value arg2, Value arg3, Value arg4,
     vector = check_simple_array_ub8_1(arg2);
   long minargs = fixnum_value(arg3);
   long maxargs = fixnum_value(arg4);
-  return make_value(new CompiledFunction(arg1, vector->data(), minargs, maxargs, arg5));
+  return make_value(new CompiledFunction(arg1, vector->data(), vector->length(), minargs, maxargs, arg5));
 }

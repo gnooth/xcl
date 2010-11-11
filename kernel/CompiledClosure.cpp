@@ -1,6 +1,6 @@
 // CompiledClosure.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@ class ClosureTemplateFunction : public CompiledFunction
 {
 public:
   ClosureTemplateFunction(Value name, void * code, long minargs, long maxargs, Value constants)
-    : CompiledFunction(name, code, minargs, maxargs, constants)
+    : CompiledFunction(name, code, 0, minargs, maxargs, constants)
   {
     assert(widetag() == WIDETAG_COMPILED_FUNCTION);
   }
