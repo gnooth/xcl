@@ -113,7 +113,7 @@
 (defvar *max-compile-time* 0)
 (defvar *max-compile-term* nil)
 
-(defvar *print-immediately* #+xcl t #-xcl nil)
+(defvar *print-immediately* #+(or xcl abcl) t #-(or xcl abcl) nil)
 
 (defvar *compile-unoptimized-form*
   #+(or allegro sbcl) t
@@ -195,7 +195,7 @@
 	 (opt-decls-1 (make-random-optimize-settings))
 	 (opt-decls-2 (make-random-optimize-settings)))
     (when *print-immediately*
-      #+xcl
+      #+(or xcl abcl)
       (progn
 ;;         (fresh-line)
 ;;         (format t "~S~%" (list 'defun 'foo vars form))
