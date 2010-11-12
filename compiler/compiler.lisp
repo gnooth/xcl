@@ -2266,7 +2266,8 @@ for special variables."
         (unless changed
           (return))))
     #+x86-64
-    (optimize-tail-calls)))
+    (when (> *speed* *debug*)
+    (optimize-tail-calls))))
 
 (defun analyze-ir2 ()
   (let* ((code *code*)
