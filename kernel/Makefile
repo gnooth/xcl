@@ -149,7 +149,7 @@ xcl.dll: xcl_home.h $(LIBOBJS) $(LIBS)
 .PHONY: static
 static: xcl_home.h $(OBJS) $(LIBS)
 	g++ $(OBJS) $(LIBS) -o ../xcl
-	nm -C -n ../xcl | grep " [TtWw] " > xcl.nm
+	nm -C -n -S ../xcl | grep " [TtWw] " > xcl.nm
 	date > ../build
 
 # .PHONY: shared
