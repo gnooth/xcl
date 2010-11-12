@@ -41,8 +41,10 @@ Value SYS_current_stack_as_list()
   Value list = NIL;
   while (sp <= stack_top)
     {
-      Value val = make_number(*sp);
-      list = make_cons(val, list);
+      Value addr = make_unsigned_integer((unsigned long) sp);
+      Value val = make_unsigned_integer(*sp);
+      Value entry = make_cons(addr, val);
+      list = make_cons(entry, list);
       sp = (unsigned long *) (((unsigned long) sp) + sizeof(unsigned long));
     }
   return list;

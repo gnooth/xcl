@@ -785,6 +785,7 @@ extern volatile int interrupted;
 extern Thread * primordial_thread;
 
 // stack.cpp
+extern unsigned long * stack_top;
 extern unsigned long * __attribute__ ((noinline)) current_sp();
 
 #endif // lisp.hpp

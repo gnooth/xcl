@@ -226,8 +226,6 @@ int _main(int argc, char * argv[])
 }
 #endif
 
-extern unsigned long * stack_top;
-
 int main(int argc, char * argv[])
 {
   initialize_uptime();
