@@ -1,6 +1,6 @@
 // probe-file.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -226,35 +226,27 @@ Value CL_get_universal_time()
 Value CL_rename_file(Value arg1, Value arg2)
 {
   Pathname * original_pathname = the_pathname(truename(arg1, false, true));
-//   final String originalNamestring = original.getNamestring();
   SimpleString * original_namestring = original_pathname->namestring();
 
-//   Pathname newName = coerceToPathname(second);
   Pathname * new_pathname = the_pathname(coerce_to_pathname(arg2));
   if (new_pathname->is_wild())
-//     signal(new FileError("Bad place for a wild pathname.", newName));
     return signal_lisp_error(new FileError("Bad place for a wild pathname.",
                                            make_value(new_pathname)));
-  new_pathname = merge_pathnames(new_pathname, original_pathname, NIL);
 
-//   final String newNamestring;
-//   if (newName instanceof LogicalPathname)
-//     newNamestring = LogicalPathname.translateLogicalPathname((LogicalPathname)newName).getNamestring();
-//   else
-//     newNamestring = newName.getNamestring();
-  SimpleString * new_namestring = new_pathname->namestring();
+  Pathname * defaulted_new_pathname = merge_pathnames(new_pathname, original_pathname, NIL);
+
+  SimpleString * new_namestring;
+  if (logical_pathname_p(new_pathname))
+    {
+      Pathname * translated_pathname =
+        the_pathname(the_symbol(S_translate_logical_pathname)->function()->execute(make_value(new_pathname)));
+      new_namestring = translated_pathname->namestring();
+    }
+  else
+    new_namestring = defaulted_new_pathname->namestring();
 
   if (original_namestring && new_namestring)
     {
-//       final File source = new File(originalNamestring);
-//       final File destination = new File(newNamestring);
-//       if (Utilities.isPlatformWindows)
-//         {
-//           if (destination.isFile())
-//             destination.delete();
-//         }
-//       if (source.renameTo(destination))
-//         // Success!
 #ifdef WIN32
       struct _stat statbuf;
       if (_stat(new_namestring->as_c_string(), &statbuf) == 0)
@@ -275,7 +267,7 @@ Value CL_rename_file(Value arg1, Value arg2)
 #endif
       if (rename(original_namestring->as_c_string(), new_namestring->as_c_string()) == 0)
         {
-          Value value1 = make_value(new_pathname);
+          Value value1 = make_value(defaulted_new_pathname);
           Value value2 = make_value(original_pathname);
           Value value3 = truename(value1, false, true);
           return current_thread()->set_values(value1, value2, value3);
