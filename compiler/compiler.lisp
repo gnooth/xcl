@@ -471,7 +471,7 @@
   (let ((args (cdr form)))
     (cond ((unsafe-p args)
            (let (syms lets)
-             ;; Preserve the order of evaluation of the arguments!
+             ;; preserve order of evaluation of the arguments
              (dolist (arg args)
                (let ((sym (gensym)))
                  (push sym syms)
@@ -1785,6 +1785,21 @@ for special variables."
         (t
          (p1-function-call form))))
 
+(defun p1-length (form)
+  (cond ((length-eql form 2)
+         (let ((arg (%cadr form)))
+           (cond ((vectorp arg)
+                  ;; wrap result with PROGN so it won't be mistaken for a tag
+                  `(progn ,(length arg)))
+                 ((and (quoted-form-p arg)
+                       (sequencep (%cadr arg)))
+                  ;; wrap result with PROGN so it won't be mistaken for a tag
+                  `(progn ,(length (%cadr arg))))
+                 (t
+                  (p1-function-call form)))))
+        (t
+         (p1-function-call form))))
+
 (defun p1-minus (form)
   (let ((new-form (maybe-rewrite-function-call form)))
     (cond ((neq new-form form)
@@ -1853,6 +1868,7 @@ for special variables."
 (install-p1-handler 'ash                        'p1-ash)
 (install-p1-handler 'dpb                        'p1-dpb)
 (install-p1-handler 'ldb                        'p1-ldb)
+(install-p1-handler 'length                     'p1-length)
 (install-p1-handler 'list*                      'p1-list*)
 (install-p1-handler 'require-type               'p1-require-type)
 (install-p1-handler 'two-arg--                  'p1-minus)
