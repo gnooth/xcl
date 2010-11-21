@@ -653,7 +653,8 @@
   (let* ((block (cadr form))
          (last-special-binding-var (block-last-special-binding-var block))
          (*visible-blocks* (cons block *visible-blocks*))
-         (BLOCK-EXIT (gensym))
+         (BLOCK-EXIT (make-label))
+         (LABEL1 (make-label))
          (compiland *current-compiland*)
          (thread-var (compiland-thread-var compiland)))
     (declare (type cblock block))
@@ -678,26 +679,24 @@
              (emit-call-1 "RT_frame_jmp" :stack)
              (emit-call-1 "setjmp" :eax)
              (inst :test :eax :eax)
-             (let ((LABEL1 (make-label)))
-               (emit-jmp-short :nz LABEL1)
-               (p2-progn-body (block-body block) :stack) ; save result
-               (inst :push block-var)
-               (inst :push thread-var)
-               (emit-call-2 "RT_leave_block" nil)
-               (inst :pop :eax) ; restore result
-               (emit-jmp-short t BLOCK-EXIT)
-               (label LABEL1)
-               (inst :push block-var)
+             (emit-jmp-short :nz LABEL1)
+             (p2-progn-body (block-body block) :stack) ; save result
+             (inst :push block-var)
+             (inst :push thread-var)
+             (emit-call-2 "RT_leave_block" nil)
+             (inst :pop :eax) ; restore result
+             (emit-jmp-short t BLOCK-EXIT)
+             (label LABEL1)
+             (inst :push block-var)
 
-               (inst :xor :eax :eax)
-               (inst :mov :eax block-var)
+             (inst :xor :eax :eax)
+             (inst :mov :eax block-var)
 
-               (inst :push thread-var)
-               (emit-call-2 "RT_block_non_local_return" :eax)
-               (label BLOCK-EXIT))))
+             (inst :push thread-var)
+             (emit-call-2 "RT_block_non_local_return" :eax)))
           (t
-           (p2-progn-body (block-body block) :eax)
-           (label BLOCK-EXIT)))
+           (p2-progn-body (block-body block) :eax)))
+    (label BLOCK-EXIT)
     (when last-special-binding-var
       ;; save result
       (inst :push :eax)
