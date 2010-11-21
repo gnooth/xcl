@@ -278,6 +278,54 @@ Block * Thread::find_block(Value name)
   return NULL;
 }
 
+Block * Thread::find_block(Block * block)
+{
+  Frame * frame = _last_control_frame;
+  while (frame)
+    {
+      if (frame->type() == BLOCK && ((Block *)frame == block))
+        return (Block *) frame;
+      frame = frame->next();
+    }
+  return NULL;
+}
+
+void Thread::dump_frames()
+{
+  Frame * frame = _last_control_frame;
+  while (frame)
+    {
+      const char * type_string;
+      FrameType type = frame->type();
+      switch (type)
+        {
+        case PRIMORDIAL:
+          type_string = "PRIMORDIAL";
+          printf("0x%lx %s\n", (unsigned long) frame, type_string);
+          break;
+        case TAGBODY:
+          type_string = "TAGBODY";
+          printf("0x%lx %s\n", (unsigned long) frame, type_string);
+          break;
+        case BLOCK:
+          type_string = "BLOCK";
+          printf("0x%lx %s %s\n", (unsigned long) frame, type_string,
+                 ::write_to_string(((Block *) frame)->name())->as_c_string());
+          break;
+        case CATCH:
+          type_string = "CATCH";
+          printf("0x%lx %s\n", (unsigned long) frame, type_string);
+          break;
+        case UNWIND_PROTECT:
+          type_string = "UNWIND_PROTECT";
+          printf("0x%lx %s\n", (unsigned long) frame, type_string);
+          break;
+        }
+      frame = frame->next();
+    }
+}
+
+
 Tag * Thread::add_tag(Value name, Tagbody * tagbody, Value continuation, int index)
 {
   return (_last_tag = new Tag(name, tagbody, continuation, index, _last_tag));

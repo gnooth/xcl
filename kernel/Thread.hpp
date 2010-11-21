@@ -169,6 +169,10 @@ public:
 
   Block * find_block(Value name);
 
+  Block * find_block(Block * block);
+
+  void dump_frames();
+
   Tag * last_tag() const
   {
     return _last_tag;
