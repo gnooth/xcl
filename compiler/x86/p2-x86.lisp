@@ -1752,7 +1752,6 @@
                     (aver (block-cleanup-label enclosing-block))
                     (emit-call (block-cleanup-label enclosing-block)))
                    ((equal (block-name enclosing-block) '(CATCH))
-                    (mumble "p2-go found enclosing CATCH~%")
                     (aver (block-block-var enclosing-block))
                     (aver (compiland-thread-var compiland))
                     (inst :push (block-block-var enclosing-block))

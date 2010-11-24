@@ -98,10 +98,12 @@ void RT_leave_block(Thread * thread, Block * block)
 
 Value RT_block_non_local_return(Thread * thread, Block * block)
 {
-  thread->set_stack(block->stack());
-  thread->set_call_depth(block->call_depth());
-  thread->set_last_control_frame(block->last_control_frame());
-  thread->set_last_tag(block->last_tag());
+  assert(thread->find_block(block) == NULL);
+  assert(thread->stack() == block->stack());
+  assert(thread->call_depth() == block->call_depth());
+  assert(thread->last_control_frame() == block->last_control_frame());
+  assert(thread->last_tag() == block->last_tag());
+
   int values_length = thread->values_length();
   assert(values_length >= -1);
   assert(values_length < MULTIPLE_VALUES_LIMIT);
