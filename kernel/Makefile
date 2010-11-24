@@ -23,9 +23,9 @@ CC=g++
 DEBUG=no
 
 ifeq ($(PLATFORM), mingw)
-  EXE := x.exe
+  EXE := xcl.exe
 else
-  EXE := x
+  EXE := xcl
 endif
 
 CFLAGS := -Wall -fno-exceptions -c
@@ -148,12 +148,8 @@ xcl.dll: xcl_home.h $(LIBOBJS) $(LIBS)
 
 .PHONY: static
 static: xcl_home.h $(OBJS) $(LIBS)
-	g++ $(OBJS) $(LIBS) -o ../xcl
-ifeq ($(PLATFORM), mingw)
-	nm -C -n -S ../xcl.exe | grep " [TtWw] " > xcl.nm
-else
-	nm -C -n -S ../xcl | grep " [TtWw] " > xcl.nm
-endif
+	g++ $(OBJS) $(LIBS) -o ../$(EXE)
+	nm -C -n -S ../$(EXE) | grep " [TtWw] " > xcl.nm
 	date > ../build
 
 # .PHONY: shared
