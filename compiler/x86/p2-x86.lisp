@@ -761,7 +761,6 @@
              (inst :exit))))))
 
 (defun p2-catch (form target)
-  (mumble "p2-catch~%")
   (let* ((block (cadr form))
          (block-var (block-block-var block))
          (thread-var (compiland-thread-var *current-compiland*)))
@@ -796,7 +795,6 @@
     (move-result-to-target target)))
 
 (defun p2-throw (form target)
-  (mumble "p2-throw~%")
   (aver (length-eql form 3))
   (let* ((args (%cdr form))
          (tag-form (%car args))

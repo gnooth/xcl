@@ -102,7 +102,8 @@ Value RT_caught_throw(Thread * thread, Catch * catch_frame)
   thread->set_last_control_frame(catch_frame->last_control_frame());
   thread->set_last_tag(catch_frame->last_tag());
   int values_length = thread->values_length();
-  assert(values_length >= 0);
+  assert(values_length >= -1);
+  assert(values_length < MULTIPLE_VALUES_LIMIT);
   if (values_length == 0)
     return NIL;
   Value result = thread->nth_value(0);

@@ -304,7 +304,8 @@ public:
 
   Value nth_value(int i)
   {
-    assert(i < _values_length);
+    assert(i >= 0);
+    assert(i <= MULTIPLE_VALUES_LIMIT);
     return _values[i];
   }
 
