@@ -171,7 +171,7 @@ public:
 
   Block * find_block(Block * block);
 
-  void dump_frames();
+  void show_control_frames();
 
   Tag * last_tag() const
   {

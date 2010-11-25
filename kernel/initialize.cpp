@@ -829,6 +829,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_sharp_star, SYS_sharp_star, 3, 3);
   ADD_PRIMITIVE(S_sharp_vertical_bar, SYS_sharp_vertical_bar, 3, 3);
   ADD_PRIMITIVE(S_sharp_x, SYS_sharp_x, 3, 3);
+  ADD_PRIMITIVE(S_show_control_frames, SYS_show_control_frames, 0, 0);
   ADD_PRIMITIVE(S_simple_array_p, SYS_simple_array_p, 1, 1);
   ADD_PRIMITIVE(S_simple_bit_vector_bit_and, SYS_simple_bit_vector_bit_and, 3, 3);
   ADD_PRIMITIVE(S_simple_bit_vector_bit_andc1, SYS_simple_bit_vector_bit_andc1, 3, 3);

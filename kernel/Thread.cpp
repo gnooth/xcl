@@ -1,6 +1,6 @@
 // Thread.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -290,9 +290,10 @@ Block * Thread::find_block(Block * block)
   return NULL;
 }
 
-void Thread::dump_frames()
+void Thread::show_control_frames()
 {
   Frame * frame = _last_control_frame;
+  int count = 0;
   while (frame)
     {
       const char * type_string;
@@ -301,28 +302,36 @@ void Thread::dump_frames()
         {
         case PRIMORDIAL:
           type_string = "PRIMORDIAL";
-          printf("0x%lx %s\n", (unsigned long) frame, type_string);
+          printf(" %2d: 0x%lx %s\n", count, (unsigned long) frame, type_string);
           break;
         case TAGBODY:
           type_string = "TAGBODY";
-          printf("0x%lx %s\n", (unsigned long) frame, type_string);
+          printf(" %2d: 0x%lx %s\n", count, (unsigned long) frame, type_string);
           break;
         case BLOCK:
           type_string = "BLOCK";
-          printf("0x%lx %s %s\n", (unsigned long) frame, type_string,
+          printf(" %2d: 0x%lx %s %s\n", count, (unsigned long) frame, type_string,
                  ::write_to_string(((Block *) frame)->name())->as_c_string());
           break;
         case CATCH:
           type_string = "CATCH";
-          printf("0x%lx %s\n", (unsigned long) frame, type_string);
+          printf(" %2d: 0x%lx %s\n", count, (unsigned long) frame, type_string);
           break;
         case UNWIND_PROTECT:
           type_string = "UNWIND_PROTECT";
-          printf("0x%lx %s\n", (unsigned long) frame, type_string);
+          printf(" %2d: 0x%lx %s\n", count, (unsigned long) frame, type_string);
           break;
         }
       frame = frame->next();
+      ++count;
     }
+}
+
+// ### show-control-frames
+Value SYS_show_control_frames()
+{
+  current_thread()->show_control_frames();
+  return NIL;
 }
 
 
@@ -874,7 +883,7 @@ Value Thread::special_bindings()
   return result;
 }
 
-// ### bindings
+// ### special-bindings
 Value SYS_special_bindings()
 {
   return current_thread()->special_bindings();
