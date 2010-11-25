@@ -327,14 +327,6 @@ void Thread::show_control_frames()
     }
 }
 
-// ### show-control-frames
-Value SYS_show_control_frames()
-{
-  current_thread()->show_control_frames();
-  return NIL;
-}
-
-
 Tag * Thread::add_tag(Value name, Tagbody * tagbody, Value continuation, int index)
 {
   return (_last_tag = new Tag(name, tagbody, continuation, index, _last_tag));
