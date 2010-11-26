@@ -1,6 +1,6 @@
 ;;; top-level.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -210,8 +210,6 @@
       (setq end (length string)))
     (push (subseq string 0 end) res)))
 
-(defvar *last-files-loaded* nil)
-
 (defun probe-candidate (string)
   (flet ((probe (dir)
            (let* ((pathname (merge-pathnames string dir))
@@ -230,46 +228,54 @@
         (when (file-directory-p dir)
           (probe dir))))))
 
-(defun load-one-file (file)
+(defun find-file-in-load-path (file)
   (declare (type string file))
-  (let* ((truename (probe-candidate file))
-         (result (and truename
-                      (load truename))))
-    (cond (result
-           (format t "; Loaded ~A~%" (namestring truename)))
-          ((null truename)
-           (cond ((pathname-type file)
-                  (format t "~&No file ~S found in load path." file))
-                 (t
-                  (let ((file.lisp (concatenate 'string file ".lisp")))
-                    (format t "~&No file ~S or ~S found in load path." file file.lisp))))))))
+  (let ((truename (probe-candidate file)))
+    (when truename
+      (return-from find-file-in-load-path truename)))
+  (cond ((pathname-type file)
+         (format t "~&No file ~S found in load path." file))
+        (t
+         (let ((file.lisp (concatenate 'string file ".lisp")))
+           (format t "~&No file ~S or ~S found in load path." file file.lisp)))))
+
+(defun load-one-file (file)
+  (let ((truename (find-file-in-load-path file)))
+    (when (and truename (load truename))
+      (format t "~&Loaded ~S~%" truename))))
+
+(defvar *ld-args* nil)
 
 (defun ld-command (args)
-  (let ((files (if args (tokenize args) *last-files-loaded*)))
+  (let ((files (if args (tokenize args) *ld-args*)))
     (cond ((null files)
            (format t "No file specified.~%"))
           (t
-           (setq *last-files-loaded* files)
+           (setq *ld-args* files)
            (dolist (file files)
              (load-one-file file))))))
 
 (defun cf-command (args)
-;;   (let ((files (tokenize args)))
-;;     (dolist (file files)
-;;       (compile-file file))))
-  (let ((results (multiple-value-list (compile-file args))))
-    (fresh-line)
-    (dolist (result results)
-      (prin1 result)
-      (terpri))))
+  (dolist (arg (tokenize args))
+    (let ((file (find-file-in-load-path arg)))
+      (when file
+        (let ((results (multiple-value-list (compile-file file))))
+          (dolist (result results)
+            (format t "~S~%" result)))))))
 
-(defvar *last-files-cloaded* nil)
+(defvar *cl-args* nil)
 
 (defun cl-command (args)
-  (let ((files (if args (tokenize args) *last-files-cloaded*)))
-    (setq *last-files-cloaded* files)
-    (dolist (file files)
-      (load (compile-file file)))))
+  (cond (args
+         (setq args (tokenize args))
+         (setq *cl-args* args))
+        (t
+         (setq args *cl-args*)))
+  (dolist (arg args)
+    (let ((file (find-file-in-load-path arg)))
+      (when file
+        (when (load (compile-file file))
+          (format t "~&Loaded ~S~%" file))))))
 
 (defun find-unique-name (arg)
   (setq arg (string-upcase arg)) ; FIXME readtable-case
