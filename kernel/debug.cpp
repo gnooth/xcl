@@ -25,3 +25,11 @@ Value SYS_show_control_frames()
   current_thread()->show_control_frames();
   return NIL;
 }
+
+// ### crash
+Value SYS_crash()
+{
+  int *x = 0;
+  *x = 42;
+  return NIL;
+}

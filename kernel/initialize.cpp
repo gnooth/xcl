@@ -541,6 +541,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_conditionp, SYS_conditionp, 1, 1);
   ADD_PRIMITIVE(S_copy_string, EXT_copy_string, 1, 1);
   ADD_PRIMITIVE(S_copy_structure_slot_definition, SYS_copy_structure_slot_definition, 1, 1);
+  ADD_PRIMITIVE(S_crash, SYS_crash, 0, 0);
   ADD_PRIMITIVE(S_create_new_file, SYS_create_new_file, 1, 1);
   ADD_PRIMITIVE(S_current_directory, EXT_current_directory, 0, 0);
   ADD_PRIMITIVE(S_current_stack_as_list, SYS_current_stack_as_list, 0, 0);
