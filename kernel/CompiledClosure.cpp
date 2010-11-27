@@ -338,8 +338,8 @@ Value make_compiled_closure(Value template_function, Value * data)
   return make_value(new CompiledClosure(ctf, data));
 }
 
-// ### function-code
-Value SYS_function_code(Value arg)
+// ### function-code-address
+Value SYS_function_code_address(Value arg)
 {
   if (typed_object_p(arg))
     {

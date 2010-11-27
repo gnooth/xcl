@@ -336,7 +336,8 @@
                 every2
                 find-eql
                 function-arity
-                function-code
+                function-code-address
+                function-code-size
                 get2
                 get3
                 gethash2-1

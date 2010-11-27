@@ -210,7 +210,7 @@
                                        (error "Unknown runtime name ~S." what)))
                                   (symbol
                                    (cond ((symbol-package (truly-the symbol what))
-                                          (function-code (symbol-function what)))
+                                          (function-code-address (symbol-function what)))
                                          ;; an uninterned symbol is a label
                                          (t
                                           (+ (vector-data code-vector) (symbol-global-value what)))))))
@@ -354,7 +354,7 @@
                                        (error "Unknown runtime name ~S." what)))
                                   (symbol
                                    (cond ((symbol-package (truly-the symbol what))
-                                          (function-code (symbol-function what)))
+                                          (function-code-address (symbol-function what)))
                                          ;; an uninterned symbol is a label
                                          (t
                                           (+ (vector-data code-vector) (symbol-global-value what)))))))
@@ -385,7 +385,7 @@
                        (target (cadr args))
                        (address
                         (cond ((symbol-package target)
-                               (function-code (symbol-function target)))
+                               (function-code-address (symbol-function target)))
                               ;; an uninterned symbol is a label
                               (t
                                (+ (vector-data code-vector) (symbol-global-value target)))))

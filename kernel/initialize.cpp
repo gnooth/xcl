@@ -612,7 +612,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_funcallable_instance_function, SYS_funcallable_instance_function, 1, 1);
   ADD_PRIMITIVE(S_function_arity, SYS_function_arity, 1, 1);
   ADD_PRIMITIVE(S_function_call_count, SYS_function_call_count, 1, 1);
-  ADD_PRIMITIVE(S_function_code, SYS_function_code, 1, 1);
+  ADD_PRIMITIVE(S_function_code_address, SYS_function_code_address, 1, 1);
   ADD_PRIMITIVE(S_function_code_size, SYS_function_code_size, 1, 1);
   ADD_PRIMITIVE(S_function_name, SYS_function_name, 1, 1);
   ADD_PRIMITIVE(S_function_plist, SYS_function_plist, 1, 1);

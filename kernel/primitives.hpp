@@ -557,7 +557,7 @@ extern Value SYS_floor_2(Value arg1, Value arg2);
 extern Value SYS_funcallable_instance_function(Value arg);
 extern Value SYS_function_arity(Value arg);
 extern Value SYS_function_call_count(Value arg);
-extern Value SYS_function_code(Value arg);
+extern Value SYS_function_code_address(Value arg);
 extern Value SYS_function_code_size(Value arg);
 extern Value SYS_function_name(Value arg);
 extern Value SYS_function_plist(Value arg);

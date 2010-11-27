@@ -2647,7 +2647,7 @@
     (cond (use-fast-call-p
            (cond ((and kernel-function-p
                        (eql (function-arity op) 0)
-                       (function-code (symbol-function op)))
+                       (function-code-address (symbol-function op)))
                   (emit-call-0 op target))
                  (kernel-function-p
                   (emit-move-function-to-register op :eax)
@@ -2685,7 +2685,7 @@
     (declare (type compiland compiland))
     (cond (kernel-function-p
            (cond ((and (eql (function-arity op) 1)
-                       (function-code (symbol-function op))
+                       (function-code-address (symbol-function op))
                        (or use-fast-call-p
                            (memq :safe (function-attributes op))))
                   (process-1-arg arg :stack t)
@@ -2745,7 +2745,7 @@
     (declare (type compiland compiland))
     (cond (kernel-function-p
            (cond ((and (eql (function-arity op) 2)
-                       (function-code (symbol-function op))
+                       (function-code-address (symbol-function op))
                        (or use-fast-call-p
                            (memq :safe (function-attributes op))))
                   (process-2-args args :stack t)
@@ -2808,7 +2808,7 @@
     (declare (type compiland compiland))
     (cond (kernel-function-p
            (cond ((and (eql (function-arity op) 3)
-                       (function-code (symbol-function op))
+                       (function-code-address (symbol-function op))
                        (or use-fast-call-p
                            (memq :safe (function-attributes op))))
                   (process-3-args args :stack t)
@@ -2866,7 +2866,7 @@
     (cond (use-fast-call-p
            (cond ((and kernel-function-p
                        (eql (function-arity op) 4)
-                       (function-code (symbol-function op)))
+                       (function-code-address (symbol-function op)))
                   (emit-call-4 op target))
                  (kernel-function-p
                   (emit-move-function-to-register op :eax)
@@ -2906,7 +2906,7 @@
     (cond (use-fast-call-p
            (cond ((and kernel-function-p
                        (eql (function-arity op) 5)
-                       (function-code (symbol-function op)))
+                       (function-code-address (symbol-function op)))
                   (emit-call-5 op target))
                  (kernel-function-p
                   (emit-move-function-to-register op :eax)
@@ -2946,7 +2946,7 @@
     (cond (use-fast-call-p
            (cond ((and kernel-function-p
                        (eql (function-arity op) 6)
-                       (function-code (symbol-function op)))
+                       (function-code-address (symbol-function op)))
                   (emit-call-6 op target))
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 6))
@@ -4699,7 +4699,7 @@
                          (cond ((and use-fast-call-p
                                      kernel-function-p
                                      (eql (function-arity name) 1)
-                                     (function-code (symbol-function name)))
+                                     (function-code-address (symbol-function name)))
                                 (process-1-arg (%car args) :stack t)
                                 (emit-call-1 name target))
                                (use-fast-call-p

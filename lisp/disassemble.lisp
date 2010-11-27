@@ -375,7 +375,7 @@
 (defun disassemble-function (function)
   (let* (;(*locals* (getf (function-plist function) 'sys::locals))
          (*locals* (local-variable-information function))
-         (*start-address* (function-code function))
+         (*start-address* (function-code-address function))
          (*end-address* *start-address*)
          (block (make-disassembly-block :start-address *start-address*))
          (*blocks* (list block))
@@ -433,13 +433,13 @@
                                  (fboundp thing)
                                  (not (autoloadp thing)))
                         (let* ((function (symbol-function thing))
-                               (code (function-code function)))
+                               (code-address (function-code-address function)))
                           #+x86
                           (setf (gethash (value-to-ub32 function) *runtime-addresses*) function)
                           #+x86-64
                           (setf (gethash (value-to-ub64 function) *runtime-addresses*) function)
-                          (when code
-                            (setf (gethash code *runtime-addresses*) thing))))))
+                          (when code-address
+                            (setf (gethash code-address *runtime-addresses*) thing))))))
         (dolist (package (list-all-packages))
           (dolist (symbol (package-external-symbols package))
             (process symbol))

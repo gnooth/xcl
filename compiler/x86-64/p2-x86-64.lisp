@@ -2688,7 +2688,7 @@
     (cond ((use-fast-call-p)
            (cond ((and kernel-function-p
                        (eql (function-arity op) 0)
-                       (function-code (symbol-function op)))
+                       (function-code-address (symbol-function op)))
                   (emit-call op))
                  (kernel-function-p
 ;;                   (emit-move-function-to-register op :rdi)
@@ -2731,7 +2731,7 @@
     (declare (type compiland compiland))
     (cond (kernel-function-p
            (cond ((and (eql (function-arity op) 1)
-                       (function-code (symbol-function op))
+                       (function-code-address (symbol-function op))
                        (or use-fast-call-p
                            (memq :safe (function-attributes op))))
                   (process-1-arg arg :rdi t)
@@ -2787,7 +2787,7 @@
     (declare (type compiland compiland))
     (cond (kernel-function-p
            (cond ((and (eql (function-arity op) 2)
-                       (function-code (symbol-function op))
+                       (function-code-address (symbol-function op))
                        (or use-fast-call-p
                            (memq :safe (function-attributes op))))
                   (process-2-args args '(:rdi :rsi) t)
@@ -2843,7 +2843,7 @@
     (declare (type compiland compiland))
     (cond (kernel-function-p
            (cond ((and (eql (function-arity op) 3)
-                       (function-code (symbol-function op))
+                       (function-code-address (symbol-function op))
                        (or use-fast-call-p
                            (memq :safe (function-attributes op))))
                   (process-3-args args '(:rdi :rsi :rdx) t)
@@ -2898,7 +2898,7 @@
     (cond ((use-fast-call-p)
            (cond ((and kernel-function-p
                        (eql (function-arity op) 4)
-                       (function-code (symbol-function op)))
+                       (function-code-address (symbol-function op)))
                   (process-4-args args '(:rdi :rsi :rdx :rcx) t)
                   (emit-call op))
                  (kernel-function-p
@@ -2945,7 +2945,7 @@
     (cond ((use-fast-call-p)
            (cond ((and kernel-function-p
                        (eql (function-arity op) 5)
-                       (function-code (symbol-function op)))
+                       (function-code-address (symbol-function op)))
                   (process-5-args args '(:rdi :rsi :rdx :rcx :r8) t)
                   (emit-call op))
                  (kernel-function-p
@@ -3020,7 +3020,7 @@
     (cond ((and use-fast-call-p
                 kernel-function-p
                 (eql (function-arity op) 6)
-                (function-code (symbol-function op)))
+                (function-code-address (symbol-function op)))
            (inst :mov :rax :r9)
            (inst :add +bytes-per-word+ :rsp)
            (inst :pop :r8)
@@ -4400,7 +4400,7 @@
                          (cond ((and use-fast-call-p
                                      kernel-function-p
                                      (eql (function-arity name) 1)
-                                     (function-code (symbol-function name)))
+                                     (function-code-address (symbol-function name)))
                                 (process-1-arg (%car args) :rdi t)
                                 (emit-call name))
                                (use-fast-call-p
