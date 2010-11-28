@@ -56,9 +56,7 @@
            (show-restarts (compute-restarts) *debug-io*)
            (top-level::repl)))))
 
-(defun invoke-debugger (condition)
-  (let ((*saved-backtrace* (backtrace-as-list))
-        (*saved-stack* (current-stack-as-list)))
+(defun %invoke-debugger (condition)
     (let ((old-hook *invoke-debugger-hook*))
       (when old-hook
         (let ((*invoke-debugger-hook* nil))
@@ -85,4 +83,9 @@
                    (dolist (frame *saved-backtrace*)
                      (format *debug-io* "~3D: ~S~%" n frame)
                      (incf n)))
-                 (quit))))))))
+                 (quit)))))))
+
+(defun invoke-debugger (condition)
+  (let ((*saved-backtrace* (backtrace-as-list))
+        (*saved-stack* (current-stack-as-list)))
+  (%invoke-debugger condition)))

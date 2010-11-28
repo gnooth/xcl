@@ -16,6 +16,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+#include <signal.h>
+
 #include "lisp.hpp"
 #include "Frame.hpp"
 #include "primitives.hpp"
@@ -89,6 +91,16 @@ void gc_warn_proc(char * msg, GC_word arg)
   fflush(stdout);
 }
 
+#ifdef __linux__
+static void segv_handler(int sig, siginfo_t *si, void *unused)
+{
+  SYS_set_symbol_global_value(S_saved_stack, SYS_current_stack_as_list());
+  SYS_set_symbol_global_value(S_saved_backtrace, current_thread()->backtrace_as_list(MOST_POSITIVE_FIXNUM));
+  printf("SIGSEGV at address 0x%lx\n", (unsigned long) si->si_addr);
+  siglongjmp(*primordial_frame->jmp(), 101);
+}
+#endif
+
 volatile bool boot_loaded_p = false;
 
 int __main(int argc, char * argv[])
@@ -125,12 +137,23 @@ int __main(int argc, char * argv[])
 
   initialize_control_c_handler();
 
+#ifdef __linux__
+  struct sigaction sa;
+  sa.sa_flags = SA_SIGINFO;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_sigaction = segv_handler;
+  if (sigaction(SIGSEGV, &sa, NULL) == -1)
+    perror("sigaction");
+  if (sigaction(SIGABRT, &sa, NULL) == -1)
+    perror("sigaction2");
+#endif
+
   primordial_frame = new Frame();
   Thread * const thread = current_thread();
   Function * interactive_eval = (Function *) the_symbol(S_interactive_eval)->function();
   while (true)
     {
-      setjmp(*primordial_frame->jmp());
+      int ret = sigsetjmp(*primordial_frame->jmp(), 1);
 
       thread->set_stack(0);
       thread->set_call_depth(0);
@@ -138,6 +161,12 @@ int __main(int argc, char * argv[])
       thread->set_last_tag(NULL);
 
       call_depth_limit = DEFAULT_CALL_DEPTH_LIMIT;
+
+      if (ret == 101)
+        {
+          if (CL_fboundp(S_invoke_debugger_internal))
+            current_thread()->execute(the_symbol(S_invoke_debugger_internal)->function(), make_value(new Error("SIGSEGV")));
+        }
 
       if (!boot_loaded_p)
         {

@@ -1,6 +1,6 @@
 ;;; boot.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -190,6 +190,7 @@
 (maybe-load-system-file "lisp/apply-key.xcl")
 
 (load-system-file "lisp/invoke-debugger")
+;; (load-system-file "lisp/stack")
 (load-system-file "lisp/signal")
 (load-system-file "lisp/concatenate")
 (load-system-file "lisp/copy-seq")
@@ -249,6 +250,8 @@
 (load-system-file "lisp/load")
 
 (load-system-file "lisp/epsilons.lisp")
+
+(load-system-file "lisp/stack") ; needs DEFSTRUCT
 
 (defvar ext:*load-path* nil)
 

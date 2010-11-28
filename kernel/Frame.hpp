@@ -34,7 +34,7 @@ class Frame : public gc
 {
 private:
   const FrameType _type;
-  jmp_buf _jmp;
+  sigjmp_buf _jmp;
   void * _last_special_binding;
   Frame * _last_control_frame;
   Tag * _last_tag;

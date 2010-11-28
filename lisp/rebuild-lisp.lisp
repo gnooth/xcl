@@ -333,6 +333,7 @@
                           "sort"
                           "source"
                           "stable-sort"
+                          "stack"
                           "step"
                           "string-capitalize"
                           "string-downcase"
