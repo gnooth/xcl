@@ -765,7 +765,7 @@ extern Value SYS_sharp_s(Value stream, Value subchar, Value numarg);
 extern Value SYS_sharp_star(Value stream, Value subchar, Value numarg);
 extern Value SYS_sharp_vertical_bar(Value stream, Value subchar, Value numarg);
 extern Value SYS_sharp_x(Value stream, Value subchar, Value numarg);
-extern Value SYS_show_control_frames();
+extern Value SYS_print_control_frames();
 extern Value SYS_simple_array_p(Value arg);
 extern Value SYS_simple_bit_vector_bit_and(Value arg1, Value arg2, Value arg3);
 extern Value SYS_simple_bit_vector_bit_andc1(Value arg1, Value arg2, Value arg3);

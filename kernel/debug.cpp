@@ -20,9 +20,9 @@
 #include "primitives.hpp"
 
 // ### show-control-frames
-Value SYS_show_control_frames()
+Value SYS_print_control_frames()
 {
-  current_thread()->show_control_frames();
+  current_thread()->print_control_frames();
   return NIL;
 }
 

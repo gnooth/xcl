@@ -290,7 +290,7 @@ Block * Thread::find_block(Block * block)
   return NULL;
 }
 
-void Thread::show_control_frames()
+void Thread::print_control_frames()
 {
   Frame * frame = _last_control_frame;
   int count = 0;
