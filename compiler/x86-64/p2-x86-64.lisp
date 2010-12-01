@@ -462,9 +462,11 @@
 
 (defun p2-block (form target)
   (let* ((block (cadr form))
+         (block-var (block-block-var block))
          (last-special-binding-var (block-last-special-binding-var block))
          (*visible-blocks* (cons block *visible-blocks*))
          (BLOCK-EXIT (make-label))
+         (LABEL1 (make-label))
          (compiland *current-compiland*)
          (thread-register (compiland-thread-register compiland)))
     (declare (type cblock block))
@@ -473,50 +475,42 @@
       (aver thread-register)
       (cond (thread-register
              (inst :mov thread-register :rdi)
-;;              (mumble "p2 block ~S emitting call to RT_thread_last_special_binding~%"
-;;                         (block-name block))
              (emit-call "RT_thread_last_special_binding"))
             (t
              (emit-call "RT_current_thread_last_special_binding")))
-;;       (emit-move-register-to-local :rax (var-index last-special-binding-var))
-      (inst :mov :rax last-special-binding-var)
-      )
+      (inst :mov :rax last-special-binding-var))
     (setf (block-exit block) BLOCK-EXIT)
     (setf (block-target block) target)
     (cond ((block-non-local-return-p block)
-;;            (mumble "p2-block ~S non-local return case~%" (block-name block))
-           (let ((block-var (block-block-var block)))
-             (aver block-var)
-             (aver thread-register)
-             (p2-symbol (block-name block) :rsi)
-             (inst :mov thread-register :rdi)
-             (emit-call "RT_enter_block")
-             (emit-move-register-to-var :rax block-var)
-             (inst :mov :rax :rdi)
-             (emit-call "RT_frame_jmp")
-             (inst :mov :rax :rdi)
-             (emit-call "setjmp")
-             (inst :test :rax :rax)
-             (let ((LABEL1 (make-label)))
-               (emit-jmp-short :nz LABEL1)
-               (p2-progn-body (block-body block) :rax)
-               (inst :push :rax) ; save result
-               (inst :mov thread-register :rdi) ; thread
-               (emit-move-var-to-register block-var :rsi) ; block
-               (inst :sub +bytes-per-word+ :rsp) ; align stack
-               (emit-call "RT_leave_block")
-               (inst :add +bytes-per-word+ :rsp)
-               (inst :pop :rax) ; restore result
-               (emit-jmp-short t BLOCK-EXIT)
-               (label LABEL1)
-               (inst :mov thread-register :rdi) ; thread
-               (emit-move-var-to-register block-var :rsi) ; block
-               (emit-call "RT_block_non_local_return")
-               (label BLOCK-EXIT))))
-          (t
-;;            (mumble "p2-block ~S default case, proceeding to progn body~%" (block-name block))
+           (aver block-var)
+           (aver thread-register)
+           (p2-symbol (block-name block) :rsi)
+           (inst :mov thread-register :rdi)
+           (emit-call "RT_enter_block")
+           (emit-move-register-to-var :rax block-var)
+           (inst :mov :rax :rdi)
+           (emit-call "RT_frame_jmp")
+           (inst :mov :rax :rdi)
+           (emit-call "setjmp")
+           (inst :test :rax :rax)
+           (emit-jmp-short :nz LABEL1)
            (p2-progn-body (block-body block) :rax)
-           (label BLOCK-EXIT)))
+           (emit-jmp-short t BLOCK-EXIT)
+           (label LABEL1)
+           (inst :mov thread-register :rdi) ; thread
+           (emit-move-var-to-register block-var :rsi) ; block
+           (emit-call "RT_block_non_local_return"))
+          (t
+           (p2-progn-body (block-body block) :rax)))
+    (label BLOCK-EXIT)
+    (when (block-non-local-return-p block)
+      (inst :push :rax) ; save result
+      (inst :mov thread-register :rdi) ; thread
+      (emit-move-var-to-register block-var :rsi) ; block
+      (inst :sub +bytes-per-word+ :rsp) ; align stack
+      (emit-call "RT_leave_block")
+      (inst :add +bytes-per-word+ :rsp)
+      (inst :pop :rax)) ; restore result
     (when last-special-binding-var
       ;; save rax
       (inst :push :rax)
@@ -526,16 +520,13 @@
       (cond (thread-register
              (p2-var-ref (make-var-ref last-special-binding-var) :rsi)
              (inst :mov thread-register :rdi)
-;;              (mumble "p2 block ~S emitting call to RT_thread_set_last_special_binding~%"
-;;                         (block-name block))
              (emit-call "RT_thread_set_last_special_binding"))
             (t
              (p2-var-ref (make-var-ref last-special-binding-var) :rdi)
              (emit-call "RT_current_thread_set_last_special_binding")))
       ;; restore rax
       (inst :add +bytes-per-word+ :rsp)
-      (inst :pop :rax)
-      )
+      (inst :pop :rax))
     (move-result-to-target target)))
 
 (defun p2-return-from (form target)
