@@ -243,7 +243,7 @@
                           "ldiff"
                           "list-length"
                           ;; FIXME load.xcl is broken Oct 26 2010 5:05 AM
-                          ;; "load"
+                          #+x86-64 "load"
                           "load-logical-pathname-translations"
                           "logical-pathname"
                           "logical-pathname-translations"
