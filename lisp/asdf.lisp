@@ -2500,7 +2500,7 @@ located."
     (:ccl :clozure)
     (:corman :cormanlisp)
     (:abcl :armedbear)
-    :sbcl :cmu :clisp :gcl :ecl :scl))
+    :sbcl :cmu :clisp :gcl :ecl :scl :xcl))
 
 (defparameter *os-features*
   '((:win :windows :mswindows :win32 :mingw32) ;; shorten things on windows
