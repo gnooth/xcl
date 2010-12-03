@@ -853,11 +853,11 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_slot_reader, SYS_slot_reader, 1, 1);
   ADD_PRIMITIVE(S_slot_type, SYS_slot_type, 1, 1);
   ADD_PRIMITIVE(S_standard_object_p, SYS_standard_object_p, 1, 1);
-  ADD_PRIMITIVE(S_start_profiler, SYS_start_profiler, 1, 1);
+  ADD_PRIMITIVE(S_start_profiler, PROF_start_profiler, 1, 1);
   ADD_PRIMITIVE(S_std_instance_layout, SYS_std_instance_layout, 1, 1);
   ADD_PRIMITIVE(S_std_instance_slot_value, SYS_std_instance_slot_value, 2, 2);
-  ADD_PRIMITIVE(S_profiler_sample_count, SYS_profiler_sample_count, 0, 0);
-  ADD_PRIMITIVE(S_stop_profiler, SYS_stop_profiler, 0, 0);
+  ADD_PRIMITIVE(S_sample_count, PROF_sample_count, 0, 0);
+  ADD_PRIMITIVE(S_stop_profiler, PROF_stop_profiler, 0, 0);
   ADD_PRIMITIVE(S_stream_charpos_internal, SYS_stream_charpos_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_close_internal, SYS_stream_close_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_fresh_line_internal, SYS_stream_fresh_line_internal, 1, 1);

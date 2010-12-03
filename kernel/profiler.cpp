@@ -89,7 +89,7 @@ static void zero_call_count(Symbol * symbol)
 }
 
 // ### start-profiler
-Value SYS_start_profiler(Value max_depth)
+Value PROF_start_profiler(Value max_depth)
 {
 //   Thread * const thread = current_thread();
   if (profiling)
@@ -180,7 +180,8 @@ Value SYS_start_profiler(Value max_depth)
   return T;
 }
 
-Value SYS_stop_profiler()
+// ### stop-profiler
+Value PROF_stop_profiler()
 {
   if (profiling)
     {
@@ -203,7 +204,8 @@ Value SYS_stop_profiler()
   return T;
 }
 
-Value SYS_profiler_sample_count()
+// ### sample-count
+Value PROF_sample_count()
 {
     return make_unsigned_integer(profiler_sample_count);
 }

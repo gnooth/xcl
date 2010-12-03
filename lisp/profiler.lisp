@@ -126,7 +126,7 @@
 (defun show-call-counts ()
   (let ((list (list-called-objects)))
     (setf list (sort list #'< :key 'profile-info-count))
-    (let ((max-count (profiler-sample-count)))
+    (let ((max-count (sample-count)))
 ;;     (let ((max-count nil))
 ;;       (let ((last-info (car (last list))))
 ;;         (setq max-count (if last-info
