@@ -1,6 +1,6 @@
 // Package.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,6 +31,7 @@ Package * PACKAGE_MOP;
 Package * PACKAGE_EXT;
 Package * PACKAGE_TPL;
 Package * PACKAGE_COMPILER;
+Package * PACKAGE_PROFILER;
 
 static EqualHashTable * package_map;
 static Value all_packages;
@@ -1276,6 +1277,7 @@ void initialize_packages_1()
   PACKAGE_EXT      = new Package("EXTENSIONS");
   PACKAGE_TPL      = new Package("TOP-LEVEL");
   PACKAGE_COMPILER = new Package("COMPILER");
+  PACKAGE_PROFILER = new Package("PROFILER");
 }
 
 void initialize_packages_2()
@@ -1308,4 +1310,10 @@ void initialize_packages_2()
   PACKAGE_COMPILER->use_package(PACKAGE_CL);
   PACKAGE_COMPILER->use_package(PACKAGE_SYS);
   PACKAGE_COMPILER->use_package(PACKAGE_EXT);
+
+  PACKAGE_PROFILER->add_nickname("PROF");
+  PACKAGE_PROFILER->use_package(PACKAGE_CL);
+  PACKAGE_PROFILER->use_package(PACKAGE_SYS);
+  PACKAGE_PROFILER->use_package(PACKAGE_MOP);
+  PACKAGE_PROFILER->use_package(PACKAGE_EXT);
 }

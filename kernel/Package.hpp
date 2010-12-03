@@ -1,6 +1,6 @@
 // Package.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -75,7 +75,7 @@ public:
 
   Value add_external_symbol(Symbol * symbol);
   Value add_external_symbol(const char * name);
-  
+
   Value add_nil();
 
   Symbol * find_internal_symbol(AbstractString * name)
@@ -148,7 +148,7 @@ inline Package * check_package(Value value)
   if (packagep(value))
     return the_package(value);
   signal_type_error(value, S_package);
-  // Not reached.
+  // not reached
   return NULL;
 }
 
@@ -166,5 +166,6 @@ extern Package * PACKAGE_MOP;
 extern Package * PACKAGE_EXT;
 extern Package * PACKAGE_TPL;
 extern Package * PACKAGE_COMPILER;
+extern Package * PACKAGE_PROFILER;
 
 #endif // Package.hpp
