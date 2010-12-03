@@ -1,6 +1,6 @@
 // Frame.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -34,7 +34,11 @@ class Frame : public gc
 {
 private:
   const FrameType _type;
+#ifdef WIN32
+  jmp_buf _jmp;
+#else
   sigjmp_buf _jmp;
+#endif
   void * _last_special_binding;
   Frame * _last_control_frame;
   Tag * _last_tag;

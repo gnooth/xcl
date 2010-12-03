@@ -153,7 +153,11 @@ int __main(int argc, char * argv[])
   Function * interactive_eval = (Function *) the_symbol(S_interactive_eval)->function();
   while (true)
     {
+#ifdef __linux__
       int ret = sigsetjmp(*primordial_frame->jmp(), 1);
+#else
+      setjmp(*primordial_frame->jmp());
+#endif
 
       thread->set_stack(0);
       thread->set_call_depth(0);
@@ -162,12 +166,13 @@ int __main(int argc, char * argv[])
 
       call_depth_limit = DEFAULT_CALL_DEPTH_LIMIT;
 
+#ifdef __linux__
       if (ret == 101)
         {
           if (CL_fboundp(S_invoke_debugger_internal))
             current_thread()->execute(the_symbol(S_invoke_debugger_internal)->function(), make_value(new Error("SIGSEGV")));
         }
-
+#endif
       if (!boot_loaded_p)
         {
           boot_loaded_p = true; // only try once!
