@@ -301,4 +301,7 @@ void initialize_symbols()
   the_symbol(S_invoke_debugger_hook)->initialize_special(NIL);
 
   the_symbol(S_widetag_offset)->initialize_constant(make_fixnum(STANDARD_INPUT->widetag_offset()));
+
+  the_symbol(S_samples)->initialize_special(NIL);
+  the_symbol(S_sampling_mode)->initialize_special(NIL);
 }
