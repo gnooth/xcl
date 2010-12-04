@@ -1,6 +1,6 @@
 // String.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -423,7 +423,7 @@ BASE_CHAR String::char_at(INDEX i) const
       if (i < _capacity)
         return _chars[i];
       return bad_index(i, 0, _capacity);
-      // Not reached.
+      // not reached
       return 0;
     }
   else
@@ -787,13 +787,20 @@ void String::ensure_capacity(INDEX n)
 
 void String::append_char(char c)
 {
+  if (_has_fill_pointer && _chars && _fill_pointer < _capacity)
+    {
+      // fast path
+      _chars[_fill_pointer] = c;
+      ++_fill_pointer;
+      return;
+    }
   assert(has_fill_pointer());
   check_fill_pointer();
   ensure_capacity(_fill_pointer + 1);
   if (_chars)
     _chars[_fill_pointer] = c;
   else
-    set_char_at(_fill_pointer, c);
+    fast_set_char_at(_fill_pointer, c);
   ++_fill_pointer;
 }
 
