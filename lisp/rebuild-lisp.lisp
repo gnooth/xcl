@@ -185,6 +185,7 @@
                           "cosh"
                           "count"
                           "ctypecase"
+                          "cxr"
                           "declaim"
                           "defconstant"
                           "define-compiler-macro"
