@@ -276,6 +276,12 @@
 
 (autoload 'run-shell-command)
 
+(in-package "PROFILER")
+
+(export '(with-profiling show-call-counts))
+(autoload-macro 'with-profiling "lisp/profiler")
+(autoload 'report "lisp/profiler")
+
 ;; REVIEW
 (in-package "CL-USER")
 

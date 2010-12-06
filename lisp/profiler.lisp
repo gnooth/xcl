@@ -18,38 +18,13 @@
 
 (in-package "PROFILER")
 
-(export '(with-profiling show-call-counts))
-
-;; (defun list-called-objects ()
-;;   (let ((result nil))
-;;     (dolist (pkg (list-all-packages))
-;;       (dolist (sym (append (package-internal-symbols pkg)
-;;                            (package-external-symbols pkg)))
-;;         (when (fboundp sym)
-;;           (let* ((function (symbol-function sym))
-;;                  (count (if (functionp function)
-;;                             (function-call-count function)
-;;                             0)))
-;;               (unless (zerop count)
-;;                 (push (cons sym count) result))))))
-;;     (remove-duplicates result :key 'car :test 'eq)))
-
-;; (defun show-call-counts ()
-;;   (let ((list (list-called-objects)))
-;;     (setf list (sort list #'< :key 'cdr))
-;;     (dolist (item list)
-;;       (let* ((name (car item))
-;;              (count (cdr item))
-;;              (interpreted-p (and (fboundp name)
-;;                                  (not (compiled-function-p (symbol-function name))))))
-;;         (format t "~S~A ~D~%" name (if interpreted-p " [interpreted function]" "") count))))
-;;   (values))
+(export '(with-profiling report))
 
 (defstruct (profile-info (:constructor make-profile-info (object count)))
   object
   count)
 
-;; Returns list of all symbols with non-zero call counts.
+;; returns list of all symbols with non-zero call counts
 (defun list-called-objects ()
   (let ((result nil))
     (dolist (pkg (list-all-packages))
@@ -58,12 +33,10 @@
           (let* ((definition (fdefinition sym))
                  count)
             (cond ((typep definition 'generic-function)
-;;                    (format t "~&considering ~S~%" definition)
                    (setq count (function-call-count (funcallable-instance-function definition)))
                    (unless (eql count 0)
                      (push (make-profile-info definition count) result))
                    (dolist (method (generic-function-methods definition))
-;;                      (format t "~&considering ~S~%" method)
                      (setq count (function-call-count (method-function method)))
                      (unless (eql count 0)
                        (push (make-profile-info method count) result))))
@@ -114,32 +87,64 @@
                 (object-name object)
                 (if (object-compiled-function-p object)
                     ""
-                    " [interpreted function]")))
-;;     (format t "~8D ~S~A~%"
-;;             count
-;;             (object-name object)
-;;             (if (object-compiled-function-p object)
-;;                 ""
-;;                 " [interpreted function]"))
-    ))
+                    " [interpreted function]")))))
 
 (defun show-call-counts ()
   (let ((list (list-called-objects)))
-    (setf list (sort list #'< :key 'profile-info-count))
+    (setf list (sort list #'> :key 'profile-info-count))
     (let ((max-count (sample-count)))
-;;     (let ((max-count nil))
-;;       (let ((last-info (car (last list))))
-;;         (setq max-count (if last-info
-;;                             (profile-info-count last-info)
-;;                             nil))
-;;         (when (eql max-count 0)
-;;           (setq max-count nil)))
       (dolist (info list)
         (show-call-count info max-count))))
   (values))
 
-(defmacro with-profiling ((&key (max-depth most-positive-fixnum)) &body body)
-  `(unwind-protect (progn (start-profiler ,max-depth) ,@body)
-     (stop-profiler)))
+(defun process-samples ()
+  (sys::load-lisp-symbols)
+  (let ((ht (make-hash-table :test 'equal))
+        (results nil)
+        (max-samples (length *samples*))
+        (i 0)
+        (total-count 0))
+    (dotimes (i max-samples)
+      (let* ((address (aref *samples* i))
+             (name (sys::name-from-code-address address)))
+        (when name
+          (let ((count (gethash name ht)))
+            (if count
+                (setf (gethash name ht) (1+ count))
+                (setf (gethash name ht) 1))))))
+    (maphash (lambda (key value)
+               (push (make-profile-info key value) results))
+             ht)
+    (setq results (sort results #'> :key 'profile-info-count))
+    (format t "~2&Number of samples:     ~D~2%" max-samples)
+    (format t "~&           Self        Cumul~%")
+    (format t "~&      Count     %  Count     %    Function~%")
+    (format t "~&----------------------------------------------------~%")
+    (dolist (entry results)
+      (let* ((name (profile-info-object entry))
+             (count (profile-info-count entry))
+             (percent (/ (* count 100.0) max-samples)))
+        (format t "~4D ~6D ~5,1F ~6D ~5,1F "
+                (incf i)
+                count
+                percent
+                (incf total-count count)
+                (/ (* total-count 100.0) max-samples))
+        (format t (if (stringp name)
+                      "~A~%"
+                      "~S~%")
+                name)))))
 
-(provide "PROFILER")
+(defun report ()
+  (cond ((null *sampling-mode*)
+         (show-call-counts))
+        (t
+         (process-samples))))
+
+(defmacro with-profiling ((&key (max-depth most-positive-fixnum)
+                                (mode nil))
+                          &body body)
+  `(progn
+     (setq *sampling-mode* ,mode)
+     (unwind-protect (progn (start-profiler ,max-depth) ,@body)
+       (stop-profiler))))

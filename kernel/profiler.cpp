@@ -1,6 +1,6 @@
 // profiler.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,6 +19,7 @@
 #ifndef WIN32
 #include <signal.h>
 #include <sys/time.h>
+#include <ucontext.h>
 #endif
 
 #include "lisp.hpp"
@@ -31,6 +32,10 @@ bool volatile sample_now;
 Thread * volatile profiled_thread;
 unsigned long volatile profiler_sample_count;
 INDEX profiler_max_depth;
+
+unsigned long * samples;
+unsigned long max_samples;
+unsigned long samples_index;
 
 #ifdef WIN32
 DWORD WINAPI profiler_thread_proc(LPVOID lpParam)
@@ -47,8 +52,6 @@ DWORD WINAPI profiler_thread_proc(LPVOID lpParam)
 #else
 void * profiler_thread_proc(void * arg)
 {
-//   printf("profiler_thread_proc starting\n");
-//   fflush(stdout);
   printf("; Profiler started.\n");
   fflush(stdout);
   while (profiling)
@@ -56,18 +59,36 @@ void * profiler_thread_proc(void * arg)
       sample_now = true;
       usleep(1000); // 1 ms
     }
-//   printf("profiler_thread_proc returning\n");
-//   fflush(stdout);
+  return 0;
+}
+
+void * sigprof_thread_proc(void * arg)
+{
+  printf("; Profiler started.\n");
+  fflush(stdout);
+  while (profiling)
+    {
+      pthread_kill(profiled_thread->id(), SIGPROF);
+      usleep(1000); // 1 ms
+    }
   return 0;
 }
 #endif
 
-// #ifndef WIN32
+#ifndef WIN32
 // void sigprof_handler(int n)
-// {
-//   sample_now = true;
-// }
-// #endif
+void sigprof_handler(int sig, siginfo_t *si, void * context)
+{
+  if (profiling && current_thread() == profiled_thread)
+    {
+      ucontext_t * uc = (ucontext_t *) context;
+      void * rip = (void *) uc->uc_mcontext.gregs[REG_RIP];
+//       printf("sigprof_handler rip = 0x%lx\n", (unsigned long) rip);
+      if (samples_index < max_samples)
+        samples[samples_index++] = (unsigned long) rip;
+    }
+}
+#endif
 
 static void zero_call_count(Symbol * symbol)
 {
@@ -134,43 +155,84 @@ Value PROF_start_profiler(Value max_depth)
       if (h == NULL)
         return NIL;
 #else
-//       struct itimerval value, ovalue, pvalue;
-//       int which = ITIMER_PROF;
-//       struct sigaction sact;
-//       sigemptyset(&sact.sa_mask);
-//       sact.sa_flags = 0;
-//       sact.sa_handler = sigprof_handler;
-//       sigaction(SIGPROF, &sact, NULL);
-//       getitimer(which, &pvalue);
-//       value.it_interval.tv_sec = 0;
-//       value.it_interval.tv_usec = 1000; // 1 millisecond
-//       value.it_value.tv_sec = 0;
-//       value.it_value.tv_usec = 1000;
-//       setitimer(which, &value, &ovalue);
-//       if (ovalue.it_interval.tv_sec != pvalue.it_interval.tv_sec
-//           || ovalue.it_interval.tv_usec != pvalue.it_interval.tv_usec
-//           || ovalue.it_value.tv_sec != pvalue.it_value.tv_sec
-//           || ovalue.it_value.tv_usec != pvalue.it_value.tv_usec)
-//         return signal_lisp_error( "Real time interval timer mismatch.");
-      pthread_t id;
-      long status = GC_pthread_create(&id,
-                                      NULL,
-                                      profiler_thread_proc,
-                                      NULL);
-      if (status != 0)
+      // Linux, FreeBSD
+      if (current_thread()->symbol_value(S_sampling_mode) != NIL) // FIXME
         {
-          printf("GC_pthread_create status = %ld\n", status);
-          fflush(stdout);
-          return NIL; // Error!
+          max_samples = 50000;
+          samples = (unsigned  long *) GC_malloc_atomic(max_samples * sizeof(unsigned long *));
+          samples_index = 0;
+
+          struct sigaction sact;
+          sigemptyset(&sact.sa_mask);
+          sact.sa_flags = SA_SIGINFO;
+          sact.sa_sigaction = sigprof_handler;
+          sigaction(SIGPROF, &sact, NULL);
+
+#ifdef USE_ITIMER
+          struct itimerval value, ovalue, pvalue;
+          int which = ITIMER_PROF;
+//           struct sigaction sact;
+//           sigemptyset(&sact.sa_mask);
+// //           sact.sa_flags = 0;
+//           sact.sa_flags = SA_SIGINFO;
+// //           sact.sa_handler = sigprof_handler;
+//           sact.sa_sigaction = sigprof_handler;
+//           sigaction(SIGPROF, &sact, NULL);
+          getitimer(which, &pvalue);
+          value.it_interval.tv_sec = 0;
+          value.it_interval.tv_usec = 1000; // 1 millisecond
+          value.it_value.tv_sec = 0;
+          value.it_value.tv_usec = 1000;
+          setitimer(which, &value, &ovalue);
+          if (ovalue.it_interval.tv_sec != pvalue.it_interval.tv_sec
+              || ovalue.it_interval.tv_usec != pvalue.it_interval.tv_usec
+              || ovalue.it_value.tv_sec != pvalue.it_value.tv_sec
+              || ovalue.it_value.tv_usec != pvalue.it_value.tv_usec)
+            return signal_lisp_error( "Real time interval timer mismatch.");
+#else
+          pthread_t id;
+          long status = GC_pthread_create(&id,
+                                          NULL,
+                                          sigprof_thread_proc,
+                                          NULL);
+          if (status != 0)
+            {
+              printf("GC_pthread_create status = %ld\n", status);
+              fflush(stdout);
+              return NIL; // Error!
+            }
+          status = GC_pthread_detach(id);
+          if (status != 0)
+            {
+              printf("GC_pthread_create status = %ld\n", status);
+              fflush(stdout);
+              return NIL; // Error!
+            }
+          sched_yield();
+#endif
         }
-      status = GC_pthread_detach(id);
-      if (status != 0)
+      else
         {
-          printf("GC_pthread_create status = %ld\n", status);
-          fflush(stdout);
-          return NIL; // Error!
+          pthread_t id;
+          long status = GC_pthread_create(&id,
+                                          NULL,
+                                          profiler_thread_proc,
+                                          NULL);
+          if (status != 0)
+            {
+              printf("GC_pthread_create status = %ld\n", status);
+              fflush(stdout);
+              return NIL; // Error!
+            }
+          status = GC_pthread_detach(id);
+          if (status != 0)
+            {
+              printf("GC_pthread_create status = %ld\n", status);
+              fflush(stdout);
+              return NIL; // Error!
+            }
+          sched_yield();
         }
-      sched_yield();
 #endif
 //       printf("; Profiler started.\n");
 //       fflush(stdout);
@@ -186,16 +248,24 @@ Value PROF_stop_profiler()
   if (profiling)
     {
       profiled_thread = NULL;
-// #ifndef WIN32
-//       struct itimerval value;
-//       getitimer(ITIMER_PROF, &value);
-//       value.it_interval.tv_sec = 0;
-//       value.it_interval.tv_usec = 0;
-//       value.it_value.tv_sec = 0;
-//       value.it_value.tv_usec = 0;
-//       setitimer(ITIMER_PROF, &value, &value);
-// #endif
+#ifndef WIN32
+#ifdef USE_ITIMER
+      struct itimerval value;
+      getitimer(ITIMER_PROF, &value);
+      value.it_interval.tv_sec = 0;
+      value.it_interval.tv_usec = 0;
+      value.it_value.tv_sec = 0;
+      value.it_value.tv_usec = 0;
+      setitimer(ITIMER_PROF, &value, &value);
+#endif
+#endif
       profiling = false;
+
+      SimpleVector * vector = the_simple_vector(SYS_make_simple_vector(make_number(samples_index)));
+      for (INDEX i = 0; i < samples_index; i++)
+        vector->aset(i, make_number(samples[i]));
+      the_symbol(S_samples)->set_value(make_value(vector));
+
       printf("; Profiler stopped.\n");
     }
   else
