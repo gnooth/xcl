@@ -26,6 +26,7 @@
 
 (defvar *lisp-code-addresses*)
 
+#-windows
 (defun load-kernel-symbols ()
   (let ((symbols nil))
     (with-open-file (stream (merge-pathnames "kernel/xcl.nm" *xcl-home*))
@@ -46,6 +47,55 @@
                                         :name name)
                           symbols))))))))
       (setq *kernel-symbols* symbols))))
+
+#+windows
+(defun load-kernel-symbols ()
+  (let ((symbols nil))
+    (with-open-file (stream (merge-pathnames "kernel/xcl.nm" *xcl-home*))
+      (loop
+        (let ((line (read-line stream nil)))
+          (when (null line)
+            (return))
+          ;;         (write-line line)
+;;           (multiple-value-bind (address pos1)
+;;               (parse-integer line :radix 16 :junk-allowed t)
+;;             (when address
+;;               (multiple-value-bind (size pos2)
+;;                   (parse-integer line :start pos1 :radix 16 :junk-allowed t)
+;;                 (let ((name (and size (subseq line (+ pos2 3)))))
+;;                   (when (and address size name)
+          (let* ((pos1 (position #\space line))
+                 (token1 (subseq line 0 pos1))
+                 (pos2 (position #\space line :start (1+ pos1)))
+                 (token2 (subseq line (1+ pos1) pos2))
+                 (address (parse-integer token1 :radix 16 :junk-allowed t))
+                 (size (parse-integer token2 :radix 16 :junk-allowed t)))
+;;             (write-line line)
+;;             (format t "token1 = |~S| token2 = |~S|~%" token1 token2)
+            (cond (size
+                   (aver nil))
+                  (t
+                   (let ((name (subseq line (1+ pos2))))
+                     (unless (and (>= (length name) 5)
+                                  (string= (subseq name 0 5) ".text"))
+                       (push (make-syminfo :address address
+                                           :size size
+                                           :name name)
+                             symbols)))))))))
+    (setq *kernel-symbols* (nreverse symbols))
+    (let ((last-entry nil))
+      (dolist (this-entry *kernel-symbols*)
+        (when (and last-entry
+                   (null (syminfo-size last-entry)))
+          (setf (syminfo-size last-entry) (- (syminfo-address this-entry) (syminfo-address last-entry))))
+        (setq last-entry this-entry)))
+;;     (dolist (entry *kernel-symbols*)
+;;       (format t "address = #x~X size = ~S name = |~A|~%"
+;;               (syminfo-address entry)
+;;               (syminfo-size entry)
+;;               (syminfo-name entry)))
+    ))
+
 
 (defun load-lisp-symbols ()
   (setq *lisp-code-addresses* (make-hash-table))
@@ -87,7 +137,7 @@
                          )
                        (let ((method-fast-function (method-fast-function method)))
                          (cond ((and method-fast-function (function-code-address method-fast-function))
-                                (format t "method fast function ~S~%" method-fast-function)
+;;                                 (format t "method fast function ~S~%" method-fast-function)
                                 (push (make-syminfo :address (function-code-address method-fast-function)
                                                     :size (function-code-size method-fast-function)
                                                     :name (format nil "~S [fast function]" name))
@@ -114,7 +164,10 @@
   (when (null *kernel-symbols*)
     (load-kernel-symbols))
   (dolist (info *kernel-symbols*)
+;;     (when (null (syminfo-size info))
+;;       (format t "~A has no size information~%" (syminfo-name info)))
     (when (and (<= (syminfo-address info) address)
+               (syminfo-size info)
                (< address (+ (syminfo-address info) (syminfo-size info))))
       ;; found kernel symbol
       (let ((lisp-name (gethash (syminfo-address info) *lisp-code-addresses*)))
