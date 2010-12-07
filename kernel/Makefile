@@ -22,12 +22,6 @@ CC=g++
 
 DEBUG=no
 
-ifeq ($(PLATFORM), mingw)
-  EXE := xcl.exe
-else
-  EXE := xcl
-endif
-
 CFLAGS := -Wall -fno-exceptions -c
 
 ifeq ($(DEBUG), yes)
@@ -146,9 +140,16 @@ libxcl.so: xcl_home.h $(LIBOBJS) $(LIBS)
 xcl.dll: xcl_home.h $(LIBOBJS) $(LIBS)
 	g++ -shared -o xcl.dll $(LIBOBJS) $(LIBS)
 
+ifeq ($(PLATFORM), mingw)
+  EXE := xcl.exe
+  LDOPTS := -Wl,--enable-auto-import
+else
+  EXE := xcl
+endif
+
 .PHONY: static
 static: xcl_home.h $(OBJS) $(LIBS)
-	g++ $(OBJS) $(LIBS) -o ../$(EXE)
+	g++ $(LDOPTS) $(OBJS) $(LIBS) -o ../$(EXE)
 	nm -C -n -S ../$(EXE) | grep " [TtWw] " > xcl.nm
 	date > ../build
 
