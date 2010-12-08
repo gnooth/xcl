@@ -43,6 +43,7 @@ INDEX profiler_max_depth;
 unsigned long * samples;
 unsigned long max_samples;
 unsigned long samples_index;
+unsigned long sample_interval;
 
 #ifdef WIN32
 DWORD WINAPI profiler_thread_proc(LPVOID lpParam)
@@ -75,7 +76,7 @@ void * profiler_thread_proc(void * arg)
 
 DWORD WINAPI sigprof_thread_proc(LPVOID lpParam)
 {
-  printf("; CPU Profiler started.\n");
+  printf("; Profiler started. Sample interval is %lu milliseconds.\n", sample_interval);
   fflush(stdout);
   HANDLE h = OpenThread(THREAD_GET_CONTEXT | THREAD_SUSPEND_RESUME,
 //                         THREAD_ALL_ACCESS,
@@ -111,10 +112,12 @@ DWORD WINAPI sigprof_thread_proc(LPVOID lpParam)
           if (samples_index < max_samples)
             samples[samples_index++] = (unsigned long) context.Eip;
 
+          ++profiler_sample_count;
+
           ResumeThread(profiled_thread_handle);
 //           printf("got to here 2\n");
 //           fflush(stdout);
-          Sleep(1); // 1 ms
+          Sleep(sample_interval);
         }
     }
   if (h)
@@ -216,6 +219,8 @@ Value PROF_start_profiler(Value max_depth)
       max_samples = 50000;
       samples = (unsigned  long *) GC_malloc_atomic(max_samples * sizeof(unsigned long *));
       samples_index = 0;
+      sample_interval = fixnum_value(current_thread()->symbol_value(S_sample_interval));
+
       DWORD id;
       HANDLE h = GC_CreateThread(NULL, // default security descriptor
                                  0,    // default stack size
@@ -246,6 +251,7 @@ Value PROF_start_profiler(Value max_depth)
       max_samples = 50000;
       samples = (unsigned  long *) GC_malloc_atomic(max_samples * sizeof(unsigned long *));
       samples_index = 0;
+      sample_interval = check_fixnum(S_sample_interval);
 
       struct sigaction sact;
       sigemptyset(&sact.sa_mask);
