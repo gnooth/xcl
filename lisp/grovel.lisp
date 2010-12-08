@@ -33,7 +33,8 @@
                         (end-index (or (position #\space text :start start-index) (length text)))
                         (name (string-upcase (subseq text start-index end-index)))
                         (symbol (or (find-symbol name system-package) ; uses CL and EXT
-                                    (find-symbol name (find-package "MOP")))))
+                                    (find-symbol name (find-package "MOP"))
+                                    (find-symbol name (find-package "PROFILER")))))
                    (when symbol
                      ;; Force the symbol's package prefix to be written out
                      ;; with "::" instead of ":" so there won't be a reader
