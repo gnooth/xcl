@@ -96,6 +96,13 @@
 ;;               (syminfo-name entry)))
     ))
 
+(defun specializer-name (specializer)
+  (cond ((classp specializer)
+         (class-name specializer))
+        ((eq (class-of specializer) (find-class 'eql-specializer))
+         (list 'EQL (eql-specializer-object specializer)))
+        (t
+         (aver nil))))
 
 (defun load-lisp-symbols ()
   (setq *lisp-code-addresses* (make-hash-table))
@@ -124,7 +131,7 @@
                      (let ((name (format nil "(~S ~S ~S)"
                                          (class-name (class-of method))
                                          symbol
-                                         (mapcar 'class-name (method-specializers method)))))
+                                         (mapcar 'specializer-name (method-specializers method)))))
                        (let ((method-function (method-function method)))
                          (cond ((function-code-address method-function)
                                 (push (make-syminfo :address (function-code-address method-function)
