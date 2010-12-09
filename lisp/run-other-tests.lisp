@@ -44,7 +44,7 @@
       #+xcl (ext:gc)
       (time (asdf:oos 'asdf:test-op  :ironclad)))))
 
-(defun profile-cl-ppcre (&key mode (max-depth 1))
+(defun profile-cl-ppcre (&key mode (sample-interval 10) (max-depth 1))
   #+sbcl
   (declare (ignore mode max-depth))
   (let* ((cl-ppcre-directory
@@ -54,14 +54,14 @@
     (map nil #'delete-file (directory "*.xcl"))
     (load "load.lisp")
     #+xcl
-    (time (prof:with-profiling (:mode mode :max-depth max-depth)
+    (time (prof:with-profiling (:mode mode :sample-interval sample-interval :max-depth max-depth)
             (funcall (find-symbol "TEST" "CL-PPCRE-TEST"))))
     #+sbcl
     (time (sb-sprof:with-profiling (:mode :cpu :max-depth 1 :loop nil :report :flat)
             (funcall (find-symbol "TEST" "CL-PPCRE-TEST"))))))
 
 #+xcl
-(defun profile-ironclad (&key mode (max-depth 1))
+(defun profile-ironclad (&key mode (sample-interval 10) (max-depth 1))
   (let* ((ironclad-directory
           #+windows #p"c:/cygwin/home/peter/ironclad_0.22/"
           #-windows #p"/home/peter/ironclad_0.22/")
@@ -70,7 +70,8 @@
     (map nil #'delete-file (directory "test-vectors/*.xcl"))
     (asdf:oos 'asdf:load-op :ironclad :force t)
     (asdf:oos 'asdf:load-op :ironclad-tests :force t)
-    (time (prof:with-profiling (:mode mode :max-depth max-depth) (asdf:oos 'asdf:test-op  :ironclad)))))
+    (time (prof:with-profiling (:mode mode :sample-interval sample-interval :max-depth max-depth)
+            (asdf:oos 'asdf:test-op  :ironclad)))))
 
 #+xcl
 (defun profile-ironclad-load-op (&key (max-depth most-positive-fixnum))

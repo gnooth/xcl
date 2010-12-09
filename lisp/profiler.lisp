@@ -101,10 +101,10 @@
   (sys::load-lisp-symbols)
   (let ((ht (make-hash-table :test 'equal))
         (results nil)
-        (max-samples (length *samples*))
+        (nsamples (length *samples*))
         (i 0)
         (total-count 0))
-    (dotimes (i max-samples)
+    (dotimes (i nsamples)
       (let* ((address (aref *samples* i))
              (name (sys::name-from-code-address address)))
         (when name
@@ -116,20 +116,21 @@
                (push (make-profile-info key value) results))
              ht)
     (setq results (sort results #'> :key 'profile-info-count))
-    (format t "~2&Number of samples:     ~D~2%" max-samples)
+    (format t "~2&Number of samples:     ~D~%" nsamples)
+    (format t "~&Sample interval:       ~D millisecond~:P~2%" *sample-interval*)
     (format t "~&           Self        Cumul~%")
     (format t "~&      Count     %  Count     %    Function~%")
     (format t "~&----------------------------------------------------~%")
     (dolist (entry results)
       (let* ((name (profile-info-object entry))
              (count (profile-info-count entry))
-             (percent (/ (* count 100.0) max-samples)))
+             (percent (/ (* count 100.0) nsamples)))
         (format t "~4D ~6D ~5,1F ~6D ~5,1F "
                 (incf i)
                 count
                 percent
                 (incf total-count count)
-                (/ (* total-count 100.0) max-samples))
+                (/ (* total-count 100.0) nsamples))
         (format t (if (stringp name)
                       "~A~%"
                       "~S~%")
@@ -141,10 +142,12 @@
         (t
          (process-samples))))
 
-(defmacro with-profiling ((&key (max-depth most-positive-fixnum)
+(defmacro with-profiling ((&key (sample-interval '*sample-interval*)
+                                (max-depth 1)
                                 (mode nil))
                           &body body)
   `(progn
      (setq *sampling-mode* ,mode)
+     (setq *sample-interval* ,sample-interval)
      (unwind-protect (progn (start-profiler ,max-depth) ,@body)
        (stop-profiler))))
