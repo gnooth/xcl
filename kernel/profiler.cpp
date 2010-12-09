@@ -157,18 +157,6 @@ static void zero_call_count(Symbol * symbol)
 {
   TypedObject * function = symbol->function();
   if (function)
-//     {
-//       switch (function->widetag())
-//         {
-//         case WIDETAG_FUNCTION:
-//         case WIDETAG_PRIMITIVE:
-//         case WIDETAG_CLOSURE:
-//           ((Function *)function)->set_call_count(0);
-//           break;
-//         default:
-//           break;
-//         }
-//     }
     function->set_call_count(0);
 }
 
@@ -196,10 +184,40 @@ static void zero_call_counts()
     }
 }
 
+#ifdef WIN32
+void create_profiler_thread(LPTHREAD_START_ROUTINE p)
+{
+
+}
+#else
+void create_profiler_thread(void * (* start)(void *))
+{
+  pthread_t id;
+  long status = GC_pthread_create(&id,
+                                  NULL,
+                                  //sigprof_thread_proc,
+                                  start,
+                                  NULL);
+  if (status != 0)
+    {
+      printf("GC_pthread_create status = %ld\n", status);
+      fflush(stdout);
+      return; // FIXME error
+    }
+  status = GC_pthread_detach(id);
+  if (status != 0)
+    {
+      printf("GC_pthread_create status = %ld\n", status);
+      fflush(stdout);
+      return; // FIXME error
+    }
+  sched_yield();
+}
+#endif
+
 // ### start-profiler
 Value PROF_start_profiler(Value max_depth)
 {
-//   Thread * const thread = current_thread();
   if (profiling)
     {
       printf("; Profiler already started.\n");
@@ -207,20 +225,26 @@ Value PROF_start_profiler(Value max_depth)
       return T;
     }
 
+  Thread * const thread = current_thread();
+  Value sampling_mode = thread->symbol_value(S_sampling_mode);
+
   profiler_max_depth = check_index(max_depth);
   zero_call_counts();
   profiler_sample_count = 0;
   profiling = true;
-  profiled_thread = current_thread();
+  profiled_thread = thread;
 
-#ifdef WIN32
-  if (current_thread()->symbol_value(S_sampling_mode) != NIL) // FIXME
+  if (sampling_mode == K_time || sampling_mode == K_cpu)
     {
       max_samples = 50000;
       samples = (unsigned  long *) GC_malloc_atomic(max_samples * sizeof(unsigned long *));
       samples_index = 0;
-      sample_interval = fixnum_value(current_thread()->symbol_value(S_sample_interval));
+      sample_interval = check_index(thread->symbol_value(S_sample_interval));
+    }
 
+#ifdef WIN32
+  if (sampling_mode == K_time) // FIXME
+    {
       DWORD id;
       HANDLE h = GC_CreateThread(NULL, // default security descriptor
                                  0,    // default stack size
@@ -246,84 +270,35 @@ Value PROF_start_profiler(Value max_depth)
 
 #ifndef WIN32
   // Linux, FreeBSD
-  if (current_thread()->symbol_value(S_sampling_mode) != NIL) // FIXME
+  if (sampling_mode != NIL) // FIXME
     {
-      max_samples = 50000;
-      samples = (unsigned  long *) GC_malloc_atomic(max_samples * sizeof(unsigned long *));
-      samples_index = 0;
-      sample_interval = fixnum_value(current_thread()->symbol_value(S_sample_interval));
-
       struct sigaction sact;
       sigemptyset(&sact.sa_mask);
       sact.sa_flags = SA_SIGINFO;
       sact.sa_sigaction = sigprof_handler;
       sigaction(SIGPROF, &sact, NULL);
 
-#ifdef USE_ITIMER
-      struct itimerval value, ovalue, pvalue;
-      int which = ITIMER_PROF;
-      //           struct sigaction sact;
-      //           sigemptyset(&sact.sa_mask);
-      // //           sact.sa_flags = 0;
-      //           sact.sa_flags = SA_SIGINFO;
-      // //           sact.sa_handler = sigprof_handler;
-      //           sact.sa_sigaction = sigprof_handler;
-      //           sigaction(SIGPROF, &sact, NULL);
-      getitimer(which, &pvalue);
-      value.it_interval.tv_sec = 0;
-      value.it_interval.tv_usec = 1000; // 1 millisecond
-      value.it_value.tv_sec = 0;
-      value.it_value.tv_usec = 1000;
-      setitimer(which, &value, &ovalue);
-      if (ovalue.it_interval.tv_sec != pvalue.it_interval.tv_sec
-          || ovalue.it_interval.tv_usec != pvalue.it_interval.tv_usec
-          || ovalue.it_value.tv_sec != pvalue.it_value.tv_sec
-          || ovalue.it_value.tv_usec != pvalue.it_value.tv_usec)
-        return signal_lisp_error( "Real time interval timer mismatch.");
-#else
-      pthread_t id;
-      long status = GC_pthread_create(&id,
-                                      NULL,
-                                      sigprof_thread_proc,
-                                      NULL);
-      if (status != 0)
+      if (sampling_mode == K_cpu)
         {
-          printf("GC_pthread_create status = %ld\n", status);
-          fflush(stdout);
-          return NIL; // Error!
+          struct itimerval value, ovalue, pvalue;
+          int which = ITIMER_PROF;
+          getitimer(which, &pvalue);
+          value.it_interval.tv_sec = 0;
+          value.it_interval.tv_usec = 1000; // 1 millisecond
+          value.it_value.tv_sec = 0;
+          value.it_value.tv_usec = 1000;
+          setitimer(which, &value, &ovalue);
+          if (ovalue.it_interval.tv_sec != pvalue.it_interval.tv_sec
+              || ovalue.it_interval.tv_usec != pvalue.it_interval.tv_usec
+              || ovalue.it_value.tv_sec != pvalue.it_value.tv_sec
+              || ovalue.it_value.tv_usec != pvalue.it_value.tv_usec)
+            return signal_lisp_error( "Real time interval timer mismatch.");
         }
-      status = GC_pthread_detach(id);
-      if (status != 0)
-        {
-          printf("GC_pthread_create status = %ld\n", status);
-          fflush(stdout);
-          return NIL; // Error!
-        }
-      sched_yield();
-#endif
+      else
+        create_profiler_thread(sigprof_thread_proc);
     }
   else
-    {
-      pthread_t id;
-      long status = GC_pthread_create(&id,
-                                      NULL,
-                                      profiler_thread_proc,
-                                      NULL);
-      if (status != 0)
-        {
-          printf("GC_pthread_create status = %ld\n", status);
-          fflush(stdout);
-          return NIL; // Error!
-        }
-      status = GC_pthread_detach(id);
-      if (status != 0)
-        {
-          printf("GC_pthread_create status = %ld\n", status);
-          fflush(stdout);
-          return NIL; // Error!
-        }
-      sched_yield();
-    }
+      create_profiler_thread(profiler_thread_proc);
 #endif
   return T;
 }
@@ -334,23 +309,28 @@ Value PROF_stop_profiler()
   if (profiling)
     {
       profiled_thread = NULL;
+      Value sampling_mode = current_thread()->symbol_value(S_sampling_mode);
 #ifndef WIN32
-#ifdef USE_ITIMER
-      struct itimerval value;
-      getitimer(ITIMER_PROF, &value);
-      value.it_interval.tv_sec = 0;
-      value.it_interval.tv_usec = 0;
-      value.it_value.tv_sec = 0;
-      value.it_value.tv_usec = 0;
-      setitimer(ITIMER_PROF, &value, &value);
-#endif
+      if (sampling_mode == K_cpu)
+        {
+          struct itimerval value;
+          getitimer(ITIMER_PROF, &value);
+          value.it_interval.tv_sec = 0;
+          value.it_interval.tv_usec = 0;
+          value.it_value.tv_sec = 0;
+          value.it_value.tv_usec = 0;
+          setitimer(ITIMER_PROF, &value, &value);
+        }
 #endif
       profiling = false;
 
-      SimpleVector * vector = the_simple_vector(SYS_make_simple_vector(make_number(samples_index)));
-      for (INDEX i = 0; i < samples_index; i++)
-        vector->aset(i, make_number(samples[i]));
-      the_symbol(S_samples)->set_value(make_value(vector));
+      if (sampling_mode == K_time || sampling_mode == K_cpu)
+        {
+          SimpleVector * vector = the_simple_vector(SYS_make_simple_vector(make_number(samples_index)));
+          for (INDEX i = 0; i < samples_index; i++)
+            vector->aset(i, make_number(samples[i]));
+          the_symbol(S_samples)->set_value(make_value(vector));
+        }
 
       printf("; Profiler stopped.\n");
     }

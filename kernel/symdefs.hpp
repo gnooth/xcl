@@ -1731,6 +1731,7 @@ DEFINE_KEYWORD(capitalize, "CAPITALIZE");
 DEFINE_KEYWORD(case, "CASE");
 DEFINE_KEYWORD(common, "COMMON");
 DEFINE_KEYWORD(common_lisp, "COMMON-LISP");
+DEFINE_KEYWORD(cpu, "CPU");
 DEFINE_KEYWORD(datum, "DATUM");
 DEFINE_KEYWORD(default, "DEFAULT");
 DEFINE_KEYWORD(defaults, "DEFAULTS");
@@ -1779,6 +1780,7 @@ DEFINE_KEYWORD(relative, "RELATIVE");
 DEFINE_KEYWORD(start, "START");
 DEFINE_KEYWORD(stream, "STREAM");
 DEFINE_KEYWORD(supersede, "SUPERSEDE");
+DEFINE_KEYWORD(time, "TIME");
 DEFINE_KEYWORD(type, "TYPE");
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__)
 DEFINE_KEYWORD(unix, "UNIX");

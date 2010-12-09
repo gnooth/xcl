@@ -68,8 +68,8 @@
          (*default-pathname-defaults* ironclad-directory))
     (map nil #'delete-file (directory "*.xcl"))
     (map nil #'delete-file (directory "test-vectors/*.xcl"))
-    (asdf:oos 'asdf:load-op :ironclad :force t)
-    (asdf:oos 'asdf:load-op :ironclad-tests :force t)
+    (asdf:oos 'asdf:load-op :ironclad)
+    (asdf:oos 'asdf:load-op :ironclad-tests)
     (time (prof:with-profiling (:mode mode :sample-interval sample-interval :max-depth max-depth)
             (asdf:oos 'asdf:test-op  :ironclad)))))
 
