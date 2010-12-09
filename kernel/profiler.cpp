@@ -251,7 +251,7 @@ Value PROF_start_profiler(Value max_depth)
       max_samples = 50000;
       samples = (unsigned  long *) GC_malloc_atomic(max_samples * sizeof(unsigned long *));
       samples_index = 0;
-      sample_interval = check_fixnum(S_sample_interval);
+      sample_interval = fixnum_value(current_thread()->symbol_value(S_sample_interval));
 
       struct sigaction sact;
       sigemptyset(&sact.sa_mask);
