@@ -72,51 +72,36 @@ void * profiler_thread_proc(void * arg)
 #endif
 
 #ifdef WIN32
-// WINBASEAPI HANDLE WINAPI OpenThread(DWORD,BOOL,DWORD);
-
 DWORD WINAPI sigprof_thread_proc(LPVOID lpParam)
 {
   printf("; Profiler started. Sample interval is %lu milliseconds.\n", sample_interval);
   fflush(stdout);
   HANDLE h = OpenThread(THREAD_GET_CONTEXT | THREAD_SUSPEND_RESUME,
-//                         THREAD_ALL_ACCESS,
                         FALSE,
                         profiled_thread->id());
   profiled_thread_handle = h;
-  printf("handle = 0x%08lx\n", (unsigned long) profiled_thread_handle);
-  fflush(stdout);
   if (profiled_thread_handle != NULL)
     {
       while (profiling)
         {
-//           printf("got to here 1\n");
-//           fflush(stdout);
           SuspendThread(profiled_thread_handle);
-//           printf("ret = 0x%08lx\n", ret);
-//           fflush(stdout);
           CONTEXT context;
           ZeroMemory(&context, sizeof(context));
 #define CONTEXT_ALL (CONTEXT_CONTROL | CONTEXT_INTEGER | CONTEXT_SEGMENTS | CONTEXT_FLOATING_POINT | CONTEXT_DEBUG_REGISTERS)
           context.ContextFlags = CONTEXT_ALL;
           BOOL ret2 = GetThreadContext(profiled_thread_handle, &context);
-//           printf("ret2 = %d\n", ret2);
-//           fflush(stdout);
           if (ret2 == 0)
             {
               printf("GetLastError() = %ld\n", GetLastError());
               fflush(stdout);
               break;
             }
-//           printf("0x%08lx\n", context.Eip);
-//           fflush(stdout);
           if (samples_index < max_samples)
             samples[samples_index++] = (unsigned long) context.Eip;
 
           ++profiler_sample_count;
 
           ResumeThread(profiled_thread_handle);
-//           printf("got to here 2\n");
-//           fflush(stdout);
           Sleep(sample_interval);
         }
     }
@@ -139,14 +124,12 @@ void * sigprof_thread_proc(void * arg)
 #endif
 
 #ifndef WIN32
-// void sigprof_handler(int n)
 void sigprof_handler(int sig, siginfo_t *si, void * context)
 {
   if (profiling && current_thread() == profiled_thread)
     {
       ucontext_t * uc = (ucontext_t *) context;
       void * rip = (void *) uc->uc_mcontext.gregs[REG_RIP];
-//       printf("sigprof_handler rip = 0x%lx\n", (unsigned long) rip);
       if (samples_index < max_samples)
         samples[samples_index++] = (unsigned long) rip;
     }
@@ -185,31 +168,37 @@ static void zero_call_counts()
 }
 
 #ifdef WIN32
-void create_profiler_thread(LPTHREAD_START_ROUTINE p)
+void create_profiler_thread(LPTHREAD_START_ROUTINE start)
 {
-
+  DWORD id;
+  HANDLE h = GC_CreateThread(NULL, // default security descriptor
+                             0,    // default stack size
+                             start,
+                             NULL,
+                             0,    // default creation flags
+                             &id);
+  if (!h)
+    signal_lisp_error("Unable to create profiler thread.");
 }
 #else
 void create_profiler_thread(void * (* start)(void *))
 {
   pthread_t id;
-  long status = GC_pthread_create(&id,
-                                  NULL,
-                                  //sigprof_thread_proc,
-                                  start,
-                                  NULL);
+  long status = GC_pthread_create(&id, NULL, start, NULL);
   if (status != 0)
     {
       printf("GC_pthread_create status = %ld\n", status);
       fflush(stdout);
-      return; // FIXME error
+      signal_lisp_error("Unable to create profiler thread.");
+      return;
     }
   status = GC_pthread_detach(id);
   if (status != 0)
     {
-      printf("GC_pthread_create status = %ld\n", status);
+      printf("GC_pthread_detach status = %ld\n", status);
       fflush(stdout);
-      return; // FIXME error
+      signal_lisp_error("Unable to detach profiler thread.");
+      return;
     }
   sched_yield();
 }
@@ -244,28 +233,9 @@ Value PROF_start_profiler(Value max_depth)
 
 #ifdef WIN32
   if (sampling_mode == K_time) // FIXME
-    {
-      DWORD id;
-      HANDLE h = GC_CreateThread(NULL, // default security descriptor
-                                 0,    // default stack size
-                                 sigprof_thread_proc,
-                                 NULL,
-                                 0,    // default creation flags
-                                 &id);
-      return (h != NULL) ? T : NIL;
-    }
+    create_profiler_thread(sigprof_thread_proc);
   else
-    {
-
-      DWORD id;
-      HANDLE h = GC_CreateThread(NULL, // default security descriptor
-                                 0,    // default stack size
-                                 profiler_thread_proc,
-                                 NULL,
-                                 0,    // default creation flags
-                                 &id);
-      return (h != NULL) ? T : NIL;
-    }
+    create_profiler_thread(profiler_thread_proc);
 #endif
 
 #ifndef WIN32
