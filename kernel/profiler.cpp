@@ -71,6 +71,18 @@ void * profiler_thread_proc(void * arg)
 }
 #endif
 
+inline void resize_samples_vector()
+{
+  INDEX new_size = max_samples * 2;
+  INDEX * new_samples = (INDEX *) GC_malloc_atomic(new_size * sizeof(unsigned long *));
+  for (INDEX i = 0; i < max_samples; i++)
+    new_samples[i] = samples[i];
+  for (INDEX i = max_samples; i < new_size; i++)
+    new_samples[i] = 0;
+  samples = new_samples;
+  max_samples = new_size;
+}
+
 #ifdef WIN32
 DWORD WINAPI sigprof_thread_proc(LPVOID lpParam)
 {
@@ -91,12 +103,10 @@ DWORD WINAPI sigprof_thread_proc(LPVOID lpParam)
           context.ContextFlags = CONTEXT_ALL;
           if (GetThreadContext(profiled_thread_handle, &context))
             {
-              if (samples_index < max_samples)
-                samples[samples_index++] = (unsigned long) context.Eip;
-              else
-                {
-                  // FIXME resize samples vector
-                }
+              if (samples_index >= max_samples)
+                resize_samples_vector();
+              samples[samples_index++] = (unsigned long) context.Eip;
+
               ++profiler_sample_count;
             }
           ResumeThread(profiled_thread_handle);
@@ -120,18 +130,6 @@ void * sigprof_thread_proc(void * arg)
   return 0;
 }
 #endif
-
-inline void resize_samples_vector()
-{
-  INDEX new_size = max_samples * 2;
-  INDEX * new_samples = (INDEX *) GC_malloc_atomic(new_size * sizeof(unsigned long *));
-  for (INDEX i = 0; i < max_samples; i++)
-    new_samples[i] = samples[i];
-  for (INDEX i = max_samples; i < new_size; i++)
-    new_samples[i] = 0;
-  samples = new_samples;
-  max_samples = new_size;
-}
 
 #ifndef WIN32
 void sigprof_handler(int sig, siginfo_t *si, void * context)
