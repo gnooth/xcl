@@ -40,8 +40,8 @@ HANDLE volatile profiled_thread_handle;
 unsigned long volatile profiler_sample_count;
 INDEX profiler_max_depth;
 
-unsigned long * samples;
-unsigned long max_samples;
+unsigned long volatile * samples;
+unsigned long volatile max_samples;
 unsigned long samples_index;
 unsigned long sample_interval;
 
@@ -89,18 +89,16 @@ DWORD WINAPI sigprof_thread_proc(LPVOID lpParam)
           ZeroMemory(&context, sizeof(context));
 #define CONTEXT_ALL (CONTEXT_CONTROL | CONTEXT_INTEGER | CONTEXT_SEGMENTS | CONTEXT_FLOATING_POINT | CONTEXT_DEBUG_REGISTERS)
           context.ContextFlags = CONTEXT_ALL;
-          BOOL ret2 = GetThreadContext(profiled_thread_handle, &context);
-          if (ret2 == 0)
+          if (GetThreadContext(profiled_thread_handle, &context))
             {
-              printf("GetLastError() = %ld\n", GetLastError());
-              fflush(stdout);
-              break;
+              if (samples_index < max_samples)
+                samples[samples_index++] = (unsigned long) context.Eip;
+              else
+                {
+                  // FIXME resize samples vector
+                }
+              ++profiler_sample_count;
             }
-          if (samples_index < max_samples)
-            samples[samples_index++] = (unsigned long) context.Eip;
-
-          ++profiler_sample_count;
-
           ResumeThread(profiled_thread_handle);
           Sleep(sample_interval);
         }
@@ -123,6 +121,18 @@ void * sigprof_thread_proc(void * arg)
 }
 #endif
 
+inline void resize_samples_vector()
+{
+  INDEX new_size = max_samples * 2;
+  INDEX * new_samples = (INDEX *) GC_malloc_atomic(new_size * sizeof(unsigned long *));
+  for (INDEX i = 0; i < max_samples; i++)
+    new_samples[i] = samples[i];
+  for (INDEX i = max_samples; i < new_size; i++)
+    new_samples[i] = 0;
+  samples = new_samples;
+  max_samples = new_size;
+}
+
 #ifndef WIN32
 void sigprof_handler(int sig, siginfo_t *si, void * context)
 {
@@ -130,8 +140,9 @@ void sigprof_handler(int sig, siginfo_t *si, void * context)
     {
       ucontext_t * uc = (ucontext_t *) context;
       void * rip = (void *) uc->uc_mcontext.gregs[REG_RIP];
-      if (samples_index < max_samples)
-        samples[samples_index++] = (unsigned long) rip;
+      if (samples_index >= max_samples)
+        resize_samples_vector();
+      samples[samples_index++] = (unsigned long) rip;
     }
 }
 #endif
@@ -225,7 +236,7 @@ Value PROF_start_profiler(Value max_depth)
 
   if (sampling_mode == K_time || sampling_mode == K_cpu)
     {
-      max_samples = 50000;
+      max_samples = 16384;
       samples = (unsigned  long *) GC_malloc_atomic(max_samples * sizeof(unsigned long *));
       samples_index = 0;
       sample_interval = check_index(thread->symbol_value(S_sample_interval));
