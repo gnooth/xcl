@@ -142,12 +142,15 @@
         (t
          (process-samples))))
 
-(defmacro with-profiling ((&key (sample-interval '*sample-interval*)
+(defmacro with-profiling ((&key (sample-interval nil)
                                 (max-depth 1)
-                                (mode nil))
+                                (mode nil)
+                                (max-samples nil))
                           &body body)
   `(progn
      (setq *sampling-mode* ,mode)
-     (setq *sample-interval* ,sample-interval)
+     (setq *sample-interval* (or ,sample-interval
+                                 (if (eq *sampling-mode* :cpu) 10 1)))
+     (setq *max-samples* (or ,max-samples 32768))
      (unwind-protect (progn (start-profiler ,max-depth) ,@body)
        (stop-profiler))))

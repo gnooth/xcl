@@ -40,10 +40,11 @@ HANDLE volatile profiled_thread_handle;
 unsigned long volatile profiler_sample_count;
 INDEX profiler_max_depth;
 
-unsigned long volatile * samples;
-unsigned long volatile max_samples;
-unsigned long samples_index;
-unsigned long sample_interval;
+INDEX volatile * samples;
+INDEX volatile samples_size;
+INDEX samples_index;
+INDEX sample_interval;
+Value sampling_mode;
 
 #ifdef WIN32
 DWORD WINAPI profiler_thread_proc(LPVOID lpParam)
@@ -73,14 +74,14 @@ void * profiler_thread_proc(void * arg)
 
 inline void resize_samples_vector()
 {
-  INDEX new_size = max_samples * 2;
+  INDEX new_size = samples_size * 2;
   INDEX * new_samples = (INDEX *) GC_malloc_atomic(new_size * sizeof(unsigned long *));
-  for (INDEX i = 0; i < max_samples; i++)
+  for (INDEX i = 0; i < samples_size; i++)
     new_samples[i] = samples[i];
-  for (INDEX i = max_samples; i < new_size; i++)
+  for (INDEX i = samples_size; i < new_size; i++)
     new_samples[i] = 0;
   samples = new_samples;
-  max_samples = new_size;
+  samples_size = new_size;
 }
 
 #ifdef WIN32
@@ -103,9 +104,9 @@ DWORD WINAPI sigprof_thread_proc(LPVOID lpParam)
           context.ContextFlags = CONTEXT_ALL;
           if (GetThreadContext(profiled_thread_handle, &context))
             {
-              if (samples_index >= max_samples)
+              if (samples_index >= samples_size)
                 resize_samples_vector();
-              samples[samples_index++] = (unsigned long) context.Eip;
+              samples[samples_index++] = (INDEX) context.Eip;
 
               ++profiler_sample_count;
             }
@@ -118,6 +119,7 @@ DWORD WINAPI sigprof_thread_proc(LPVOID lpParam)
   return 0;
 }
 #else
+// Linux, FreeBSD
 void * sigprof_thread_proc(void * arg)
 {
   printf("; Profiler started.\n");
@@ -132,15 +134,21 @@ void * sigprof_thread_proc(void * arg)
 #endif
 
 #ifndef WIN32
+// Linux, FreeBSD
 void sigprof_handler(int sig, siginfo_t *si, void * context)
 {
   if (profiling && current_thread() == profiled_thread)
     {
       ucontext_t * uc = (ucontext_t *) context;
       void * rip = (void *) uc->uc_mcontext.gregs[REG_RIP];
-      if (samples_index >= max_samples)
-        resize_samples_vector();
-      samples[samples_index++] = (unsigned long) rip;
+      if (sampling_mode == K_time)
+        {
+          if (samples_index >= samples_size)
+            resize_samples_vector();
+          samples[samples_index++] = (INDEX) rip;
+        }
+      else if (samples_index < samples_size)
+        samples[samples_index++] = (INDEX) rip;
     }
 }
 #endif
@@ -224,7 +232,7 @@ Value PROF_start_profiler(Value max_depth)
     }
 
   Thread * const thread = current_thread();
-  Value sampling_mode = thread->symbol_value(S_sampling_mode);
+  sampling_mode = thread->symbol_value(S_sampling_mode);
 
   profiler_max_depth = check_index(max_depth);
   zero_call_counts();
@@ -234,8 +242,9 @@ Value PROF_start_profiler(Value max_depth)
 
   if (sampling_mode == K_time || sampling_mode == K_cpu)
     {
-      max_samples = 16384;
-      samples = (unsigned  long *) GC_malloc_atomic(max_samples * sizeof(unsigned long *));
+      INDEX max_samples = check_index(thread->symbol_value(S_max_samples));
+      samples = (INDEX *) GC_malloc_atomic(max_samples * sizeof(INDEX));
+      samples_size = max_samples;
       samples_index = 0;
       sample_interval = check_index(thread->symbol_value(S_sample_interval));
     }
@@ -249,9 +258,10 @@ Value PROF_start_profiler(Value max_depth)
 
 #ifndef WIN32
   // Linux, FreeBSD
-  if (sampling_mode != NIL) // FIXME
+  if (sampling_mode == K_time || sampling_mode == K_cpu)
     {
       struct sigaction sact;
+      memset(&sact, 0, sizeof(sact));
       sigemptyset(&sact.sa_mask);
       sact.sa_flags = SA_SIGINFO;
       sact.sa_sigaction = sigprof_handler;
@@ -259,19 +269,20 @@ Value PROF_start_profiler(Value max_depth)
 
       if (sampling_mode == K_cpu)
         {
-          struct itimerval value, ovalue, pvalue;
-          int which = ITIMER_PROF;
-          getitimer(which, &pvalue);
-          value.it_interval.tv_sec = 0;
-          value.it_interval.tv_usec = 1000; // 1 millisecond
-          value.it_value.tv_sec = 0;
-          value.it_value.tv_usec = 1000;
-          setitimer(which, &value, &ovalue);
-          if (ovalue.it_interval.tv_sec != pvalue.it_interval.tv_sec
-              || ovalue.it_interval.tv_usec != pvalue.it_interval.tv_usec
-              || ovalue.it_value.tv_sec != pvalue.it_value.tv_sec
-              || ovalue.it_value.tv_usec != pvalue.it_value.tv_usec)
-            return signal_lisp_error( "Real time interval timer mismatch.");
+          struct itimerval value;
+          memset(&value, 0, sizeof(value));
+          INDEX interval_sec = 0;
+          INDEX interval_usec = sample_interval * 1000;
+          if (interval_usec >= 1000000)
+            {
+              interval_sec = interval_usec / 1000000;
+              interval_usec = interval_usec % 1000000;
+            }
+          value.it_interval.tv_sec = interval_sec;
+          value.it_interval.tv_usec = interval_usec;
+          value.it_value.tv_sec = interval_sec;
+          value.it_value.tv_usec = interval_usec;
+          setitimer(ITIMER_PROF, &value, NULL);
         }
       else
         create_profiler_thread(sigprof_thread_proc);
@@ -288,17 +299,18 @@ Value PROF_stop_profiler()
   if (profiling)
     {
       profiled_thread = NULL;
-      Value sampling_mode = current_thread()->symbol_value(S_sampling_mode);
+//       Value sampling_mode = current_thread()->symbol_value(S_sampling_mode);
 #ifndef WIN32
       if (sampling_mode == K_cpu)
         {
           struct itimerval value;
-          getitimer(ITIMER_PROF, &value);
-          value.it_interval.tv_sec = 0;
-          value.it_interval.tv_usec = 0;
-          value.it_value.tv_sec = 0;
-          value.it_value.tv_usec = 0;
-          setitimer(ITIMER_PROF, &value, &value);
+//           getitimer(ITIMER_PROF, &value);
+//           value.it_interval.tv_sec = 0;
+//           value.it_interval.tv_usec = 0;
+//           value.it_value.tv_sec = 0;
+//           value.it_value.tv_usec = 0;
+          memset(&value, 0, sizeof(value));
+          setitimer(ITIMER_PROF, &value, NULL);
         }
 #endif
       profiling = false;

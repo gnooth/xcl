@@ -44,7 +44,7 @@
       #+xcl (ext:gc)
       (time (asdf:oos 'asdf:test-op  :ironclad)))))
 
-(defun profile-cl-ppcre (&key mode (sample-interval 10) (max-depth 1))
+(defun profile-cl-ppcre (&key mode sample-interval (max-depth 1) max-samples)
   #+sbcl
   (declare (ignore mode max-depth))
   (let* ((cl-ppcre-directory
@@ -54,7 +54,7 @@
     (map nil #'delete-file (directory "*.xcl"))
     (load "load.lisp")
     #+xcl
-    (time (prof:with-profiling (:mode mode :sample-interval sample-interval :max-depth max-depth)
+    (time (prof:with-profiling (:mode mode :sample-interval sample-interval :max-samples max-samples :max-depth max-depth)
             (funcall (find-symbol "TEST" "CL-PPCRE-TEST"))))
     #+sbcl
     (time (sb-sprof:with-profiling (:mode :cpu :max-depth 1 :loop nil :report :flat)

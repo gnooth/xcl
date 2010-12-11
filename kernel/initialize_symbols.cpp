@@ -305,4 +305,5 @@ void initialize_symbols()
   the_symbol(S_samples)->initialize_special(NIL);
   the_symbol(S_sampling_mode)->initialize_special(NIL);
   the_symbol(S_sample_interval)->initialize_special(make_fixnum(10));
+  the_symbol(S_max_samples)->initialize_special(NIL);
 }
