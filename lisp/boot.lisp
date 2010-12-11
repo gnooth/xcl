@@ -231,6 +231,8 @@
 
 (load-system-file "lisp/stack") ; needs DEFSTRUCT
 
+(load-system-file "lisp/process-command-line-arguments")
+
 (defvar ext:*load-path* nil)
 
 (in-package "CL-USER")
@@ -252,17 +254,7 @@
              (when f
                (eval `(time (funcall ',f)))))))))
 
-(when (cdr sys:*argv*)
-  (let ((args (cdr sys:*argv*)))
-    (loop
-      (when (null args)
-        (return))
-      (let ((arg (car args)))
-        (setq args (cdr args))
-        (cond ((equal arg "--load")
-               (setq arg (pop args))
-               (when arg
-                 (load arg))))))))
+(sys:process-command-line-arguments)
 
 ;; REVIEW
 (when (probe-file (merge-pathnames "lisp/grovel.xcl" *xcl-home*))
