@@ -295,6 +295,7 @@
                           "phase"
                           "pprint"
                           "print-unreadable-object"
+                          "process-command-line-arguments"
                           "proclaim"
                           "profiler"
                           "prog"
