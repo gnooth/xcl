@@ -77,11 +77,53 @@ static SimpleString * build_date()
   return NULL;
 }
 
-void process_command_line(int argc, char * argv[])
+static void print_version()
+{
+  String * s = new String();
+  s->append(check_string(CL_lisp_implementation_type()));
+  s->append_char(' ');
+  s->append(check_string(CL_lisp_implementation_version()));
+#ifdef __x86_64__
+  s->append(" (x86-64)");
+#else
+  s->append(" (x86)");
+#endif
+  SimpleString * built = build_date();
+  if (built)
+    {
+      s->append(" built ");
+      s->append(built);
+    }
+  s->append_char('\n');
+  STANDARD_OUTPUT->write_string(s);
+}
+
+static void print_copyright()
+{
+  printf("Copyright (C) 2006-2010 Peter Graves\n");
+}
+
+static void process_command_line_arguments(int argc, char * argv[])
 {
   Value list = NIL;
   for (int i = argc; i-- > 0;)
-    list = make_cons(make_simple_string(argv[i]), list);
+    {
+      if (!strcmp(argv[i], "--version"))
+        {
+          print_version();
+          print_copyright();
+          exit(0);
+        }
+      if (!strcmp(argv[i], "--help"))
+        {
+          printf("Usage: xcl [options]\n");
+          printf("Common options:\n");
+          printf("  --help              Print this message and exit.\n");
+          printf("  --version           Print version information and exit.\n");
+          exit(0);
+        }
+      list = make_cons(make_simple_string(argv[i]), list);
+    }
   the_symbol(S_argv)->set_value(list);
 }
 
@@ -109,32 +151,9 @@ int __main(int argc, char * argv[])
 //   GC_init();
 //   GC_set_warn_proc(gc_warn_proc);
   initialize_lisp();
-  process_command_line(argc, argv);
-  String * s = new String();
-  // REVIEW we know it's a string (or do we?)
-  s->append(check_string(CL_lisp_implementation_type()));
-  s->append_char(' ');
-  // REVIEW we know it's a string (or do we?)
-  s->append(check_string(CL_lisp_implementation_version()));
-#ifdef __x86_64__
-  s->append(" (x86-64)");
-#else
-  s->append(" (x86)");
-#endif
-  SimpleString * built = build_date();
-  if (built)
-    {
-      s->append(" built ");
-      s->append(built);
-//       s->append_char(')');
-    }
-  s->append_char('\n');
-  s->append("Copyright (C) 2006-2010 Peter Graves\n");
-//   s->append("Low-level initialization completed in ");
-//   s->append(uptime_as_string());
-//   s->append(".\n");
-  STANDARD_OUTPUT->write_string(s);
-
+  process_command_line_arguments(argc, argv);
+  print_version();
+  print_copyright();
   initialize_control_c_handler();
 
 #ifndef WIN32
@@ -183,7 +202,7 @@ int __main(int argc, char * argv[])
           boot_loaded_p = true; // only try once!
           if (SYS_load_system_file(make_simple_string("lisp/boot.lisp")) != NIL)
             {
-              s = new String("Startup completed in ");
+              String * s = new String("Startup completed in ");
               s->append(uptime_as_string());
               s->append(".\n");
               STANDARD_OUTPUT->write_string(s);
