@@ -17,6 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include <signal.h>
+#include <stdlib.h>     // exit()
 
 #include "lisp.hpp"
 #include "Frame.hpp"
@@ -111,15 +112,16 @@ static void process_command_line_arguments(int argc, char * argv[])
       if (!strcmp(argv[i], "--version"))
         {
           print_version();
-          print_copyright();
           exit(0);
         }
       if (!strcmp(argv[i], "--help"))
         {
           printf("Usage: xcl [options]\n");
-          printf("Common options:\n");
-          printf("  --help              Print this message and exit.\n");
-          printf("  --version           Print version information and exit.\n");
+          printf("Options:\n");
+          printf("  --help                  Print this message and exit.\n");
+          printf("  --version               Print version information and exit.\n");
+          printf("  --load <filename>       Load the specified file.\n");
+          printf("  --eval <expression>     Evaluate the specified expression.\n");
           exit(0);
         }
       list = make_cons(make_simple_string(argv[i]), list);
