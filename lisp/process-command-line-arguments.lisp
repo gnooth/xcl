@@ -31,4 +31,9 @@
           (cond ((equal arg "--load")
                  (setq arg (pop args))
                  (when arg
-                   (load arg)))))))))
+                   (load arg)))
+                ((equal arg "--eval")
+                 (setq arg (pop args))
+                 (finish-output)
+                 (let ((form (read-from-string arg)))
+                   (eval form)))))))))
