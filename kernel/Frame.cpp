@@ -1,6 +1,6 @@
 // Frame.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,10 +21,18 @@
 #include "UnwindProtect.hpp"
 #include "runtime.h"
 
+#ifdef WIN32
 jmp_buf * RT_frame_jmp(Frame * frame)
 {
   return frame->jmp();
 }
+#else
+// Linux, FreeBSD
+sigjmp_buf * RT_frame_jmp(Frame * frame)
+{
+  return frame->jmp();
+}
+#endif
 
 inline void restore_frame_context(Frame * frame, Thread * thread)
 {

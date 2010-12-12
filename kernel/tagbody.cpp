@@ -1,6 +1,6 @@
 // tagbody.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ inline void go_to_visible_tag(Tag * tag, Thread * thread)
   // unwind stack, calling unwind-protect cleanups
   RT_unwind_to(tagbody, thread);
   assert(tag->index() > 0);
-  longjmp(*tagbody->jmp(), tag->index());
+  LONGJMP(*tagbody->jmp(), tag->index());
 }
 
 // ### tagbody
@@ -52,7 +52,7 @@ Value CL_tagbody(Value args, Environment * env, Thread * thread)
     }
   Tag * last_tag = thread->last_tag();
   Value remaining;
-  int retval = setjmp(*tagbody->jmp());
+  int retval = SETJMP(*tagbody->jmp());
   if (retval == 0)
     {
       assert(thread->stack() == tagbody->stack());
@@ -155,7 +155,7 @@ void RT_non_local_go(Thread * thread, Value tag_name)
   // unwind stack, calling unwind-protect cleanups
   RT_unwind_to(tagbody, thread);
   assert(thread->last_control_frame() == tagbody);
-  longjmp(*tagbody->jmp(),
+  LONGJMP(*tagbody->jmp(),
           // "If longjmp is invoked with a second argument of 0, 1 will be returned instead."
           tag->index() + 1);
 }

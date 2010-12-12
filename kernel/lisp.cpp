@@ -1,6 +1,6 @@
 // lisp.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -105,7 +105,9 @@ Value SYS_interactive_eval(Value form)
 Value EXT_reset()
 {
   RT_unwind_to(primordial_frame, current_thread());
-  longjmp(*primordial_frame->jmp(), 1);
+  LONGJMP(*primordial_frame->jmp(), 1);
+  // not reached
+  return T;
 }
 
 // ### quote

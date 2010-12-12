@@ -1,6 +1,6 @@
 // block.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ Value CL_block(Value args, Environment * env, Thread * thread)
     signal_type_error(block_name, S_symbol);
   Value body = xcdr(args);
   Block * block = thread->add_block(block_name);
-  if (setjmp(*block->jmp()) == 0)
+  if (SETJMP(*block->jmp()) == 0)
     {
       // implicit PROGN
       Value result = NIL;
@@ -134,6 +134,6 @@ void RT_return_from(Thread * thread, Value block_name, Value result)
     thread->set_values(result);
   // unwind stack, calling unwind-protect cleanups
   RT_unwind_to(block, thread);
-  longjmp(*block->jmp(), 1);
+  LONGJMP(*block->jmp(), 1);
   // noreturn
 }

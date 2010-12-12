@@ -1,6 +1,6 @@
 // do.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -112,7 +112,7 @@ static Value _do(Value args, Environment * env, Thread * thread, bool sequential
     }
   // "An implicit block named NIL surrounds the entire DO (or DO*) form."
   Block * block = thread->add_block(NIL);
-  if (setjmp(*block->jmp()) == 0)
+  if (SETJMP(*block->jmp()) == 0)
     {
       // tagbody
       Tagbody * tagbody = new Tagbody(thread);
@@ -136,7 +136,7 @@ static Value _do(Value args, Environment * env, Thread * thread, bool sequential
           if (eval(end_test_form, ext, thread) != NIL)
             break;
           Value remaining;
-          int retval = setjmp(*tagbody->jmp());
+          int retval = SETJMP(*tagbody->jmp());
           if (retval == 0)
             remaining = body;
           else

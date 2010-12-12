@@ -140,7 +140,12 @@ void sigprof_handler(int sig, siginfo_t *si, void * context)
   if (profiling && current_thread() == profiled_thread)
     {
       ucontext_t * uc = (ucontext_t *) context;
+#ifdef __FreeBSD__
+      void * rip = (void *) uc->uc_mcontext.mc_eip;
+#else
+      // Linux
       void * rip = (void *) uc->uc_mcontext.gregs[REG_RIP];
+#endif
       if (sampling_mode == K_time)
         {
           if (samples_index >= samples_size)

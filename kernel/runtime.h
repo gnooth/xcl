@@ -1,6 +1,6 @@
 // runtime.h
 //
-// Copyright (C) 2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2007-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -47,7 +47,11 @@ extern "C" {
 
   extern void RT_handle_interrupt();
 
+#ifdef WIN32
   extern jmp_buf * RT_frame_jmp(Frame * frame);
+#else
+  extern sigjmp_buf * RT_frame_jmp(Frame * frame);
+#endif
 
   extern Block * RT_enter_block(Thread * thread, Value block_name);
   extern void RT_leave_block(Thread * thread, Block * block);

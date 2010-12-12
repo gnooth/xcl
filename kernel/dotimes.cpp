@@ -1,6 +1,6 @@
 // dotimes.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -61,7 +61,7 @@ Value CL_dotimes(Value args, Environment * env, Thread * thread)
         break;
     }
   Block * block = thread->add_block(NIL);
-  if (setjmp(*block->jmp()) == 0)
+  if (SETJMP(*block->jmp()) == 0)
     {
       // evaluate the count form inside the implicit NIL block
       Value limit = eval(count_form, ext, thread);
@@ -113,7 +113,7 @@ Value CL_dotimes(Value args, Environment * env, Thread * thread)
               else
                 thread->set_symbol_value(var, make_fixnum(i));
               Value remaining;
-              int retval = setjmp(*tagbody->jmp());
+              int retval = SETJMP(*tagbody->jmp());
               if (retval == 0)
                 remaining = body_form;
               else
@@ -156,7 +156,7 @@ Value CL_dotimes(Value args, Environment * env, Thread * thread)
               else
                 thread->set_symbol_value(var, index);
               Value remaining;
-              int retval = setjmp(*tagbody->jmp());
+              int retval = SETJMP(*tagbody->jmp());
               if (retval == 0)
                 remaining = body_form;
               else

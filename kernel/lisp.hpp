@@ -1,6 +1,6 @@
 // lisp.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,6 +20,39 @@
 #define __LISP_HPP
 
 #include <setjmp.h>
+
+#ifdef WIN32
+int SETJMP(jmp_buf env) __attribute__ ((always_inline));
+
+inline int SETJMP(jmp_buf env)
+{
+  return setjmp(env);
+}
+
+void LONGJMP(jmp_buf env, int val) __attribute__ ((noreturn, always_inline));
+
+inline void LONGJMP(jmp_buf env, int val)
+{
+  longjmp(env, val);
+}
+#else
+// Linux, FreeBSD
+// int SETJMP(sigjmp_buf env) __attribute__ ((always_inline));
+
+// inline int SETJMP(sigjmp_buf env)
+// {
+//   return sigsetjmp(env, true);
+// }
+#define SETJMP(env)             sigsetjmp(env, true)
+
+// void LONGJMP(sigjmp_buf env, int val) __attribute__ ((noreturn, always_inline));
+
+// inline void LONGJMP(sigjmp_buf env, int val)
+// {
+//   siglongjmp(env, val);
+// }
+#define LONGJMP(env, val)       siglongjmp(env, val)
+#endif
 
 #if !defined(WIN32) && !defined(__CYGWIN__)
 #include <pthread.h>

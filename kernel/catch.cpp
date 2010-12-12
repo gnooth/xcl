@@ -1,6 +1,6 @@
 // catch.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,7 +35,7 @@ Value CL_catch(Value args, Environment * env, Thread * thread)
 #endif
   Catch * catch_frame = thread->add_catch_frame(tag); // RT_enter_catch
   assert(catch_frame->type() == CATCH);
-  if (setjmp(*catch_frame->jmp()) == 0)
+  if (SETJMP(*catch_frame->jmp()) == 0)
     {
       // implicit PROGN
       Value result = NIL;
@@ -130,6 +130,6 @@ void RT_throw(Thread * thread, Value tag, Value result)
     thread->set_values(result);
   // unwind stack, calling unwind-protect cleanups
   RT_unwind_to(frame, thread);
-  longjmp(*frame->jmp(), 1);
+  LONGJMP(*frame->jmp(), 1);
   // noreturn
 }

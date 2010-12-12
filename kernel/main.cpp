@@ -91,7 +91,7 @@ void gc_warn_proc(char * msg, GC_word arg)
   fflush(stdout);
 }
 
-#ifdef __linux__
+#ifndef WIN32
 static void segv_handler(int sig, siginfo_t *si, void *unused)
 {
   SYS_set_symbol_global_value(S_saved_stack, SYS_current_stack_as_list());
@@ -137,7 +137,7 @@ int __main(int argc, char * argv[])
 
   initialize_control_c_handler();
 
-#ifdef __linux__
+#ifndef WIN32
   struct sigaction sa;
   sa.sa_flags = SA_SIGINFO;
   sigemptyset(&sa.sa_mask);
@@ -153,10 +153,15 @@ int __main(int argc, char * argv[])
   Function * interactive_eval = (Function *) the_symbol(S_interactive_eval)->function();
   while (true)
     {
-#ifdef __linux__
-      int ret = sigsetjmp(*primordial_frame->jmp(), 1);
+// #if defined(__linux__) || defined(__FreeBSD__)
+//       int ret = sigsetjmp(*primordial_frame->jmp(), 1);
+// #else
+//       setjmp(*primordial_frame->jmp());
+// #endif
+#ifdef WIN32
+      SETJMP(*primordial_frame->jmp());
 #else
-      setjmp(*primordial_frame->jmp());
+      int ret = SETJMP(*primordial_frame->jmp());
 #endif
 
       thread->set_stack(0);
@@ -166,7 +171,7 @@ int __main(int argc, char * argv[])
 
       call_depth_limit = DEFAULT_CALL_DEPTH_LIMIT;
 
-#ifdef __linux__
+#ifndef WIN32
       if (ret == 101)
         {
           if (CL_fboundp(S_invoke_debugger_internal))

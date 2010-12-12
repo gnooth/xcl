@@ -86,10 +86,17 @@ public:
     return _type;
   }
 
+#ifdef WIN32
   jmp_buf * jmp()
   {
     return &(this->_jmp);
   }
+#else
+  sigjmp_buf * jmp()
+  {
+    return &(this->_jmp);
+  }
+#endif
 
   void * last_special_binding() const
   {
