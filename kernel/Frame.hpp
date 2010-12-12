@@ -34,11 +34,7 @@ class Frame : public gc
 {
 private:
   const FrameType _type;
-#ifdef WIN32
-  jmp_buf _jmp;
-#else
-  sigjmp_buf _jmp;
-#endif
+  JMP_BUF _jmp;
   void * _last_special_binding;
   Frame * _last_control_frame;
   Tag * _last_tag;
@@ -86,17 +82,10 @@ public:
     return _type;
   }
 
-#ifdef WIN32
-  jmp_buf * jmp()
+  JMP_BUF * jmp()
   {
     return &(this->_jmp);
   }
-#else
-  sigjmp_buf * jmp()
-  {
-    return &(this->_jmp);
-  }
-#endif
 
   void * last_special_binding() const
   {

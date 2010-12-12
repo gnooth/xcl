@@ -47,11 +47,7 @@ extern "C" {
 
   extern void RT_handle_interrupt();
 
-#ifdef WIN32
-  extern jmp_buf * RT_frame_jmp(Frame * frame);
-#else
-  extern sigjmp_buf * RT_frame_jmp(Frame * frame);
-#endif
+  extern JMP_BUF * RT_frame_jmp(Frame * frame);
 
   extern Block * RT_enter_block(Thread * thread, Value block_name);
   extern void RT_leave_block(Thread * thread, Block * block);

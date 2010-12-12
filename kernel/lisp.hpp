@@ -22,35 +22,13 @@
 #include <setjmp.h>
 
 #ifdef WIN32
-int SETJMP(jmp_buf env) __attribute__ ((always_inline));
-
-inline int SETJMP(jmp_buf env)
-{
-  return setjmp(env);
-}
-
-void LONGJMP(jmp_buf env, int val) __attribute__ ((noreturn, always_inline));
-
-inline void LONGJMP(jmp_buf env, int val)
-{
-  longjmp(env, val);
-}
+#define JMP_BUF                 jmp_buf
+#define SETJMP(env)             setjmp(env)
+#define LONGJMP(env, val)       longjmp(env, val)
 #else
 // Linux, FreeBSD
-// int SETJMP(sigjmp_buf env) __attribute__ ((always_inline));
-
-// inline int SETJMP(sigjmp_buf env)
-// {
-//   return sigsetjmp(env, true);
-// }
+#define JMP_BUF                 sigjmp_buf
 #define SETJMP(env)             sigsetjmp(env, true)
-
-// void LONGJMP(sigjmp_buf env, int val) __attribute__ ((noreturn, always_inline));
-
-// inline void LONGJMP(sigjmp_buf env, int val)
-// {
-//   siglongjmp(env, val);
-// }
 #define LONGJMP(env, val)       siglongjmp(env, val)
 #endif
 
