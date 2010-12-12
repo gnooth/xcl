@@ -254,8 +254,6 @@
              (when f
                (eval `(time (funcall ',f)))))))))
 
-(sys:process-command-line-arguments)
-
 ;; REVIEW
 (when (probe-file (merge-pathnames "lisp/grovel.xcl" *xcl-home*))
   (make-thread #'sys:grovel-cpp-definitions))
@@ -264,3 +262,5 @@
 (let ((initialization-file (merge-pathnames ".xclrc" (user-homedir-pathname))))
   (when (probe-file initialization-file)
     (load initialization-file)))
+
+(sys:process-command-line-arguments)
