@@ -1,6 +1,6 @@
 ;;; typecase.lisp
 ;;;
-;;; Copyright (C) 2006-7 Peter Graves
+;;; Copyright (C) 2006-10 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -38,4 +38,5 @@
                (setq typespec `(typep ,keyvar ',typespec))))
         (push `(,typespec ,@(or consequents '(nil))) cond-body)))
     `(let ((,keyvar ,keyform))
+       (declare (ignorable ,keyvar))
        (cond ,@(nreverse cond-body)))))
