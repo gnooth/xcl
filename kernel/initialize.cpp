@@ -911,6 +911,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_two_arg_star, SYS_two_arg_star, 2, 2);
   ADD_PRIMITIVE(S_type_error_internal, SYS_type_error_internal, 2, 2);
   ADD_PRIMITIVE(S_untraced_function, SYS_untraced_function, 1, 1);
+  ADD_PRIMITIVE(S_uptime, SYS_uptime, 0, 0);
   ADD_PRIMITIVE(S_upgraded_array_element_type_internal, SYS_upgraded_array_element_type_internal, 1, 1);
 #ifdef __x86_64__
   ADD_PRIMITIVE(S_value_to_ub64, SYS_value_to_ub64, 1, 1);

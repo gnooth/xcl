@@ -845,6 +845,7 @@ extern Value SYS_two_arg_star(Value v1, Value v2);
 extern Value SYS_type_error_internal(Value datum, Value expected_type);
 extern Value SYS_untraced_function(Value name);
 extern Value SYS_upgraded_array_element_type_internal(Value arg);
+extern Value SYS_uptime();
 #ifdef __x86_64__
 extern Value SYS_value_to_ub64(Value arg);
 #else

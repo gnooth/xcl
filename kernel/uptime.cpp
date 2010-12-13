@@ -1,6 +1,6 @@
 // uptime.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -51,6 +51,12 @@ double uptime()
   double current_time = (now.tv_sec * 1000000L + now.tv_usec) / (double) 1000000;
 #endif
   return current_time - start_time;
+}
+
+// ### uptime
+Value SYS_uptime()
+{
+  return make_double_float(uptime());
 }
 
 String * uptime_as_string()
