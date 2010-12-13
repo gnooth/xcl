@@ -1,6 +1,6 @@
 ;;; defgeneric.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -36,11 +36,24 @@
          (walk-form (%car form))
          (walk-form (%cdr form)))))
 
+(defun lambda-list-vars (lambda-list)
+  (let ((vars nil))
+    (dolist (thing lambda-list (nreverse vars))
+      (cond ((memq thing lambda-list-keywords)
+             )
+            ((atom thing)
+             (push thing vars))
+            ((atom (car thing))
+             (push (car thing) vars))
+            (t
+             (push (cadr (car thing)) vars))))))
+
 (defun %make-method-lambda (generic-function method lambda-expression environment)
   (declare (ignore generic-function method environment)) ; REVIEW
   (let* ((lambda-list (allow-other-keys (cadr lambda-expression)))
          (numargs (length lambda-list)))
-    (multiple-value-bind (body declarations) (parse-body (cddr lambda-expression))
+    (multiple-value-bind (body declarations)
+        (parse-body (cddr lambda-expression))
       (let ((*call-next-method-p* nil)
             (*next-method-p-p* nil)
             (next-methods (gensym))
@@ -107,12 +120,20 @@
                        (t
                         `(lambda (,+gf-args-var+ ,next-methods)
                            (declare (ignore ,next-methods))
-                           (apply #'(lambda ,lambda-list ,@declarations ,@body) ,+gf-args-var+))))))
+                           (apply #'(lambda ,lambda-list
+                                     (declare (ignorable ,@(lambda-list-vars lambda-list)))
+                                     ,@declarations
+                                     ,@body)
+                                  ,+gf-args-var+))))))
               (t
                (setq method-lambda
                      `(lambda (,+gf-args-var+ ,next-methods)
                         (declare (ignore ,next-methods))
-                        (apply #'(lambda ,lambda-list ,@declarations ,@body) ,+gf-args-var+)))))
+                        (apply #'(lambda ,lambda-list
+                                  ,@declarations
+                                  (declare (ignorable ,@(lambda-list-vars lambda-list)))
+                                  ,@body)
+                               ,+gf-args-var+)))))
         (values method-lambda nil)))))
 
 (defun compute-method-fast-function (lambda-expression specializers)
