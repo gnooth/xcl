@@ -258,6 +258,8 @@
 (when (probe-file (merge-pathnames "lisp/grovel.xcl" *xcl-home*))
   (make-thread #'sys:grovel-cpp-definitions))
 
+(format t "Startup completed in ~,2F seconds.~%" (sys:uptime))
+
 ;; REVIEW
 (let ((initialization-file (merge-pathnames ".xclrc" (user-homedir-pathname))))
   (when (probe-file initialization-file)

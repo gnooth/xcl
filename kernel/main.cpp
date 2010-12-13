@@ -202,13 +202,7 @@ int __main(int argc, char * argv[])
       if (!boot_loaded_p)
         {
           boot_loaded_p = true; // only try once!
-          if (SYS_load_system_file(make_simple_string("lisp/boot.lisp")) != NIL)
-            {
-              String * s = new String("Startup completed in ");
-              s->append(uptime_as_string());
-              s->append(".\n");
-              STANDARD_OUTPUT->write_string(s);
-            }
+          SYS_load_system_file(make_simple_string("lisp/boot.lisp"));
         }
 
       Value repl = thread->symbol_value(S_top_level_read_eval_print_loop);
