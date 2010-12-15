@@ -1614,7 +1614,7 @@
 ;; 	        s args))
 ;;       `(apply #'format s *string* args)))
 
-(require "FORMAT")
+;; (require "FORMAT")
 
 ;The business with the catch above allows many (formatter "...") errors to be
 ;reported in a file without stopping the compilation of the file.

@@ -204,14 +204,6 @@
 
 (make-package "XP" :use '("CL"))
 
-;; (autoload '(pprint
-;;             copy-pprint-dispatch
-;;             xp::maybe-initiate-xp-printing
-;;             xp::write+
-;;             xp::write-string++
-;;             )
-;;           "pprint")
-
 (in-package "XP")
 
 ;; redefined in pprint.lisp
@@ -221,8 +213,10 @@
 
 (load-system-file "lisp/loop")
 (load-system-file "lisp/print")
-(load-system-file "lisp/defstruct") ; needed for pprint.xcl
-(load-system-file "lisp/pprint") ; REVIEW
+(load-system-file "lisp/defstruct")     ; needed for pprint.xcl
+(load-system-file "clos/clos")          ; needed for format.xcl
+(load-system-file "lisp/format")        ; needed for pprint.xcl
+(load-system-file "lisp/pprint")
 
 (load-system-file "lisp/open")
 (load-system-file "lisp/load")
