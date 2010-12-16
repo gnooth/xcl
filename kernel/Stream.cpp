@@ -20,6 +20,7 @@
 #include "lisp.hpp"
 #include "runtime.h"
 #include "primitives.hpp"
+#include "reader.hpp"
 #include "Complex.hpp"
 #include "EndOfFile.hpp"
 #include "Package.hpp"
@@ -148,25 +149,6 @@ Value Stream::process_char(BASE_CHAR c, Readtable * rt, Thread * thread)
   return read_atom(c, rt, thread);
 }
 
-Value Stream::read(bool eof_error_p, Value eof_value, bool recursive_p, Thread * thread,
-                   Readtable * rt)
-{
-  Value result = read_preserving_whitespace(eof_error_p, eof_value, recursive_p, thread, rt);
-  if (result != eof_value && !recursive_p)
-    {
-      int c = read_char();
-      if (c >= 0)
-        {
-          if (!rt->is_whitespace(c))
-            unread_char(c);
-        }
-    }
-  if (thread->symbol_value(S_read_suppress) != NIL)
-    return NIL;
-  else
-    return result;
-}
-
 Value Stream::read_preserving_whitespace(bool eof_error_p, Value eof_value,
                                          bool recursive_p, Thread * thread,
                                          Readtable * rt)
@@ -233,7 +215,7 @@ Value Stream::read_list(bool require_proper_list, Thread * thread, Readtable * r
                     return signal_lisp_error(new ReaderError(this, "Nothing appears before . in list."));
                 }
               unread_char(n2);
-              Value obj = read(true, NIL, true, thread, rt);
+              Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
               if (require_proper_list)
                 {
                   if (!listp(obj))
@@ -389,7 +371,7 @@ Value Stream::read_symbol(Readtable * rt)
 
 Value Stream::read_complex(Thread * thread, Readtable * rt)
 {
-  Value obj = read(true, NIL, true, thread, rt);
+  Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
   if (thread->symbol_value(S_read_suppress) != NIL)
     return NIL;
   if (consp(obj) && length(obj) == 2)
@@ -419,7 +401,7 @@ Value Stream::read_complex(Thread * thread, Readtable * rt)
 
 Value Stream::read_array(Value numarg, Thread * thread, Readtable * rt)
 {
-  Value obj = read(true, NIL, true, thread, rt);
+  Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
   if (thread->symbol_value(S_read_suppress) != NIL)
     return NIL;
   if (numarg == NIL)
@@ -987,7 +969,7 @@ Value Stream::read_radix(long base, Thread * thread, Readtable * rt)
 
 Value Stream::read_pathname(Thread * thread, Readtable * rt)
 {
-  Value obj = read(true, NIL, true, thread, rt);
+  Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
   if (thread->symbol_value(S_read_suppress) != NIL)
     return NIL;
   if (stringp(obj))
@@ -999,7 +981,7 @@ Value Stream::read_pathname(Thread * thread, Readtable * rt)
 
 Value Stream::read_structure(Thread * thread, Readtable * rt)
 {
-  Value obj = read(true, NIL, true, thread, rt);
+  Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
   if (thread->symbol_value(S_read_suppress) != NIL)
     return NIL;
   if (!listp(obj))
@@ -1052,12 +1034,12 @@ Value Stream::read_comma(Thread * thread, Readtable * rt)
     {
     case '@':
       return make_cons(S_comma_atsign,
-                       make_cons(read(true, NIL, true, thread, rt)));
+                       make_cons(stream_read(make_value(this), true, NIL, true, thread, rt)));
     case '.':
-      return make_cons(S_comma_dot, make_cons(read(true, NIL, true, thread, rt)));
+      return make_cons(S_comma_dot, make_cons(stream_read(make_value(this), true, NIL, true, thread, rt)));
     default:
       unread_char(n);
-      return make_cons(S_comma, make_cons(read(true, NIL, true, thread, rt)));
+      return make_cons(S_comma, make_cons(stream_read(make_value(this), true, NIL, true, thread, rt)));
     }
 }
 
@@ -1576,6 +1558,18 @@ Value CL_fresh_line(unsigned int numargs, Value args[])
   return stream->fresh_line();
 }
 
+// ### %stream-read input-stream eof-error-p eof-value recursive-p => object
+Value SYS_stream_read_internal(Value arg1, Value arg2, Value arg3, Value arg4)
+{
+  Thread * thread = current_thread();
+//   Stream * stream = check_stream(arg1);
+  bool eof_error_p = (arg2 != NIL);
+  Value eof_value = arg3;
+  bool recursive_p = (arg4 != NIL);
+  Readtable * rt = current_readtable(thread);
+  return stream_read(arg1, eof_error_p, eof_value, recursive_p, thread, rt);
+}
+
 // ### read &optional input-stream eof-error-p eof-value recursive-p => object
 Value CL_read(unsigned int numargs, Value args[])
 {
@@ -1587,8 +1581,9 @@ Value CL_read(unsigned int numargs, Value args[])
   bool eof_error_p = !(numargs > 1 && args[1] == NIL);
   Value eof_value = (numargs > 2) ? args[2] : NIL;
   bool recursive_p = (numargs > 3 && args[3] != NIL);
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
-  return stream->read(eof_error_p, eof_value, recursive_p, thread, rt);
+  Readtable * rt = current_readtable(thread);
+  // REVIEW call SYS_stream_read_internal
+  return stream_read(make_value(stream), eof_error_p, eof_value, recursive_p, thread, rt);
 }
 
 // ### read-preserving-whitespace &optional input-stream eof-error-p eof-value recursive-p => object
@@ -1602,7 +1597,7 @@ Value CL_read_preserving_whitespace(unsigned int numargs, Value args[])
   bool eof_error_p = !(numargs > 1 && args[1] == NIL);
   Value eof_value = (numargs > 2) ? args[2] : NIL;
   bool recursive_p = (numargs > 3 && args[3] != NIL);
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return stream->read_preserving_whitespace(eof_error_p, eof_value, recursive_p, thread, rt);
 }
 

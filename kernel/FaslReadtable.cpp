@@ -1,6 +1,6 @@
 // FaslReadtable.cpp
 //
-// Copyright (C) 2008-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2008-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -18,6 +18,7 @@
 
 #include "lisp.hpp"
 #include "primitives.hpp"
+#include "reader.hpp"
 #include "Environment.hpp"
 #include "Package.hpp"
 #include "FaslReadtable.hpp"
@@ -124,9 +125,11 @@ Value SYS_fasl_read_comment(Value streamarg, Value character)
 // ### fasl-read-backquote stream character => value
 Value SYS_fasl_read_backquote(Value streamarg, Value ignored)
 {
-  Stream * stream = check_stream(streamarg);
+//   Stream * stream = check_stream(streamarg);
+//   return make_cons(S_backquote,
+//                    make_cons(stream->read(true, NIL, true, current_thread(), FASL_READTABLE)));
   return make_cons(S_backquote,
-                   make_cons(stream->read(true, NIL, true, current_thread(), FASL_READTABLE)));
+                   make_cons(stream_read(streamarg, true, NIL, true, current_thread(), FASL_READTABLE)));
 }
 
 // ### fasl-read-comma stream character => value
@@ -145,9 +148,12 @@ Value SYS_fasl_read_dispatch_char(Value streamarg, Value character)
 // ### fasl-read-quote stream character => value
 Value SYS_fasl_read_quote(Value streamarg, Value ignored)
 {
+//   return make_cons(S_quote,
+//                    make_cons(check_stream(streamarg)->read(true, NIL, true, current_thread(),
+//                                                            FASL_READTABLE)));
   return make_cons(S_quote,
-                   make_cons(check_stream(streamarg)->read(true, NIL, true, current_thread(),
-                                                           FASL_READTABLE)));
+                   make_cons(stream_read(streamarg, true, NIL, true, current_thread(),
+                                         FASL_READTABLE)));
 }
 
 // ### fasl-read-right-paren stream character => value
@@ -239,11 +245,11 @@ Value SYS_fasl_sharp_percent(Value streamarg, Value subchar, Value numarg)
 // ### fasl-sharp-dot stream sub-char numarg => value
 Value SYS_fasl_sharp_dot(Value streamarg, Value subchar, Value numarg)
 {
-  Stream * stream = check_stream(streamarg);
   Thread * thread = current_thread();
   if (thread->symbol_value(S_read_eval) != NIL)
-    return eval(stream->read(true, NIL, true, thread, FASL_READTABLE),
+    return eval(stream_read(streamarg, true, NIL, true, thread, FASL_READTABLE),
                 new Environment(), thread);
+  Stream * stream = check_stream(streamarg);
   String * s = new String("Can't read #. when ");
   s->append(the_symbol(S_read_eval)->prin1_to_string());
   s->append(" is false.");
@@ -310,8 +316,8 @@ Value SYS_fasl_sharp_p(Value streamarg, Value subchar, Value numarg)
 Value SYS_fasl_sharp_quote(Value streamarg, Value subchar, Value numarg)
 {
   return make_cons(S_function,
-                   make_cons(check_stream(streamarg)->read(true, NIL, true, current_thread(),
-                                                           FASL_READTABLE)));
+                   make_cons(stream_read(streamarg, true, NIL, true, current_thread(),
+                                         FASL_READTABLE)));
 }
 
 // ### fasl-sharp-r stream sub-char numarg => value

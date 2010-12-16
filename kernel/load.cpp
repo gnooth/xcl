@@ -1,6 +1,6 @@
 // load.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,6 +19,7 @@
 #include "lisp.hpp"
 #include "runtime.h"
 #include "primitives.hpp"
+#include "reader.hpp"
 #include "FileError.hpp"
 #include "FileStream.hpp"
 #include "Pathname.hpp"
@@ -55,8 +56,8 @@ Value SYS_load_stream(Value streamarg, Value filespec, Value verbose, Value prin
   while (true)
     {
       thread->set_symbol_value(S_source_position, stream->file_position());
-      Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
-      Value obj = stream->read(false, eof, false, thread, rt);
+      Readtable * rt = current_readtable(thread);
+      Value obj = stream_read(make_value(stream), false, eof, false, thread, rt);
       if (obj == eof)
         break;
       Value result = thread->execute(eval, obj);
@@ -171,12 +172,11 @@ Value SYS_maybe_load_system_file(Value arg)
 Value fasl_load_stream(Thread * thread)
 {
   Value stream = thread->symbol_value(S__load_stream_);
-  Stream * in = check_stream(stream);
   Value eof = stream;
   Function * eval = (Function *)the_symbol(S_eval)->function();
   while (true)
     {
-      Value obj = in->read(false, eof, false, thread, FASL_READTABLE);
+      Value obj = stream_read(stream, false, eof, false, thread, FASL_READTABLE);
       if (obj == eof)
         break;
       thread->execute(eval, obj);

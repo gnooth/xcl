@@ -1,6 +1,6 @@
 // Stream.hpp
 //
-// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -112,7 +112,7 @@ public:
   {
     return _open;
   }
-  
+
   Value read_byte_function() const
   {
     return _read_byte_function;
@@ -127,7 +127,7 @@ public:
 
   virtual bool typep(Value type) const;
 
-  Value read(bool eof_error_p, Value eof_value, bool recursive, Thread * thread, Readtable * rt);
+//   Value read(bool eof_error_p, Value eof_value, bool recursive, Thread * thread, Readtable * rt);
 
   Value read_preserving_whitespace(bool eof_error_p, Value eof_value,
                                    bool recursive, Thread * thread, Readtable * rt);
@@ -261,7 +261,17 @@ inline bool streamp(Value value)
 {
   if (typed_object_p(value))
     {
-      if (the_typed_object(value)->widetag() & WIDETAG_STREAM_BIT)
+      if (the_typed_object(value)->widetag() & WIDETAG_STREAM_BIT) // REVIEW
+        return true;
+    }
+  return false;
+}
+
+inline bool ansi_stream_p(Value value)
+{
+  if (typed_object_p(value))
+    {
+      if (the_typed_object(value)->widetag() & WIDETAG_STREAM_BIT) // REVIEW
         return true;
     }
   return false;

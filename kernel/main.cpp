@@ -215,9 +215,7 @@ int __main(int argc, char * argv[])
               Stream * out = check_stream(thread->symbol_value(S_standard_output));
               out->write_string("* ");
               out->finish_output();
-              Stream * in = check_stream(thread->symbol_value(S_standard_input));
-              Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
-              Value obj = in->read(true, NIL, false, thread, rt);
+              Value obj = SYS_stream_read_internal(thread->symbol_value(S_standard_output), true, NIL, false);
               Value result = thread->execute(interactive_eval, obj);
               assert(thread->stack() == 0);
               long values_length = thread->values_length();

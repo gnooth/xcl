@@ -798,6 +798,7 @@ extern Value SYS_stream_close_internal(Value arg);
 extern Value SYS_stream_fresh_line_internal(Value arg);
 extern Value SYS_stream_princ_internal(Value stream, Value object);
 extern Value SYS_stream_read_byte_function(Value arg);
+extern Value SYS_stream_read_internal(Value arg1, Value arg2, Value arg3, Value arg4);
 extern Value SYS_stream_set_charpos_internal(Value stream, Value position);
 extern Value SYS_stream_terpri_internal(Value arg);
 extern Value SYS_stream_write_char_internal(Value arg1, Value arg2);

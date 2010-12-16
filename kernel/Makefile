@@ -36,13 +36,13 @@ else
   CFLAGS := $(CFLAGS) -march=i686 -m32
 endif
 
-LIBOBJS = lisp.o xcl_home.o run-shell-command.o \
+LIBOBJS = lisp.o xcl_home.o reader.o run-shell-command.o \
+	FaslReadtable.o Readtable.o Stream.o \
 	debug.o stack.o \
 	make-symbol-macro.o \
 	UnwindProtect.o getpid.o SlimeInputStream.o SlimeOutputStream.o \
         initialize.o initialize_symbols.o SimpleBitVector.o Thread.o Symbol.o \
 	peek-char.o documentation.o LogicalPathname.o parse-namestring.o merge-pathnames.o \
-	FaslReadtable.o \
 	progv.o subsetp.o position.o catch.o mapcar.o mapc.o require-type.o sxhash.o \
 	SimpleArray_UB32_1.o Vector_UB32.o \
 	block.o unwind-protect.o Frame.o tagbody.o \
@@ -52,7 +52,7 @@ LIBOBJS = lisp.o xcl_home.o run-shell-command.o \
 	Mutex.o ConditionVariable.o \
 	machine.o software.o lisp-implementation.o \
 	AbstractString.o SimpleString.o String.o NilVector.o \
-	Readtable.o Stream.o numbers.o \
+	numbers.o \
 	Restart.o \
 	FileError.o ProgramError.o Error.o TypeError.o SimpleError.o PackageError.o StreamError.o \
 	UnboundSlot.o CellError.o ControlError.o ParseError.o EndOfFile.o \

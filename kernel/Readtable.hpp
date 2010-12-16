@@ -1,6 +1,6 @@
 // Readtable.hpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -157,8 +157,13 @@ inline Readtable * check_readtable(Value value)
   if (readtablep(value))
     return the_readtable(value);
   signal_type_error(value, S_readtable);
-  // Not reached.
+  // not reached
   return NULL;
+}
+
+inline Readtable * current_readtable(Thread * thread)
+{
+  return check_readtable(thread->symbol_value(S_current_readtable));
 }
 
 #endif // Readtable.hpp

@@ -1462,6 +1462,7 @@ DEFINE_SYMBOL(stream_close_internal, PACKAGE_SYS, "%STREAM-CLOSE");
 DEFINE_SYMBOL(stream_fresh_line_internal, PACKAGE_SYS, "%STREAM-FRESH-LINE");
 DEFINE_SYMBOL(stream_princ_internal, PACKAGE_SYS, "%STREAM-PRINC");
 DEFINE_SYMBOL(stream_read_byte_function, PACKAGE_SYS, "STREAM-READ-BYTE-FUNCTION");
+DEFINE_SYMBOL(stream_read_internal, PACKAGE_SYS, "%STREAM-READ");
 DEFINE_SYMBOL(stream_set_charpos_internal, PACKAGE_SYS, "%STREAM-SET-CHARPOS");
 DEFINE_SYMBOL(stream_terpri_internal, PACKAGE_SYS, "%STREAM-TERPRI");
 DEFINE_SYMBOL(stream_write_char_internal, PACKAGE_SYS, "%STREAM-WRITE-CHAR");

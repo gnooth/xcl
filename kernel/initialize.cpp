@@ -863,6 +863,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_stream_fresh_line_internal, SYS_stream_fresh_line_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_princ_internal, SYS_stream_princ_internal, 2, 2);
   ADD_PRIMITIVE(S_stream_read_byte_function, SYS_stream_read_byte_function, 1, 1);
+  ADD_PRIMITIVE(S_stream_read_internal, SYS_stream_read_internal, 4, 4);
   ADD_PRIMITIVE(S_stream_set_charpos_internal, SYS_stream_set_charpos_internal, 2, 2);
   ADD_PRIMITIVE(S_stream_terpri_internal, SYS_stream_terpri_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_write_char_internal, SYS_stream_write_char_internal, 2, 2);

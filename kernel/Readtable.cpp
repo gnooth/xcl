@@ -1,6 +1,6 @@
 // Readtable.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,6 +19,7 @@
 #include <ctype.h>      // toupper
 #include "lisp.hpp"
 #include "primitives.hpp"
+#include "reader.hpp"
 #include "Environment.hpp"
 #include "Package.hpp"
 #include "ReaderError.hpp"
@@ -304,7 +305,7 @@ Value CL_get_macro_character(unsigned int numargs, Value args[])
     case 1:
       {
         unsigned char c = char_value(args[0]);
-        Readtable * rt = check_readtable(current_thread()->symbol_value(S_current_readtable));
+        Readtable * rt = current_readtable(current_thread());
         return rt->get_macro_character(c);
       }
     case 2:
@@ -336,7 +337,7 @@ Value CL_set_macro_character(unsigned int numargs, Value args[])
   if (numargs > 3)
     rt = check_readtable(args[3]);
   else
-    rt = check_readtable(current_thread()->symbol_value(S_current_readtable));
+    rt = current_readtable(current_thread());
   rt->set_macro_character(c, designator, non_terminating_p);
   return T;
 }
@@ -352,7 +353,7 @@ Value CL_make_dispatch_macro_character(unsigned int numargs, Value args[])
   if (numargs == 3)
     rt = check_readtable(args[2]);
   else
-    rt = check_readtable(current_thread()->symbol_value(S_current_readtable));
+    rt = current_readtable(current_thread());
   rt->make_dispatch_macro_character(c, non_terminating_p);
   return T;
 }
@@ -368,7 +369,7 @@ Value CL_get_dispatch_macro_character(unsigned int numargs, Value args[])
   if (numargs == 3 && args[2] != NIL)
     rt = check_readtable(args[2]);
   else
-    rt = check_readtable(current_thread()->symbol_value(S_current_readtable));
+    rt = current_readtable(current_thread());
   return rt->get_dispatch_macro_character(dispchar, subchar);
 }
 
@@ -384,7 +385,7 @@ Value CL_set_dispatch_macro_character(unsigned int numargs, Value args[])
   if (numargs == 4 && args[3] != NIL)
     rt = check_readtable(args[3]);
   else
-    rt = check_readtable(current_thread()->symbol_value(S_current_readtable));
+    rt = current_readtable(current_thread());
   rt->set_dispatch_macro_character(dispchar, subchar, args[2]);
   return T;
 }
@@ -412,7 +413,7 @@ Value CL_set_syntax_from_char(unsigned int numargs, Value args[])
   if (numargs > 2)
     to_rt = check_readtable(args[2]);
   else
-    to_rt = check_readtable(current_thread()->symbol_value(S_current_readtable));
+    to_rt = current_readtable(current_thread());
   Readtable * from_rt;
   if (numargs == 4 && args[3] != NIL)
     from_rt = check_readtable(args[3]);
@@ -427,7 +428,7 @@ Value CL_set_syntax_from_char(unsigned int numargs, Value args[])
 Value SYS_read_list(Value streamarg, Value character)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_list(false, thread, rt);
 }
 
@@ -448,17 +449,17 @@ Value SYS_read_comment(Value streamarg, Value character)
 // ### read-backquote stream character => value
 Value SYS_read_backquote(Value streamarg, Value ignored)
 {
-  Stream * stream = check_stream(streamarg);
+//   Stream * stream = check_stream(streamarg);
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
-  return make_cons(S_backquote, make_cons(stream->read(true, NIL, true, thread, rt)));
+  Readtable * rt = current_readtable(thread);
+  return make_cons(S_backquote, make_cons(stream_read(streamarg, true, NIL, true, thread, rt)));
 }
 
 // ### read-comma stream character => value
 Value SYS_read_comma(Value streamarg, Value ignored)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_comma(thread, rt);
 }
 
@@ -466,7 +467,7 @@ Value SYS_read_comma(Value streamarg, Value ignored)
 Value SYS_read_dispatch_char(Value streamarg, Value character)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_dispatch_char(char_value(character), thread, rt);
 }
 
@@ -474,9 +475,10 @@ Value SYS_read_dispatch_char(Value streamarg, Value character)
 Value SYS_read_quote(Value streamarg, Value ignored)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+//   Readtable * rt = current_readtable(thread);
+  Readtable * rt = current_readtable(thread);
   return make_cons(S_quote,
-                   make_cons(check_stream(streamarg)->read(true, NIL, true, thread, rt)));
+                   make_cons(stream_read(streamarg, true, NIL, true, thread, rt)));
 }
 
 // ### read-right-paren stream character => value
@@ -499,7 +501,7 @@ Value SYS_read_right_paren(Value streamarg, Value ignored)
 Value SYS_read_string(Value streamarg, Value character)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return make_value(check_stream(streamarg)->read_string(char_value(character), rt));
 }
 
@@ -507,7 +509,7 @@ Value SYS_read_string(Value streamarg, Value character)
 Value SYS_sharp_a(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_array(numarg, thread, rt);
 }
 
@@ -515,7 +517,7 @@ Value SYS_sharp_a(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_b(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_radix(2, thread, rt);
 }
 
@@ -523,7 +525,7 @@ Value SYS_sharp_b(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_backslash(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_character_literal(thread, rt);
 }
 
@@ -531,7 +533,7 @@ Value SYS_sharp_backslash(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_c(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_complex(thread, rt);
 }
 
@@ -539,20 +541,20 @@ Value SYS_sharp_c(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_colon(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_symbol(rt);
 }
 
 // ### sharp-dot stream sub-char numarg => value
 Value SYS_sharp_dot(Value streamarg, Value subchar, Value numarg)
 {
-  Stream * stream = check_stream(streamarg);
   Thread * thread = current_thread();
   if (thread->symbol_value(S_read_eval) != NIL)
     {
-      Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
-      return eval(stream->read(true, NIL, true, thread, rt), new Environment(), thread);
+      Readtable * rt = current_readtable(thread);
+      return eval(stream_read(streamarg, true, NIL, true, thread, rt), new Environment(), thread);
     }
+  Stream * stream = check_stream(streamarg);
   String * s = new String("Can't read #. when ");
   s->append(the_symbol(S_read_eval)->prin1_to_string());
   s->append(" is false.");
@@ -578,11 +580,11 @@ Value SYS_sharp_left_paren(Value streamarg, Value subchar, Value numarg)
   Thread * thread = current_thread();
   if (thread->symbol_value(S_read_suppress) != NIL)
     {
-      Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+      Readtable * rt = current_readtable(thread);
       check_stream(streamarg)->read_list(true, thread, rt);
       return NIL;
     }
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   if (numarg != NIL && thread->symbol_value(S_backquote_count) == FIXNUM_ZERO)
     return check_stream(streamarg)->read_vector(check_index(numarg), thread, rt);
   Value list = check_stream(streamarg)->read_list(true, thread, rt);
@@ -609,7 +611,7 @@ Value SYS_sharp_left_paren(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_o(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_radix(8, thread, rt);
 }
 
@@ -617,7 +619,7 @@ Value SYS_sharp_o(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_p(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_pathname(thread, rt);
 }
 
@@ -625,9 +627,10 @@ Value SYS_sharp_p(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_quote(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+//   Readtable * rt = current_readtable(thread);
+  Readtable * rt = current_readtable(thread);
   return make_cons(S_function,
-                   make_cons(check_stream(streamarg)->read(true, NIL, true, thread, rt)));
+                   make_cons(stream_read(streamarg, true, NIL, true, thread, rt)));
 }
 
 // ### sharp-r stream sub-char numarg => value
@@ -635,7 +638,7 @@ Value SYS_sharp_r(Value streamarg, Value subchar, Value numarg)
 {
   Stream * stream = check_stream(streamarg);
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   if (fixnump(numarg))
     {
       long radix = xlong(numarg);
@@ -667,7 +670,7 @@ Value SYS_sharp_r(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_s(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_structure(thread, rt);
 }
 
@@ -675,7 +678,7 @@ Value SYS_sharp_s(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_star(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_bit_vector(numarg == NIL ? -1 : fixnum_value(numarg),
                                                   thread, rt);
 }
@@ -691,6 +694,6 @@ Value SYS_sharp_vertical_bar(Value streamarg, Value subchar, Value numarg)
 Value SYS_sharp_x(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
-  Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+  Readtable * rt = current_readtable(thread);
   return check_stream(streamarg)->read_radix(16, thread, rt);
 }

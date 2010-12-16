@@ -1,6 +1,6 @@
 // StringInputStream.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -17,6 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "lisp.hpp"
+#include "reader.hpp"
 #include "Readtable.hpp"
 
 class StringInputStream : public Stream
@@ -149,6 +150,6 @@ Value SYS_read_from_string_internal(Value arg1, Value arg2, Value arg3,
   if (preserve_whitespace)
     result = in->read_preserving_whitespace(eof_error_p, arg3, false, thread, rt);
   else
-    result = in->read(eof_error_p, arg3, false, thread, rt);
+    result = stream_read(make_value(in), eof_error_p, arg3, false, thread, rt);
   return thread->set_values(result, make_fixnum(in->offset()));
 }
