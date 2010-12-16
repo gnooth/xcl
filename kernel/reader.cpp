@@ -20,6 +20,7 @@
 #include "lisp.hpp"
 #include "runtime.h"
 #include "primitives.hpp"
+#include "reader.hpp"
 #include "Complex.hpp"
 #include "EndOfFile.hpp"
 #include "Package.hpp"
@@ -39,7 +40,8 @@ Value stream_read(Value streamarg, bool eof_error_p,
   if (ansi_stream_p(streamarg))
     {
       Stream * stream = the_stream(streamarg);
-      Value result = stream->read_preserving_whitespace(eof_error_p, eof_value, recursive_p, thread, rt);
+      Value result = stream_read_preserving_whitespace(streamarg, eof_error_p, eof_value,
+                                                       recursive_p, thread, rt);
       if (result != eof_value && !recursive_p)
         {
           int c = stream->read_char();
@@ -57,7 +59,51 @@ Value stream_read(Value streamarg, bool eof_error_p,
   else
     {
       // fundamental-stream
-      assert(false);
-      return NIL;
+      return signal_lisp_error("stream_read needs code!");
+    }
+}
+
+Value stream_read_preserving_whitespace(Value streamarg, bool eof_error_p,
+                                        Value eof_value, bool recursive_p,
+                                        Thread * thread, Readtable * rt)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      void * last_special_binding = NULL;
+      if (!recursive_p)
+        {
+          last_special_binding = thread->last_special_binding();
+          thread->bind_special(S_sharp_equal_alist, NIL);
+        }
+      Value value;
+      while (true)
+        {
+          int n = stream->read_char();
+          if (n < 0)
+            {
+              if (eof_error_p)
+                return signal_lisp_error(new EndOfFile(stream));
+              else
+                return eof_value;
+            }
+          BASE_CHAR c = (BASE_CHAR) n;
+          if (!rt->is_whitespace(c))
+            {
+              value = stream->process_char(c, rt, thread);
+              if (thread->values_length() != 0)
+                break;
+              // process_char() returned no values
+              thread->clear_values();
+            }
+        }
+      if (!recursive_p)
+        thread->set_last_special_binding(last_special_binding);
+      return value;
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_preserving_whitespace needs code!");
     }
 }

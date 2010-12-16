@@ -32,7 +32,6 @@ enum Direction
 class Stream : public TypedObject
 {
 private:
-  Value process_char(BASE_CHAR c, Readtable * rt, Thread * thread);
   BitVector * read_token(BASE_CHAR c1, Readtable * rt, Thread * thread, String * string);
   Value read_atom(BASE_CHAR c1, Readtable * rt, Thread * thread);
   String * read_multiple_escape(Readtable * rt);
@@ -126,11 +125,6 @@ public:
   virtual Value class_of() const;
 
   virtual bool typep(Value type) const;
-
-//   Value read(bool eof_error_p, Value eof_value, bool recursive, Thread * thread, Readtable * rt);
-
-  Value read_preserving_whitespace(bool eof_error_p, Value eof_value,
-                                   bool recursive, Thread * thread, Readtable * rt);
 
   Value read_array(Value numarg, Thread * thread, Readtable * rt);
   Value read_comma(Thread * thread, Readtable * rt);
@@ -255,6 +249,8 @@ public:
   {
     return signal_type_error(make_value(this), S_file_stream);
   }
+
+  Value process_char(BASE_CHAR c, Readtable * rt, Thread * thread);
 };
 
 inline bool streamp(Value value)

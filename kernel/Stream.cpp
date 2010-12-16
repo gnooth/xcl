@@ -149,42 +149,6 @@ Value Stream::process_char(BASE_CHAR c, Readtable * rt, Thread * thread)
   return read_atom(c, rt, thread);
 }
 
-Value Stream::read_preserving_whitespace(bool eof_error_p, Value eof_value,
-                                         bool recursive_p, Thread * thread,
-                                         Readtable * rt)
-{
-  void * last_special_binding = NULL;
-  if (!recursive_p)
-    {
-      last_special_binding = thread->last_special_binding();
-      thread->bind_special(S_sharp_equal_alist, NIL);
-    }
-  Value value;
-  while (true)
-    {
-      int n = read_char();
-      if (n < 0)
-        {
-          if (eof_error_p)
-            return signal_lisp_error(new EndOfFile(this));
-          else
-            return eof_value;
-        }
-      BASE_CHAR c = (BASE_CHAR) n;
-      if (!rt->is_whitespace(c))
-        {
-          value = process_char(c, rt, thread);
-          if (thread->values_length() != 0)
-            break;
-          // process_char() returned no values
-          thread->clear_values();
-        }
-    }
-  if (!recursive_p)
-    thread->set_last_special_binding(last_special_binding);
-  return value;
-}
-
 Value Stream::read_list(bool require_proper_list, Thread * thread, Readtable * rt)
 {
   Value first = NULL_VALUE;
@@ -1598,7 +1562,9 @@ Value CL_read_preserving_whitespace(unsigned int numargs, Value args[])
   Value eof_value = (numargs > 2) ? args[2] : NIL;
   bool recursive_p = (numargs > 3 && args[3] != NIL);
   Readtable * rt = current_readtable(thread);
-  return stream->read_preserving_whitespace(eof_error_p, eof_value, recursive_p, thread, rt);
+  // REVIEW
+  return stream_read_preserving_whitespace(make_value(stream), eof_error_p, eof_value,
+                                           recursive_p, thread, rt);
 }
 
 // ### read-line &optional input-stream eof-error-p eof-value recursive-p => line, missing-newline-p

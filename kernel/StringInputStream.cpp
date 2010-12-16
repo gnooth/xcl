@@ -148,7 +148,7 @@ Value SYS_read_from_string_internal(Value arg1, Value arg2, Value arg3,
   Value result;
   Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
   if (preserve_whitespace)
-    result = in->read_preserving_whitespace(eof_error_p, arg3, false, thread, rt);
+    result = stream_read_preserving_whitespace(make_value(in), eof_error_p, arg3, false, thread, rt);
   else
     result = stream_read(make_value(in), eof_error_p, arg3, false, thread, rt);
   return thread->set_values(result, make_fixnum(in->offset()));
