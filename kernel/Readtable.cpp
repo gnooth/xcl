@@ -429,7 +429,7 @@ Value SYS_read_list(Value streamarg, Value character)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_list(false, thread, rt);
+  return stream_read_list(streamarg, false, thread, rt);
 }
 
 // ### read-comment stream character => no values
@@ -581,13 +581,13 @@ Value SYS_sharp_left_paren(Value streamarg, Value subchar, Value numarg)
   if (thread->symbol_value(S_read_suppress) != NIL)
     {
       Readtable * rt = current_readtable(thread);
-      check_stream(streamarg)->read_list(true, thread, rt);
+      stream_read_list(streamarg, true, thread, rt);
       return NIL;
     }
   Readtable * rt = current_readtable(thread);
   if (numarg != NIL && thread->symbol_value(S_backquote_count) == FIXNUM_ZERO)
     return check_stream(streamarg)->read_vector(check_index(numarg), thread, rt);
-  Value list = check_stream(streamarg)->read_list(true, thread, rt);
+  Value list = stream_read_list(streamarg, true, thread, rt);
   if (thread->symbol_value(S_backquote_count) == FIXNUM_ZERO)
     {
       if (numarg != NIL)

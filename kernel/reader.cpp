@@ -107,3 +107,115 @@ Value stream_read_preserving_whitespace(Value streamarg, bool eof_error_p,
       return signal_lisp_error("stream_read_preserving_whitespace needs code!");
     }
 }
+
+static bool is_whitespace(long c)
+{
+  switch (c)
+    {
+    case 9:     // tab
+    case 10:    // linefeed
+    case 12:    // form feed
+    case 13:    // return
+    case ' ':   // space
+      return true;
+    default:
+      return false;
+    }
+}
+
+static bool is_delimiter(long c)
+{
+  switch (c)
+    {
+    case '"':
+    case '\'':
+    case '(':
+    case ')':
+    case ',':
+    case ';':
+    case '`':
+      return true;
+    default:
+      return is_whitespace(c);
+    }
+}
+
+Value stream_read_list(Value streamarg, bool require_proper_list,
+                       Thread * thread, Readtable * rt)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      Value first = NULL_VALUE;
+      Value last = NULL_VALUE;
+      while (true)
+        {
+          long n = stream->read_char();
+          if (n < 0)
+            return signal_lisp_error(new EndOfFile(stream));
+          BASE_CHAR c = (BASE_CHAR) n;
+          if (rt->is_whitespace(c))
+            continue;
+          if (c == ')')
+            return first == NULL_VALUE ? NIL : first;
+          if (c == '.')
+            {
+              int n2 = stream->read_char();
+              if (n2 < 0)
+                return signal_lisp_error(new EndOfFile(stream));
+              if (is_delimiter(n2))
+                {
+                  if (last == NULL_VALUE)
+                    {
+                      if (thread->symbol_value(S_read_suppress) != NIL)
+                        return NIL;
+                      else
+                        // FIXME reader error
+                        return signal_lisp_error(new ReaderError(stream, "Nothing appears before . in list."));
+                    }
+                  stream->unread_char(n2);
+                  Value obj = stream_read(streamarg, true, NIL, true, thread, rt);
+                  if (require_proper_list)
+                    {
+                      if (!listp(obj))
+                        {
+                          String * string = new String("The value ");
+                          string->append(::prin1_to_string(obj));
+                          string->append(" is not of type ");
+                          string->append(the_symbol(S_list)->prin1_to_string());
+                          string->append_char('.');
+                          return signal_lisp_error(new ReaderError(stream, string));
+                        }
+                    }
+                  setcdr(last, obj);
+                  continue;
+                }
+              // normal token beginning with '.'
+              stream->unread_char(n2);
+            }
+          Value obj = stream->process_char(c, rt, thread);
+          if (thread->values_length() == 0)
+            {
+              // process_char() returned no values
+              thread->clear_values();
+              continue;
+            }
+          if (first == NULL_VALUE)
+            {
+              first = make_cons(obj);
+              last = first;
+            }
+          else
+            {
+              Value cons = make_cons(obj);
+              setcdr(last, cons);
+              last = cons;
+            }
+        }
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_list needs code!");
+    }
+}

@@ -149,75 +149,75 @@ Value Stream::process_char(BASE_CHAR c, Readtable * rt, Thread * thread)
   return read_atom(c, rt, thread);
 }
 
-Value Stream::read_list(bool require_proper_list, Thread * thread, Readtable * rt)
-{
-  Value first = NULL_VALUE;
-  Value last = NULL_VALUE;
-  while (true)
-    {
-      long n = read_char();
-      if (n < 0)
-        return signal_lisp_error(new EndOfFile(this));
-      BASE_CHAR c = (BASE_CHAR) n;
-      if (rt->is_whitespace(c))
-        continue;
-      if (c == ')')
-        return first == NULL_VALUE ? NIL : first;
-      if (c == '.')
-        {
-          int n2 = read_char();
-          if (n2 < 0)
-            return signal_lisp_error(new EndOfFile(this));
-          if (is_delimiter(n2))
-            {
-              if (last == NULL_VALUE)
-                {
-                  if (thread->symbol_value(S_read_suppress) != NIL)
-                    return NIL;
-                  else
-                    // FIXME reader error
-                    return signal_lisp_error(new ReaderError(this, "Nothing appears before . in list."));
-                }
-              unread_char(n2);
-              Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
-              if (require_proper_list)
-                {
-                  if (!listp(obj))
-                    {
-                      String * string = new String("The value ");
-                      string->append(::prin1_to_string(obj));
-                      string->append(" is not of type ");
-                      string->append(the_symbol(S_list)->prin1_to_string());
-                      string->append_char('.');
-                      return signal_lisp_error(new ReaderError(this, string));
-                    }
-                }
-              setcdr(last, obj);
-              continue;
-            }
-          // normal token beginning with '.'
-          unread_char(n2);
-        }
-      Value obj = process_char(c, rt, thread);
-      if (thread->values_length() == 0)
-        {
-          // process_char() returned no values
-          thread->clear_values();
-          continue;
-        }
-      if (first == NULL_VALUE)
-        {
-          first = make_cons(obj);
-          last = first;
-        }
-      else
-        {
-          Value cons = make_cons(obj);
-          setcdr(last, cons);
-          last = cons;
-        }
-    }
-}
+// Value Stream::read_list(bool require_proper_list, Thread * thread, Readtable * rt)
+// {
+//   Value first = NULL_VALUE;
+//   Value last = NULL_VALUE;
+//   while (true)
+//     {
+//       long n = read_char();
+//       if (n < 0)
+//         return signal_lisp_error(new EndOfFile(this));
+//       BASE_CHAR c = (BASE_CHAR) n;
+//       if (rt->is_whitespace(c))
+//         continue;
+//       if (c == ')')
+//         return first == NULL_VALUE ? NIL : first;
+//       if (c == '.')
+//         {
+//           int n2 = read_char();
+//           if (n2 < 0)
+//             return signal_lisp_error(new EndOfFile(this));
+//           if (is_delimiter(n2))
+//             {
+//               if (last == NULL_VALUE)
+//                 {
+//                   if (thread->symbol_value(S_read_suppress) != NIL)
+//                     return NIL;
+//                   else
+//                     // FIXME reader error
+//                     return signal_lisp_error(new ReaderError(this, "Nothing appears before . in list."));
+//                 }
+//               unread_char(n2);
+//               Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
+//               if (require_proper_list)
+//                 {
+//                   if (!listp(obj))
+//                     {
+//                       String * string = new String("The value ");
+//                       string->append(::prin1_to_string(obj));
+//                       string->append(" is not of type ");
+//                       string->append(the_symbol(S_list)->prin1_to_string());
+//                       string->append_char('.');
+//                       return signal_lisp_error(new ReaderError(this, string));
+//                     }
+//                 }
+//               setcdr(last, obj);
+//               continue;
+//             }
+//           // normal token beginning with '.'
+//           unread_char(n2);
+//         }
+//       Value obj = process_char(c, rt, thread);
+//       if (thread->values_length() == 0)
+//         {
+//           // process_char() returned no values
+//           thread->clear_values();
+//           continue;
+//         }
+//       if (first == NULL_VALUE)
+//         {
+//           first = make_cons(obj);
+//           last = first;
+//         }
+//       else
+//         {
+//           Value cons = make_cons(obj);
+//           setcdr(last, cons);
+//           last = cons;
+//         }
+//     }
+// }
 
 Value Stream::read_vector(INDEX size, Thread * thread, Readtable * rt)
 {

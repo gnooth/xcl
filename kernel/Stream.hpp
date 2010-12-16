@@ -129,7 +129,6 @@ public:
   Value read_array(Value numarg, Thread * thread, Readtable * rt);
   Value read_comma(Thread * thread, Readtable * rt);
   Value read_character_literal(Thread * thread, Readtable * rt);
-  Value read_list(bool require_proper_list, Thread * thread, Readtable * rt);
   Value read_vector(INDEX size, Thread * thread, Readtable * rt);
   AbstractString * read_string(BASE_CHAR terminator, Readtable * rt);
   Value read_symbol(Readtable * rt);
