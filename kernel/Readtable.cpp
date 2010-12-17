@@ -468,7 +468,7 @@ Value SYS_read_dispatch_char(Value streamarg, Value character)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_dispatch_char(char_value(character), thread, rt);
+  return stream_read_dispatch_char(streamarg, char_value(character), thread, rt);
 }
 
 // ### read-quote stream character => value

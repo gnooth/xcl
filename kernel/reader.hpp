@@ -44,4 +44,7 @@ extern Value stream_read_delimited_list(Value streamarg, BASE_CHAR delimiter,
 extern Value stream_read_string(Value streamarg, BASE_CHAR terminator,
                                 Readtable * rt);
 
+extern Value stream_read_dispatch_char(Value streamarg, BASE_CHAR dispatch_char,
+                                       Thread * thread, Readtable * rt);
+
 #endif // reader.hpp

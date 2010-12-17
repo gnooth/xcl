@@ -793,3 +793,50 @@ Value stream_read_string(Value streamarg, BASE_CHAR terminator, Readtable * rt)
       return signal_lisp_error("stream_read_string needs code!");
     }
 }
+
+Value stream_read_dispatch_char(Value streamarg, BASE_CHAR dispatch_char,
+                                Thread * thread, Readtable * rt)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      long numarg = -1;
+      BASE_CHAR c;
+      while (true)
+        {
+          long n = stream->read_char();
+          if (n < 0)
+            return signal_lisp_error(new EndOfFile(stream));
+          c = (BASE_CHAR) n;
+          if (c < '0' || c > '9')
+            break;
+          if (numarg < 0)
+            numarg = 0;
+          numarg = numarg * 10 + c - '0';
+        }
+      Value handler = rt->get_dispatch_macro_character(dispatch_char, c);
+      if (handler != NIL)
+        {
+          TypedObject * function = NULL;
+          if (symbolp(handler))
+            function = the_symbol(handler)->function();
+          else if (typed_object_p(handler))
+            function = the_typed_object(handler);
+          if (function)
+            // REVIEW
+            return thread->execute(function, streamarg, make_character(c),
+                                   numarg >= 0 ? make_number(numarg) : NIL);
+        }
+      // no handler, fall through...
+      if (thread->symbol_value(S_read_suppress) != NIL)
+        return thread->set_values();
+      String * string = new String("No dispatch function defined for #\\");
+      string->append_char(c);
+      return signal_lisp_error(new ReaderError(stream, string));
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_dispatch_char needs code!");
+    }
+}

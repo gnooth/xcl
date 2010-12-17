@@ -128,7 +128,6 @@ public:
   Value read_pathname(Thread * thread, Readtable * rt);
   Value read_structure(Thread * thread, Readtable * rt);
   Value read_radix(long base, Thread * thread, Readtable * rt);
-  Value read_dispatch_char(BASE_CHAR dispatch_char, Thread * thread, Readtable * rt);
 
   virtual bool is_char_ready();
 

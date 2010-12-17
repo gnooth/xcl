@@ -141,8 +141,7 @@ Value SYS_fasl_read_comma(Value streamarg, Value ignored)
 // ### fasl-read-dispatch-char stream character => value
 Value SYS_fasl_read_dispatch_char(Value streamarg, Value character)
 {
-  return check_stream(streamarg)->read_dispatch_char(char_value(character), current_thread(),
-                                                     FASL_READTABLE);
+  return stream_read_dispatch_char(streamarg, char_value(character), current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-read-quote stream character => value
