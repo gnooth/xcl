@@ -97,26 +97,6 @@ bool Stream::typep(Value type) const
   return (type == S_stream || type == S_atom || type == T || type == C_stream || type == C_t);
 }
 
-Value Stream::process_char(BASE_CHAR c, Readtable * rt, Thread * thread)
-{
-  Value handler = rt->reader_macro_function(c);
-  if (handler != NULL_VALUE)
-    {
-      // REVIEW error handling
-      TypedObject * function;
-      if (symbolp(handler))
-        function = the_symbol(handler)->function();
-      else if (typed_object_p(handler))
-        function = the_typed_object(handler);
-      else
-        return signal_type_error(handler, S_function_designator);
-      // REVIEW
-      return thread->execute(function, make_value(this), make_character(c));
-    }
-  // no handler
-  return stream_read_atom(make_value(this), c, rt, thread);
-}
-
 Value Stream::read_complex(Thread * thread, Readtable * rt)
 {
   Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
@@ -630,44 +610,6 @@ Value Stream::read_line(bool eof_error_p, Value eof_value)
         string->append_char((char)n);
     }
 }
-
-// BASE_CHAR Stream::flush_whitespace(Readtable * rt)
-// {
-//   while (true)
-//     {
-//       int n = read_char();
-//       if (n < 0)
-//         {
-//           signal_lisp_error(new EndOfFile(this));
-//           // not reached
-//           return 0;
-//         }
-//       BASE_CHAR c = (BASE_CHAR) n;
-//       if (!rt->is_whitespace(c))
-//         return c;
-//     }
-// }
-
-// Value Stream::read_delimited_list(BASE_CHAR delimiter, Thread * thread)
-// {
-//   Value result = NIL;
-//   while (true)
-//     {
-//       Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
-//       BASE_CHAR c = flush_whitespace(rt);
-//       if (c == delimiter)
-//         break;
-//       Value value = process_char(c, rt, thread);
-//       if (thread->values_length() != 0)
-//         result = make_cons(value, result);
-//       else
-//         thread->clear_values();
-//     }
-//   if (thread->symbol_value(S_read_suppress) != NIL)
-//     return NIL;
-//   else
-//     return CL_nreverse(result);
-// }
 
 void Stream::skip_balanced_comment()
 {

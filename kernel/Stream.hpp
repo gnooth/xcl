@@ -238,8 +238,6 @@ public:
   {
     return signal_type_error(make_value(this), S_file_stream);
   }
-
-  Value process_char(BASE_CHAR c, Readtable * rt, Thread * thread);
 };
 
 inline bool streamp(Value value)

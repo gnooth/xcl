@@ -33,6 +33,34 @@
 #include "ZeroRankArray.hpp"
 #include "keywordp.hpp"
 
+static Value stream_process_char(Value streamarg, BASE_CHAR c, Readtable * rt, Thread * thread)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Value handler = rt->reader_macro_function(c);
+      if (handler != NULL_VALUE)
+        {
+          // REVIEW error handling
+          TypedObject * function;
+          if (symbolp(handler))
+            function = the_symbol(handler)->function();
+          else if (typed_object_p(handler))
+            function = the_typed_object(handler);
+          else
+            return signal_type_error(handler, S_function_designator);
+          // REVIEW
+          return thread->execute(function, streamarg, make_character(c));
+        }
+      // no handler
+      return stream_read_atom(streamarg, c, rt, thread);
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_process_char needs code!");
+    }
+}
+
 Value stream_read(Value streamarg, bool eof_error_p,
                   Value eof_value, bool recursive_p,
                   Thread * thread, Readtable * rt)
@@ -90,10 +118,10 @@ Value stream_read_preserving_whitespace(Value streamarg, bool eof_error_p,
           BASE_CHAR c = (BASE_CHAR) n;
           if (!rt->is_whitespace(c))
             {
-              value = stream->process_char(c, rt, thread);
+              value = stream_process_char(streamarg, c, rt, thread);
               if (thread->values_length() != 0)
                 break;
-              // process_char() returned no values
+              // stream_process_char() returned no values
               thread->clear_values();
             }
         }
@@ -193,10 +221,10 @@ Value stream_read_list(Value streamarg, bool require_proper_list,
               // normal token beginning with '.'
               stream->unread_char(n2);
             }
-          Value obj = stream->process_char(c, rt, thread);
+          Value obj = stream_process_char(streamarg, c, rt, thread);
           if (thread->values_length() == 0)
             {
-              // process_char() returned no values
+              // stream_process_char() returned no values
               thread->clear_values();
               continue;
             }
@@ -256,10 +284,10 @@ Value stream_read_vector(Value streamarg, INDEX size, Thread * thread, Readtable
               // normal token beginning with '.'
               stream->unread_char(n2);
             }
-          Value obj = stream->process_char(c, rt, thread);
+          Value obj = stream_process_char(streamarg, c, rt, thread);
           if (thread->values_length() == 0)
             {
-              // process_char() returned no values
+              // stream_process_char() returned no values
               thread->clear_values();
               continue;
             }
@@ -713,30 +741,21 @@ BASE_CHAR stream_flush_whitespace(Value streamarg, Readtable * rt)
 
 Value stream_read_delimited_list(Value streamarg, BASE_CHAR delimiter, Thread * thread)
 {
-  if (ansi_stream_p(streamarg))
+  Value result = NIL;
+  while (true)
     {
-      Stream * stream = the_stream(streamarg);
-      Value result = NIL;
-      while (true)
-        {
-          Readtable * rt = current_readtable(thread);
-          BASE_CHAR c = stream_flush_whitespace(streamarg, rt);
-          if (c == delimiter)
-            break;
-          Value value = stream->process_char(c, rt, thread);
-          if (thread->values_length() != 0)
-            result = make_cons(value, result);
-          else
-            thread->clear_values();
-        }
-      if (thread->symbol_value(S_read_suppress) != NIL)
-        return NIL;
+      Readtable * rt = current_readtable(thread);
+      BASE_CHAR c = stream_flush_whitespace(streamarg, rt);
+      if (c == delimiter)
+        break;
+      Value value = stream_process_char(streamarg, c, rt, thread);
+      if (thread->values_length() != 0)
+        result = make_cons(value, result);
       else
-        return CL_nreverse(result);
+        thread->clear_values();
     }
+  if (thread->symbol_value(S_read_suppress) != NIL)
+    return NIL;
   else
-    {
-      // fundamental-stream
-      return signal_lisp_error("stream_read_delimited_list needs code!");
-    }
+    return CL_nreverse(result);
 }
