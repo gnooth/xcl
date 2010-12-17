@@ -759,3 +759,37 @@ Value stream_read_delimited_list(Value streamarg, BASE_CHAR delimiter, Thread * 
   else
     return CL_nreverse(result);
 }
+
+Value stream_read_string(Value streamarg, BASE_CHAR terminator, Readtable * rt)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      String * string = new String();
+      while (true)
+        {
+          int n = stream->read_char();
+          if (n < 0)
+            return signal_lisp_error(new EndOfFile(stream));
+          BASE_CHAR c = (BASE_CHAR) n;
+          unsigned int syntax = rt->syntax(c);
+          if (syntax == SYNTAX_TYPE_SINGLE_ESCAPE)
+            {
+              n = stream->read_char();
+              if (n < 0)
+                return signal_lisp_error(new EndOfFile(stream));
+              string->append_char((BASE_CHAR)n);
+              continue;
+            }
+          if (c == terminator)
+            return make_value(new_simple_string(string));
+          // otherwise...
+          string->append_char(c);
+        }
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_string needs code!");
+    }
+}

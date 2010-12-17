@@ -303,39 +303,6 @@ Value Stream::read_binary_data(INDEX length)
 //     }
 }
 
-AbstractString * Stream::read_string(BASE_CHAR terminator, Readtable * rt)
-{
-  String * string = new String();
-  while (true)
-    {
-      int n = read_char();
-      if (n < 0)
-        {
-          signal_lisp_error(new EndOfFile(this));
-          // not reached
-          return NULL;
-        }
-      BASE_CHAR c = (BASE_CHAR) n;
-      unsigned int syntax = rt->syntax(c);
-      if (syntax == SYNTAX_TYPE_SINGLE_ESCAPE)
-        {
-          n = read_char();
-          if (n < 0)
-            {
-              signal_lisp_error(new EndOfFile(this));
-              // Not reached.
-              return NULL;
-            }
-          string->append_char((BASE_CHAR)n);
-          continue;
-        }
-      if (c == terminator)
-        return new_simple_string(string);
-      // otherwise...
-      string->append_char(c);
-    }
-}
-
 Value Stream::read_dispatch_char(BASE_CHAR dispatch_char, Thread * thread, Readtable * rt)
 {
   long numarg = -1;

@@ -502,7 +502,7 @@ Value SYS_read_string(Value streamarg, Value character)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return make_value(check_stream(streamarg)->read_string(char_value(character), rt));
+  return stream_read_string(streamarg, char_value(character), rt);
 }
 
 // ### sharp-a stream sub-char numarg => value

@@ -175,7 +175,7 @@ Value SYS_fasl_read_right_paren(Value streamarg, Value ignored)
 // ### fasl-read-string stream character => value
 Value SYS_fasl_read_string(Value streamarg, Value character)
 {
-  return make_value(check_stream(streamarg)->read_string(char_value(character), FASL_READTABLE));
+  return stream_read_string(streamarg, char_value(character), FASL_READTABLE);
 }
 
 // ### fasl-sharp-a stream sub-char numarg => value
