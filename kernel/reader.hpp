@@ -49,4 +49,11 @@ extern Value stream_read_dispatch_char(Value streamarg, BASE_CHAR dispatch_char,
 
 extern Value stream_read_complex(Value streamarg, Thread * thread, Readtable * rt);
 
+extern Value stream_read_array(Value streamarg, Value numarg, Thread * thread,
+                               Readtable * rt);
+
+extern Value stream_read_bit_vector(Value streamarg, long n, Thread * thread,
+                                    Readtable * rt);
+
+
 #endif // reader.hpp

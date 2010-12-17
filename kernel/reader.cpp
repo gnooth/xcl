@@ -869,3 +869,114 @@ Value stream_read_complex(Value streamarg, Thread * thread, Readtable * rt)
   s->append(::prin1_to_string(obj));
   return signal_lisp_error(new ReaderError(streamarg, s));
 }
+
+Value stream_read_array(Value streamarg, Value numarg, Thread * thread, Readtable * rt)
+{
+  Value obj = stream_read(streamarg, true, NIL, true, thread, rt);
+  if (thread->symbol_value(S_read_suppress) != NIL)
+    return NIL;
+  if (numarg == NIL)
+    return signal_lisp_error(new ReaderError(streamarg, "Missing dimensions argument for #A."));
+  long rank = fixnum_value(numarg);
+  switch (rank)
+    {
+    case 0:
+      return make_value(new ZeroRankArray(T, obj));
+    case 1:
+      {
+        if (listp(obj))
+          return make_value(new_simple_vector(obj));
+        if (vectorp(obj))
+          {
+            AbstractVector * v = the_vector(obj);
+            const unsigned long len = v->length();
+            SimpleVector * sv = new_simple_vector(len);
+            for (unsigned long i = 0; i < len; i++)
+              sv->aset(i, v->aref(i));
+            return make_value(sv);
+          }
+        String * s = new String("The value ");
+        s->append(::write_to_string(obj));
+        s->append(" is not a sequence.");
+        return signal_lisp_error(new ReaderError(streamarg, s));
+      }
+    default:
+      return make_value(new SimpleArray_T(rank, obj));
+    }
+}
+
+Value stream_read_bit_vector(Value streamarg, long n, Thread * thread, Readtable * rt)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      bool suppress = (thread->symbol_value(S_read_suppress) != NIL);
+      String * s = new String();
+      while (true)
+        {
+          int n = stream->read_char();
+          if (n < 0)
+            break;
+          BASE_CHAR c = (BASE_CHAR) n;
+          if (c == '0' || c == '1')
+            s->append_char(c);
+          else
+            {
+              unsigned int syntax = rt->syntax(c);
+              if (syntax == SYNTAX_TYPE_WHITESPACE || syntax == SYNTAX_TYPE_TERMINATING_MACRO)
+                {
+                  stream->unread_char(c);
+                  break;
+                }
+              else if (!suppress)
+                {
+                  String * message = new String("Illegal element for bit-vector: #\\");
+                  Value name = CL_char_name(make_character(c));
+                  if (stringp(name))
+                    message->append(the_string(name));
+                  else
+                    message->append_char(c);
+                  return signal_lisp_error(new ReaderError(streamarg, message));
+                }
+            }
+        }
+      if (suppress)
+        return NIL;
+      if (n >= 0)
+        {
+          // numeric arg was supplied
+          const long len = s->length();
+          if (len == 0)
+            {
+              if (n > 0)
+                {
+                  String * message = new String("No element specified for bit vector of length ");
+                  message->append_long(n);
+                  message->append_char('.');
+                  return signal_lisp_error(new ReaderError(streamarg, message));
+                }
+            }
+          if (n > len)
+            {
+              const BASE_CHAR c = s->char_at(len - 1);
+              for (long i = len; i < n; i++)
+                s->append_char(c);
+            }
+          else if (n < len)
+            {
+              String * message = new String("Bit vector is longer than specified length: #");
+              message->append_long(n);
+              message->append_char('*');
+              message->append(s);
+              return signal_lisp_error(new ReaderError(streamarg, message));
+            }
+        }
+      return make_value(new_simple_bit_vector(s));
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_bit_vector needs code!");
+    }
+
+}

@@ -120,10 +120,8 @@ public:
 
   virtual bool typep(Value type) const;
 
-  Value read_array(Value numarg, Thread * thread, Readtable * rt);
   Value read_comma(Thread * thread, Readtable * rt);
   Value read_character_literal(Thread * thread, Readtable * rt);
-  Value read_bit_vector(long n, Thread * thread, Readtable * rt);
   Value read_pathname(Thread * thread, Readtable * rt);
   Value read_structure(Thread * thread, Readtable * rt);
   Value read_radix(long base, Thread * thread, Readtable * rt);

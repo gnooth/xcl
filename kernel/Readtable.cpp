@@ -510,7 +510,7 @@ Value SYS_sharp_a(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_array(numarg, thread, rt);
+  return stream_read_array(streamarg, numarg, thread, rt);
 }
 
 // ### sharp-b stream sub-char numarg => value
@@ -679,8 +679,8 @@ Value SYS_sharp_star(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_bit_vector(numarg == NIL ? -1 : fixnum_value(numarg),
-                                                  thread, rt);
+  return stream_read_bit_vector(streamarg, numarg == NIL ? -1 : fixnum_value(numarg),
+                                thread, rt);
 }
 
 // ### sharp-vertical-bar stream sub-char numarg => value

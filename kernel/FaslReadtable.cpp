@@ -180,7 +180,7 @@ Value SYS_fasl_read_string(Value streamarg, Value character)
 // ### fasl-sharp-a stream sub-char numarg => value
 Value SYS_fasl_sharp_a(Value streamarg, Value subchar, Value numarg)
 {
-  return check_stream(streamarg)->read_array(numarg, current_thread(), FASL_READTABLE);
+  return stream_read_array(streamarg, numarg, current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-sharp-b stream sub-char numarg => value
@@ -360,8 +360,8 @@ Value SYS_fasl_sharp_s(Value streamarg, Value subchar, Value numarg)
 // ### fasl-sharp-star stream sub-char numarg => value
 Value SYS_fasl_sharp_star(Value streamarg, Value subchar, Value numarg)
 {
-  return check_stream(streamarg)->read_bit_vector(numarg == NIL ? -1 : fixnum_value(numarg),
-                                                  current_thread(), FASL_READTABLE);
+  return stream_read_bit_vector(streamarg, numarg == NIL ? -1 : fixnum_value(numarg),
+                                current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-sharp-vertical-bar stream sub-char numarg => value
