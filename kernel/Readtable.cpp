@@ -542,7 +542,7 @@ Value SYS_sharp_colon(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_symbol(rt);
+  return stream_read_symbol(streamarg, rt);
 }
 
 // ### sharp-dot stream sub-char numarg => value

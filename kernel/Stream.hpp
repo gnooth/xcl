@@ -32,9 +32,6 @@ enum Direction
 class Stream : public TypedObject
 {
 private:
-  BitVector * read_token(BASE_CHAR c1, Readtable * rt, Thread * thread, String * string);
-  Value read_atom(BASE_CHAR c1, Readtable * rt, Thread * thread);
-  String * read_multiple_escape(Readtable * rt);
   BASE_CHAR flush_whitespace(Readtable * rt);
 
 protected:
@@ -130,7 +127,6 @@ public:
   Value read_comma(Thread * thread, Readtable * rt);
   Value read_character_literal(Thread * thread, Readtable * rt);
   AbstractString * read_string(BASE_CHAR terminator, Readtable * rt);
-  Value read_symbol(Readtable * rt);
   Value read_complex(Thread * thread, Readtable * rt);
   Value read_bit_vector(long n, Thread * thread, Readtable * rt);
   Value read_pathname(Thread * thread, Readtable * rt);
