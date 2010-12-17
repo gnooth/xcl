@@ -47,4 +47,6 @@ extern Value stream_read_string(Value streamarg, BASE_CHAR terminator,
 extern Value stream_read_dispatch_char(Value streamarg, BASE_CHAR dispatch_char,
                                        Thread * thread, Readtable * rt);
 
+extern Value stream_read_complex(Value streamarg, Thread * thread, Readtable * rt);
+
 #endif // reader.hpp

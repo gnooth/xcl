@@ -198,8 +198,7 @@ Value stream_read_list(Value streamarg, bool require_proper_list,
                       if (thread->symbol_value(S_read_suppress) != NIL)
                         return NIL;
                       else
-                        // FIXME reader error
-                        return signal_lisp_error(new ReaderError(stream, "Nothing appears before . in list."));
+                        return signal_lisp_error(new ReaderError(streamarg, "Nothing appears before . in list."));
                     }
                   stream->unread_char(n2);
                   Value obj = stream_read(streamarg, true, NIL, true, thread, rt);
@@ -212,7 +211,7 @@ Value stream_read_list(Value streamarg, bool require_proper_list,
                           string->append(" is not of type ");
                           string->append(the_symbol(S_list)->prin1_to_string());
                           string->append_char('.');
-                          return signal_lisp_error(new ReaderError(stream, string));
+                          return signal_lisp_error(new ReaderError(streamarg, string));
                         }
                     }
                   setcdr(last, obj);
@@ -280,7 +279,7 @@ Value stream_read_vector(Value streamarg, INDEX size, Thread * thread, Readtable
               if (n2 < 0)
                 return signal_lisp_error(new EndOfFile(stream));
               if (is_delimiter(n2))
-                return signal_lisp_error(new ReaderError(stream, "The token \".\" is not allowed here."));
+                return signal_lisp_error(new ReaderError(streamarg, "The token \".\" is not allowed here."));
               // normal token beginning with '.'
               stream->unread_char(n2);
             }
@@ -642,7 +641,7 @@ Value stream_read_atom(Value streamarg, BASE_CHAR c1,
           if (!ok)
             {
               const char * message = (len > 1) ? "Too many dots." : "Dot context error.";
-              return signal_lisp_error(new ReaderError(stream, message));
+              return signal_lisp_error(new ReaderError(streamarg, message));
             }
         }
       for (INDEX i = 0; i < len; i++)
@@ -832,11 +831,41 @@ Value stream_read_dispatch_char(Value streamarg, BASE_CHAR dispatch_char,
         return thread->set_values();
       String * string = new String("No dispatch function defined for #\\");
       string->append_char(c);
-      return signal_lisp_error(new ReaderError(stream, string));
+      return signal_lisp_error(new ReaderError(streamarg, string));
     }
   else
     {
       // fundamental-stream
       return signal_lisp_error("stream_read_dispatch_char needs code!");
     }
+}
+
+Value stream_read_complex(Value streamarg, Thread * thread, Readtable * rt)
+{
+  Value obj = stream_read(streamarg, true, NIL, true, thread, rt);
+  if (thread->symbol_value(S_read_suppress) != NIL)
+    return NIL;
+  if (consp(obj) && length(obj) == 2)
+    return make_complex(xcar(obj), car(xcdr(obj)));
+  // error
+  String * s = new String("Invalid complex number format");
+  //   if (this instanceof FileStream)
+  //     {
+  //       Pathname p = ((FileStream)this).getPathname();
+  //       if (p != null)
+  //         {
+  //           String namestring = p.getNamestring();
+  //           if (namestring != null)
+  //             {
+  //               string->append(" in #P\"");
+  //               string->append(namestring);
+  //               string->append_char('"');
+  //             }
+  //         }
+  //       string->append(" at offset ");
+  //       string->append(_getFilePosition());
+  //     }
+  s->append(": #C");
+  s->append(::prin1_to_string(obj));
+  return signal_lisp_error(new ReaderError(streamarg, s));
 }

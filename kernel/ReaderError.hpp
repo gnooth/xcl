@@ -1,6 +1,6 @@
 // ReaderError.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -39,6 +39,22 @@ public:
   }
 
   ReaderError(Stream * stream, const char * s) : StreamError(stream)
+  {
+    set_slot_value(S_format_control, make_value(new_simple_string(s)));
+    set_slot_value(S_format_arguments, NIL);
+  }
+
+  ReaderError(Value streamarg) : StreamError(streamarg)
+  {
+  }
+
+  ReaderError(Value streamarg, AbstractString * s) : StreamError(streamarg)
+  {
+    set_slot_value(S_format_control, make_value(new_simple_string(s)));
+    set_slot_value(S_format_arguments, NIL);
+  }
+
+  ReaderError(Value streamarg, const char * s) : StreamError(streamarg)
   {
     set_slot_value(S_format_control, make_value(new_simple_string(s)));
     set_slot_value(S_format_arguments, NIL);

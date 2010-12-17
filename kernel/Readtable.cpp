@@ -534,7 +534,7 @@ Value SYS_sharp_c(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_complex(thread, rt);
+  return stream_read_complex(streamarg, thread, rt);
 }
 
 // ### sharp-colon stream sub-char numarg => value

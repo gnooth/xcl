@@ -198,7 +198,7 @@ Value SYS_fasl_sharp_backslash(Value streamarg, Value subchar, Value numarg)
 // ### fasl-sharp-c stream sub-char numarg => value
 Value SYS_fasl_sharp_c(Value streamarg, Value subchar, Value numarg)
 {
-  return check_stream(streamarg)->read_complex(current_thread(), FASL_READTABLE);
+  return stream_read_complex(streamarg, current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-sharp-colon stream sub-char numarg => value

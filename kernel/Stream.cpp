@@ -97,36 +97,6 @@ bool Stream::typep(Value type) const
   return (type == S_stream || type == S_atom || type == T || type == C_stream || type == C_t);
 }
 
-Value Stream::read_complex(Thread * thread, Readtable * rt)
-{
-  Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
-  if (thread->symbol_value(S_read_suppress) != NIL)
-    return NIL;
-  if (consp(obj) && length(obj) == 2)
-    return make_complex(xcar(obj), car(xcdr(obj)));
-  // Error.
-  String * s = new String("Invalid complex number format");
-//   if (this instanceof FileStream)
-//     {
-//       Pathname p = ((FileStream)this).getPathname();
-//       if (p != null)
-//         {
-//           String namestring = p.getNamestring();
-//           if (namestring != null)
-//             {
-//               string->append(" in #P\"");
-//               string->append(namestring);
-//               string->append_char('"');
-//             }
-//         }
-//       string->append(" at offset ");
-//       string->append(_getFilePosition());
-//     }
-  s->append(": #C");
-  s->append(::prin1_to_string(obj));
-  return signal_lisp_error(new ReaderError(this, s));
-}
-
 Value Stream::read_array(Value numarg, Thread * thread, Readtable * rt)
 {
   Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);

@@ -1,6 +1,6 @@
 // StreamError.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,6 +35,12 @@ public:
     : Condition(WIDETAG_CONDITION, get_layout_for_class())
   {
     set_slot_value(S_stream, stream ? make_value(stream) : NIL);
+  }
+
+  StreamError(Value streamarg)
+    : Condition(WIDETAG_CONDITION, get_layout_for_class())
+  {
+    set_slot_value(S_stream, streamarg);
   }
 
   virtual void initialize(Value initargs);
