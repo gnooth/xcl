@@ -31,9 +31,6 @@ enum Direction
 
 class Stream : public TypedObject
 {
-private:
-  BASE_CHAR flush_whitespace(Readtable * rt);
-
 protected:
   int _last_char;
   Direction _direction;
@@ -143,8 +140,6 @@ public:
   virtual Value read_char(bool eof_error_p, Value eof_value);
 
   Value read_line(bool eof_error_p, Value eof_value);
-
-  Value read_delimited_list(BASE_CHAR delimiter, Thread * thread);
 
   void skip_balanced_comment();
 

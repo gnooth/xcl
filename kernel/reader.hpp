@@ -38,4 +38,7 @@ extern Value stream_read_atom(Value streamarg, BASE_CHAR c1,
 
 extern Value stream_read_symbol(Value streamarg, Readtable * rt);
 
+extern Value stream_read_delimited_list(Value streamarg, BASE_CHAR delimiter,
+                                        Thread * thread);
+
 #endif // reader.hpp

@@ -548,6 +548,7 @@ static BitVector * stream_read_token(Value streamarg, unsigned char c1,
     {
       // fundamental-stream
       signal_lisp_error("stream_read_token needs code!");
+      // not reached
       return NULL;
     }
 }
@@ -679,5 +680,63 @@ Value stream_read_atom(Value streamarg, BASE_CHAR c1,
     {
       // fundamental-stream
       return signal_lisp_error("stream_read_atom needs code!");
+    }
+}
+
+BASE_CHAR stream_flush_whitespace(Value streamarg, Readtable * rt)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      while (true)
+        {
+          int n = stream->read_char();
+          if (n < 0)
+            {
+              signal_lisp_error(new EndOfFile(stream));
+              // not reached
+              return 0;
+            }
+          BASE_CHAR c = (BASE_CHAR) n;
+          if (!rt->is_whitespace(c))
+            return c;
+        }
+    }
+  else
+    {
+      // fundamental-stream
+      signal_lisp_error("stream_read_delimited_list needs code!");
+      // not reached
+      return 0;
+    }
+}
+
+Value stream_read_delimited_list(Value streamarg, BASE_CHAR delimiter, Thread * thread)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      Value result = NIL;
+      while (true)
+        {
+          Readtable * rt = current_readtable(thread);
+          BASE_CHAR c = stream_flush_whitespace(streamarg, rt);
+          if (c == delimiter)
+            break;
+          Value value = stream->process_char(c, rt, thread);
+          if (thread->values_length() != 0)
+            result = make_cons(value, result);
+          else
+            thread->clear_values();
+        }
+      if (thread->symbol_value(S_read_suppress) != NIL)
+        return NIL;
+      else
+        return CL_nreverse(result);
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_delimited_list needs code!");
     }
 }

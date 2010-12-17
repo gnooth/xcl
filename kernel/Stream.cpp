@@ -117,72 +117,6 @@ Value Stream::process_char(BASE_CHAR c, Readtable * rt, Thread * thread)
   return stream_read_atom(make_value(this), c, rt, thread);
 }
 
-// static Value intern(AbstractString * prefix, AbstractString * suffix, bool external)
-// {
-//   Package * package = find_package(prefix);
-//   if (!package)
-//     {
-//       String * s = new String("Package \"");
-//       s->append(prefix);
-//       s->append("\" not found.");
-//       return signal_lisp_error(s);
-//     }
-//   return package->intern(suffix, external);
-// }
-
-// Value Stream::read_symbol(Readtable * rt)
-// {
-//   Value readtable_case = rt->readtable_case();
-//   String * string = new String();
-//   while (1)
-//     {
-//       int n = read_char();
-//       if (n < 0)
-//         break;
-//       BASE_CHAR c = (BASE_CHAR) n;
-//       if (rt->is_whitespace(c))
-//         {
-//           unread_char(c);
-//           break;
-//         }
-//       unsigned int syntax = rt->syntax(c);
-//       if (syntax == SYNTAX_TYPE_TERMINATING_MACRO)
-//         {
-//           unread_char(c);
-//           break;
-//         }
-//       if (syntax == SYNTAX_TYPE_SINGLE_ESCAPE)
-//         {
-//           n = read_char();
-//           if (n < 0)
-//             return signal_lisp_error(new EndOfFile(this));
-//           string->append_char((BASE_CHAR)n);
-//           continue;
-//         }
-//       if (syntax == SYNTAX_TYPE_MULTIPLE_ESCAPE)
-//         {
-//           string->append(stream_read_multiple_escape(rt));
-//           continue;
-//         }
-//       if (readtable_case == K_upcase)
-//         string->append_char(toupper(c));
-//       else if (readtable_case == K_downcase)
-//         string->append_char(tolower(c));
-//       else if (readtable_case == K_invert)
-//         {
-//           if (islower(c))
-//             string->append_char(toupper(c));
-//           else if (isupper(c))
-//             string->append_char(tolower(c));
-//           else
-//             string->append_char(c);
-//         }
-//       else
-//         string->append_char(c);
-//     }
-//   return make_symbol(string);
-// }
-
 Value Stream::read_complex(Thread * thread, Readtable * rt)
 {
   Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
@@ -247,303 +181,6 @@ Value Stream::read_array(Value numarg, Thread * thread, Readtable * rt)
       return make_value(new SimpleArray_T(rank, obj));
     }
 }
-
-// String * Stream::read_multiple_escape(Readtable * rt)
-// {
-//   String * string = new String();
-//   while (true)
-//     {
-//       long n = read_char();
-//       if (n < 0)
-//         {
-//           signal_lisp_error(new EndOfFile(this));
-//           // Not reached.
-//           return NULL;
-//         }
-//       BASE_CHAR c = (BASE_CHAR) n;
-//       unsigned int syntax = rt->syntax(c);
-//       if (syntax == SYNTAX_TYPE_SINGLE_ESCAPE)
-//         {
-//           n = read_char();
-//           if (n < 0)
-//             {
-//               signal_lisp_error(new EndOfFile(this));
-//               // Not reached.
-//               return NULL;
-//             }
-//           string->append_char((BASE_CHAR)n);
-//           continue;
-//         }
-//       if (syntax == SYNTAX_TYPE_MULTIPLE_ESCAPE)
-//         break;
-//       string->append_char(c);
-//     }
-//   return string;
-// }
-
-// static void invert(String * string, BitVector * escapes)
-// {
-//   // Section 23.1.2: "When the readtable case is :INVERT, then if all of the
-//   // unescaped letters in the extended token are of the same case, those
-//   // (unescaped) letters are converted to the opposite case."
-//   INDEX len = string->length();
-//   const int LOWER = 1;
-//   const int UPPER = 2;
-//   int state = 0;
-//   for (INDEX i = 0; i < len; i++)
-//     {
-//       // we only care about unescaped characters
-//       if (escapes != NULL && escapes->get_bit(i))
-//         continue;
-//       BASE_CHAR c = string->fast_char_at(i);
-//       if (isupper(c))
-//         {
-//           if (state == LOWER)
-//             return; // mixed case
-//           state = UPPER;
-//         }
-//       if (islower(c))
-//         {
-//           if (state == UPPER)
-//             return; // mixed case
-//           state = LOWER;
-//         }
-//     }
-//   // all of the unescaped letters are of the same case
-//   for (INDEX i = 0; i < len; i++)
-//     {
-//       BASE_CHAR c = string->fast_char_at(i);
-//       if (escapes != NULL && escapes->get_bit(i))
-//         ; // escaped, no change
-//       else if (isupper(c))
-//         string->fast_set_char_at(i, tolower(c));
-//       else if (islower(c))
-//         string->fast_set_char_at(i, toupper(c));
-//     }
-// }
-
-// BitVector * Stream::read_token(unsigned char c1, Readtable * rt, Thread * thread, String * string)
-// {
-//   BitVector * escapes = NULL;
-//   Value readtable_case = rt->readtable_case();
-//   unsigned int syntax = rt->syntax(c1);
-//   if (syntax == SYNTAX_TYPE_MULTIPLE_ESCAPE)
-//     {
-//       string->append(read_multiple_escape(rt));
-//       escapes = new BitVector(string->length(), false);
-//       escapes->fill(FIXNUM_ONE);
-//     }
-//   else if (syntax == SYNTAX_TYPE_SINGLE_ESCAPE)
-//     {
-//       int n = read_char();
-//       if (n < 0)
-//         {
-//           signal_lisp_error(new EndOfFile(this));
-//           // not reached
-//           return NULL;
-//         }
-//       string->append_char((BASE_CHAR)n);
-//       escapes = new BitVector(1, false);
-//       escapes->set_bit(0);
-//     }
-//   else
-//     {
-//       rt->check_invalid(c1, this);
-//       if (readtable_case == K_upcase)
-//         string->append_char(toupper(c1));
-//       else if (readtable_case == K_downcase)
-//         string->append_char(tolower(c1));
-//       else
-//         string->append_char(c1);
-//     }
-//   while (true)
-//     {
-//       int n = read_char();
-//       if (n < 0)
-//         break;
-//       BASE_CHAR c = (BASE_CHAR) n;
-//       if (rt->is_whitespace(c))
-//         {
-//           unread_char(c);
-//           break;
-//         }
-//       syntax = rt->syntax(c);
-//       if (syntax == SYNTAX_TYPE_TERMINATING_MACRO)
-//         {
-//           unread_char(c);
-//           break;
-//         }
-//       if (syntax == SYNTAX_TYPE_MULTIPLE_ESCAPE)
-//         {
-//           INDEX begin = string->length();
-//           string->append(read_multiple_escape(rt));
-//           INDEX end = string->length();
-//           if (escapes == NULL)
-//             escapes = new BitVector(end, false);
-//           else
-//             escapes->ensure_capacity(string->length());
-//           for (INDEX i = begin; i < end; i++)
-//             escapes->set_bit(i);
-//           continue;
-//         }
-//       if (syntax == SYNTAX_TYPE_SINGLE_ESCAPE)
-//         {
-//           n = read_char();
-//           if (n < 0)
-//             {
-//               signal_lisp_error(new EndOfFile(this));
-//               // not reached
-//               return NULL;
-//             }
-//           string->append_char((BASE_CHAR)n);
-//           if (escapes == NULL)
-//             escapes = new BitVector(string->length(), false);
-//           else
-//             escapes->ensure_capacity(string->length());
-//           escapes->set_bit(string->length() - 1);
-//           continue;
-//         }
-//       rt->check_invalid(c, this);
-//       if (readtable_case == K_upcase)
-//         string->append_char(toupper(c));
-//       else if (readtable_case == K_downcase)
-//         string->append_char(tolower(c));
-//       else
-//         string->append_char(c);
-//     }
-//   if (escapes != NULL)
-//     escapes->ensure_capacity(string->length());
-
-//   if (readtable_case == K_invert)
-//     {
-//       // "When the readtable case is :INVERT, then if all of the unescaped
-//       // letters in the extended token are of the same case, those (unescaped)
-//       // letters are converted to the opposite case." (23.1.2)
-//       invert(string, escapes);
-//     }
-
-//   return escapes;
-// }
-
-// Value Stream::read_atom(BASE_CHAR c1, Readtable * rt, Thread * thread)
-// {
-//   String * string = new String();
-//   BitVector * escapes = read_token(c1, rt, thread, string);
-//   if (thread->symbol_value(S_read_suppress) != NIL)
-//     return NIL;
-
-//   // "A potential number cannot contain any escape characters." (2.3.1.1.1)
-//   if (escapes == NULL)
-//     {
-//       long read_base = fixnum_value(thread->symbol_value(S_read_base));
-//       if (read_base < 2 || read_base > 36)
-//         {
-//           String * s = new String("The value of ");
-//           s->append(the_symbol(S_read_base)->prin1_to_string());
-//           s->append(" is not of type ");
-//           s->append(::prin1_to_string(list3(S_integer, FIXNUM_TWO, make_fixnum(36))));
-//           s->append_char('.');
-//           return signal_lisp_error(s);
-//         }
-//       bool maybe_numeric = false;
-//       if (c1 == '+' || c1 == '-' || c1 == '.')
-//         maybe_numeric = true;
-//       else if (c1 >= '0' && c1 <= '9')
-//         maybe_numeric = true;
-//       else if (read_base != 10)
-//         maybe_numeric = digit_char_p(c1, (int) read_base);
-//       if (maybe_numeric)
-//         {
-//           Value value = make_number(string, (int) read_base, this);
-//           if (value != NULL_VALUE)
-//             return value;
-//         }
-//     }
-
-//   // not a number
-//   INDEX len = string->length();
-//   BASE_CHAR * const data = string->data();
-//   if (c1 == '.' && escapes == NULL)
-//     {
-//       // "If a token consists solely of dots (with no escape characters), then
-//       // an error of type READER-ERROR is signaled, except in one circumstance:
-//       // if the token is a single dot and appears in a situation where dotted
-//       // pair notation permits a dot, then it is accepted as part of such
-//       // syntax and no error is signaled." 2.3.3
-//       bool ok = false;
-//       for (INDEX i = len; i-- > 1;)
-//         {
-//           if (data[i] != '.')
-//             {
-//               ok = true;
-//               break;
-//             }
-//         }
-//       if (!ok)
-//         {
-//           const char * message = (len > 1) ? "Too many dots." : "Dot context error.";
-//           return signal_lisp_error(new ReaderError(this, message));
-//         }
-//     }
-//   for (INDEX i = 0; i < len; i++)
-//     {
-//       BASE_CHAR c = data[i];
-//       if (c == ':' && (escapes == NULL || escapes->get_bit(i) == 0))
-//         {
-//           // unescaped colon
-//           if (i == 0)
-//             {
-//               if (len == 1)
-//                 // ":"
-//                 return current_package(thread)->intern(string, false);
-//               else
-//                 return PACKAGE_KEYWORD->intern(string->substring(1), true);
-//             }
-//           if (i < len - 1 && data[i + 1] == ':' && (escapes == NULL || escapes->get_bit(i + 1) == 0))
-//             {
-//               // double colon
-//               SimpleString * package_name = string->substring(0, i);
-//               SimpleString * symbol_name = string->substring(i + 2);
-//               return intern(package_name, symbol_name, false);
-//             }
-//           // single colon
-//           SimpleString * package_name = string->substring(0, i);
-//           Package * package = find_package(package_name);
-//           if (!package)
-//             {
-//               String * s = new String("Package \"");
-//               s->append(package_name);
-//               s->append("\" not found.");
-//               return signal_lisp_error(s); // FIXME package error
-//             }
-//           SimpleString * symbol_name = string->substring(i + 1);
-//           Symbol * symbol = package->find_external_symbol(symbol_name);
-//           if (symbol)
-//             return make_value(symbol);
-//           // error!
-//           if (package->find_internal_symbol(symbol_name))
-//             {
-//               String * s = new String("The symbol ");
-//               s->append(symbol_name);
-//               s->append(" is not external in package ");
-//               s->append(package->name());
-//               s->append_char('.');
-//               return signal_lisp_error(s); // FIXME reader error
-//             }
-//           else
-//             {
-//               String * s = new String("The symbol ");
-//               s->append(symbol_name);
-//               s->append(" was not found in package ");
-//               s->append(package->name());
-//               s->append_char('.');
-//               return signal_lisp_error(s); // FIXME reader error
-//             }
-//         }
-//     }
-//   // no colons
-//   return current_package(thread)->intern(string, false);
-// }
 
 Value Stream::read_bit_vector(long n, Thread * thread, Readtable * rt)
 {
@@ -994,43 +631,43 @@ Value Stream::read_line(bool eof_error_p, Value eof_value)
     }
 }
 
-BASE_CHAR Stream::flush_whitespace(Readtable * rt)
-{
-  while (true)
-    {
-      int n = read_char();
-      if (n < 0)
-        {
-          signal_lisp_error(new EndOfFile(this));
-          // not reached
-          return 0;
-        }
-      BASE_CHAR c = (BASE_CHAR) n;
-      if (!rt->is_whitespace(c))
-        return c;
-    }
-}
+// BASE_CHAR Stream::flush_whitespace(Readtable * rt)
+// {
+//   while (true)
+//     {
+//       int n = read_char();
+//       if (n < 0)
+//         {
+//           signal_lisp_error(new EndOfFile(this));
+//           // not reached
+//           return 0;
+//         }
+//       BASE_CHAR c = (BASE_CHAR) n;
+//       if (!rt->is_whitespace(c))
+//         return c;
+//     }
+// }
 
-Value Stream::read_delimited_list(BASE_CHAR delimiter, Thread * thread)
-{
-  Value result = NIL;
-  while (true)
-    {
-      Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
-      BASE_CHAR c = flush_whitespace(rt);
-      if (c == delimiter)
-        break;
-      Value value = process_char(c, rt, thread);
-      if (thread->values_length() != 0)
-        result = make_cons(value, result);
-      else
-        thread->clear_values();
-    }
-  if (thread->symbol_value(S_read_suppress) != NIL)
-    return NIL;
-  else
-    return CL_nreverse(result);
-}
+// Value Stream::read_delimited_list(BASE_CHAR delimiter, Thread * thread)
+// {
+//   Value result = NIL;
+//   while (true)
+//     {
+//       Readtable * rt = check_readtable(thread->symbol_value(S_current_readtable));
+//       BASE_CHAR c = flush_whitespace(rt);
+//       if (c == delimiter)
+//         break;
+//       Value value = process_char(c, rt, thread);
+//       if (thread->values_length() != 0)
+//         result = make_cons(value, result);
+//       else
+//         thread->clear_values();
+//     }
+//   if (thread->symbol_value(S_read_suppress) != NIL)
+//     return NIL;
+//   else
+//     return CL_nreverse(result);
+// }
 
 void Stream::skip_balanced_comment()
 {
@@ -1561,7 +1198,7 @@ Value CL_read_delimited_list(unsigned int numargs, Value args[])
     stream = check_stream(SYS_designator_input_stream(args[1]));
   else
     stream = check_stream(thread->symbol_value(S_standard_input));
-  return stream->read_delimited_list(c, thread);
+  return stream_read_delimited_list(make_value(stream), c, thread);
 }
 
 // ### %stream-write-string stream string start end => string
