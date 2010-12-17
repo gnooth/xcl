@@ -30,4 +30,7 @@ extern Value stream_read_preserving_whitespace(Value streamarg, bool eof_error_p
 extern Value stream_read_list(Value streamarg, bool require_proper_list,
                               Thread * thread, Readtable * rt);
 
+Value stream_read_vector(Value streamarg, INDEX size,
+                         Thread * thread, Readtable * rt);
+
 #endif // reader.hpp

@@ -219,3 +219,60 @@ Value stream_read_list(Value streamarg, bool require_proper_list,
       return signal_lisp_error("stream_read_list needs code!");
     }
 }
+
+Value stream_read_vector(Value streamarg, INDEX size, Thread * thread, Readtable * rt)
+{
+  // "If an unsigned decimal integer appears between the # and (, it specifies
+  // explicitly the length of the vector. The consequences are undefined if the
+  // number of objects specified before the closing ) exceeds the unsigned
+  // decimal integer. If the number of objects supplied before the closing ) is
+  // less than the unsigned decimal integer but greater than zero, the last
+  // object is used to fill all remaining elements of the vector. The
+  // consequences are undefined if the unsigned decimal integer is non-zero and
+  // number of objects supplied before the closing ) is zero." 2.4.8.3
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      SimpleVector * vector = new_simple_vector(size);
+      INDEX index = 0;
+      Value last = NIL;
+      while (true)
+        {
+          long n = stream->read_char();
+          if (n < 0)
+            return signal_lisp_error(new EndOfFile(stream));
+          BASE_CHAR c = (BASE_CHAR) n;
+          if (rt->is_whitespace(c))
+            continue;
+          if (c == ')')
+            break;
+          if (c == '.')
+            {
+              int n2 = stream->read_char();
+              if (n2 < 0)
+                return signal_lisp_error(new EndOfFile(stream));
+              if (is_delimiter(n2))
+                return signal_lisp_error(new ReaderError(stream, "The token \".\" is not allowed here."));
+              // normal token beginning with '.'
+              stream->unread_char(n2);
+            }
+          Value obj = stream->process_char(c, rt, thread);
+          if (thread->values_length() == 0)
+            {
+              // process_char() returned no values
+              thread->clear_values();
+              continue;
+            }
+          last = obj;
+          vector->aset(index++, obj);
+        }
+      while (index < size)
+        vector->aset(index++, last);
+      return make_value(vector);
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_vector needs code!");
+    }
+}

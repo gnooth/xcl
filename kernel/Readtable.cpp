@@ -586,7 +586,7 @@ Value SYS_sharp_left_paren(Value streamarg, Value subchar, Value numarg)
     }
   Readtable * rt = current_readtable(thread);
   if (numarg != NIL && thread->symbol_value(S_backquote_count) == FIXNUM_ZERO)
-    return check_stream(streamarg)->read_vector(check_index(numarg), thread, rt);
+    return stream_read_vector(streamarg, check_index(numarg), thread, rt);
   Value list = stream_read_list(streamarg, true, thread, rt);
   if (thread->symbol_value(S_backquote_count) == FIXNUM_ZERO)
     {

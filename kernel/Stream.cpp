@@ -97,37 +97,37 @@ bool Stream::typep(Value type) const
   return (type == S_stream || type == S_atom || type == T || type == C_stream || type == C_t);
 }
 
-static bool is_whitespace(long c)
-{
-  switch (c)
-    {
-    case 9:     // tab
-    case 10:    // linefeed
-    case 12:    // form feed
-    case 13:    // return
-    case ' ':   // space
-      return true;
-    default:
-      return false;
-    }
-}
+// static bool is_whitespace(long c)
+// {
+//   switch (c)
+//     {
+//     case 9:     // tab
+//     case 10:    // linefeed
+//     case 12:    // form feed
+//     case 13:    // return
+//     case ' ':   // space
+//       return true;
+//     default:
+//       return false;
+//     }
+// }
 
-static bool is_delimiter(long c)
-{
-  switch (c)
-    {
-    case '"':
-    case '\'':
-    case '(':
-    case ')':
-    case ',':
-    case ';':
-    case '`':
-      return true;
-    default:
-      return is_whitespace(c);
-    }
-}
+// static bool is_delimiter(long c)
+// {
+//   switch (c)
+//     {
+//     case '"':
+//     case '\'':
+//     case '(':
+//     case ')':
+//     case ',':
+//     case ';':
+//     case '`':
+//       return true;
+//     default:
+//       return is_whitespace(c);
+//     }
+// }
 
 Value Stream::process_char(BASE_CHAR c, Readtable * rt, Thread * thread)
 {
@@ -149,10 +149,19 @@ Value Stream::process_char(BASE_CHAR c, Readtable * rt, Thread * thread)
   return read_atom(c, rt, thread);
 }
 
-// Value Stream::read_list(bool require_proper_list, Thread * thread, Readtable * rt)
+// Value Stream::read_vector(INDEX size, Thread * thread, Readtable * rt)
 // {
-//   Value first = NULL_VALUE;
-//   Value last = NULL_VALUE;
+//   // "If an unsigned decimal integer appears between the # and (, it specifies
+//   // explicitly the length of the vector. The consequences are undefined if the
+//   // number of objects specified before the closing ) exceeds the unsigned
+//   // decimal integer. If the number of objects supplied before the closing ) is
+//   // less than the unsigned decimal integer but greater than zero, the last
+//   // object is used to fill all remaining elements of the vector. The
+//   // consequences are undefined if the unsigned decimal integer is non-zero and
+//   // number of objects supplied before the closing ) is zero." 2.4.8.3
+//   SimpleVector * vector = new_simple_vector(size);
+//   INDEX index = 0;
+//   Value last = NIL;
 //   while (true)
 //     {
 //       long n = read_char();
@@ -162,39 +171,14 @@ Value Stream::process_char(BASE_CHAR c, Readtable * rt, Thread * thread)
 //       if (rt->is_whitespace(c))
 //         continue;
 //       if (c == ')')
-//         return first == NULL_VALUE ? NIL : first;
+//         break;
 //       if (c == '.')
 //         {
 //           int n2 = read_char();
 //           if (n2 < 0)
 //             return signal_lisp_error(new EndOfFile(this));
 //           if (is_delimiter(n2))
-//             {
-//               if (last == NULL_VALUE)
-//                 {
-//                   if (thread->symbol_value(S_read_suppress) != NIL)
-//                     return NIL;
-//                   else
-//                     // FIXME reader error
-//                     return signal_lisp_error(new ReaderError(this, "Nothing appears before . in list."));
-//                 }
-//               unread_char(n2);
-//               Value obj = stream_read(make_value(this), true, NIL, true, thread, rt);
-//               if (require_proper_list)
-//                 {
-//                   if (!listp(obj))
-//                     {
-//                       String * string = new String("The value ");
-//                       string->append(::prin1_to_string(obj));
-//                       string->append(" is not of type ");
-//                       string->append(the_symbol(S_list)->prin1_to_string());
-//                       string->append_char('.');
-//                       return signal_lisp_error(new ReaderError(this, string));
-//                     }
-//                 }
-//               setcdr(last, obj);
-//               continue;
-//             }
+//             return signal_lisp_error(new ReaderError(this, "The token \".\" is not allowed here."));
 //           // normal token beginning with '.'
 //           unread_char(n2);
 //         }
@@ -205,67 +189,13 @@ Value Stream::process_char(BASE_CHAR c, Readtable * rt, Thread * thread)
 //           thread->clear_values();
 //           continue;
 //         }
-//       if (first == NULL_VALUE)
-//         {
-//           first = make_cons(obj);
-//           last = first;
-//         }
-//       else
-//         {
-//           Value cons = make_cons(obj);
-//           setcdr(last, cons);
-//           last = cons;
-//         }
+//       last = obj;
+//       vector->aset(index++, obj);
 //     }
+//   while (index < size)
+//     vector->aset(index++, last);
+//   return make_value(vector);
 // }
-
-Value Stream::read_vector(INDEX size, Thread * thread, Readtable * rt)
-{
-  // "If an unsigned decimal integer appears between the # and (, it specifies
-  // explicitly the length of the vector. The consequences are undefined if the
-  // number of objects specified before the closing ) exceeds the unsigned
-  // decimal integer. If the number of objects supplied before the closing ) is
-  // less than the unsigned decimal integer but greater than zero, the last
-  // object is used to fill all remaining elements of the vector. The
-  // consequences are undefined if the unsigned decimal integer is non-zero and
-  // number of objects supplied before the closing ) is zero." 2.4.8.3
-  SimpleVector * vector = new_simple_vector(size);
-  INDEX index = 0;
-  Value last = NIL;
-  while (true)
-    {
-      long n = read_char();
-      if (n < 0)
-        return signal_lisp_error(new EndOfFile(this));
-      BASE_CHAR c = (BASE_CHAR) n;
-      if (rt->is_whitespace(c))
-        continue;
-      if (c == ')')
-        break;
-      if (c == '.')
-        {
-          int n2 = read_char();
-          if (n2 < 0)
-            return signal_lisp_error(new EndOfFile(this));
-          if (is_delimiter(n2))
-            return signal_lisp_error(new ReaderError(this, "The token \".\" is not allowed here."));
-          // normal token beginning with '.'
-          unread_char(n2);
-        }
-      Value obj = process_char(c, rt, thread);
-      if (thread->values_length() == 0)
-        {
-          // process_char() returned no values
-          thread->clear_values();
-          continue;
-        }
-      last = obj;
-      vector->aset(index++, obj);
-    }
-  while (index < size)
-    vector->aset(index++, last);
-  return make_value(vector);
-}
 
 static Value intern(AbstractString * prefix, AbstractString * suffix, bool external)
 {

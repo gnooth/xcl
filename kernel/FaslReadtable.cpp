@@ -279,7 +279,7 @@ Value SYS_fasl_sharp_left_paren(Value streamarg, Value subchar, Value numarg)
       return NIL;
     }
   if (numarg != NIL && thread->symbol_value(S_backquote_count) == FIXNUM_ZERO)
-    return check_stream(streamarg)->read_vector(check_index(numarg), thread, FASL_READTABLE);
+    return stream_read_vector(streamarg, check_index(numarg), thread, FASL_READTABLE);
   Value list = stream_read_list(streamarg, true, thread, FASL_READTABLE);
   if (thread->symbol_value(S_backquote_count) == FIXNUM_ZERO)
     {
