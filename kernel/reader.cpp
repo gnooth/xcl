@@ -1144,3 +1144,21 @@ Value stream_read_character_literal(Value streamarg, Thread * thread, Readtable 
       return signal_lisp_error("stream_read_character_literal needs code!");
     }
 }
+
+Value stream_read_binary_data(Value streamarg, INDEX length)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      SimpleArray_UB8_1 * array = new_simple_array_ub8_1(length);
+      unsigned char * data = array->data();
+      for (INDEX i = 0; i < length; i++)
+        data[i] = stream->read_byte();
+      return make_value(array);
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_binary_data needs code!");
+    }
+}

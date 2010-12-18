@@ -67,4 +67,6 @@ extern Value stream_read_comma(Value streamarg, Thread * thread, Readtable * rt)
 extern Value stream_read_character_literal(Value streamarg, Thread * thread,
                                            Readtable * rt);
 
+extern Value stream_read_binary_data(Value streamarg, INDEX length);
+
 #endif // reader.hpp
