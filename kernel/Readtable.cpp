@@ -460,7 +460,7 @@ Value SYS_read_comma(Value streamarg, Value ignored)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_comma(thread, rt);
+  return stream_read_comma(streamarg, thread, rt);
 }
 
 // ### read-dispatch-char stream character => value
@@ -518,7 +518,7 @@ Value SYS_sharp_b(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_radix(2, thread, rt);
+  return stream_read_radix(streamarg, 2, thread, rt);
 }
 
 // ### sharp-backslash stream sub-char numarg => value
@@ -526,7 +526,7 @@ Value SYS_sharp_backslash(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_character_literal(thread, rt);
+  return stream_read_character_literal(streamarg, thread, rt);
 }
 
 // ### sharp-c stream sub-char numarg => value
@@ -612,7 +612,7 @@ Value SYS_sharp_o(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_radix(8, thread, rt);
+  return stream_read_radix(streamarg, 8, thread, rt);
 }
 
 // ### sharp-p stream sub-char numarg => value
@@ -620,7 +620,7 @@ Value SYS_sharp_p(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_pathname(thread, rt);
+  return stream_read_pathname(streamarg, thread, rt);
 }
 
 // ### sharp-quote stream sub-char numarg => value
@@ -636,34 +636,42 @@ Value SYS_sharp_quote(Value streamarg, Value subchar, Value numarg)
 // ### sharp-r stream sub-char numarg => value
 Value SYS_sharp_r(Value streamarg, Value subchar, Value numarg)
 {
-  Stream * stream = check_stream(streamarg);
-  Thread * thread = current_thread();
-  Readtable * rt = current_readtable(thread);
-  if (fixnump(numarg))
+  if (ansi_stream_p(streamarg))
     {
-      long radix = xlong(numarg);
-      if (radix >= 2 && radix <= 36)
-        return stream->read_radix(radix, thread, rt);
-    }
-  // illegal radix
-  while (true)
-    {
-      int n = stream->read_char();
-      if (n < 0)
-        break;
-      BASE_CHAR c = (BASE_CHAR) n;
-      unsigned int syntax = rt->syntax(c);
-      if (syntax == SYNTAX_TYPE_WHITESPACE || syntax == SYNTAX_TYPE_TERMINATING_MACRO)
+      Stream * stream = check_stream(streamarg);
+      Thread * thread = current_thread();
+      Readtable * rt = current_readtable(thread);
+      if (fixnump(numarg))
         {
-          stream->unread_char(c);
-          break;
+          long radix = xlong(numarg);
+          if (radix >= 2 && radix <= 36)
+            return stream_read_radix(streamarg, radix, thread, rt);
         }
+      // illegal radix
+      while (true)
+        {
+          int n = stream->read_char();
+          if (n < 0)
+            break;
+          BASE_CHAR c = (BASE_CHAR) n;
+          unsigned int syntax = rt->syntax(c);
+          if (syntax == SYNTAX_TYPE_WHITESPACE || syntax == SYNTAX_TYPE_TERMINATING_MACRO)
+            {
+              stream->unread_char(c);
+              break;
+            }
+        }
+      if (thread->symbol_value(S_read_suppress) != NIL)
+        return NIL;
+      String * string = new String("Illegal radix for #R: ");
+      string->append(::prin1_to_string(numarg));
+      return signal_lisp_error(new ReaderError(stream, string));
     }
-  if (thread->symbol_value(S_read_suppress) != NIL)
-    return NIL;
-  String * string = new String("Illegal radix for #R: ");
-  string->append(::prin1_to_string(numarg));
-  return signal_lisp_error(new ReaderError(stream, string));
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("Readtable::SYS_sharp_r needs code!");
+    }
 }
 
 // ### sharp-s stream sub-char numarg => value
@@ -671,7 +679,7 @@ Value SYS_sharp_s(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_structure(thread, rt);
+  return stream_read_structure(streamarg,thread, rt);
 }
 
 // ### sharp-star stream sub-char numarg => value
@@ -695,5 +703,5 @@ Value SYS_sharp_x(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return check_stream(streamarg)->read_radix(16, thread, rt);
+  return stream_read_radix(streamarg, 16, thread, rt);
 }

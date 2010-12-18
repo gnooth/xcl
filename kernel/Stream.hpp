@@ -120,12 +120,6 @@ public:
 
   virtual bool typep(Value type) const;
 
-  Value read_comma(Thread * thread, Readtable * rt);
-  Value read_character_literal(Thread * thread, Readtable * rt);
-  Value read_pathname(Thread * thread, Readtable * rt);
-  Value read_structure(Thread * thread, Readtable * rt);
-  Value read_radix(long base, Thread * thread, Readtable * rt);
-
   virtual bool is_char_ready();
 
   virtual int read_char();

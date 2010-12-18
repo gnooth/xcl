@@ -55,5 +55,16 @@ extern Value stream_read_array(Value streamarg, Value numarg, Thread * thread,
 extern Value stream_read_bit_vector(Value streamarg, long n, Thread * thread,
                                     Readtable * rt);
 
+extern Value stream_read_radix(Value streamarg, long base, Thread * thread,
+                               Readtable * rt);
+
+extern Value stream_read_pathname(Value streamarg, Thread * thread, Readtable * rt);
+
+extern Value stream_read_structure(Value streamarg, Thread * thread, Readtable * rt);
+
+extern Value stream_read_comma(Value streamarg, Thread * thread, Readtable * rt);
+
+extern Value stream_read_character_literal(Value streamarg, Thread * thread,
+                                           Readtable * rt);
 
 #endif // reader.hpp

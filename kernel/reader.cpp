@@ -978,5 +978,170 @@ Value stream_read_bit_vector(Value streamarg, long n, Thread * thread, Readtable
       // fundamental-stream
       return signal_lisp_error("stream_read_bit_vector needs code!");
     }
+}
 
+Value stream_read_radix(Value streamarg, long base, Thread * thread, Readtable * rt)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      String * string = new String();
+      while (true)
+        {
+          int n = stream->read_char();
+          if (n < 0)
+            break;
+          BASE_CHAR c = (BASE_CHAR) n;
+          unsigned int syntax = rt->syntax(c);
+          if (syntax == SYNTAX_TYPE_WHITESPACE || syntax == SYNTAX_TYPE_TERMINATING_MACRO)
+            {
+              stream->unread_char(c);
+              break;
+            }
+          string->append_char(c);
+        }
+      if (thread->symbol_value(S_read_suppress) != NIL)
+        return NIL;
+      Value value = make_number(string, base, stream);
+      if (value != NULL_VALUE)
+        return value;
+      return signal_lisp_error(new Error("not a number"));
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_radix needs code!");
+    }
+}
+
+Value stream_read_pathname(Value streamarg, Thread * thread, Readtable * rt)
+{
+  Value obj = stream_read(streamarg, true, NIL, true, thread, rt);
+  if (thread->symbol_value(S_read_suppress) != NIL)
+    return NIL;
+  if (stringp(obj))
+    return parse_namestring(the_string(obj));
+  if (listp(obj))
+    return make_pathname_from_list(obj);
+  return signal_lisp_error("#P requires a string or list argument.");
+}
+
+Value stream_read_structure(Value streamarg, Thread * thread, Readtable * rt)
+{
+  Value obj = stream_read(streamarg, true, NIL, true, thread, rt);
+  if (thread->symbol_value(S_read_suppress) != NIL)
+    return NIL;
+  if (!listp(obj))
+    {
+      String * s = new String("Non-list following #S: ");
+      s->append(::prin1_to_string(obj));
+      return signal_lisp_error(new ReaderError(streamarg, s));
+    }
+  Value structure_name = car(obj);
+  if (!symbolp(structure_name))
+    return signal_type_error(structure_name, S_symbol);
+  Value structure_class = find_class(structure_name);
+  if (!typed_object_p(structure_class) || !the_typed_object(structure_class)->typep(S_structure_class))
+    {
+      String * s = new String(the_symbol(structure_name)->prin1_to_string());
+      s->append(" is not a defined structure type.");
+      return signal_lisp_error(new ReaderError(streamarg, s));
+    }
+  Value constructor = thread->execute(the_symbol(S_defstruct_default_constructor)->function(),
+                                      structure_name);
+  TypedObject * constructor_function = coerce_to_function(constructor);
+  Value tail = xcdr(obj);
+  INDEX numargs = length(tail);
+  if ((numargs % 2) != 0)
+    {
+      String * s = new String("Odd number of keyword arguments following #S: ");
+      s->append(::prin1_to_string(obj));
+      return signal_lisp_error(new ReaderError(streamarg, s));
+    }
+  Value * args = (Value *) GC_malloc(numargs * sizeof(Value));
+  for (INDEX i = 0; i < numargs; i += 2)
+    {
+      Value key = car(tail);
+      if (!keywordp(key))
+        key = PACKAGE_KEYWORD->intern(string(key)); // returns symbol, status
+      args[i] = key;
+      tail = xcdr(tail);
+      args[i + 1] = xcar(tail);
+      tail = xcdr(tail);
+    }
+  return funcall(constructor_function, numargs, args, thread);
+}
+
+Value stream_read_comma(Value streamarg, Thread * thread, Readtable * rt)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      long n = stream->read_char();
+      if (n < 0)
+        return signal_lisp_error(new EndOfFile(stream));
+      switch (n)
+        {
+        case '@':
+          return make_cons(S_comma_atsign,
+                           make_cons(stream_read(streamarg, true, NIL, true, thread, rt)));
+        case '.':
+          return make_cons(S_comma_dot, make_cons(stream_read(streamarg, true, NIL, true, thread, rt)));
+        default:
+          stream->unread_char(n);
+          return make_cons(S_comma, make_cons(stream_read(streamarg, true, NIL, true, thread, rt)));
+        }
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_comma needs code!");
+    }
+}
+
+Value stream_read_character_literal(Value streamarg, Thread * thread, Readtable * rt)
+{
+  if (ansi_stream_p(streamarg))
+    {
+      Stream * stream = the_stream(streamarg);
+      long n = stream->read_char();
+      if (n < 0)
+        return signal_lisp_error(new EndOfFile(stream));
+      String * string = new String();
+      string->append_char((unsigned char)n);
+      while (true)
+        {
+          n = stream->read_char();
+          if (n < 0)
+            break;
+          unsigned char c = (unsigned char) n;
+          if (rt->is_whitespace(c))
+            {
+              stream->unread_char(c);
+              break;
+            }
+          if (c == '(' || c == ')')
+            {
+              stream->unread_char(c);
+              break;
+            }
+          string->append_char(c);
+        }
+      if (thread->symbol_value(S_read_suppress) != NIL)
+        return NIL;
+      if (string->length() == 1)
+        return make_character(string->fast_char_at(0));
+      Value value = name_to_char(string);
+      if (value != NIL)
+        return value;
+      String * message = new String("Unrecognized character name: \"");
+      message->append(string);
+      message->append_char('"');
+      return signal_lisp_error(message);
+    }
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("stream_read_character_literal needs code!");
+    }
 }

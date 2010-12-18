@@ -135,7 +135,7 @@ Value SYS_fasl_read_backquote(Value streamarg, Value ignored)
 // ### fasl-read-comma stream character => value
 Value SYS_fasl_read_comma(Value streamarg, Value ignored)
 {
-  return check_stream(streamarg)->read_comma(current_thread(), FASL_READTABLE);
+  return stream_read_comma(streamarg, current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-read-dispatch-char stream character => value
@@ -186,13 +186,13 @@ Value SYS_fasl_sharp_a(Value streamarg, Value subchar, Value numarg)
 // ### fasl-sharp-b stream sub-char numarg => value
 Value SYS_fasl_sharp_b(Value streamarg, Value subchar, Value numarg)
 {
-  return check_stream(streamarg)->read_radix(2, current_thread(), FASL_READTABLE);
+  return stream_read_radix(streamarg, 2, current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-sharp-backslash stream sub-char numarg => value
 Value SYS_fasl_sharp_backslash(Value streamarg, Value subchar, Value numarg)
 {
-  return check_stream(streamarg)->read_character_literal(current_thread(), FASL_READTABLE);
+  return stream_read_character_literal(streamarg, current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-sharp-c stream sub-char numarg => value
@@ -302,13 +302,13 @@ Value SYS_fasl_sharp_left_paren(Value streamarg, Value subchar, Value numarg)
 // ### fasl-sharp-o stream sub-char numarg => value
 Value SYS_fasl_sharp_o(Value streamarg, Value subchar, Value numarg)
 {
-  return check_stream(streamarg)->read_radix(8, current_thread(), FASL_READTABLE);
+  return stream_read_radix(streamarg, 8, current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-sharp-p stream sub-char numarg => value
 Value SYS_fasl_sharp_p(Value streamarg, Value subchar, Value numarg)
 {
-  return check_stream(streamarg)->read_pathname(current_thread(), FASL_READTABLE);
+  return stream_read_pathname(streamarg, current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-sharp-quote stream sub-char numarg => value
@@ -322,39 +322,47 @@ Value SYS_fasl_sharp_quote(Value streamarg, Value subchar, Value numarg)
 // ### fasl-sharp-r stream sub-char numarg => value
 Value SYS_fasl_sharp_r(Value streamarg, Value subchar, Value numarg)
 {
-  Stream * stream = check_stream(streamarg);
-  Thread * thread = current_thread();
-  if (fixnump(numarg))
+  if (ansi_stream_p(streamarg))
     {
-      long radix = xlong(numarg);
-      if (radix >= 2 && radix <= 36)
-        return stream->read_radix(radix, thread, FASL_READTABLE);
-    }
-  // illegal radix
-  while (true)
-    {
-      int n = stream->read_char();
-      if (n < 0)
-        break;
-      BASE_CHAR c = (BASE_CHAR) n;
-      unsigned int syntax = FASL_READTABLE->syntax(c);
-      if (syntax == SYNTAX_TYPE_WHITESPACE || syntax == SYNTAX_TYPE_TERMINATING_MACRO)
+      Stream * stream = check_stream(streamarg);
+      Thread * thread = current_thread();
+      if (fixnump(numarg))
         {
-          stream->unread_char(c);
-          break;
+          long radix = xlong(numarg);
+          if (radix >= 2 && radix <= 36)
+            return stream_read_radix(streamarg, radix, thread, FASL_READTABLE);
         }
+      // illegal radix
+      while (true)
+        {
+          int n = stream->read_char();
+          if (n < 0)
+            break;
+          BASE_CHAR c = (BASE_CHAR) n;
+          unsigned int syntax = FASL_READTABLE->syntax(c);
+          if (syntax == SYNTAX_TYPE_WHITESPACE || syntax == SYNTAX_TYPE_TERMINATING_MACRO)
+            {
+              stream->unread_char(c);
+              break;
+            }
+        }
+      if (thread->symbol_value(S_read_suppress) != NIL)
+        return NIL;
+      String * string = new String("Illegal radix for #R: ");
+      string->append(::prin1_to_string(numarg));
+      return signal_lisp_error(new ReaderError(stream, string));
     }
-  if (thread->symbol_value(S_read_suppress) != NIL)
-    return NIL;
-  String * string = new String("Illegal radix for #R: ");
-  string->append(::prin1_to_string(numarg));
-  return signal_lisp_error(new ReaderError(stream, string));
+  else
+    {
+      // fundamental-stream
+      return signal_lisp_error("FaslReadtable::SYS_fasl_sharp_r needs code!");
+    }
 }
 
 // ### fasl-sharp-s stream sub-char numarg => value
 Value SYS_fasl_sharp_s(Value streamarg, Value subchar, Value numarg)
 {
-  return check_stream(streamarg)->read_structure(current_thread(), FASL_READTABLE);
+  return stream_read_structure(streamarg, current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-sharp-star stream sub-char numarg => value
@@ -374,5 +382,5 @@ Value SYS_fasl_sharp_vertical_bar(Value streamarg, Value subchar, Value numarg)
 // ### fasl-sharp-x stream sub-char numarg => value
 Value SYS_fasl_sharp_x(Value streamarg, Value subchar, Value numarg)
 {
-  return check_stream(streamarg)->read_radix(16, current_thread(), FASL_READTABLE);
+  return stream_read_radix(streamarg, 16, current_thread(), FASL_READTABLE);
 }
