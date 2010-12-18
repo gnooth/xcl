@@ -459,8 +459,7 @@ Value stream_read_symbol(Value streamarg, Readtable * rt)
   else
     {
       // fundamental-stream
-      signal_lisp_error("stream_read_symbol needs code!");
-      return NULL;
+      return signal_lisp_error("stream_read_symbol needs code!");
     }
 }
 
