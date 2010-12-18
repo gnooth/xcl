@@ -627,7 +627,7 @@ inline bool eql(Value x, Value y)
   return false;
 }
 
-inline Value make_number(long n)
+inline Value make_integer(long n)
 {
   if (n >= MOST_NEGATIVE_FIXNUM && n <= MOST_POSITIVE_FIXNUM)
     return make_fixnum(n);

@@ -1,6 +1,6 @@
 // DoubleFloat.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -93,7 +93,7 @@ unsigned long DoubleFloat::hash()
 unsigned long DoubleFloat::equalp_hash()
 {
   if (_d == (long) _d)
-    return ::hash(make_number((long)_d));
+    return ::hash(make_integer((long)_d));
   else
     return (high_bits() ^ low_bits()) & MOST_POSITIVE_FIXNUM;
 }
@@ -204,7 +204,7 @@ AbstractString * DoubleFloat::write_to_string()
 Value SYS_double_float_high_bits(Value arg)
 {
   if (double_float_p(arg))
-    return make_number(the_double_float(arg)->high_bits());
+    return make_integer(the_double_float(arg)->high_bits());
   else
     return signal_type_error(arg, S_double_float);
 }
@@ -213,7 +213,7 @@ Value SYS_double_float_high_bits(Value arg)
 Value SYS_double_float_low_bits(Value arg)
 {
   if (double_float_p(arg))
-    return make_number(the_double_float(arg)->low_bits());
+    return make_integer(the_double_float(arg)->low_bits());
   else
     return signal_type_error(arg, S_double_float);
 }

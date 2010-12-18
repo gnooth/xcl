@@ -522,7 +522,7 @@ Value SYS_symbol_flags(Value arg)
 {
   if (!symbolp(arg))
     return signal_type_error(arg, S_symbol);
-  return make_number(the_symbol(arg)->flags());
+  return make_unsigned_integer(the_symbol(arg)->flags());
 }
 
 // ### symbol-value

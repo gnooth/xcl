@@ -1022,397 +1022,397 @@ void initialize_runtime()
   ht_names = new EqualHashTable();
 
   ht_names->put(make_simple_string("RT_malloc"),
-                make_number((unsigned long)RT_malloc));
+                make_integer((unsigned long)RT_malloc));
 
   ht_names->put(make_simple_string("RT_current_thread_call_symbol_0"),
-                make_number((unsigned long)RT_current_thread_call_symbol_0));
+                make_integer((unsigned long)RT_current_thread_call_symbol_0));
   ht_names->put(make_simple_string("RT_current_thread_call_symbol_1"),
-                make_number((unsigned long)RT_current_thread_call_symbol_1));
+                make_integer((unsigned long)RT_current_thread_call_symbol_1));
   ht_names->put(make_simple_string("RT_current_thread_call_symbol_2"),
-                make_number((unsigned long)RT_current_thread_call_symbol_2));
+                make_integer((unsigned long)RT_current_thread_call_symbol_2));
   ht_names->put(make_simple_string("RT_current_thread_call_symbol_3"),
-                make_number((unsigned long)RT_current_thread_call_symbol_3));
+                make_integer((unsigned long)RT_current_thread_call_symbol_3));
   ht_names->put(make_simple_string("RT_current_thread_call_symbol_4"),
-                make_number((unsigned long)RT_current_thread_call_symbol_4));
+                make_integer((unsigned long)RT_current_thread_call_symbol_4));
   ht_names->put(make_simple_string("RT_current_thread_call_symbol_5"),
-                make_number((unsigned long)RT_current_thread_call_symbol_5));
+                make_integer((unsigned long)RT_current_thread_call_symbol_5));
   ht_names->put(make_simple_string("RT_current_thread_call_symbol_6"),
-                make_number((unsigned long)RT_current_thread_call_symbol_6));
+                make_integer((unsigned long)RT_current_thread_call_symbol_6));
   ht_names->put(make_simple_string("RT_current_thread_call_symbol"),
-                make_number((unsigned long)RT_current_thread_call_symbol));
+                make_integer((unsigned long)RT_current_thread_call_symbol));
 
   ht_names->put(make_simple_string("RT_thread_call_symbol_0"),
-                make_number((unsigned long)RT_thread_call_symbol_0));
+                make_integer((unsigned long)RT_thread_call_symbol_0));
   ht_names->put(make_simple_string("RT_thread_call_symbol_1"),
-                make_number((unsigned long)RT_thread_call_symbol_1));
+                make_integer((unsigned long)RT_thread_call_symbol_1));
   ht_names->put(make_simple_string("RT_thread_call_symbol_2"),
-                make_number((unsigned long)RT_thread_call_symbol_2));
+                make_integer((unsigned long)RT_thread_call_symbol_2));
   ht_names->put(make_simple_string("RT_thread_call_symbol_3"),
-                make_number((unsigned long)RT_thread_call_symbol_3));
+                make_integer((unsigned long)RT_thread_call_symbol_3));
   ht_names->put(make_simple_string("RT_thread_call_symbol_4"),
-                make_number((unsigned long)RT_thread_call_symbol_4));
+                make_integer((unsigned long)RT_thread_call_symbol_4));
   ht_names->put(make_simple_string("RT_thread_call_symbol_5"),
-                make_number((unsigned long)RT_thread_call_symbol_5));
+                make_integer((unsigned long)RT_thread_call_symbol_5));
   ht_names->put(make_simple_string("RT_thread_call_symbol_6"),
-                make_number((unsigned long)RT_thread_call_symbol_6));
+                make_integer((unsigned long)RT_thread_call_symbol_6));
   ht_names->put(make_simple_string("RT_thread_call_symbol"),
-                make_number((unsigned long)RT_thread_call_symbol));
+                make_integer((unsigned long)RT_thread_call_symbol));
 
   ht_names->put(make_simple_string("RT_fast_call_symbol_0"),
-                make_number((unsigned long)RT_fast_call_symbol_0));
+                make_integer((unsigned long)RT_fast_call_symbol_0));
   ht_names->put(make_simple_string("RT_fast_call_symbol_1"),
-                make_number((unsigned long)RT_fast_call_symbol_1));
+                make_integer((unsigned long)RT_fast_call_symbol_1));
   ht_names->put(make_simple_string("RT_fast_call_symbol_2"),
-                make_number((unsigned long)RT_fast_call_symbol_2));
+                make_integer((unsigned long)RT_fast_call_symbol_2));
   ht_names->put(make_simple_string("RT_fast_call_symbol_3"),
-                make_number((unsigned long)RT_fast_call_symbol_3));
+                make_integer((unsigned long)RT_fast_call_symbol_3));
   ht_names->put(make_simple_string("RT_fast_call_symbol_4"),
-                make_number((unsigned long)RT_fast_call_symbol_4));
+                make_integer((unsigned long)RT_fast_call_symbol_4));
   ht_names->put(make_simple_string("RT_fast_call_symbol_5"),
-                make_number((unsigned long)RT_fast_call_symbol_5));
+                make_integer((unsigned long)RT_fast_call_symbol_5));
   ht_names->put(make_simple_string("RT_fast_call_symbol_6"),
-                make_number((unsigned long)RT_fast_call_symbol_6));
+                make_integer((unsigned long)RT_fast_call_symbol_6));
   ht_names->put(make_simple_string("RT_fast_call_symbol"),
-                make_number((unsigned long)RT_fast_call_symbol));
+                make_integer((unsigned long)RT_fast_call_symbol));
 
   ht_names->put(make_simple_string("RT_current_thread_call_function_0"),
-                make_number((unsigned long)RT_current_thread_call_function_0));
+                make_integer((unsigned long)RT_current_thread_call_function_0));
   ht_names->put(make_simple_string("RT_current_thread_call_function_1"),
-                make_number((unsigned long)RT_current_thread_call_function_1));
+                make_integer((unsigned long)RT_current_thread_call_function_1));
   ht_names->put(make_simple_string("RT_current_thread_call_function_2"),
-                make_number((unsigned long)RT_current_thread_call_function_2));
+                make_integer((unsigned long)RT_current_thread_call_function_2));
   ht_names->put(make_simple_string("RT_current_thread_call_function_3"),
-                make_number((unsigned long)RT_current_thread_call_function_3));
+                make_integer((unsigned long)RT_current_thread_call_function_3));
   ht_names->put(make_simple_string("RT_current_thread_call_function_4"),
-                make_number((unsigned long)RT_current_thread_call_function_4));
+                make_integer((unsigned long)RT_current_thread_call_function_4));
   ht_names->put(make_simple_string("RT_current_thread_call_function_5"),
-                make_number((unsigned long)RT_current_thread_call_function_5));
+                make_integer((unsigned long)RT_current_thread_call_function_5));
   ht_names->put(make_simple_string("RT_current_thread_call_function_6"),
-                make_number((unsigned long)RT_current_thread_call_function_6));
+                make_integer((unsigned long)RT_current_thread_call_function_6));
   ht_names->put(make_simple_string("RT_current_thread_call_function"),
-                make_number((unsigned long)RT_current_thread_call_function));
+                make_integer((unsigned long)RT_current_thread_call_function));
 
   ht_names->put(make_simple_string("RT_thread_call_function_0"),
-                make_number((unsigned long)RT_thread_call_function_0));
+                make_integer((unsigned long)RT_thread_call_function_0));
   ht_names->put(make_simple_string("RT_thread_call_function_1"),
-                make_number((unsigned long)RT_thread_call_function_1));
+                make_integer((unsigned long)RT_thread_call_function_1));
   ht_names->put(make_simple_string("RT_thread_call_function_2"),
-                make_number((unsigned long)RT_thread_call_function_2));
+                make_integer((unsigned long)RT_thread_call_function_2));
   ht_names->put(make_simple_string("RT_thread_call_function_3"),
-                make_number((unsigned long)RT_thread_call_function_3));
+                make_integer((unsigned long)RT_thread_call_function_3));
   ht_names->put(make_simple_string("RT_thread_call_function_4"),
-                make_number((unsigned long)RT_thread_call_function_4));
+                make_integer((unsigned long)RT_thread_call_function_4));
   ht_names->put(make_simple_string("RT_thread_call_function_5"),
-                make_number((unsigned long)RT_thread_call_function_5));
+                make_integer((unsigned long)RT_thread_call_function_5));
   ht_names->put(make_simple_string("RT_thread_call_function_6"),
-                make_number((unsigned long)RT_thread_call_function_6));
+                make_integer((unsigned long)RT_thread_call_function_6));
   ht_names->put(make_simple_string("RT_thread_call_function"),
-                make_number((unsigned long)RT_thread_call_function));
+                make_integer((unsigned long)RT_thread_call_function));
 
   ht_names->put(make_simple_string("RT_fast_call_function_0"),
-                make_number((unsigned long)RT_fast_call_function_0));
+                make_integer((unsigned long)RT_fast_call_function_0));
   ht_names->put(make_simple_string("RT_fast_call_function_1"),
-                make_number((unsigned long)RT_fast_call_function_1));
+                make_integer((unsigned long)RT_fast_call_function_1));
   ht_names->put(make_simple_string("RT_fast_call_function_2"),
-                make_number((unsigned long)RT_fast_call_function_2));
+                make_integer((unsigned long)RT_fast_call_function_2));
   ht_names->put(make_simple_string("RT_fast_call_function_3"),
-                make_number((unsigned long)RT_fast_call_function_3));
+                make_integer((unsigned long)RT_fast_call_function_3));
   ht_names->put(make_simple_string("RT_fast_call_function_4"),
-                make_number((unsigned long)RT_fast_call_function_4));
+                make_integer((unsigned long)RT_fast_call_function_4));
   ht_names->put(make_simple_string("RT_fast_call_function_5"),
-                make_number((unsigned long)RT_fast_call_function_5));
+                make_integer((unsigned long)RT_fast_call_function_5));
   ht_names->put(make_simple_string("RT_fast_call_function_6"),
-                make_number((unsigned long)RT_fast_call_function_6));
+                make_integer((unsigned long)RT_fast_call_function_6));
   ht_names->put(make_simple_string("RT_fast_call_function"),
-                make_number((unsigned long)RT_fast_call_function));
+                make_integer((unsigned long)RT_fast_call_function));
 
   ht_names->put(make_simple_string("RT_thread_funcall_0"),
-                make_number((unsigned long)RT_thread_funcall_0));
+                make_integer((unsigned long)RT_thread_funcall_0));
   ht_names->put(make_simple_string("RT_thread_funcall_1"),
-                make_number((unsigned long)RT_thread_funcall_1));
+                make_integer((unsigned long)RT_thread_funcall_1));
   ht_names->put(make_simple_string("RT_thread_funcall_2"),
-                make_number((unsigned long)RT_thread_funcall_2));
+                make_integer((unsigned long)RT_thread_funcall_2));
   ht_names->put(make_simple_string("RT_thread_funcall_3"),
-                make_number((unsigned long)RT_thread_funcall_3));
+                make_integer((unsigned long)RT_thread_funcall_3));
   ht_names->put(make_simple_string("RT_thread_funcall_4"),
-                make_number((unsigned long)RT_thread_funcall_4));
+                make_integer((unsigned long)RT_thread_funcall_4));
 
   ht_names->put(make_simple_string("RT_fast_funcall_0"),
-                make_number((unsigned long)RT_fast_funcall_0));
+                make_integer((unsigned long)RT_fast_funcall_0));
   ht_names->put(make_simple_string("RT_fast_funcall_1"),
-                make_number((unsigned long)RT_fast_funcall_1));
+                make_integer((unsigned long)RT_fast_funcall_1));
   ht_names->put(make_simple_string("RT_fast_funcall_2"),
-                make_number((unsigned long)RT_fast_funcall_2));
+                make_integer((unsigned long)RT_fast_funcall_2));
   ht_names->put(make_simple_string("RT_fast_funcall_3"),
-                make_number((unsigned long)RT_fast_funcall_3));
+                make_integer((unsigned long)RT_fast_funcall_3));
   ht_names->put(make_simple_string("RT_fast_funcall_4"),
-                make_number((unsigned long)RT_fast_funcall_4));
+                make_integer((unsigned long)RT_fast_funcall_4));
 
   ht_names->put(make_simple_string("RT_current_thread_symbol_value"),
-                make_number((unsigned long)RT_current_thread_symbol_value));
+                make_integer((unsigned long)RT_current_thread_symbol_value));
 
   ht_names->put(make_simple_string("RT_thread_symbol_value"),
-                make_number((unsigned long)RT_thread_symbol_value));
+                make_integer((unsigned long)RT_thread_symbol_value));
 
   ht_names->put(make_simple_string("RT_current_thread_get_values"),
-                make_number((unsigned long)RT_current_thread_get_values));
+                make_integer((unsigned long)RT_current_thread_get_values));
 
   ht_names->put(make_simple_string("RT_thread_get_values"),
-                make_number((unsigned long)RT_thread_get_values));
+                make_integer((unsigned long)RT_thread_get_values));
 
   ht_names->put(make_simple_string("RT_thread_set_values_1"),
-                make_number((unsigned long)RT_thread_set_values_1));
+                make_integer((unsigned long)RT_thread_set_values_1));
 
   ht_names->put(make_simple_string("RT_current_thread_set_values_0"),
-                make_number((unsigned long)RT_current_thread_set_values_0));
+                make_integer((unsigned long)RT_current_thread_set_values_0));
 
   ht_names->put(make_simple_string("RT_current_thread_set_values_2"),
-                make_number((unsigned long)RT_current_thread_set_values_2));
+                make_integer((unsigned long)RT_current_thread_set_values_2));
 
   ht_names->put(make_simple_string("RT_thread_set_values_2"),
-                make_number((unsigned long)RT_thread_set_values_2));
+                make_integer((unsigned long)RT_thread_set_values_2));
 
   ht_names->put(make_simple_string("RT_current_thread_set_values_3"),
-                make_number((unsigned long)RT_current_thread_set_values_3));
+                make_integer((unsigned long)RT_current_thread_set_values_3));
 
   ht_names->put(make_simple_string("RT_thread_set_values_3"),
-                make_number((unsigned long)RT_thread_set_values_3));
+                make_integer((unsigned long)RT_thread_set_values_3));
 
   ht_names->put(make_simple_string("RT_current_thread_set_values_4"),
-                make_number((unsigned long)RT_current_thread_set_values_4));
+                make_integer((unsigned long)RT_current_thread_set_values_4));
 
   ht_names->put(make_simple_string("RT_thread_set_values_4"),
-                make_number((unsigned long)RT_thread_set_values_4));
+                make_integer((unsigned long)RT_thread_set_values_4));
 
   ht_names->put(make_simple_string("RT_current_thread_clear_values"),
-                make_number((unsigned long)RT_current_thread_clear_values));
+                make_integer((unsigned long)RT_current_thread_clear_values));
 
   ht_names->put(make_simple_string("RT_thread_clear_values"),
-                make_number((unsigned long)RT_thread_clear_values));
+                make_integer((unsigned long)RT_thread_clear_values));
 
   ht_names->put(make_simple_string("RT_current_thread"),
-                make_number((unsigned long)RT_current_thread));
+                make_integer((unsigned long)RT_current_thread));
 
   ht_names->put(make_simple_string("RT_current_thread_last_special_binding"),
-                make_number((unsigned long)RT_current_thread_last_special_binding));
+                make_integer((unsigned long)RT_current_thread_last_special_binding));
 
   ht_names->put(make_simple_string("RT_thread_last_special_binding"),
-                make_number((unsigned long)RT_thread_last_special_binding));
+                make_integer((unsigned long)RT_thread_last_special_binding));
 
   ht_names->put(make_simple_string("RT_current_thread_set_last_special_binding"),
-                make_number((unsigned long)RT_current_thread_set_last_special_binding));
+                make_integer((unsigned long)RT_current_thread_set_last_special_binding));
 
   ht_names->put(make_simple_string("RT_thread_set_last_special_binding"),
-                make_number((unsigned long)RT_thread_set_last_special_binding));
+                make_integer((unsigned long)RT_thread_set_last_special_binding));
 
   ht_names->put(make_simple_string("RT_current_thread_bind_special"),
-                make_number((unsigned long)RT_current_thread_bind_special));
+                make_integer((unsigned long)RT_current_thread_bind_special));
 
   ht_names->put(make_simple_string("RT_thread_bind_special"),
-                make_number((unsigned long)RT_thread_bind_special));
+                make_integer((unsigned long)RT_thread_bind_special));
 
   ht_names->put(make_simple_string("RT_current_thread_bind_special_to_current_value"),
-                make_number((unsigned long)RT_current_thread_bind_special_to_current_value));
+                make_integer((unsigned long)RT_current_thread_bind_special_to_current_value));
 
   ht_names->put(make_simple_string("RT_thread_bind_special_to_current_value"),
-                make_number((unsigned long)RT_thread_bind_special_to_current_value));
+                make_integer((unsigned long)RT_thread_bind_special_to_current_value));
 
   ht_names->put(make_simple_string("RT_current_thread_set_symbol_value"),
-                make_number((unsigned long)RT_current_thread_set_symbol_value));
+                make_integer((unsigned long)RT_current_thread_set_symbol_value));
 
   ht_names->put(make_simple_string("RT_thread_set_symbol_value"),
-                make_number((unsigned long)RT_thread_set_symbol_value));
+                make_integer((unsigned long)RT_thread_set_symbol_value));
 
   ht_names->put(make_simple_string("RT_symbol_function"),
-                make_number((unsigned long)RT_symbol_function));
+                make_integer((unsigned long)RT_symbol_function));
 
   ht_names->put(make_simple_string("RT_symbol_setf_function"),
-                make_number((unsigned long)RT_symbol_setf_function));
+                make_integer((unsigned long)RT_symbol_setf_function));
 
   ht_names->put(make_simple_string("RT_make_compiled_closure"),
-                make_number((unsigned long)RT_make_compiled_closure));
+                make_integer((unsigned long)RT_make_compiled_closure));
 
   ht_names->put(make_simple_string("RT_make_compiled_closure_2"),
-                make_number((unsigned long)RT_make_compiled_closure_2));
+                make_integer((unsigned long)RT_make_compiled_closure_2));
 
   ht_names->put(make_simple_string("RT_make_value_cell"),
-                make_number((unsigned long)RT_make_value_cell));
+                make_integer((unsigned long)RT_make_value_cell));
 
   ht_names->put(make_simple_string("RT_make_value_cell_1"),
-                make_number((unsigned long)RT_make_value_cell_1));
+                make_integer((unsigned long)RT_make_value_cell_1));
 
   ht_names->put(make_simple_string("RT_value_cell_value"),
-                make_number((unsigned long)RT_value_cell_value));
+                make_integer((unsigned long)RT_value_cell_value));
 
   ht_names->put(make_simple_string("RT_set_value_cell_value"),
-                make_number((unsigned long)RT_set_value_cell_value));
+                make_integer((unsigned long)RT_set_value_cell_value));
 
   ht_names->put(make_simple_string("RT_allocate_closure_data_vector"),
-                make_number((unsigned long)RT_allocate_closure_data_vector));
+                make_integer((unsigned long)RT_allocate_closure_data_vector));
 
   ht_names->put(make_simple_string("RT_copy_closure_data_vector"),
-                make_number((unsigned long)RT_copy_closure_data_vector));
+                make_integer((unsigned long)RT_copy_closure_data_vector));
 
   ht_names->put(make_simple_string("RT_unshare_variable"),
-                make_number((unsigned long)RT_unshare_variable));
+                make_integer((unsigned long)RT_unshare_variable));
 
   ht_names->put(make_simple_string("RT_restify"),
-                make_number((unsigned long)RT_restify));
+                make_integer((unsigned long)RT_restify));
 
   ht_names->put(make_simple_string("RT_process_args"),
-                make_number((unsigned long)RT_process_args));
+                make_integer((unsigned long)RT_process_args));
 
   ht_names->put(make_simple_string("RT_thread_multiple_value_call"),
-                make_number((unsigned long)RT_thread_multiple_value_call));
+                make_integer((unsigned long)RT_thread_multiple_value_call));
 
   ht_names->put(make_simple_string("RT_accumulate_values"),
-                make_number((unsigned long)RT_accumulate_values));
+                make_integer((unsigned long)RT_accumulate_values));
 
   ht_names->put(make_simple_string("RT_multiple_value_list"),
-                make_number((unsigned long)RT_multiple_value_list));
+                make_integer((unsigned long)RT_multiple_value_list));
 
   ht_names->put(make_simple_string("RT_equal"),
-                make_number((unsigned long)RT_equal));
+                make_integer((unsigned long)RT_equal));
 
   ht_names->put(make_simple_string("RT_eql"),
-                make_number((unsigned long)RT_eql));
+                make_integer((unsigned long)RT_eql));
 
   ht_names->put(make_simple_string("RT_equals"),
-                make_number((unsigned long)RT_equals));
+                make_integer((unsigned long)RT_equals));
 
   ht_names->put(make_simple_string("RT_classp"),
-                make_number((unsigned long)RT_classp));
+                make_integer((unsigned long)RT_classp));
 
   ht_names->put(make_simple_string("RT_endp"),
-                make_number((unsigned long)RT_endp));
+                make_integer((unsigned long)RT_endp));
 
   ht_names->put(make_simple_string("RT_functionp"),
-                make_number((unsigned long)RT_functionp));
+                make_integer((unsigned long)RT_functionp));
 
   ht_names->put(make_simple_string("RT_integerp"),
-                make_number((unsigned long)RT_integerp));
+                make_integer((unsigned long)RT_integerp));
 
   ht_names->put(make_simple_string("RT_listp"),
-                make_number((unsigned long)RT_listp));
+                make_integer((unsigned long)RT_listp));
 
   ht_names->put(make_simple_string("RT_minusp"),
-                make_number((unsigned long)RT_minusp));
+                make_integer((unsigned long)RT_minusp));
 
   ht_names->put(make_simple_string("RT_numberp"),
-                make_number((unsigned long)RT_numberp));
+                make_integer((unsigned long)RT_numberp));
 
   ht_names->put(make_simple_string("RT_plusp"),
-                make_number((unsigned long)RT_plusp));
+                make_integer((unsigned long)RT_plusp));
 
   ht_names->put(make_simple_string("RT_stringp"),
-                make_number((unsigned long)RT_stringp));
+                make_integer((unsigned long)RT_stringp));
 
   ht_names->put(make_simple_string("RT_vectorp"),
-                make_number((unsigned long)RT_vectorp));
+                make_integer((unsigned long)RT_vectorp));
 
   ht_names->put(make_simple_string("RT_fast_apply_function_2"),
-                make_number((unsigned long)RT_fast_apply_function_2));
+                make_integer((unsigned long)RT_fast_apply_function_2));
 
   ht_names->put(make_simple_string("RT_fast_apply_2"),
-                make_number((unsigned long)RT_fast_apply_2));
+                make_integer((unsigned long)RT_fast_apply_2));
 
   ht_names->put(make_simple_string("RT_handle_interrupt"),
-                make_number((unsigned long)RT_handle_interrupt));
+                make_integer((unsigned long)RT_handle_interrupt));
 
   ht_names->put(make_simple_string("interrupted"),
-                make_number((unsigned long)&interrupted));
+                make_integer((unsigned long)&interrupted));
 
 #ifdef WIN32
   ht_names->put(make_simple_string("setjmp"),
-                make_number((unsigned long)_setjmp));
+                make_integer((unsigned long)_setjmp));
 #else
   ht_names->put(make_simple_string("setjmp"),
-                make_number((unsigned long)setjmp));
+                make_integer((unsigned long)setjmp));
 #endif
 
   ht_names->put(make_simple_string("RT_enter_block"),
-                make_number((unsigned long)RT_enter_block));
+                make_integer((unsigned long)RT_enter_block));
 
   ht_names->put(make_simple_string("RT_frame_jmp"),
-                make_number((unsigned long)RT_frame_jmp));
+                make_integer((unsigned long)RT_frame_jmp));
 
   ht_names->put(make_simple_string("RT_leave_block"),
-                make_number((unsigned long)RT_leave_block));
+                make_integer((unsigned long)RT_leave_block));
 
   ht_names->put(make_simple_string("RT_return_from"),
-                make_number((unsigned long)RT_return_from));
+                make_integer((unsigned long)RT_return_from));
 
   ht_names->put(make_simple_string("RT_block_non_local_return"),
-                make_number((unsigned long)RT_block_non_local_return));
+                make_integer((unsigned long)RT_block_non_local_return));
 
   ht_names->put(make_simple_string("RT_enter_catch"),
-                make_number((unsigned long)RT_enter_catch));
+                make_integer((unsigned long)RT_enter_catch));
 
   ht_names->put(make_simple_string("RT_leave_catch"),
-                make_number((unsigned long)RT_leave_catch));
+                make_integer((unsigned long)RT_leave_catch));
 
   ht_names->put(make_simple_string("RT_caught_throw"),
-                make_number((unsigned long)RT_caught_throw));
+                make_integer((unsigned long)RT_caught_throw));
 
   ht_names->put(make_simple_string("RT_throw"),
-                make_number((unsigned long)RT_throw));
+                make_integer((unsigned long)RT_throw));
 
   ht_names->put(make_simple_string("RT_add_tagbody"),
-                make_number((unsigned long)RT_add_tagbody));
+                make_integer((unsigned long)RT_add_tagbody));
 
   ht_names->put(make_simple_string("RT_add_tag"),
-                make_number((unsigned long)RT_add_tag));
+                make_integer((unsigned long)RT_add_tag));
 
   ht_names->put(make_simple_string("RT_leave_tagbody"),
-                make_number((unsigned long)RT_leave_tagbody));
+                make_integer((unsigned long)RT_leave_tagbody));
 
   ht_names->put(make_simple_string("RT_non_local_go"),
-                make_number((unsigned long)RT_non_local_go));
+                make_integer((unsigned long)RT_non_local_go));
 
   ht_names->put(make_simple_string("RT_thread_copy_values"),
-                make_number((unsigned long)RT_thread_copy_values));
+                make_integer((unsigned long)RT_thread_copy_values));
 
   ht_names->put(make_simple_string("RT_thread_set_values"),
-                make_number((unsigned long)RT_thread_set_values));
+                make_integer((unsigned long)RT_thread_set_values));
 
   ht_names->put(make_simple_string("RT_enter_unwind_protect"),
-                make_number((unsigned long)RT_enter_unwind_protect));
+                make_integer((unsigned long)RT_enter_unwind_protect));
 
   ht_names->put(make_simple_string("RT_leave_unwind_protect"),
-                make_number((unsigned long)RT_leave_unwind_protect));
+                make_integer((unsigned long)RT_leave_unwind_protect));
 
   ht_names->put(make_simple_string("RT_unwind_to"),
-                make_number((unsigned long)RT_unwind_to));
+                make_integer((unsigned long)RT_unwind_to));
 
 #ifndef __x86_64__
   ht_names->put(make_simple_string("RT_unsigned_byte_to_raw_ub32"),
-                make_number((unsigned long)RT_unsigned_byte_to_raw_ub32));
+                make_integer((unsigned long)RT_unsigned_byte_to_raw_ub32));
 #endif
 
 #ifndef __x86_64__
   ht_names->put(make_simple_string("RT_mod32"),
-                make_number((unsigned long)RT_mod32));
+                make_integer((unsigned long)RT_mod32));
 #endif
 
 #ifdef __x86_64__
   ht_names->put(make_simple_string("RT_unsigned_bignum_to_raw_ub64"),
-                make_number((unsigned long)RT_unsigned_bignum_to_raw_ub64));
+                make_integer((unsigned long)RT_unsigned_bignum_to_raw_ub64));
 #endif
 
   ht_names->put(make_simple_string("RT_progv_bind_vars"),
-                make_number((unsigned long)RT_progv_bind_vars));
+                make_integer((unsigned long)RT_progv_bind_vars));
 
   ht_names->put(make_simple_string("RT_bad_index"),
-                make_number((unsigned long)RT_bad_index));
+                make_integer((unsigned long)RT_bad_index));
 
   ht_names->put(make_simple_string("RT_gethash2"),
-                make_number((unsigned long)RT_gethash2));
+                make_integer((unsigned long)RT_gethash2));
 
   ht_names->put(make_simple_string("RT_gethash3"),
-                make_number((unsigned long)RT_gethash3));
+                make_integer((unsigned long)RT_gethash3));
 
   ht_names->put(make_simple_string("RT_thread_uwp_in_cleanup_p"),
-                make_number((unsigned long)RT_thread_uwp_in_cleanup_p));
+                make_integer((unsigned long)RT_thread_uwp_in_cleanup_p));
 
   the_symbol(S_runtime_names)->initialize_constant(make_value(ht_names));
 }

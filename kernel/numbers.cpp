@@ -1,6 +1,6 @@
 // numbers.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -412,7 +412,7 @@ Value negate(Value arg)
     {
       long n = xlong(arg);
       if (n == MOST_NEGATIVE_FIXNUM)
-        return make_number(-n);
+        return make_integer(-n);
       else
         return make_fixnum(-n);
     }
@@ -1289,7 +1289,7 @@ Value CL_subtract(unsigned int numargs, Value args[])
           {
             long n = xlong(args[0]);
             if (n == MOST_NEGATIVE_FIXNUM)
-              return make_number(-n);
+              return make_integer(-n);
             else
               return make_fixnum(-n);
           }
@@ -2348,7 +2348,7 @@ Value CL_ash(Value arg1, Value arg2)
             result = n << shift;
           else
             result = n >> -shift;
-          return make_number(result);
+          return make_integer(result);
         }
       if (shift <= -61)
         return xlong(arg1) >= 0 ? FIXNUM_ZERO : FIXNUM_MINUS_ONE;
@@ -2361,7 +2361,7 @@ Value CL_ash(Value arg1, Value arg2)
             result = n << shift;
           else
             result = n >> -shift;
-          return make_number(result);
+          return make_integer(result);
         }
       if (shift <= -29)
         return xlong(arg1) >= 0 ? FIXNUM_ZERO : FIXNUM_MINUS_ONE;
@@ -2431,7 +2431,7 @@ Value CL_abs(Value arg)
   if (fixnump(arg))
     {
       long n = xlong(arg);
-      return n < 0 ? make_number(-n) : arg;
+      return n < 0 ? make_integer(-n) : arg;
     }
   if (bignump(arg))
     {
@@ -2933,8 +2933,8 @@ Value SYS_truncate_2(Value number, Value divisor)
             r = -r;
           if (!same_sign_p(n, d))
             q = -q;
-          Value quotient = make_number(q);
-          Value remainder = make_number(r);
+          Value quotient = make_integer(q);
+          Value remainder = make_integer(r);
           return thread->set_values(quotient, remainder);
         }
       if (ratiop(divisor))
@@ -3119,8 +3119,8 @@ Value SYS_floor_2(Value number, Value divisor)
             }
           if (x < 0)
             r = -r;
-          Value quotient = make_number(q);
-          Value remainder = make_number(r);
+          Value quotient = make_integer(q);
+          Value remainder = make_integer(r);
           return thread->set_values(quotient, remainder);
         }
       if (ratiop(divisor))
@@ -3258,8 +3258,8 @@ Value SYS_ceiling_2(Value number, Value divisor)
             r = -r;
           if (!same_sign_p(n, d))
             q = -q;
-          Value quotient = make_number(q);
-          Value remainder = make_number(r);
+          Value quotient = make_integer(q);
+          Value remainder = make_integer(r);
           return thread->set_values(quotient, remainder);
         }
       if (ratiop(divisor))
@@ -4275,7 +4275,7 @@ static Value logeqv(Value v1, Value v2)
         {
           long n1 = xlong(v1);
           long n2 = xlong(v2);
-          return make_number(~(n1 ^ n2));
+          return make_integer(~(n1 ^ n2));
         }
       else if (bignump(v2))
         {
@@ -4365,7 +4365,7 @@ Value CL_integer_length(Value arg)
       mpz_init_set(z, the_bignum(arg)->_z);
       if (mpz_sgn(z) < 0)
         mpz_com(z, z);
-      Value value = make_number(mpz_sizeinbase(z, 2));
+      Value value = make_integer(mpz_sizeinbase(z, 2));
       MPZ_CLEAR(z);
       return value;
     }

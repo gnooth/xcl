@@ -1,6 +1,6 @@
 // AbstractVector.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -39,9 +39,8 @@ INDEX AbstractVector::dimension(unsigned int n) const
 {
   if (n == 0)
     return _capacity;
-
-  signal_type_error(make_number(n), list3(S_integer, FIXNUM_ZERO, FIXNUM_ZERO));
-  // Not reached.
+  signal_type_error(make_unsigned_integer(n), list3(S_integer, FIXNUM_ZERO, FIXNUM_ZERO));
+  // not reached
   return 0;
 }
 
@@ -94,13 +93,10 @@ AbstractString * AbstractVector::write_to_string()
     {
       INDEX max_level = MOST_POSITIVE_FIXNUM;
       Value print_level = thread->symbol_value(S_print_level);
-//       printf("AbstractVector::write_to_string(): print_level = %s\n", ::write_to_string(print_level)->as_c_string());
       if (print_level != NIL)
         max_level = check_index(print_level);
       Value current_print_level = thread->symbol_value(S_current_print_level);
       INDEX current_level = check_index(current_print_level);
-//       printf("AbstractVector::write_to_string(): current_level = %lu\n", current_level);
-//       fflush(stdout);
       if (current_level >= max_level)
         return new_simple_string("#");
       String * s = new String("#(");
@@ -111,7 +107,7 @@ AbstractString * AbstractVector::write_to_string()
       const INDEX len = length();
       const INDEX limit = (len < max_length) ? len : max_length;
       void * last_special_binding = thread->last_special_binding();
-      thread->bind_special(S_current_print_level, make_number(current_level + 1));
+      thread->bind_special(S_current_print_level, make_unsigned_integer(current_level + 1));
       for (INDEX i = 0; i < limit; i++)
         {
           if (i > 0)

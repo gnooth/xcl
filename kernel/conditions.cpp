@@ -1,6 +1,6 @@
 // conditions.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -267,7 +267,7 @@ Value bad_index(Value index, Value expected_type)
 
 Value bad_index(INDEX index, long min, long max)
 {
-  return signal_type_error(make_number(index),
-                           list3(S_integer, make_number(min),
-                                 list1(make_number(max))));
+  return signal_type_error(make_unsigned_integer(index),
+                           list3(S_integer, make_integer(min),
+                                 list1(make_integer(max))));
 }

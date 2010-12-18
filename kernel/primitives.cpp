@@ -356,7 +356,7 @@ Value gensym(const char * prefix, Thread * thread)
     {
       long n = xlong(old_value);
       string->append_long(n);
-      new_value = make_number(n + 1);
+      new_value = make_integer(n + 1);
     }
   else if (bignump(old_value))
     {
@@ -1374,7 +1374,7 @@ Value SYS_value_to_ub32(Value arg)
 Value SYS_vector_data(Value arg)
 {
   SimpleArray_UB8_1 * vector = check_simple_array_ub8_1(arg);
-  return make_number((unsigned long)vector->data());
+  return make_unsigned_integer((unsigned long)vector->data());
 }
 
 // ### concatenate-to-string
@@ -2133,7 +2133,7 @@ Value CL_logcount(Value arg)
       mpz_add_ui(z, z, 1);
       mpz_neg(z, z);
     }
-  return make_number(mpz_popcount(z));
+  return make_integer(mpz_popcount(z));
 }
 
 // ### lognot
@@ -2159,7 +2159,7 @@ Value CL_lognand(Value arg1, Value arg2)
   if (fixnump(arg1))
     {
       if (fixnump(arg2))
-        return make_number(~(xlong(arg1) & xlong(arg2)));
+        return make_integer(~(xlong(arg1) & xlong(arg2)));
       if (bignump(arg2))
         {
           mpz_t z;
@@ -2205,7 +2205,7 @@ Value CL_lognor(Value arg1, Value arg2)
   if (fixnump(arg1))
     {
       if (fixnump(arg2))
-        return make_number(~(xlong(arg1) | xlong(arg2)));
+        return make_integer(~(xlong(arg1) | xlong(arg2)));
       if (bignump(arg2))
         {
           mpz_t z;
@@ -2308,7 +2308,7 @@ static BYTE * check_address(Value address)
         return reinterpret_cast<unsigned char *>(mpz_get_ui(b->_z));
     }
   signal_type_error(address, list3(S_integer, list1(FIXNUM_ZERO),
-                                   make_number(0xffffffff)));
+                                   make_integer(0xffffffff)));
   // not reached
   return NULL;
 }
@@ -2456,13 +2456,13 @@ Value SYS_default_time_zone()
 #ifdef WIN32
   TIME_ZONE_INFORMATION tzinfo;
   DWORD ret = GetTimeZoneInformation(&tzinfo);
-  Value time_zone = make_number(tzinfo.Bias / 60);
+  Value time_zone = make_integer(tzinfo.Bias / 60);
   Value daylight_p = (ret == TIME_ZONE_ID_DAYLIGHT) ? T : NIL;
 #else
   time_t gmt = time(NULL);
   struct tm * local = localtime(&gmt);
   long seconds = local->tm_gmtoff;
-  Value time_zone = (seconds == 0) ? FIXNUM_ZERO : make_number(- seconds / 3600);
+  Value time_zone = (seconds == 0) ? FIXNUM_ZERO : make_integer(- seconds / 3600);
   Value daylight_p = (local->tm_isdst > 0) ? T : NIL;
 #endif
   return current_thread()->set_values(time_zone, daylight_p);

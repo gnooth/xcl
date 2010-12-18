@@ -27,12 +27,12 @@ private:
   Value _constants;
 
 public:
-  CompiledFunction(Value name, void * code, unsigned long code_size, 
+  CompiledFunction(Value name, void * code, unsigned long code_size,
                    unsigned int minargs, unsigned int maxargs, Value constants)
     : Primitive(WIDETAG_COMPILED_FUNCTION, name), _constants(constants)
   {
     _code = code;
-    _code_size = make_number(code_size);
+    _code_size = make_unsigned_integer(code_size);
     _minargs = minargs;
     _maxargs = maxargs;
     if (minargs == maxargs)

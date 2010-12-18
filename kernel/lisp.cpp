@@ -151,19 +151,19 @@ Value EXT_gc()
 // ### heap-size
 Value SYS_heap_size()
 {
-  return make_number(GC_get_heap_size());
+  return make_integer(GC_get_heap_size());
 }
 
 // ### heap-free
 Value SYS_heap_free()
 {
-  return make_number(GC_get_free_bytes());
+  return make_integer(GC_get_free_bytes());
 }
 
 // ### heap-used
 Value SYS_heap_used()
 {
-  return make_number(GC_get_heap_size() - GC_get_free_bytes());
+  return make_integer(GC_get_heap_size() - GC_get_free_bytes());
 }
 
 // ### gc-total-bytes

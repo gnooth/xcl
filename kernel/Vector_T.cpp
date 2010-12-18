@@ -1,6 +1,6 @@
 // Vector_T.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -182,10 +182,10 @@ Value Vector_T::aref(INDEX i) const
 {
   if (i >= _capacity)
     {
-      Value datum = make_number(i);
+      Value datum = make_unsigned_integer(i);
       Value expected_type =
         list3(S_integer, FIXNUM_ZERO,
-              _capacity > 0 ? make_number(_capacity - 1) : list1(FIXNUM_ZERO));
+              _capacity > 0 ? make_unsigned_integer(_capacity - 1) : list1(FIXNUM_ZERO));
       return bad_index(datum, expected_type);
     }
   if (_data)
@@ -199,10 +199,10 @@ Value Vector_T::aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
     {
-      Value datum = make_number(i);
+      Value datum = make_unsigned_integer(i);
       Value expected_type =
         list3(S_integer, FIXNUM_ZERO,
-              _capacity > 0 ? make_number(_capacity - 1) : list1(FIXNUM_ZERO));
+              _capacity > 0 ? make_unsigned_integer(_capacity - 1) : list1(FIXNUM_ZERO));
       return bad_index(datum, expected_type);
     }
   if (_data)
@@ -219,10 +219,10 @@ Value Vector_T::elt(INDEX i) const
 {
   if (i >= length())
     {
-      Value datum = make_number(i);
+      Value datum = make_unsigned_integer(i);
       Value expected_type =
         list3(S_integer, FIXNUM_ZERO,
-              length() > 0 ? make_number(length() - 1) : list1(FIXNUM_ZERO));
+              length() > 0 ? make_unsigned_integer(length() - 1) : list1(FIXNUM_ZERO));
       return bad_index(datum, expected_type);
     }
   if (_data)

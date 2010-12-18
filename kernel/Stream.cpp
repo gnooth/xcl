@@ -433,7 +433,7 @@ Value Stream::file_string_length(Value arg) const
   if (characterp(arg))
     return FIXNUM_ONE;
   if (stringp(arg))
-    return make_number(the_string(arg)->length());
+    return make_unsigned_integer(the_string(arg)->length());
   return signal_type_error(arg, list3(S_or, S_string, S_character));
 }
 
@@ -562,7 +562,7 @@ Value CL_interactive_stream_p(Value arg)
 Value SYS_stream_charpos_internal(Value stream)
 {
   // REVIEW verify that the stream is a character output stream
-  return make_number(check_stream(stream)->charpos());
+  return make_integer(check_stream(stream)->charpos());
 }
 
 // ### %stream-set-charpos stream position => position

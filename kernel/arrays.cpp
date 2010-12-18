@@ -1,6 +1,6 @@
 // arrays.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -78,7 +78,7 @@ Value CL_adjustable_array_p(Value arg)
 // ### array-dimension array axis-number => dimension
 Value CL_array_dimension(Value arg1, Value arg2)
 {
-  return make_number(check_array(arg1)->dimension(check_index(arg2)));
+  return make_integer(check_array(arg1)->dimension(check_index(arg2)));
 }
 
 // ### array-dimensions array => dimensions
@@ -91,7 +91,7 @@ Value CL_array_dimensions(Value arg)
 Value CL_array_total_size(Value arg)
 {
   // REVIEW make_fixnum
-  return make_number(check_array(arg)->total_size());
+  return make_unsigned_integer(check_array(arg)->total_size());
 }
 
 // ### array-row-major-index array &rest subscripts => index
@@ -105,7 +105,7 @@ Value CL_array_row_major_index(unsigned int numargs, Value args[])
     (unsigned long *) GC_malloc_atomic(nsubs * sizeof(unsigned long));
   for (unsigned long i = nsubs; i-- > 0;)
     subscripts[i] = fixnum_value(args[i + 1]);
-  return make_number(array->row_major_index(nsubs, subscripts));
+  return make_unsigned_integer(array->row_major_index(nsubs, subscripts));
 }
 
 // ### array-in-bounds-p array &rest subscripts => generalized-boolean

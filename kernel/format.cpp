@@ -1,6 +1,6 @@
 // format.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -129,7 +129,7 @@ String * format_to_string(Value format_control, Value format_arguments)
                 {
                   Value obj = args[j++];
                   void * last_special_binding = thread->last_special_binding();
-                  thread->bind_special(S_print_base, make_number(10));
+                  thread->bind_special(S_print_base, make_integer(10));
                   AbstractString * s = write_to_string(obj);
                   if (s->length() < mincol)
                     {
@@ -147,7 +147,7 @@ String * format_to_string(Value format_control, Value format_arguments)
                 {
                   Value obj = args[j++];
                   void * last_special_binding = thread->last_special_binding();
-                  thread->bind_special(S_print_base, make_number(16));
+                  thread->bind_special(S_print_base, make_integer(16));
                   AbstractString * s = princ_to_string(obj);
                   if (s->length() < mincol)
                     {

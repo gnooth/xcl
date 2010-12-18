@@ -1,6 +1,6 @@
 // Bignum.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
 Value Bignum::type_of() const
 {
   if (mpz_sgn(_z) > 0)
-    return list2(S_integer, make_number(MOST_POSITIVE_FIXNUM + 1));
+    return list2(S_integer, make_integer(MOST_POSITIVE_FIXNUM + 1));
   else
     return S_bignum;
 }

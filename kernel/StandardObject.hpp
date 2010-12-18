@@ -107,10 +107,10 @@ public:
   {
     if (index >= _numslots)
       {
-        return signal_type_error(make_number((long)index),
+        return signal_type_error(make_unsigned_integer(index),
                                  list3(S_integer,
                                        FIXNUM_ZERO,
-                                       list1(make_number((long)_numslots))));
+                                       list1(make_unsigned_integer(_numslots))));
       }
     return _slots[index];
   }
@@ -119,10 +119,10 @@ public:
   {
     if (index >= _numslots)
       {
-        signal_type_error(make_number((long)index),
+        signal_type_error(make_unsigned_integer(index),
                           list3(S_integer,
                                 FIXNUM_ZERO,
-                                list1(make_number((long)_numslots))));
+                                list1(make_unsigned_integer(_numslots))));
       }
     _slots[index] = value;
   }

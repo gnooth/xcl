@@ -1,6 +1,6 @@
 // Cons.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -114,7 +114,7 @@ AbstractString * Cons::write_to_string()
   if (current_level < max_level)
     {
       void * last_special_binding = thread->last_special_binding();
-      thread->bind_special(S_current_print_level, make_number(current_level + 1));
+      thread->bind_special(S_current_print_level, make_integer(current_level + 1));
       INDEX count = 0;
       bool truncated = false;
       s->append_char('(');

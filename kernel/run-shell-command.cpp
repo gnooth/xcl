@@ -1,6 +1,6 @@
 // run-shell-command.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -90,5 +90,5 @@ Value SYS_run_shell_command_internal(Value arg)
 {
   AbstractString * command = check_string(arg);
   int ret = system(command->copy_to_c_string());
-  return make_number(ret);
+  return make_integer(ret);
 }

@@ -225,7 +225,7 @@ void AbstractArray::append_contents(int ndims, INDEX dimensions[],
       if (current_level < max_level)
         {
           void * last_special_binding = thread->last_special_binding();
-          thread->bind_special(S_current_print_level, make_number(current_level + 1));
+          thread->bind_special(S_current_print_level, make_unsigned_integer(current_level + 1));
           s->append_char('(');
           INDEX * dims = (INDEX *) GC_malloc_atomic((ndims - 1) * sizeof(INDEX));
           for (int i = 1; i < ndims; i++)

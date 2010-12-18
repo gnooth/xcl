@@ -1,6 +1,6 @@
 // Array_T.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -169,8 +169,8 @@ INDEX Array_T::dimension(unsigned int n) const
   if (n < _rank)
     return _dimensions[n];
 
-  signal_type_error(make_number(n),
-                    list3(S_integer, FIXNUM_ZERO, make_number(_rank - 1)));
+  signal_type_error(make_unsigned_integer(n),
+                    list3(S_integer, FIXNUM_ZERO, make_unsigned_integer(_rank - 1)));
   // not reached
   return 0;
 }
@@ -188,8 +188,8 @@ Value Array_T::aref(unsigned long index) const
         if (index < _total_size)
           return _data[index];
         else
-          return signal_type_error(make_number(index),
-                                   list3(S_integer, FIXNUM_ZERO, make_number(_total_size)));
+          return signal_type_error(make_unsigned_integer(index),
+                                   list3(S_integer, FIXNUM_ZERO, make_unsigned_integer(_total_size)));
       }
     else
       {
@@ -208,8 +208,8 @@ Value Array_T::aset(unsigned long index, Value new_value)
             return new_value;
           }
         else
-          return signal_type_error(make_number(index),
-                                   list3(S_integer, FIXNUM_ZERO, make_number(_total_size)));
+          return signal_type_error(make_unsigned_integer(index),
+                                   list3(S_integer, FIXNUM_ZERO, make_unsigned_integer(_total_size)));
       }
     else
       {

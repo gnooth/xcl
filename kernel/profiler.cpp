@@ -322,9 +322,10 @@ Value PROF_stop_profiler()
 
       if (sampling_mode == K_time || sampling_mode == K_cpu)
         {
-          SimpleVector * vector = the_simple_vector(SYS_make_simple_vector(make_number(samples_index)));
+          SimpleVector * vector =
+            the_simple_vector(SYS_make_simple_vector(make_unsigned_integer(samples_index)));
           for (INDEX i = 0; i < samples_index; i++)
-            vector->aset(i, make_number(samples[i]));
+            vector->aset(i, make_unsigned_integer(samples[i]));
           the_symbol(S_samples)->set_value(make_value(vector));
         }
 

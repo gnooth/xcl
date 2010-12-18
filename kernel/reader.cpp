@@ -824,7 +824,7 @@ Value stream_read_dispatch_char(Value streamarg, BASE_CHAR dispatch_char,
           if (function)
             // REVIEW
             return thread->execute(function, streamarg, make_character(c),
-                                   numarg >= 0 ? make_number(numarg) : NIL);
+                                   numarg >= 0 ? make_integer(numarg) : NIL);
         }
       // no handler, fall through...
       if (thread->symbol_value(S_read_suppress) != NIL)

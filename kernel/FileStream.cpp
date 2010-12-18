@@ -1,6 +1,6 @@
 // FileStream.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -396,16 +396,16 @@ void FileStream::finish_output()
 Value FileStream::file_position()
 {
   if (_data)
-    return make_number(_data_offset);
+    return make_integer(_data_offset);
   if (_output_buffer != NULL)
     flush_output_buffer();
   long n = lseek(_fd, 0, SEEK_CUR);
   if (n >= 0)
     {
       if (_bytes_per_unit == 1)
-        return make_number(n);
+        return make_integer(n);
       else
-        return make_number(n / _bytes_per_unit);
+        return make_integer(n / _bytes_per_unit);
     }
   return NIL;
 }

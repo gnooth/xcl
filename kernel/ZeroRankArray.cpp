@@ -72,7 +72,7 @@ bool ZeroRankArray::typep(Value type) const
 
 INDEX ZeroRankArray::dimension(unsigned int n) const
 {
-  signal_type_error(make_number(n), NIL);
+  signal_type_error(make_unsigned_integer(n), NIL);
   // not reached
   return 0;
 }
@@ -86,7 +86,7 @@ Value ZeroRankArray::aref(unsigned long i) const
       else
         return _data;
     }
-  return signal_type_error(make_number(i),
+  return signal_type_error(make_unsigned_integer(i),
                            list3(S_integer, FIXNUM_ZERO, FIXNUM_ZERO));
 }
 
@@ -100,7 +100,7 @@ Value ZeroRankArray::aset(unsigned long i, Value new_value)
         _data = new_value;
       return new_value;
     }
-  return signal_type_error(make_number(i),
+  return signal_type_error(make_unsigned_integer(i),
                            list3(S_integer, FIXNUM_ZERO, FIXNUM_ZERO));
 }
 

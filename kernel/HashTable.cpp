@@ -1,6 +1,6 @@
 // HashTable.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -190,13 +190,13 @@ Value CL_hash_table_p(Value arg)
 // ### hash-table-size
 Value CL_hash_table_size(Value arg)
 {
-  return make_number(check_hash_table(arg)->size());
+  return make_unsigned_integer(check_hash_table(arg)->size());
 }
 
 // ### hash-table-count
 Value CL_hash_table_count(Value arg)
 {
-  return make_number(check_hash_table(arg)->count());
+  return make_unsigned_integer(check_hash_table(arg)->count());
 }
 
 // ### hash-table-test

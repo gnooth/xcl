@@ -1,6 +1,6 @@
 // getpid.cpp
 //
-// Copyright (C) 2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2009-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,5 +30,5 @@ Value EXT_getpid()
 #else
   pid_t pid = getpid();
 #endif
-  return make_number(pid);
+  return make_unsigned_integer(pid);
 }

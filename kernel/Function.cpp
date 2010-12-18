@@ -1,6 +1,6 @@
 // Function.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -113,7 +113,7 @@ Value SYS_set_function_plist(Value function, Value plist)
 Value SYS_function_call_count(Value arg)
 {
   if (functionp(arg))
-    return make_number(the_function(arg)->call_count());
+    return make_unsigned_integer(the_function(arg)->call_count());
   return signal_type_error(arg, S_function);
 }
 

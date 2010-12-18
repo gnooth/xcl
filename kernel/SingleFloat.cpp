@@ -1,6 +1,6 @@
 // SingleFloat.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -93,7 +93,7 @@ unsigned long SingleFloat::hash()
 unsigned long SingleFloat::equalp_hash()
 {
   if (_f == (long) _f)
-    return ::hash(make_number((long)_f));
+    return ::hash(make_integer((long)_f));
   else
     return bits() & MOST_POSITIVE_FIXNUM;
 }
@@ -204,7 +204,7 @@ AbstractString * SingleFloat::write_to_string()
 Value SYS_single_float_bits(Value arg)
 {
   if (single_float_p(arg))
-    return make_number(the_single_float(arg)->bits());
+    return make_integer(the_single_float(arg)->bits());
   else
     return signal_type_error(arg, S_single_float);
 }

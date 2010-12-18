@@ -148,7 +148,7 @@ Value CL_dotimes(Value args, Environment * env, Thread * thread)
         }
       else if (bignump(limit))
         {
-          Value index = make_number(0L);
+          Value index = FIXNUM_ZERO;
           while (lt(index, limit))
             {
               if (binding)
