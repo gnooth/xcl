@@ -36,7 +36,7 @@ else
   CFLAGS := $(CFLAGS) -march=i686 -m32
 endif
 
-LIBOBJS = lisp.o xcl_home.o reader.o run-shell-command.o \
+LIBOBJS = lisp.o xcl_home.o reader.o streams.o run-shell-command.o \
 	FaslReadtable.o Readtable.o Stream.o \
 	debug.o stack.o \
 	make-symbol-macro.o \
