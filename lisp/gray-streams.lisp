@@ -97,3 +97,46 @@
 (defgeneric stream-read-byte (stream))
 
 (defgeneric stream-write-byte (stream))
+
+;; CMUCL example character input stream encapsulating a lisp-stream
+
+(defclass character-input-stream (fundamental-character-input-stream)
+  ((lisp-stream
+    :initarg :lisp-stream
+    :accessor character-input-stream-lisp-stream)))
+
+(defun make-character-input-stream (lisp-stream)
+  (declare (type lisp-stream lisp-stream))
+  (make-instance 'character-input-stream :lisp-stream lisp-stream))
+
+(defmethod open-stream-p ((stream character-input-stream))
+  (open-stream-p (character-input-stream-lisp-stream stream)))
+
+(defmethod close ((stream character-input-stream) &key abort)
+  (close (character-input-stream-lisp-stream stream) :abort abort))
+
+(defmethod input-stream-p ((stream character-input-stream))
+  (input-stream-p (character-input-stream-lisp-stream stream)))
+
+(defmethod output-stream-p ((stream character-input-stream))
+  (output-stream-p (character-input-stream-lisp-stream stream)))
+
+(defmethod stream-read-char ((stream character-input-stream))
+  (read-char (character-input-stream-lisp-stream stream)))
+
+(defmethod stream-unread-char ((stream character-input-stream) character)
+  (unread-char character (character-input-stream-lisp-stream stream)))
+
+(defmethod stream-read-char-no-hang ((stream character-input-stream))
+  (read-char-no-hang (character-input-stream-lisp-stream stream) nil :eof))
+
+#+(or)
+(defmethod stream-peek-char ((stream character-input-stream))
+  (peek-char nil (character-input-stream-lisp-stream stream) nil :eof))
+
+#+(or)
+(defmethod stream-listen ((stream character-input-stream))
+  (listen (character-input-stream-lisp-stream stream)))
+
+(defmethod stream-clear-input ((stream character-input-stream))
+  (clear-input (character-input-stream-lisp-stream stream)))
