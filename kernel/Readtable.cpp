@@ -437,7 +437,7 @@ Value SYS_read_comment(Value streamarg, Value character)
 {
   while (true)
     {
-      int n = check_stream(streamarg)->read_char();
+      int n = check_ansi_stream(streamarg)->read_char();
       if (n < 0)
         break;
       if (n == '\n')
@@ -449,7 +449,7 @@ Value SYS_read_comment(Value streamarg, Value character)
 // ### read-backquote stream character => value
 Value SYS_read_backquote(Value streamarg, Value ignored)
 {
-//   Stream * stream = check_stream(streamarg);
+//   Stream * stream = check_ansi_stream(streamarg);
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
   return make_cons(S_backquote, make_cons(stream_read(streamarg, true, NIL, true, thread, rt)));
@@ -484,7 +484,7 @@ Value SYS_read_quote(Value streamarg, Value ignored)
 // ### read-right-paren stream character => value
 Value SYS_read_right_paren(Value streamarg, Value ignored)
 {
-  Stream * stream = check_stream(streamarg);
+  AnsiStream * stream = check_ansi_stream(streamarg);
   Value position = stream->file_position();
   String * message = new String("Unmatched right parenthesis");
   if (position != NIL)
@@ -493,7 +493,7 @@ Value SYS_read_right_paren(Value streamarg, Value ignored)
       message->append(::write_to_string(position));
     }
   message->append(".");
-  return signal_lisp_error(new ReaderError(check_stream(streamarg),
+  return signal_lisp_error(new ReaderError(check_ansi_stream(streamarg),
                                            message));
 }
 
@@ -554,7 +554,7 @@ Value SYS_sharp_dot(Value streamarg, Value subchar, Value numarg)
       Readtable * rt = current_readtable(thread);
       return eval(stream_read(streamarg, true, NIL, true, thread, rt), new Environment(), thread);
     }
-  Stream * stream = check_stream(streamarg);
+  Stream * stream = check_ansi_stream(streamarg);
   String * s = new String("Can't read #. when ");
   s->append(the_symbol(S_read_eval)->prin1_to_string());
   s->append(" is false.");
@@ -564,7 +564,7 @@ Value SYS_sharp_dot(Value streamarg, Value subchar, Value numarg)
 // ### sharp-illegal stream sub-char numarg => value
 Value SYS_sharp_illegal(Value streamarg, Value subchar, Value numarg)
 {
-  Stream * stream = check_stream(streamarg);
+  Stream * stream = check_ansi_stream(streamarg);
   String * s = new String("Illegal # macro character: #\\");
   Value name = CL_char_name(subchar);
   if (stringp(name))
@@ -638,7 +638,7 @@ Value SYS_sharp_r(Value streamarg, Value subchar, Value numarg)
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = check_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       Thread * thread = current_thread();
       Readtable * rt = current_readtable(thread);
       if (fixnump(numarg))
@@ -694,7 +694,7 @@ Value SYS_sharp_star(Value streamarg, Value subchar, Value numarg)
 // ### sharp-vertical-bar stream sub-char numarg => value
 Value SYS_sharp_vertical_bar(Value streamarg, Value subchar, Value numarg)
 {
-  check_stream(streamarg)->skip_balanced_comment();
+  check_ansi_stream(streamarg)->skip_balanced_comment();
   return current_thread()->set_values();
 }
 

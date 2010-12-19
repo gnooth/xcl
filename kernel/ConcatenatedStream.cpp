@@ -24,7 +24,7 @@ Value ConcatenatedStream::element_type() const
 {
   if (_streams == NIL)
     return NIL;
-  return the_stream(xcar(_streams))->element_type();
+  return check_ansi_stream(xcar(_streams))->element_type();
 }
 
 bool ConcatenatedStream::typep(Value type) const
@@ -39,13 +39,13 @@ bool ConcatenatedStream::is_char_ready()
     return true;
   if (_streams == NIL)
     return true;
-  Stream * stream = the_stream(xcar(_streams));
+  AnsiStream * stream = check_ansi_stream(xcar(_streams));
   if (stream->is_char_ready())
     return true;
   Value remaining_streams = xcdr(_streams);
   while (remaining_streams != NIL)
     {
-      stream = the_stream(xcar(remaining_streams));
+      stream = check_ansi_stream(xcar(remaining_streams));
       if (stream->is_char_ready())
         return true;
       remaining_streams = xcdr(remaining_streams);
@@ -64,7 +64,7 @@ int ConcatenatedStream::read_char()
     }
   if (_streams == NIL)
     return -1;
-  Stream * stream = the_stream(xcar(_streams));
+  AnsiStream * stream = check_ansi_stream(xcar(_streams));
   n = stream->read_char();
   if (n >= 0)
     return n;
@@ -76,7 +76,7 @@ long ConcatenatedStream::read_byte()
 {
   if (_streams == NIL)
     return -1;
-  Stream * stream = the_stream(xcar(_streams));
+  AnsiStream * stream = check_ansi_stream(xcar(_streams));
   long n = stream->read_byte();
   if (n >= 0)
     return n;
@@ -90,7 +90,7 @@ Value CL_make_concatenated_stream(unsigned int numargs, Value args[])
   Value streams = NIL;
   for (unsigned int i = 0; i < numargs; i++)
     {
-      Stream * stream = check_stream(args[i]);
+      AnsiStream * stream = check_ansi_stream(args[i]);
       Direction direction = stream->direction();
       if (direction == DIRECTION_INPUT || direction == DIRECTION_IO)
         streams = make_cons(make_value(stream), streams);

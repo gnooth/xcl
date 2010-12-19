@@ -1,6 +1,6 @@
 // SlimeInputStream.cpp
 //
-// Copyright (C) 2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2009-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -58,7 +58,7 @@ Value EXT_make_slime_input_stream(Value arg1, Value arg2)
     function = check_function(CL_symbol_function(arg1));
   else
     function = check_function(arg1);
-  Stream * stream = check_stream(arg2);
+  AnsiStream * stream = check_ansi_stream(arg2);
   if (!stream->is_output_stream())
     {
       String * s = new String("The value ");

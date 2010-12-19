@@ -1,6 +1,6 @@
 // BroadcastStream.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,15 +19,15 @@
 #ifndef __BROADCAST_STREAM_HPP
 #define __BROADCAST_STREAM_HPP
 
-class BroadcastStream : public Stream
+class BroadcastStream : public AnsiStream
 {
 private:
   INDEX _numstreams;
-  Stream * * _streams;
+  AnsiStream * * _streams;
 
 public:
-  BroadcastStream(unsigned long numstreams, Stream * * streams)
-    : Stream(WIDETAG_BROADCAST_STREAM, DIRECTION_OUTPUT), _numstreams(numstreams),
+  BroadcastStream(unsigned long numstreams, AnsiStream * * streams)
+    : AnsiStream(WIDETAG_BROADCAST_STREAM, DIRECTION_OUTPUT), _numstreams(numstreams),
       _streams(streams)
   {
   }
@@ -37,7 +37,7 @@ public:
     return _numstreams;
   }
 
-  Stream * * streams() const
+  AnsiStream * * streams() const
   {
     return _streams;
   }

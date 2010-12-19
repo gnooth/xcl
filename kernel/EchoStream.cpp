@@ -1,6 +1,6 @@
 // EchoStream.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
 #include "primitives.hpp"
 #include "EchoStream.hpp"
 
-EchoStream::EchoStream(Stream * in, Stream * out)
-  : Stream(WIDETAG_ECHO_STREAM, DIRECTION_IO), _in(in), _out(out)
+EchoStream::EchoStream(AnsiStream * in, AnsiStream * out)
+  : AnsiStream(WIDETAG_ECHO_STREAM, DIRECTION_IO), _in(in), _out(out)
 {
   Value itype = in->element_type();
   Value otype = out->element_type();
@@ -54,7 +54,7 @@ int EchoStream::read_char()
 // ### make-echo-stream input-stream output-stream => echo-stream
 Value CL_make_echo_stream(Value arg1, Value arg2)
 {
-  return make_value(new EchoStream(check_stream(arg1), check_stream(arg2)));
+  return make_value(new EchoStream(check_ansi_stream(arg1), check_ansi_stream(arg2)));
 }
 
 // ### echo-stream-input-stream echo-stream => input-stream

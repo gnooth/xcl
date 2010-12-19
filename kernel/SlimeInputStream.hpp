@@ -1,6 +1,6 @@
 // SlimeInputStream.hpp
 //
-// Copyright (C) 2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2009-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,17 +21,17 @@
 
 #include "Stream.hpp"
 
-class SlimeInputStream : public Stream
+class SlimeInputStream : public AnsiStream
 {
 private:
   AbstractString * _string;
   INDEX _length;
   TypedObject * _function;
-  Stream * _stream;
+  AnsiStream * _stream;
 
 public:
-  SlimeInputStream(TypedObject * function, Stream * stream)
-    : Stream(WIDETAG_SLIME_INPUT_STREAM, DIRECTION_INPUT),
+  SlimeInputStream(TypedObject * function, AnsiStream * stream)
+    : AnsiStream(WIDETAG_SLIME_INPUT_STREAM, DIRECTION_INPUT),
       _function(function), _stream(stream)
   {
   }

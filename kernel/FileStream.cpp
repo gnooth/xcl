@@ -31,7 +31,7 @@
 
 FileStream::FileStream(Value pathname, Value namestring, Value element_type,
                        Value direction, Value if_exists)
-  : Stream(WIDETAG_FILE_STREAM), _pathname(pathname), _output_buffer(NULL),
+  : AnsiStream(WIDETAG_FILE_STREAM), _pathname(pathname), _output_buffer(NULL),
     _output_buffer_size(0), _output_buffer_offset(0)
 {
 #ifdef WIN32
@@ -490,5 +490,5 @@ Value SYS_create_new_file(Value namestring)
 // ### stream-external-format stream => format
 Value CL_stream_external_format(Value arg)
 {
-  return check_stream(arg)->external_format();
+  return check_ansi_stream(arg)->external_format();
 }

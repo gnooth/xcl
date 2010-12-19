@@ -1,6 +1,6 @@
 // peek-char.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,11 +27,11 @@ Value CL_peek_char(unsigned int numargs, Value args[])
   if (numargs > 5)
     return wrong_number_of_arguments(S_peek_char, numargs, 0, 5);
   Value peek_type = numargs > 0 ? args[0] : NIL;
-  Stream * stream;
+  AnsiStream * stream;
   if (numargs > 1)
-    stream = the_stream(SYS_designator_input_stream(args[1]));
+    stream = check_ansi_stream(SYS_designator_input_stream(args[1]));
   else
-    stream = check_stream(current_thread()->symbol_value(S_standard_input));
+    stream = check_ansi_stream(current_thread()->symbol_value(S_standard_input));
   bool eof_error_p = numargs > 2 ? (args[2] != NIL) : true;
   Value eof_value = numargs > 3 ? args[3] : NIL;
   // recursive-p is ignored
@@ -41,7 +41,7 @@ Value CL_peek_char(unsigned int numargs, Value args[])
       // "If PEEK-TYPE is not supplied or NIL, PEEK-CHAR returns the next
       // character to be read from INPUT-STREAM, without actually removing
       // it from INPUT-STREAM."
-      Stream * in;
+      AnsiStream * in;
       if (stream->widetag() == WIDETAG_ECHO_STREAM)
         // "When INPUT-STREAM is an echo stream, characters that are
         // only peeked at are not echoed." Read from the echo stream's

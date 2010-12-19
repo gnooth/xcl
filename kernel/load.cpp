@@ -30,7 +30,7 @@
 Value SYS_load_stream(Value streamarg, Value filespec, Value verbose, Value print)
 {
   double start = uptime();
-  Stream * stream = check_stream(streamarg);
+  AnsiStream * stream = check_ansi_stream(streamarg);
   Thread * thread = current_thread();
   void * last_special_binding = thread->last_special_binding();
   thread->bind_special(S__load_stream_, streamarg);
@@ -38,7 +38,7 @@ Value SYS_load_stream(Value streamarg, Value filespec, Value verbose, Value prin
   // loading the file."
   thread->bind_special(S_current_readtable, thread->symbol_value(S_current_readtable));
   thread->bind_special(S_current_package, thread->symbol_value(S_current_package));
-  Stream * out = NULL;
+  AnsiStream * out = NULL;
   if (verbose != NIL)
     {
       String * message = new String("; Loading ");
@@ -47,7 +47,7 @@ Value SYS_load_stream(Value streamarg, Value filespec, Value verbose, Value prin
       else
         message->append(::prin1_to_string(streamarg));
       message->append(" ...\n");
-      out = check_stream(thread->symbol_value(S_standard_output));
+      out = check_ansi_stream(thread->symbol_value(S_standard_output));
       out->fresh_line();
       out->write_string(message);
     }
@@ -63,7 +63,7 @@ Value SYS_load_stream(Value streamarg, Value filespec, Value verbose, Value prin
       Value result = thread->execute(eval, obj);
       if (print != NIL)
         {
-          Stream * out = check_stream(thread->symbol_value(S_standard_output));
+          AnsiStream * out = check_ansi_stream(thread->symbol_value(S_standard_output));
           out->write_string(::prin1_to_string(result));
           out->write_char('\n');
         }

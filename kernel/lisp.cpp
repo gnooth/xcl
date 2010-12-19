@@ -47,13 +47,13 @@ Value EXT_backtrace()
 {
   Thread * const thread = current_thread();
   Value error_output = thread->symbol_value(S_error_output);
-  if (!streamp(error_output))
+  if (!ansi_stream_p(error_output))
     {
       // restore sanity
       error_output = make_value(ERROR_OUTPUT);
       thread->set_symbol_value(S_error_output, error_output);
     }
-  Stream * err = the_stream(error_output);
+  AnsiStream * err = the_ansi_stream(error_output);
 //   Value backtrace = thread->backtrace_as_list(0);
   Value backtrace = thread->symbol_value(S_saved_backtrace);
   while (backtrace != NIL)
@@ -196,7 +196,7 @@ Value CL_room(unsigned int numargs, Value args[])
            free_bytes,
            heap_size,
            (long) GC_get_bytes_since_gc());
-  check_stream(current_thread()->symbol_value(S_standard_output))->write_string(buf);
+  check_ansi_stream(current_thread()->symbol_value(S_standard_output))->write_string(buf);
   // If we change this to return multiple values (or no values), remember to
   // update known-functions.lisp!
   return NIL;

@@ -1,6 +1,6 @@
 // SynonymStream.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,14 +19,14 @@
 #ifndef __SYNONYM_STREAM_HPP
 #define __SYNONYM_STREAM_HPP
 
-class SynonymStream : public Stream
+class SynonymStream : public AnsiStream
 {
 private:
   Value _symbol;
 
 public:
   SynonymStream(Value symbol)
-    : Stream(WIDETAG_SYNONYM_STREAM), _symbol(symbol)
+    : AnsiStream(WIDETAG_SYNONYM_STREAM), _symbol(symbol)
   {
   }
 
@@ -37,17 +37,17 @@ public:
 
   virtual bool is_input_stream () const
   {
-    return check_stream(current_thread()->symbol_value(_symbol))->is_input_stream();
+    return check_ansi_stream(current_thread()->symbol_value(_symbol))->is_input_stream();
   }
 
   virtual bool is_output_stream () const
   {
-    return check_stream(current_thread()->symbol_value(_symbol))->is_output_stream();
+    return check_ansi_stream(current_thread()->symbol_value(_symbol))->is_output_stream();
   }
 
   virtual Value element_type() const
   {
-    return check_stream(current_thread()->symbol_value(_symbol))->element_type();
+    return check_ansi_stream(current_thread()->symbol_value(_symbol))->element_type();
   }
 
   virtual Value type_of() const
@@ -64,47 +64,47 @@ public:
 
   virtual bool is_char_ready()
   {
-    return check_stream(current_thread()->symbol_value(_symbol))->is_char_ready();
+    return check_ansi_stream(current_thread()->symbol_value(_symbol))->is_char_ready();
   }
 
   virtual int read_char()
   {
-    return check_stream(current_thread()->symbol_value(_symbol))->read_char();
+    return check_ansi_stream(current_thread()->symbol_value(_symbol))->read_char();
   }
 
   virtual void unread_char(BASE_CHAR c)
   {
-    check_stream(current_thread()->symbol_value(_symbol))->unread_char(c);
+    check_ansi_stream(current_thread()->symbol_value(_symbol))->unread_char(c);
   }
 
   virtual void write_char(BASE_CHAR c)
   {
-    check_stream(current_thread()->symbol_value(_symbol))->write_char(c);
+    check_ansi_stream(current_thread()->symbol_value(_symbol))->write_char(c);
   }
 
   virtual long read_byte()
   {
-    return check_stream(current_thread()->symbol_value(_symbol))->read_byte();
+    return check_ansi_stream(current_thread()->symbol_value(_symbol))->read_byte();
   }
 
   virtual void write_byte(unsigned char n)
   {
-    check_stream(current_thread()->symbol_value(_symbol))->write_byte(n);
+    check_ansi_stream(current_thread()->symbol_value(_symbol))->write_byte(n);
   }
 
   virtual Value close()
   {
-    return check_stream(current_thread()->symbol_value(_symbol))->close();
+    return check_ansi_stream(current_thread()->symbol_value(_symbol))->close();
   }
 
   virtual Value fresh_line()
   {
-    return check_stream(current_thread()->symbol_value(_symbol))->fresh_line();
+    return check_ansi_stream(current_thread()->symbol_value(_symbol))->fresh_line();
   }
 
   virtual Value file_length() const
   {
-    return check_stream(current_thread()->symbol_value(_symbol))->file_length();
+    return check_ansi_stream(current_thread()->symbol_value(_symbol))->file_length();
   }
 };
 

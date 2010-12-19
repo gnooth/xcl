@@ -21,6 +21,15 @@
 
 class Readtable;
 
+class Stream : public TypedObject
+{
+protected:
+  Stream(long widetag)
+    : TypedObject(widetag)
+  {
+  }
+};
+
 enum Direction
 {
   DIRECTION_INVALID = 0,
@@ -29,7 +38,7 @@ enum Direction
   DIRECTION_IO      = 3
 };
 
-class Stream : public TypedObject
+class AnsiStream : public Stream
 {
 protected:
   int _last_char;
@@ -48,15 +57,15 @@ protected:
 
   Value _read_byte_function;
 
-  Stream(long widetag);
-  Stream(long widetag, Direction direction);
-  Stream(long widetag, Direction direction, int fd);
+  AnsiStream(long widetag);
+  AnsiStream(long widetag, Direction direction);
+  AnsiStream(long widetag, Direction direction, int fd);
 
 public:
-  Stream(Direction direction, int fd);
+  AnsiStream(Direction direction, int fd);
 
 #ifdef WIN32
-  Stream(Direction direction, HANDLE h);
+  AnsiStream(Direction direction, HANDLE h);
 #endif
 
   Direction direction() const { return _direction; }
@@ -227,43 +236,43 @@ public:
   }
 };
 
-inline bool streamp(Value value)
-{
-  if (typed_object_p(value))
-    {
-      if (the_typed_object(value)->widetag() & WIDETAG_STREAM_BIT) // REVIEW
-        return true;
-    }
-  return false;
-}
+// inline bool streamp(Value value)
+// {
+//   if (typed_object_p(value))
+//     {
+//       if (the_typed_object(value)->widetag() & WIDETAG_ANSI_STREAM_BIT) // REVIEW
+//         return true;
+//     }
+//   return false;
+// }
 
 inline bool ansi_stream_p(Value value)
 {
   if (typed_object_p(value))
     {
-      if (the_typed_object(value)->widetag() & WIDETAG_STREAM_BIT) // REVIEW
+      if (the_typed_object(value)->widetag() & WIDETAG_ANSI_STREAM_BIT) // REVIEW
         return true;
     }
   return false;
 }
 
-inline Stream * the_stream(Value value)
+inline AnsiStream * the_ansi_stream(Value value)
 {
-  assert(streamp(value));
-  return reinterpret_cast<Stream *>(value - LOWTAG_TYPED_OBJECT);
+  assert(ansi_stream_p(value));
+  return reinterpret_cast<AnsiStream *>(value - LOWTAG_TYPED_OBJECT);
 }
 
-inline Stream * check_stream(Value value)
+inline AnsiStream * check_ansi_stream(Value value)
 {
-  if (streamp(value))
-    return the_stream(value);
+  if (ansi_stream_p(value))
+    return the_ansi_stream(value);
   signal_type_error(value, S_stream);
   // not reached
   return NULL;
 }
 
-extern Stream * STANDARD_INPUT;
-extern Stream * STANDARD_OUTPUT;
-extern Stream * ERROR_OUTPUT;
+extern AnsiStream * STANDARD_INPUT;
+extern AnsiStream * STANDARD_OUTPUT;
+extern AnsiStream * ERROR_OUTPUT;
 
 #endif // Stream.hpp

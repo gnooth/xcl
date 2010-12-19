@@ -212,7 +212,7 @@ int __main(int argc, char * argv[])
         {
           while (true)
             {
-              Stream * out = check_stream(thread->symbol_value(S_standard_output));
+              AnsiStream * out = check_ansi_stream(thread->symbol_value(S_standard_output));
               out->write_string("* ");
               out->finish_output();
               Value obj = SYS_stream_read_internal(thread->symbol_value(S_standard_output), true, NIL, false);

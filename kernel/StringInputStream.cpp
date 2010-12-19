@@ -20,7 +20,7 @@
 #include "reader.hpp"
 #include "Readtable.hpp"
 
-class StringInputStream : public Stream
+class StringInputStream : public AnsiStream
 {
 private:
   AbstractString * const _string;
@@ -29,7 +29,7 @@ private:
 
 public:
   StringInputStream(AbstractString * string, unsigned long start, unsigned long end)
-    : Stream(WIDETAG_STRING_INPUT_STREAM, DIRECTION_INPUT), _string(string), _start(start), _end(end)
+    : AnsiStream(WIDETAG_STRING_INPUT_STREAM, DIRECTION_INPUT), _string(string), _start(start), _end(end)
   {
     _offset = start;
   }

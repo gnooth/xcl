@@ -33,12 +33,12 @@
 #include "ZeroRankArray.hpp"
 #include "keywordp.hpp"
 
-Stream * STANDARD_INPUT;
-Stream * STANDARD_OUTPUT;
-Stream * ERROR_OUTPUT;
+AnsiStream * STANDARD_INPUT;
+AnsiStream * STANDARD_OUTPUT;
+AnsiStream * ERROR_OUTPUT;
 
-Stream::Stream(long widetag)
-  : TypedObject(widetag), _last_char(-1), _direction(DIRECTION_INVALID),
+AnsiStream::AnsiStream(long widetag)
+  : Stream(widetag), _last_char(-1), _direction(DIRECTION_INVALID),
     _element_type(S_character), _fd(-1), _offset(0), _charpos(0), _open(true),
     _read_byte_function(NIL)
 {
@@ -47,8 +47,8 @@ Stream::Stream(long widetag)
 #endif
 }
 
-Stream::Stream(long widetag, Direction direction)
-  : TypedObject(widetag), _last_char(-1), _direction(direction),
+AnsiStream::AnsiStream(long widetag, Direction direction)
+  : Stream(widetag), _last_char(-1), _direction(direction),
     _element_type(S_character), _fd(-1), _offset(0), _charpos(0), _open(true),
     _read_byte_function(NIL)
 {
@@ -57,8 +57,8 @@ Stream::Stream(long widetag, Direction direction)
 #endif
 }
 
-Stream::Stream(long widetag, Direction direction, int fd)
-  : TypedObject(widetag), _last_char(-1), _direction(direction),
+AnsiStream::AnsiStream(long widetag, Direction direction, int fd)
+  : Stream(widetag), _last_char(-1), _direction(direction),
     _element_type(S_character), _fd(fd), _offset(0), _charpos(0), _open(true),
     _read_byte_function(NIL)
 {
@@ -67,8 +67,8 @@ Stream::Stream(long widetag, Direction direction, int fd)
 #endif
 }
 
-Stream::Stream(Direction direction, int fd)
-  : TypedObject(WIDETAG_STREAM), _last_char(-1), _direction(direction),
+AnsiStream::AnsiStream(Direction direction, int fd)
+  : Stream(WIDETAG_ANSI_STREAM), _last_char(-1), _direction(direction),
     _element_type(S_character), _fd(fd), _offset(0), _charpos(0), _open(true),
     _read_byte_function(NIL)
 {
@@ -78,8 +78,8 @@ Stream::Stream(Direction direction, int fd)
 }
 
 #ifdef WIN32
-Stream::Stream(Direction direction, HANDLE h)
-  : TypedObject(WIDETAG_STREAM), _last_char(-1), _direction(direction),
+AnsiStream::AnsiStream(Direction direction, HANDLE h)
+  : Stream(WIDETAG_ANSI_STREAM), _last_char(-1), _direction(direction),
     _element_type(S_character), _fd(-1), _h(h), _offset(0), _charpos(0), _open(true),
     _read_byte_function(NIL)
 {
@@ -87,17 +87,17 @@ Stream::Stream(Direction direction, HANDLE h)
 #endif
 
 
-Value Stream::class_of() const
+Value AnsiStream::class_of() const
 {
   return C_stream;
 }
 
-bool Stream::typep(Value type) const
+bool AnsiStream::typep(Value type) const
 {
   return (type == S_stream || type == S_atom || type == T || type == C_stream || type == C_t);
 }
 
-bool Stream::is_char_ready()
+bool AnsiStream::is_char_ready()
 {
   if (_last_char >= 0)
     return true;
@@ -115,7 +115,7 @@ bool Stream::is_char_ready()
 #endif
 }
 
-int Stream::read_char()
+int AnsiStream::read_char()
 {
   BASE_CHAR c;
   if (_last_char >= 0)
@@ -145,19 +145,19 @@ int Stream::read_char()
   return n <= 0 ? -1 : c;
 }
 
-void Stream::unread_char(BASE_CHAR c)
+void AnsiStream::unread_char(BASE_CHAR c)
 {
   _last_char = c;
 }
 
-long Stream::read_byte()
+long AnsiStream::read_byte()
 {
   unsigned char c;
   long n = READ(_fd, &c, 1);
   return n <= 0 ? -1 : c;
 }
 
-Value Stream::read_char(bool eof_error_p, Value eof_value)
+Value AnsiStream::read_char(bool eof_error_p, Value eof_value)
 {
   int n = read_char();
   if (n >= 0)
@@ -170,7 +170,7 @@ Value Stream::read_char(bool eof_error_p, Value eof_value)
 
 // read-line &optional stream eof-error-p eof-value recursive-p => line, missing-newline-p
 // recursive-p is ignored
-Value Stream::read_line(bool eof_error_p, Value eof_value)
+Value AnsiStream::read_line(bool eof_error_p, Value eof_value)
 {
   Thread * const thread = current_thread();
   String * string = new String();
@@ -196,7 +196,7 @@ Value Stream::read_line(bool eof_error_p, Value eof_value)
     }
 }
 
-void Stream::skip_balanced_comment()
+void AnsiStream::skip_balanced_comment()
 {
   while (true)
     {
@@ -222,7 +222,7 @@ void Stream::skip_balanced_comment()
     }
 }
 
-void Stream::write_string(const char * s)
+void AnsiStream::write_string(const char * s)
 {
   const INDEX len = strlen(s);
 #ifdef WIN32
@@ -269,7 +269,7 @@ void Stream::write_string(const char * s)
     }
 }
 
-void Stream::write_string(AbstractString * string)
+void AnsiStream::write_string(AbstractString * string)
 {
   assert(string != NULL);
   const INDEX len = string->length();
@@ -313,7 +313,7 @@ void Stream::write_string(AbstractString * string)
     }
 }
 
-void Stream::clear_input()
+void AnsiStream::clear_input()
 {
   if (_fd >= 0)
     {
@@ -325,7 +325,7 @@ void Stream::clear_input()
     }
 }
 
-Value Stream::file_string_length(Value arg) const
+Value AnsiStream::file_string_length(Value arg) const
 {
   if (characterp(arg))
     return FIXNUM_ONE;
@@ -334,7 +334,7 @@ Value Stream::file_string_length(Value arg) const
   return signal_type_error(arg, list3(S_or, S_string, S_character));
 }
 
-Value Stream::close()
+Value AnsiStream::close()
 {
 #ifdef WIN32
   if (_h != INVALID_HANDLE_VALUE)
@@ -352,19 +352,19 @@ Value Stream::close()
   return T;
 }
 
-Value Stream::prin1(Value arg)
+Value AnsiStream::prin1(Value arg)
 {
   write_string(::prin1_to_string(arg));
   return arg;
 }
 
-Value Stream::princ(Value arg)
+Value AnsiStream::princ(Value arg)
 {
   write_string(::princ_to_string(arg));
   return arg;
 }
 
-Value Stream::fresh_line()
+Value AnsiStream::fresh_line()
 {
   if (_charpos == 0)
     return NIL;

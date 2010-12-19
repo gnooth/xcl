@@ -52,10 +52,10 @@ Value BroadcastStream::file_string_length(Value arg) const
 // ### make-broadcast-stream &rest streams => broadcast-stream
 Value CL_make_broadcast_stream(unsigned int numargs, Value args[])
 {
-  Stream * * streams = (Stream * *) GC_malloc(numargs * sizeof(Stream *));
+  AnsiStream * * streams = (AnsiStream * *) GC_malloc(numargs * sizeof(AnsiStream *));
   for (unsigned int i = 0; i < numargs; i++)
     {
-      Stream * stream = check_stream(args[i]);
+      AnsiStream * stream = check_ansi_stream(args[i]);
       Direction direction = stream->direction();
       if (direction == DIRECTION_OUTPUT || direction == DIRECTION_IO)
         streams[i] = stream;
@@ -68,9 +68,9 @@ Value CL_make_broadcast_stream(unsigned int numargs, Value args[])
 Value CL_broadcast_stream_streams(Value arg)
 {
   BroadcastStream * broadcast_stream = check_broadcast_stream(arg);
-  Stream * * streams = broadcast_stream->streams();
+  AnsiStream * * streams = broadcast_stream->streams();
   Value result = NIL;
-  for (unsigned long i = broadcast_stream->numstreams(); i-- > 0;)
+  for (INDEX i = broadcast_stream->numstreams(); i-- > 0;)
     result = make_cons(make_value(streams[i]), result);
   return result;
 }

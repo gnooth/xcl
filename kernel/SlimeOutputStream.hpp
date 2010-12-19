@@ -1,6 +1,6 @@
 // SlimeOutputStream.hpp
 //
-// Copyright (C) 2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2009-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 
 #include "Stream.hpp"
 
-class SlimeOutputStream : public Stream
+class SlimeOutputStream : public AnsiStream
 {
 private:
   TypedObject * _function;
@@ -29,7 +29,7 @@ private:
 
 public:
   SlimeOutputStream(TypedObject * function)
-    : Stream(WIDETAG_SLIME_OUTPUT_STREAM, DIRECTION_OUTPUT),
+    : AnsiStream(WIDETAG_SLIME_OUTPUT_STREAM, DIRECTION_OUTPUT),
       _function(function), _string(new String())
   {
   }

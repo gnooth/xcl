@@ -1,6 +1,6 @@
 // TwoWayStream.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,10 +28,10 @@ bool TwoWayStream::typep(Value type) const
 // ### make-two-way-stream input-stream output-stream => two-way-stream
 Value CL_make_two_way_stream(Value arg1, Value arg2)
 {
-  Stream * in = check_stream(arg1);
+  AnsiStream * in = check_ansi_stream(arg1);
   if (!in->is_input_stream())
     return signal_type_error(arg1, list2(S_satisfies, S_input_stream_p));
-  Stream * out = check_stream(arg2);
+  AnsiStream * out = check_ansi_stream(arg2);
   if (!out->is_output_stream())
     return signal_type_error(arg2, list2(S_satisfies, S_output_stream_p));
   return make_value(new TwoWayStream(in, out));

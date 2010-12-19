@@ -110,14 +110,13 @@ void initialize_symbols()
   the_symbol(S_char_code_limit)->initialize_constant(make_fixnum(CHAR_CODE_LIMIT));
 
 #ifdef WIN32
-  STANDARD_INPUT = new Stream(DIRECTION_INPUT, FILENO(stdin));
-//   STANDARD_INPUT = new Stream(DIRECTION_INPUT, GetStdHandle(STD_INPUT_HANDLE));
-  STANDARD_OUTPUT = new Stream(DIRECTION_OUTPUT, GetStdHandle(STD_OUTPUT_HANDLE));
-  ERROR_OUTPUT = new Stream(DIRECTION_OUTPUT, GetStdHandle(STD_OUTPUT_HANDLE));
+  STANDARD_INPUT = new AnsiStream(DIRECTION_INPUT, FILENO(stdin));
+  STANDARD_OUTPUT = new AnsiStream(DIRECTION_OUTPUT, GetStdHandle(STD_OUTPUT_HANDLE));
+  ERROR_OUTPUT = new AnsiStream(DIRECTION_OUTPUT, GetStdHandle(STD_OUTPUT_HANDLE));
 #else
-  STANDARD_INPUT = new Stream(DIRECTION_INPUT, FILENO(stdin));
-  STANDARD_OUTPUT = new Stream(DIRECTION_OUTPUT, FILENO(stdout));
-  ERROR_OUTPUT = new Stream(DIRECTION_OUTPUT, FILENO(stderr)); // REVIEW stdout
+  STANDARD_INPUT = new AnsiStream(DIRECTION_INPUT, FILENO(stdin));
+  STANDARD_OUTPUT = new AnsiStream(DIRECTION_OUTPUT, FILENO(stdout));
+  ERROR_OUTPUT = new AnsiStream(DIRECTION_OUTPUT, FILENO(stderr)); // REVIEW stdout
 #endif
 
   the_symbol(S_standard_input)->initialize_special(make_value(STANDARD_INPUT));
@@ -208,7 +207,7 @@ void initialize_symbols()
 
   the_symbol(S_typed_object_lowtag)->initialize_constant(make_fixnum(LOWTAG_TYPED_OBJECT));
 
-  the_symbol(S_widetag_stream_bit)->initialize_constant(make_unsigned_integer(WIDETAG_STREAM_BIT));
+  the_symbol(S_widetag_stream_bit)->initialize_constant(make_unsigned_integer(WIDETAG_ANSI_STREAM_BIT));
   the_symbol(S_widetag_vector_bit)->initialize_constant(make_unsigned_integer(WIDETAG_VECTOR_BIT));
 
   the_symbol(S_simple_string_widetag)->initialize_constant(make_unsigned_integer(WIDETAG_SIMPLE_STRING));

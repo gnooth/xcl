@@ -1,6 +1,6 @@
 // EchoStream.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,21 +19,21 @@
 #ifndef __ECHO_STREAM_HPP
 #define __ECHO_STREAM_HPP
 
-class EchoStream : public Stream
+class EchoStream : public AnsiStream
 {
 private:
-  Stream * _in;
-  Stream * _out;
+  AnsiStream * _in;
+  AnsiStream * _out;
 
 public:
-  EchoStream(Stream * in, Stream * out);
+  EchoStream(AnsiStream * in, AnsiStream * out);
 
-  Stream * input_stream() const
+  AnsiStream * input_stream() const
   {
     return _in;
   }
 
-  Stream * output_stream() const
+  AnsiStream * output_stream() const
   {
     return _out;
   }

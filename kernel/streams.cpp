@@ -36,20 +36,20 @@
 // ### %stream-princ stream object => object
 Value SYS_stream_princ_internal(Value stream, Value object)
 {
-  return check_stream(stream)->princ(object);
+  return check_ansi_stream(stream)->princ(object);
 }
 
 // ### %stream-write-object stream object => object
 Value SYS_stream_write_object_internal(Value stream, Value object)
 {
-  check_stream(stream)->write_string(::write_to_string(object));
+  check_ansi_stream(stream)->write_string(::write_to_string(object));
   return object;
 }
 
 // ### designator-input-stream
 Value SYS_designator_input_stream(Value arg)
 {
-  if (streamp(arg))
+  if (ansi_stream_p(arg))
     return arg;
   Thread * thread = current_thread();
   if (arg == T)
@@ -64,7 +64,7 @@ Value SYS_designator_input_stream(Value arg)
 // ### designator-output-stream
 Value SYS_designator_output_stream(Value arg)
 {
-  if (streamp(arg))
+  if (ansi_stream_p(arg))
     return arg;
   Thread * thread = current_thread();
   if (arg == T)
@@ -79,37 +79,37 @@ Value SYS_designator_output_stream(Value arg)
 // ### streamp object => generalized-boolean
 Value CL_streamp(Value arg)
 {
-  return streamp(arg) ? T : NIL;
+  return ansi_stream_p(arg) ? T : NIL;
 }
 
 // ### open-stream-p stream => generalized-boolean
 Value CL_open_stream_p(Value arg)
 {
-  return check_stream(arg)->is_open() ? T : NIL;
+  return check_ansi_stream(arg)->is_open() ? T : NIL;
 }
 
 // ### stream-element-type stream => typespec
 Value CL_stream_element_type(Value arg)
 {
-  return check_stream(arg)->element_type();
+  return check_ansi_stream(arg)->element_type();
 }
 
 // ### input-stream-p stream => generalized-boolean
 Value CL_input_stream_p(Value arg)
 {
-  return check_stream(arg)->is_input_stream() ? T : NIL;
+  return check_ansi_stream(arg)->is_input_stream() ? T : NIL;
 }
 
 // ### output-stream-p stream => generalized-boolean
 Value CL_output_stream_p(Value arg)
 {
-  return check_stream(arg)->is_output_stream() ? T : NIL;
+  return check_ansi_stream(arg)->is_output_stream() ? T : NIL;
 }
 
 // ### interactive-stream-p stream => generalized-boolean
 Value CL_interactive_stream_p(Value arg)
 {
-  return check_stream(arg)->is_interactive() ? T : NIL;
+  return check_ansi_stream(arg)->is_interactive() ? T : NIL;
 }
 
 // ### %stream-charpos stream => position
@@ -117,21 +117,21 @@ Value CL_interactive_stream_p(Value arg)
 Value SYS_stream_charpos_internal(Value stream)
 {
   // REVIEW verify that the stream is a character output stream
-  return make_integer(check_stream(stream)->charpos());
+  return make_integer(check_ansi_stream(stream)->charpos());
 }
 
 // ### %stream-set-charpos stream position => position
 Value SYS_stream_set_charpos_internal(Value stream, Value position)
 {
   // REVIEW verify that the stream is a character output stream
-  check_stream(stream)->set_charpos(check_index(position));
+  check_ansi_stream(stream)->set_charpos(check_index(position));
   return position;
 }
 
 // ### %stream-terpri
 Value SYS_stream_terpri_internal(Value arg)
 {
-  return check_stream(arg)->terpri();
+  return check_ansi_stream(arg)->terpri();
 }
 
 // ### terpri &optional output-stream => nil
@@ -139,18 +139,18 @@ Value CL_terpri(unsigned int numargs, Value args[])
 {
   if (numargs > 1)
     return wrong_number_of_arguments(S_terpri, numargs, 0, 1);
-  Stream * stream;
+  AnsiStream * stream;
   if (numargs == 1)
-    stream = check_stream(SYS_designator_output_stream(args[0]));
+    stream = check_ansi_stream(SYS_designator_output_stream(args[0]));
   else
-    stream = check_stream(current_thread()->symbol_value(S_standard_output));
+    stream = check_ansi_stream(current_thread()->symbol_value(S_standard_output));
   return stream->terpri();
 }
 
 // ### %stream-fresh-line
 Value SYS_stream_fresh_line_internal(Value arg)
 {
-  return check_stream(arg)->fresh_line();
+  return check_ansi_stream(arg)->fresh_line();
 }
 
 // ### fresh-line &optional output-stream => generalized-boolean
@@ -158,11 +158,11 @@ Value CL_fresh_line(unsigned int numargs, Value args[])
 {
   if (numargs > 1)
     return wrong_number_of_arguments(S_fresh_line, numargs, 0, 1);
-  Stream * stream;
+  AnsiStream * stream;
   if (numargs == 1)
-    stream = check_stream(SYS_designator_output_stream(args[0]));
+    stream = check_ansi_stream(SYS_designator_output_stream(args[0]));
   else
-    stream = check_stream(current_thread()->symbol_value(S_standard_output));
+    stream = check_ansi_stream(current_thread()->symbol_value(S_standard_output));
   return stream->fresh_line();
 }
 
@@ -170,7 +170,7 @@ Value CL_fresh_line(unsigned int numargs, Value args[])
 Value SYS_stream_read_internal(Value arg1, Value arg2, Value arg3, Value arg4)
 {
   Thread * thread = current_thread();
-  //   Stream * stream = check_stream(arg1);
+  //   Stream * stream = check_ansi_stream(arg1);
   bool eof_error_p = (arg2 != NIL);
   Value eof_value = arg3;
   bool recursive_p = (arg4 != NIL);
@@ -184,8 +184,8 @@ Value CL_read(unsigned int numargs, Value args[])
   if (numargs > 4)
     return wrong_number_of_arguments(S_read, numargs, 0, 4);
   Thread * thread = current_thread();
-  Stream * stream =
-    check_stream(numargs == 0 ? thread->symbol_value(S_standard_input) : SYS_designator_input_stream(args[0]));
+  AnsiStream * stream =
+    check_ansi_stream(numargs == 0 ? thread->symbol_value(S_standard_input) : SYS_designator_input_stream(args[0]));
   bool eof_error_p = !(numargs > 1 && args[1] == NIL);
   Value eof_value = (numargs > 2) ? args[2] : NIL;
   bool recursive_p = (numargs > 3 && args[3] != NIL);
@@ -200,8 +200,8 @@ Value CL_read_preserving_whitespace(unsigned int numargs, Value args[])
   if (numargs > 4)
     return wrong_number_of_arguments(S_read, numargs, 0, 4);
   Thread * thread = current_thread();
-  Stream * stream =
-    check_stream(numargs == 0 ? thread->symbol_value(S_standard_input) : SYS_designator_input_stream(args[0]));
+  AnsiStream * stream =
+    check_ansi_stream(numargs == 0 ? thread->symbol_value(S_standard_input) : SYS_designator_input_stream(args[0]));
   bool eof_error_p = !(numargs > 1 && args[1] == NIL);
   Value eof_value = (numargs > 2) ? args[2] : NIL;
   bool recursive_p = (numargs > 3 && args[3] != NIL);
@@ -216,11 +216,11 @@ Value CL_read_line(unsigned int numargs, Value args[])
 {
   if (numargs <= 4)
     {
-      Stream * stream;
+      AnsiStream * stream;
       if (numargs > 0)
-        stream = check_stream(SYS_designator_input_stream(args[0]));
+        stream = check_ansi_stream(SYS_designator_input_stream(args[0]));
       else
-        stream = check_stream(current_thread()->symbol_value(S_standard_input));
+        stream = check_ansi_stream(current_thread()->symbol_value(S_standard_input));
       switch (numargs)
         {
         case 0:
@@ -241,11 +241,11 @@ Value CL_read_char(unsigned int numargs, Value args[])
 {
   if (numargs <= 4)
     {
-      Stream * stream;
+      AnsiStream * stream;
       if (numargs > 0)
-        stream = check_stream(SYS_designator_input_stream(args[0]));
+        stream = check_ansi_stream(SYS_designator_input_stream(args[0]));
       else
-        stream = check_stream(current_thread()->symbol_value(S_standard_input));
+        stream = check_ansi_stream(current_thread()->symbol_value(S_standard_input));
       int n = stream->read_char();
       if (n >= 0)
         return make_character((BASE_CHAR)n);
@@ -275,11 +275,11 @@ Value CL_read_char_no_hang(unsigned int numargs, Value args[])
 {
   if (numargs <= 4)
     {
-      Stream * stream;
+      AnsiStream * stream;
       if (numargs > 0)
-        stream = check_stream(SYS_designator_input_stream(args[0]));
+        stream = check_ansi_stream(SYS_designator_input_stream(args[0]));
       else
-        stream = check_stream(current_thread()->symbol_value(S_standard_input));
+        stream = check_ansi_stream(current_thread()->symbol_value(S_standard_input));
       if (!stream->is_char_ready())
         return NIL;
       long c = stream->read_char();
@@ -312,11 +312,11 @@ Value CL_unread_char(unsigned int numargs, Value args[])
   if (numargs < 1 || numargs > 2)
     return wrong_number_of_arguments(S_unread_char, numargs, 1, 2);
   BASE_CHAR c = char_value(args[0]);
-  Stream * stream;
+  AnsiStream * stream;
   if (numargs == 2)
-    stream = check_stream(SYS_designator_input_stream(args[1]));
+    stream = check_ansi_stream(SYS_designator_input_stream(args[1]));
   else
-    stream = check_stream(current_thread()->symbol_value(S_standard_input));
+    stream = check_ansi_stream(current_thread()->symbol_value(S_standard_input));
   stream->unread_char(c);
   return NIL;
 }
@@ -326,11 +326,11 @@ Value CL_listen(unsigned int numargs, Value args[])
 {
   if (numargs > 1)
     return wrong_number_of_arguments(S_listen, numargs, 0, 1);
-  Stream * stream;
+  AnsiStream * stream;
   if (numargs == 1)
-    stream = check_stream(SYS_designator_input_stream(args[0]));
+    stream = check_ansi_stream(SYS_designator_input_stream(args[0]));
   else
-    stream = check_stream(current_thread()->symbol_value(S_standard_input));
+    stream = check_ansi_stream(current_thread()->symbol_value(S_standard_input));
   if (stream->is_char_ready())
     {
       long c = stream->read_char();
@@ -350,18 +350,18 @@ Value CL_read_delimited_list(unsigned int numargs, Value args[])
     wrong_number_of_arguments(S_read_delimited_list, numargs, 1, 3);
   BASE_CHAR c = char_value(args[0]);
   Thread * thread = current_thread();
-  Stream * stream;
+  AnsiStream * stream;
   if (numargs > 1)
-    stream = check_stream(SYS_designator_input_stream(args[1]));
+    stream = check_ansi_stream(SYS_designator_input_stream(args[1]));
   else
-    stream = check_stream(thread->symbol_value(S_standard_input));
+    stream = check_ansi_stream(thread->symbol_value(S_standard_input));
   return stream_read_delimited_list(make_value(stream), c, thread);
 }
 
 // ### %stream-write-string stream string start end => string
 Value SYS_stream_write_string_internal(Value arg1, Value arg2, Value arg3, Value arg4)
 {
-  Stream * stream = check_stream(arg1);
+  AnsiStream * stream = check_ansi_stream(arg1);
   AbstractString * string = check_string(arg2);
   INDEX start = check_index(arg3);
   INDEX end = check_index(arg4);
@@ -373,7 +373,7 @@ Value SYS_stream_write_string_internal(Value arg1, Value arg2, Value arg3, Value
 // ### %stream-write-char stream char => char
 Value SYS_stream_write_char_internal(Value arg1, Value arg2)
 {
-  check_stream(arg1)->write_char(char_value(arg2));
+  check_ansi_stream(arg1)->write_char(char_value(arg2));
   return arg2;
 }
 
@@ -383,11 +383,11 @@ Value CL_write_char(unsigned int numargs, Value args[])
   if (numargs < 1 || numargs > 2)
     return wrong_number_of_arguments(S_write_char, numargs, 1, 2);
   char c = char_value(args[0]);
-  Stream * stream;
+  AnsiStream * stream;
   if (numargs == 2)
-    stream = check_stream(SYS_designator_output_stream(args[1]));
+    stream = check_ansi_stream(SYS_designator_output_stream(args[1]));
   else
-    stream = check_stream(current_thread()->symbol_value(S_standard_output));
+    stream = check_ansi_stream(current_thread()->symbol_value(S_standard_output));
   stream->write_char(c);
   return args[0];
 }
@@ -396,7 +396,7 @@ Value CL_write_char(unsigned int numargs, Value args[])
 Value SYS_xwrite_8_bits(Value byte, Value stream)
 {
   BYTE n = (BYTE) xlong(byte);
-  the_stream(stream)->write_byte(n);
+  the_ansi_stream(stream)->write_byte(n);
   return byte;
 }
 
@@ -404,14 +404,14 @@ Value SYS_xwrite_8_bits(Value byte, Value stream)
 Value SYS_write_8_bits(Value byte, Value stream)
 {
   BYTE n = (BYTE) check_index(byte, 0, 255);
-  check_stream(stream)->write_byte(n);
+  check_ansi_stream(stream)->write_byte(n);
   return byte;
 }
 
 // ### read-8-bits stream eof-error-p eof-value => byte
 Value SYS_read_8_bits(Value arg1, Value arg2, Value arg3)
 {
-  Stream * stream = check_stream(arg1);
+  AnsiStream * stream = check_ansi_stream(arg1);
   long n = stream->read_byte();
   if (n >= 0)
     return make_fixnum(n);
@@ -423,7 +423,7 @@ Value SYS_read_8_bits(Value arg1, Value arg2, Value arg3)
 
 Value SYS_stream_read_byte_function(Value arg)
 {
-  return check_stream(arg)->read_byte_function();
+  return check_ansi_stream(arg)->read_byte_function();
 }
 
 // ### clear-input &optional input-stream => nil
@@ -431,11 +431,11 @@ Value CL_clear_input(unsigned int numargs, Value args[])
 {
   if (numargs > 1)
     return wrong_number_of_arguments(S_clear_input, numargs, 0, 1);
-  Stream * stream;
+  AnsiStream * stream;
   if (numargs == 1)
-    stream = check_stream(SYS_designator_input_stream(args[0]));
+    stream = check_ansi_stream(SYS_designator_input_stream(args[0]));
   else
-    stream = check_stream(current_thread()->symbol_value(S_standard_input));
+    stream = check_ansi_stream(current_thread()->symbol_value(S_standard_input));
   stream->clear_input();
   return NIL;
 }
@@ -446,9 +446,9 @@ Value CL_clear_output(unsigned int numargs, Value args[])
   if (numargs > 1)
     return wrong_number_of_arguments(S_clear_output, numargs, 0, 1);
   if (numargs == 1)
-    check_stream(SYS_designator_output_stream(args[0]));
+    check_ansi_stream(SYS_designator_output_stream(args[0]));
   else
-    check_stream(current_thread()->symbol_value(S_standard_output));
+    check_ansi_stream(current_thread()->symbol_value(S_standard_output));
   return NIL;
 }
 
@@ -460,9 +460,9 @@ Value CL_file_position(unsigned int numargs, Value args[])
   switch (numargs)
     {
     case 1:
-      return check_stream(args[0])->file_position();
+      return check_ansi_stream(args[0])->file_position();
     case 2:
-      return check_stream(args[0])->set_file_position(args[1]);
+      return check_ansi_stream(args[0])->set_file_position(args[1]);
     default:
       return wrong_number_of_arguments(S_file_position, numargs, 1, 2);
     }
@@ -471,13 +471,13 @@ Value CL_file_position(unsigned int numargs, Value args[])
 // ### file-length stream => length
 Value CL_file_length(Value arg)
 {
-  return check_stream(arg)->file_length();
+  return check_ansi_stream(arg)->file_length();
 }
 
 // ### file-string-length stream object => length
 Value CL_file_string_length(Value arg1, Value arg2)
 {
-  return check_stream(arg1)->file_string_length(arg2);
+  return check_ansi_stream(arg1)->file_string_length(arg2);
 }
 
 // ### finish-output &optional output-stream => nil
@@ -486,9 +486,9 @@ Value CL_finish_output(unsigned int numargs, Value args[])
   if (numargs > 1)
     return wrong_number_of_arguments(S_finish_output, numargs, 0, 1);
   if (numargs == 1)
-    check_stream(SYS_designator_output_stream(args[0]))->finish_output();
+    check_ansi_stream(SYS_designator_output_stream(args[0]))->finish_output();
   else
-    check_stream(current_thread()->symbol_value(S_standard_output))->finish_output();
+    check_ansi_stream(current_thread()->symbol_value(S_standard_output))->finish_output();
   return NIL;
 }
 
@@ -499,16 +499,16 @@ Value CL_force_output(unsigned int numargs, Value args[])
   if (numargs > 1)
     return wrong_number_of_arguments(S_force_output, numargs, 0, 1);
   if (numargs == 1)
-    check_stream(SYS_designator_output_stream(args[0]))->finish_output();
+    check_ansi_stream(SYS_designator_output_stream(args[0]))->finish_output();
   else
-    check_stream(current_thread()->symbol_value(S_standard_output))->finish_output();
+    check_ansi_stream(current_thread()->symbol_value(S_standard_output))->finish_output();
   return NIL;
 }
 
 // ### %stream-close stream => result
 Value SYS_stream_close_internal(Value arg)
 {
-  return check_stream(arg)->close();
+  return check_ansi_stream(arg)->close();
 }
 
 // ### close stream &key abort => result
@@ -517,7 +517,7 @@ Value CL_close(unsigned int numargs, Value args[])
   switch (numargs)
     {
     case 1:
-      return check_stream(args[0])->close();
+      return check_ansi_stream(args[0])->close();
     case 2:
       return signal_lisp_error(new ProgramError("Odd number of keyword arguments."));
     case 3:
@@ -528,7 +528,7 @@ Value CL_close(unsigned int numargs, Value args[])
             message->append(::prin1_to_string(args[1]));
             return signal_lisp_error(message);
           }
-        return check_stream(args[0])->close();
+        return check_ansi_stream(args[0])->close();
       }
     default:
       return wrong_number_of_arguments(S_close, numargs, 1, 3);

@@ -1,6 +1,6 @@
 // StringOutputStream.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -22,13 +22,13 @@
 #include "StringOutputStream.hpp"
 
 StringOutputStream::StringOutputStream(Value element_type)
-  : Stream(WIDETAG_STRING_OUTPUT_STREAM, DIRECTION_OUTPUT), _string(new String())
+  : AnsiStream(WIDETAG_STRING_OUTPUT_STREAM, DIRECTION_OUTPUT), _string(new String())
 {
   _element_type = element_type;
 }
 
 StringOutputStream::StringOutputStream(String * string)
-  : Stream(WIDETAG_STRING_OUTPUT_STREAM, DIRECTION_OUTPUT), _string(string)
+  : AnsiStream(WIDETAG_STRING_OUTPUT_STREAM, DIRECTION_OUTPUT), _string(string)
 {
 }
 

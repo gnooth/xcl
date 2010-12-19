@@ -1,6 +1,6 @@
 // Autoload.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -51,7 +51,7 @@ void Autoload::load()
           pathname = new Pathname(NIL, device, directory, name, type, NIL);
         }
       AbstractString * namestring = pathname->namestring();
-      Stream * out = check_stream(thread->symbol_value(S_standard_output));
+      AnsiStream * out = check_ansi_stream(thread->symbol_value(S_standard_output));
       String * message = new String("; Autoloading ");
       message->append(::prin1_to_string(operator_name())->as_c_string());
       message->append(" from ");

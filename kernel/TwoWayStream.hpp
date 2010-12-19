@@ -1,6 +1,6 @@
 // TwoWayStream.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,36 +19,36 @@
 #ifndef __TWO_WAY_STREAM_HPP
 #define __TWO_WAY_STREAM_HPP
 
-class TwoWayStream : public Stream
+class TwoWayStream : public AnsiStream
 {
 private:
-  Stream * _in;
-  Stream * _out;
+  AnsiStream * _in;
+  AnsiStream * _out;
 
 protected:
-  TwoWayStream(long widetag, Stream * in, Stream * out)
-    : Stream(widetag, DIRECTION_IO), _in(in), _out(out)
+  TwoWayStream(long widetag, AnsiStream * in, AnsiStream * out)
+    : AnsiStream(widetag, DIRECTION_IO), _in(in), _out(out)
   {
   }
 
 public:
-  TwoWayStream(Stream * in, Stream * out)
-    : Stream(WIDETAG_TWO_WAY_STREAM, DIRECTION_IO), _in(in), _out(out)
+  TwoWayStream(AnsiStream * in, AnsiStream * out)
+    : AnsiStream(WIDETAG_TWO_WAY_STREAM, DIRECTION_IO), _in(in), _out(out)
   {
   }
 
-  TwoWayStream(Stream * in, Stream * out, bool interactive)
-    : Stream(WIDETAG_TWO_WAY_STREAM, DIRECTION_IO), _in(in), _out(out)
+  TwoWayStream(AnsiStream * in, AnsiStream * out, bool interactive)
+    : AnsiStream(WIDETAG_TWO_WAY_STREAM, DIRECTION_IO), _in(in), _out(out)
   {
     _interactive = interactive;
   }
 
-  Stream * input_stream() const
+  AnsiStream * input_stream() const
   {
     return _in;
   }
 
-  Stream * output_stream() const
+  AnsiStream * output_stream() const
   {
     return _out;
   }

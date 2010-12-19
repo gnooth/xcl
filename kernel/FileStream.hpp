@@ -1,6 +1,6 @@
 // FileStream.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,7 +19,7 @@
 #ifndef __FILE_STREAM_HPP
 #define __FILE_STREAM_HPP
 
-class FileStream : public Stream
+class FileStream : public AnsiStream
 {
 private:
   Value _pathname;

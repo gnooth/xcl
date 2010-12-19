@@ -1,6 +1,6 @@
 // print.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -102,14 +102,14 @@ Value CL_prin1_to_string(Value arg)
 // redefined in print.lisp
 Value CL_prin1(unsigned int numargs, Value args[])
 {
-  Stream * stream;
+  AnsiStream * stream;
   switch (numargs)
     {
     case 1:
-      stream = check_stream(current_thread()->symbol_value(S_standard_output));
+      stream = check_ansi_stream(current_thread()->symbol_value(S_standard_output));
       break;
     case 2:
-      stream = check_stream(SYS_designator_output_stream(args[1]));
+      stream = check_ansi_stream(SYS_designator_output_stream(args[1]));
       break;
     default:
       return wrong_number_of_arguments(S_print, numargs, 1, 2);
@@ -183,14 +183,14 @@ Value CL_princ_to_string(Value arg)
 // redefined in print.lisp
 Value CL_princ(unsigned int numargs, Value args[])
 {
-  Stream * stream;
+  AnsiStream * stream;
   switch (numargs)
     {
     case 1:
-      stream = check_stream(current_thread()->symbol_value(S_standard_output));
+      stream = check_ansi_stream(current_thread()->symbol_value(S_standard_output));
       break;
     case 2:
-      stream = check_stream(SYS_designator_output_stream(args[1]));
+      stream = check_ansi_stream(SYS_designator_output_stream(args[1]));
       break;
     default:
       return wrong_number_of_arguments(S_princ, numargs, 1, 2);
@@ -202,14 +202,14 @@ Value CL_princ(unsigned int numargs, Value args[])
 // redefined in print.lisp
 Value CL_print(unsigned int numargs, Value args[])
 {
-  Stream * stream;
+  AnsiStream * stream;
   switch (numargs)
     {
     case 1:
-      stream = check_stream(current_thread()->symbol_value(S_standard_output));
+      stream = check_ansi_stream(current_thread()->symbol_value(S_standard_output));
       break;
     case 2:
-      stream = check_stream(SYS_designator_output_stream(args[1]));
+      stream = check_ansi_stream(SYS_designator_output_stream(args[1]));
       break;
     default:
       return wrong_number_of_arguments(S_print, numargs, 1, 2);

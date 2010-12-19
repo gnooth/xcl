@@ -198,16 +198,16 @@ Value SYS_primitive_format(unsigned int numargs, Value args[])
   String * string = format_to_string(format_control, format_arguments);
   if (destination == T)
     {
-      Stream * out = check_stream(current_thread()->symbol_value(S_standard_output));
+      AnsiStream * out = check_ansi_stream(current_thread()->symbol_value(S_standard_output));
       out->write_string(string);
       return NIL;
     }
   if (destination == NIL)
     return make_value(string);
-  // FIXME destination can be a stream
-  if (streamp(destination))
+  // REVIEW
+  if (ansi_stream_p(destination))
     {
-      the_stream(destination)->write_string(string);
+      the_ansi_stream(destination)->write_string(string);
       return NIL;
     }
   assert(false);

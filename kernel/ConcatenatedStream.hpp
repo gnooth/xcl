@@ -1,6 +1,6 @@
 // ConcatenatedStream.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,14 +19,14 @@
 #ifndef __CONCATENATED_STREAM_HPP
 #define __CONCATENATED_STREAM_HPP
 
-class ConcatenatedStream : public Stream
+class ConcatenatedStream : public AnsiStream
 {
 private:
   Value _streams;
 
 public:
   ConcatenatedStream(Value streams)
-    : Stream(WIDETAG_CONCATENATED_STREAM, DIRECTION_INPUT), _streams(streams)
+    : AnsiStream(WIDETAG_CONCATENATED_STREAM, DIRECTION_INPUT), _streams(streams)
   {
   }
 

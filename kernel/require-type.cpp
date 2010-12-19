@@ -105,7 +105,7 @@ Value SYS_require_number(Value arg)
 // ### require-stream arg => arg
 Value SYS_require_stream(Value arg)
 {
-  if (streamp(arg))
+  if (ansi_stream_p(arg))
     return arg;
   return signal_type_error(arg, S_stream);
 }

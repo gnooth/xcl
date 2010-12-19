@@ -1,6 +1,6 @@
 // SocketStream.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,11 +19,11 @@
 #ifndef __SOCKET_STREAM_HPP
 #define __SOCKET_STREAM_HPP
 
-class SocketStream : public Stream
+class SocketStream : public AnsiStream
 {
 public:
   SocketStream(int fd)
-    : Stream(WIDETAG_SOCKET_STREAM, DIRECTION_IO, fd)
+    : AnsiStream(WIDETAG_SOCKET_STREAM, DIRECTION_IO, fd)
   {
   }
 

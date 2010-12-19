@@ -67,7 +67,7 @@ Value stream_read(Value streamarg, bool eof_error_p,
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       Value result = stream_read_preserving_whitespace(streamarg, eof_error_p, eof_value,
                                                        recursive_p, thread, rt);
       if (result != eof_value && !recursive_p)
@@ -97,7 +97,7 @@ Value stream_read_preserving_whitespace(Value streamarg, bool eof_error_p,
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       void * last_special_binding = NULL;
       if (!recursive_p)
         {
@@ -173,7 +173,7 @@ Value stream_read_list(Value streamarg, bool require_proper_list,
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       Value first = NULL_VALUE;
       Value last = NULL_VALUE;
       while (true)
@@ -259,7 +259,7 @@ Value stream_read_vector(Value streamarg, INDEX size, Thread * thread, Readtable
   // number of objects supplied before the closing ) is zero." 2.4.8.3
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       SimpleVector * vector = new_simple_vector(size);
       INDEX index = 0;
       Value last = NIL;
@@ -308,7 +308,7 @@ static String * stream_read_multiple_escape(Value streamarg, Readtable * rt)
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       String * string = new String();
       while (true)
         {
@@ -405,7 +405,7 @@ Value stream_read_symbol(Value streamarg, Readtable * rt)
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       Value readtable_case = rt->readtable_case();
       String * string = new String();
       while (1)
@@ -469,7 +469,7 @@ static BitVector * stream_read_token(Value streamarg, unsigned char c1,
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       BitVector * escapes = NULL;
       Value readtable_case = rt->readtable_case();
       unsigned int syntax = rt->syntax(c1);
@@ -584,7 +584,7 @@ Value stream_read_atom(Value streamarg, BASE_CHAR c1,
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       String * string = new String();
       BitVector * escapes = stream_read_token(streamarg, c1, rt, thread, string);
       if (thread->symbol_value(S_read_suppress) != NIL)
@@ -713,7 +713,7 @@ BASE_CHAR stream_flush_whitespace(Value streamarg, Readtable * rt)
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       while (true)
         {
           int n = stream->read_char();
@@ -762,7 +762,7 @@ Value stream_read_string(Value streamarg, BASE_CHAR terminator, Readtable * rt)
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       String * string = new String();
       while (true)
         {
@@ -797,7 +797,7 @@ Value stream_read_dispatch_char(Value streamarg, BASE_CHAR dispatch_char,
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       long numarg = -1;
       BASE_CHAR c;
       while (true)
@@ -908,7 +908,7 @@ Value stream_read_bit_vector(Value streamarg, long n, Thread * thread, Readtable
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       bool suppress = (thread->symbol_value(S_read_suppress) != NIL);
       String * s = new String();
       while (true)
@@ -983,7 +983,7 @@ Value stream_read_radix(Value streamarg, long base, Thread * thread, Readtable *
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       String * string = new String();
       while (true)
         {
@@ -1075,7 +1075,7 @@ Value stream_read_comma(Value streamarg, Thread * thread, Readtable * rt)
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       long n = stream->read_char();
       if (n < 0)
         return signal_lisp_error(new EndOfFile(stream));
@@ -1102,7 +1102,7 @@ Value stream_read_character_literal(Value streamarg, Thread * thread, Readtable 
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       long n = stream->read_char();
       if (n < 0)
         return signal_lisp_error(new EndOfFile(stream));
@@ -1149,7 +1149,7 @@ Value stream_read_binary_data(Value streamarg, INDEX length)
 {
   if (ansi_stream_p(streamarg))
     {
-      Stream * stream = the_stream(streamarg);
+      AnsiStream * stream = the_ansi_stream(streamarg);
       SimpleArray_UB8_1 * array = new_simple_array_ub8_1(length);
       unsigned char * data = array->data();
       for (INDEX i = 0; i < length; i++)
