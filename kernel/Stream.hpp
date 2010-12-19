@@ -122,7 +122,7 @@ public:
 
   virtual Value type_of() const
   {
-    return S_stream;
+    return S_ansi_stream;
   }
 
   virtual Value class_of() const;
@@ -266,7 +266,7 @@ inline AnsiStream * check_ansi_stream(Value value)
 {
   if (ansi_stream_p(value))
     return the_ansi_stream(value);
-  signal_type_error(value, S_stream);
+  signal_type_error(value, S_ansi_stream);
   // not reached
   return NULL;
 }

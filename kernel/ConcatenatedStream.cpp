@@ -29,8 +29,10 @@ Value ConcatenatedStream::element_type() const
 
 bool ConcatenatedStream::typep(Value type) const
 {
-  return (type == S_concatenated_stream || type == S_stream || type == S_atom || type == T
-          || type == C_concatenated_stream || type == C_stream || type == C_t);
+  if (symbolp(type))
+    return (type == S_concatenated_stream || type == S_ansi_stream || type == S_stream || type == S_atom|| type == T);
+  else
+    return (type == C_concatenated_stream || type == C_ansi_stream || type == C_stream || type == C_t);
 }
 
 bool ConcatenatedStream::is_char_ready()

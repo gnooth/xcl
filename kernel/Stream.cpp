@@ -89,12 +89,15 @@ AnsiStream::AnsiStream(Direction direction, HANDLE h)
 
 Value AnsiStream::class_of() const
 {
-  return C_stream;
+  return C_ansi_stream;
 }
 
 bool AnsiStream::typep(Value type) const
 {
-  return (type == S_stream || type == S_atom || type == T || type == C_stream || type == C_t);
+  if (symbolp(type))
+    return (type == S_ansi_stream || type == S_stream || type == S_atom || type == T);
+  else
+    return (type == C_ansi_stream || type == C_stream || type == C_t);
 }
 
 bool AnsiStream::is_char_ready()

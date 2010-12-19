@@ -21,8 +21,10 @@
 
 bool TwoWayStream::typep(Value type) const
 {
-  return (type == S_two_way_stream || type == S_stream || type == S_atom || type == T
-          || type == C_two_way_stream || type == C_stream || type == C_t);
+  if (symbolp(type))
+    return (type == S_two_way_stream || type == S_ansi_stream || type == S_stream || type == S_atom || type == T);
+  else
+    return (type == C_two_way_stream || type == C_ansi_stream || type == C_stream || type == C_t);
 }
 
 // ### make-two-way-stream input-stream output-stream => two-way-stream

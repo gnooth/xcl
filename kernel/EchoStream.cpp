@@ -33,8 +33,10 @@ EchoStream::EchoStream(AnsiStream * in, AnsiStream * out)
 
 bool EchoStream::typep(Value type) const
 {
-  return (type == S_echo_stream || type == S_stream || type == S_atom || type == T
-          || type == C_echo_stream || type == C_stream || type == C_t);
+  if (symbolp(type))
+    return (type == S_echo_stream || type == S_ansi_stream || type == S_stream || type == S_atom || type == T);
+  else
+    return (type == C_echo_stream || type == C_ansi_stream || type == C_stream || type == C_t);
 }
 
 int EchoStream::read_char()
@@ -42,7 +44,7 @@ int EchoStream::read_char()
   int n = _in->read_char();
   if (n >= 0)
     {
-      // Not at end of file.
+      // not at end of file
       if (_last_char < 0)
         _out->write_char((char)n);
       else

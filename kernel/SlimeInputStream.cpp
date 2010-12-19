@@ -22,8 +22,10 @@
 
 bool SlimeInputStream::typep(Value type) const
 {
-  return (type == S_slime_input_stream || type == S_stream || type == S_atom || type == T
-          || type == C_slime_input_stream || type == C_stream || type == C_t);
+  if (symbolp(type))
+    return (type == S_slime_input_stream || type == S_ansi_stream || type == S_stream || type == S_atom || type == T);
+  else
+    return (type == C_slime_input_stream || type == C_ansi_stream || type == C_stream || type == C_t);
 }
 
 int SlimeInputStream::read_char()

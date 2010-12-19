@@ -35,10 +35,10 @@ StringOutputStream::StringOutputStream(String * string)
 bool StringOutputStream::typep(Value type) const
 {
   if (symbolp(type))
-    return (type == S_string_output_stream || type == S_string_stream
+    return (type == S_string_output_stream || type == S_string_stream || type == S_ansi_stream
             || type == S_stream || type == S_atom || type == T);
   else
-    return (type == C_string_stream || type == C_stream || type == C_t);
+    return (type == C_string_stream || type == C_ansi_stream || type == C_stream || type == C_t);
 }
 
 void StringOutputStream::write_char(BASE_CHAR c)

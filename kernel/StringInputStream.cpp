@@ -76,8 +76,11 @@ inline StringInputStream * check_string_input_stream(Value value)
 
 bool StringInputStream::typep(Value type) const
 {
-  return (type == S_string_input_stream || type == S_string_stream
-          || type == S_stream || type == S_atom || type == T);
+  if (symbolp(type))
+    return (type == S_string_input_stream || type == S_string_stream || type == S_ansi_stream
+            || type == S_stream || type == S_atom || type == T);
+  else
+    return (type == C_string_stream || type == C_ansi_stream || type == C_stream || type == C_t);
 }
 
 bool StringInputStream::is_char_ready()

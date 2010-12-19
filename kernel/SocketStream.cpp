@@ -1,6 +1,6 @@
 // SocketStream.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,9 @@
 
 bool SocketStream::typep(Value type) const
 {
-  return (type == S_socket_stream || type == S_stream || type == S_atom || type == T
-          || type == C_socket_stream || type == C_stream || type == C_t);
+  if (symbolp(type))
+    return (type == S_socket_stream || type == S_ansi_stream || type == S_stream || type == S_atom || type == T);
+  else
+    return (type == C_socket_stream || type == C_ansi_stream || type == C_stream || type == C_t);
 }
 

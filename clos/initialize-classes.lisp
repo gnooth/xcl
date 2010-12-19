@@ -1,6 +1,6 @@
 ;;; initialize-classes.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -98,11 +98,12 @@
 (defun initialize-condition-class (class-name direct-superclasses precedence-list)
   (initialize-standard-class class-name direct-superclasses precedence-list))
 
+(initialize-built-in-class 'ansi-stream '(stream) '(ansi-stream stream t))
 (initialize-built-in-class 'array '(t) '(array t))
 ;; (initialize-built-in-class 'base-string '(string) '(base-string string vector array sequence t))
 ;; (initialize-built-in-class 'bignum '(integer) '(bignum integer rational real number t))
 (initialize-built-in-class 'bit-vector '(vector) '(bit-vector vector array sequence t))
-(initialize-built-in-class 'broadcast-stream '(stream) '(broadcast-stream stream t))
+(initialize-built-in-class 'broadcast-stream '(ansi-stream) '(broadcast-stream ansi-stream stream t))
 
 (initialize-standard-class 'metaobject
                            '(standard-object)
@@ -131,16 +132,16 @@
 
 (initialize-built-in-class 'character '(t) '(character t))
 (initialize-built-in-class 'complex '(number) '(complex number t))
-(initialize-built-in-class 'concatenated-stream '(stream) '(concatenated-stream stream t))
+(initialize-built-in-class 'concatenated-stream '(ansi-stream) '(concatenated-stream ansi-stream stream t))
 
 (initialize-built-in-class 'cons '(list) '(cons list sequence t))
 ;; (initialize-built-in-class 'double-float '(float) '(double-float float real number t))
-(initialize-built-in-class 'echo-stream '(stream) '(echo-stream stream t))
+(initialize-built-in-class 'echo-stream '(ansi-stream) '(echo-stream ansi-stream stream t))
 (initialize-built-in-class 'environment '(t) '(environment t))
 
 
 ;; (initialize-built-in-class 'fixnum '(integer) '(fixnum integer rational real number t))
-(initialize-built-in-class 'file-stream '(stream) '(file-stream stream t))
+(initialize-built-in-class 'file-stream '(ansi-stream) '(file-stream ansi-stream stream t))
 (initialize-built-in-class 'float '(real) '(float real number t))
 (initialize-built-in-class 'function '(t) '(function t))
 (initialize-funcallable-standard-class 'generic-function
@@ -183,9 +184,9 @@
 ;;                            '(simple-vector vector simple-array array sequence t))
 ;; (initialize-built-in-class 'single-float '(float) '(single-float float real number t))
 (initialize-built-in-class 'server-socket '(t) '(server-socket t))
-(initialize-built-in-class 'slime-input-stream '(stream) '(slime-input-stream stream t))
-(initialize-built-in-class 'slime-output-stream '(stream) '(slime-output-stream stream t))
-(initialize-built-in-class 'socket-stream '(stream) '(socket-stream stream t))
+(initialize-built-in-class 'slime-input-stream '(ansi-stream) '(slime-input-stream ansi-stream stream t))
+(initialize-built-in-class 'slime-output-stream '(ansi-stream) '(slime-output-stream ansi-stream stream t))
+(initialize-built-in-class 'socket-stream '(ansi-stream) '(socket-stream ansi-stream stream t))
 
 (initialize-funcallable-standard-class 'standard-generic-function
                                        '(generic-function)
@@ -198,7 +199,7 @@
 (initialize-standard-class 'standard-object '(t) '(standard-object t))
 (initialize-built-in-class 'stream '(t) '(stream t))
 (initialize-built-in-class 'string '(vector) '(string vector array sequence t))
-(initialize-built-in-class 'string-stream '(stream) '(string-stream stream t))
+(initialize-built-in-class 'string-stream '(ansi-stream) '(string-stream ansi-stream stream t))
 
 (initialize-standard-class 'structure-class
                            '(class)
@@ -207,10 +208,10 @@
 (initialize-structure-class 'structure-object '(t) '(structure-object t))
 
 (initialize-built-in-class 'symbol '(t) '(symbol t))
-(initialize-built-in-class 'synonym-stream '(stream) '(synonym-stream stream t))
+(initialize-built-in-class 'synonym-stream '(ansi-stream) '(synonym-stream ansi-stream stream t))
 (initialize-built-in-class 't nil '(t))
 (initialize-built-in-class 'thread '(t) '(thread t))
-(initialize-built-in-class 'two-way-stream '(stream) '(two-way-stream stream t))
+(initialize-built-in-class 'two-way-stream '(ansi-stream) '(two-way-stream ansi-stream stream t))
 (initialize-built-in-class 'vector '(array sequence) '(vector array sequence t))
 
 ;; condition classes
