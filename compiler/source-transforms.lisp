@@ -357,12 +357,6 @@
         (t
          form)))
 
-(define-source-transform close (&whole form stream &rest ignored)
-  (cond ((length-eql form 2)
-         `(%stream-close ,stream))
-        (t
-         form)))
-
 (define-source-transform caar (&whole form arg)
   (cond ((length-eql form 2)
          `(car (car ,arg)))
