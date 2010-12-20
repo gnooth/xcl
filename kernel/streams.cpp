@@ -505,8 +505,8 @@ Value CL_force_output(unsigned int numargs, Value args[])
   return NIL;
 }
 
-// ### %stream-close stream => result
-Value SYS_stream_close_internal(Value arg)
+// ### ansi-stream-close stream => result
+Value SYS_ansi_stream_close(Value arg)
 {
   return check_ansi_stream(arg)->close();
 }

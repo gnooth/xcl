@@ -209,7 +209,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_class_of, CL_class_of, 1, 1);
   ADD_PRIMITIVE(S_clear_input, CL_clear_input, 0, 1);
   ADD_PRIMITIVE(S_clear_output, CL_clear_output, 0, 1);
-  ADD_PRIMITIVE(S_close, CL_close, 1, 3);
+  ADD_TEMPORARY(S_close, CL_close, 1, 3);
   ADD_PRIMITIVE(S_clrhash, CL_clrhash, 1, 1);
   ADD_PRIMITIVE(S_code_char, CL_code_char, 1, 1);
   ADD_PRIMITIVE(S_compiled_function_p, CL_compiled_function_p, 1, 1);
@@ -859,7 +859,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_sample_count, PROF_sample_count, 0, 0);
   ADD_PRIMITIVE(S_stop_profiler, PROF_stop_profiler, 0, 0);
   ADD_PRIMITIVE(S_stream_charpos_internal, SYS_stream_charpos_internal, 1, 1);
-  ADD_PRIMITIVE(S_stream_close_internal, SYS_stream_close_internal, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_close, SYS_ansi_stream_close, 1, 1);
   ADD_PRIMITIVE(S_stream_fresh_line_internal, SYS_stream_fresh_line_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_princ_internal, SYS_stream_princ_internal, 2, 2);
   ADD_PRIMITIVE(S_stream_read_byte_function, SYS_stream_read_byte_function, 1, 1);
