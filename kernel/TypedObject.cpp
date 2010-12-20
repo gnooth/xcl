@@ -1,6 +1,6 @@
 // TypedObject.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -103,21 +103,21 @@ AbstractString * TypedObject::unreadable_string(AbstractString * string)
 int TypedObject::arity() const
 {
   signal_type_error(make_value(this), S_function);
-  // Not reached.
+  // not reached
   return -1;
 }
 
 unsigned int TypedObject::minargs() const
 {
   signal_type_error(make_value(this), S_function);
-  // Not reached.
+  // not reached
   return 0;
 }
 
 unsigned int TypedObject::maxargs() const
 {
   signal_type_error(make_value(this), S_function);
-  // Not reached.
+  // not reached
   return 0;
 }
 
