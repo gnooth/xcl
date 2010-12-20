@@ -136,11 +136,26 @@ void gc_warn_proc(char * msg, GC_word arg)
 }
 
 #ifndef WIN32
-static void segv_handler(int sig, siginfo_t *si, void *unused)
+static void segv_handler(int sig, siginfo_t *si, void * context)
 {
   SYS_set_symbol_global_value(S_saved_stack, SYS_current_stack_as_list());
   SYS_set_symbol_global_value(S_saved_backtrace, current_thread()->backtrace_as_list(MOST_POSITIVE_FIXNUM));
   printf("SIGSEGV at address 0x%lx\n", (unsigned long) si->si_addr);
+  ucontext_t * uc = (ucontext_t *) context;
+#ifdef __x86_64__
+  // Linux
+  void * rip = (void *) uc->uc_mcontext.gregs[REG_RIP];
+  printf("RIP = 0x%lx\n", (unsigned long) rip);
+#else
+  // x86
+#ifdef __FreeBSD__
+  void * eip = (void *) uc->uc_mcontext.mc_eip;
+#else
+  // Linux
+  void * eip = (void *) uc->uc_mcontext.gregs[REG_EIP];
+#endif
+  printf("EIP = 0x%lx\n", (unsigned long) eip);
+#endif
   siglongjmp(*primordial_frame->jmp(), 101);
 }
 #endif
