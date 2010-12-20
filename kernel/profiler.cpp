@@ -134,18 +134,14 @@ void * sigprof_thread_proc(void * arg)
 #endif
 
 #ifndef WIN32
-// Linux, FreeBSD
+#ifdef __x86_64__
+// x86-64 Linux only
 void sigprof_handler(int sig, siginfo_t *si, void * context)
 {
   if (profiling && current_thread() == profiled_thread)
     {
       ucontext_t * uc = (ucontext_t *) context;
-#ifdef __FreeBSD__
-      void * rip = (void *) uc->uc_mcontext.mc_eip;
-#else
-      // Linux
       void * rip = (void *) uc->uc_mcontext.gregs[REG_RIP];
-#endif
       if (sampling_mode == K_time)
         {
           if (samples_index >= samples_size)
@@ -156,6 +152,30 @@ void sigprof_handler(int sig, siginfo_t *si, void * context)
         samples[samples_index++] = (INDEX) rip;
     }
 }
+#else
+// x86 Linux, FreeBSD
+void sigprof_handler(int sig, siginfo_t *si, void * context)
+{
+  if (profiling && current_thread() == profiled_thread)
+    {
+      ucontext_t * uc = (ucontext_t *) context;
+#ifdef __FreeBSD__
+      void * eip = (void *) uc->uc_mcontext.mc_eip;
+#else
+      // Linux
+      void * eip = (void *) uc->uc_mcontext.gregs[REG_EIP];
+#endif
+      if (sampling_mode == K_time)
+        {
+          if (samples_index >= samples_size)
+            resize_samples_vector();
+          samples[samples_index++] = (INDEX) eip;
+        }
+      else if (samples_index < samples_size)
+        samples[samples_index++] = (INDEX) eip;
+    }
+}
+#endif
 #endif
 
 static void zero_call_count(Symbol * symbol)
