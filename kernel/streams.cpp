@@ -76,34 +76,69 @@ Value SYS_designator_output_stream(Value arg)
                                  list3(S_member, T, NIL)));
 }
 
-// ### streamp object => generalized-boolean
-Value CL_streamp(Value arg)
+// ### ansi-stream-p object => generalized-boolean
+Value SYS_ansi_stream_p(Value arg)
 {
   return ansi_stream_p(arg) ? T : NIL;
 }
 
-// ### open-stream-p stream => generalized-boolean
-Value CL_open_stream_p(Value arg)
+// ### streamp object => generalized-boolean
+// redefined as a generic function in gray-streams.lisp
+Value CL_streamp(Value arg)
+{
+  return SYS_ansi_stream_p(arg);
+}
+
+// ### ansi-stream-open-stream-p stream => generalized-boolean
+Value SYS_ansi_stream_open_stream_p(Value arg)
 {
   return check_ansi_stream(arg)->is_open() ? T : NIL;
 }
 
-// ### stream-element-type stream => typespec
-Value CL_stream_element_type(Value arg)
+// ### open-stream-p stream => generalized-boolean
+// redefined as a generic function in gray-streams.lisp
+Value CL_open_stream_p(Value arg)
+{
+  return SYS_ansi_stream_open_stream_p(arg);
+}
+
+// ### ansi-stream-element-type stream => typespec
+Value SYS_ansi_stream_element_type(Value arg)
 {
   return check_ansi_stream(arg)->element_type();
 }
 
-// ### input-stream-p stream => generalized-boolean
-Value CL_input_stream_p(Value arg)
+// ### stream-element-type stream => typespec
+// redefined as a generic function in gray-streams.lisp
+Value CL_stream_element_type(Value arg)
+{
+  return SYS_ansi_stream_element_type(arg);
+}
+
+// ### ansi-steam-input-stream-p stream => generalized-boolean
+Value SYS_ansi_stream_input_stream_p(Value arg)
 {
   return check_ansi_stream(arg)->is_input_stream() ? T : NIL;
 }
 
-// ### output-stream-p stream => generalized-boolean
-Value CL_output_stream_p(Value arg)
+// ### input-stream-p stream => generalized-boolean
+// redefined as a generic function in gray-streams.lisp
+Value CL_input_stream_p(Value arg)
+{
+  return SYS_ansi_stream_input_stream_p(arg);
+}
+
+// ### ansi-stream-output-stream-p stream => generalized-boolean
+Value SYS_ansi_stream_output_stream_p(Value arg)
 {
   return check_ansi_stream(arg)->is_output_stream() ? T : NIL;
+}
+
+// ### output-stream-p stream => generalized-boolean
+// redefined as a generic function in gray-streams.lisp
+Value CL_output_stream_p(Value arg)
+{
+  return SYS_ansi_stream_output_stream_p(arg);
 }
 
 // ### interactive-stream-p stream => generalized-boolean
@@ -113,7 +148,7 @@ Value CL_interactive_stream_p(Value arg)
 }
 
 // ### %stream-charpos stream => position
-// Returns the number of characters on the current line of output.
+// returns the number of characters on the current line of output
 Value SYS_stream_charpos_internal(Value stream)
 {
   // REVIEW verify that the stream is a character output stream
@@ -421,6 +456,7 @@ Value SYS_read_8_bits(Value arg1, Value arg2, Value arg3)
   return arg3;
 }
 
+// ### stream-read-byte-function
 Value SYS_stream_read_byte_function(Value arg)
 {
   return check_ansi_stream(arg)->read_byte_function();
@@ -512,6 +548,7 @@ Value SYS_ansi_stream_close(Value arg)
 }
 
 // ### close stream &key abort => result
+// redefined as a generic function in gray-streams.lisp
 Value CL_close(unsigned int numargs, Value args[])
 {
   switch (numargs)

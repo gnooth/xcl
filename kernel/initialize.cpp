@@ -298,7 +298,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_identity, CL_identity, 1, 1);
   ADD_PRIMITIVE(S_imagpart, CL_imagpart, 1, 1);
   ADD_PRIMITIVE(S_import, CL_import, 1, 2);
-  ADD_PRIMITIVE(S_input_stream_p, CL_input_stream_p, 1, 1);
+  ADD_TEMPORARY(S_input_stream_p, CL_input_stream_p, 1, 1);
   ADD_PRIMITIVE(S_integer_decode_float, CL_integer_decode_float, 1, 1);
   ADD_PRIMITIVE(S_integer_length, CL_integer_length, 1, 1);
   ADD_PRIMITIVE(S_integerp, CL_integerp, 1, 1);
@@ -377,8 +377,8 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_oddp, CL_oddp, 1, 1);
   ADD_PRIMITIVE(S_one_minus, CL_one_minus, 1, 1);
   ADD_PRIMITIVE(S_one_plus, CL_one_plus, 1, 1);
-  ADD_PRIMITIVE(S_open_stream_p, CL_open_stream_p, 1, 1);
-  ADD_PRIMITIVE(S_output_stream_p, CL_output_stream_p, 1, 1);
+  ADD_TEMPORARY(S_open_stream_p, CL_open_stream_p, 1, 1);
+  ADD_TEMPORARY(S_output_stream_p, CL_output_stream_p, 1, 1);
   ADD_PRIMITIVE(S_package_error_package, CL_package_error_package, 1, 1);
   ADD_PRIMITIVE(S_package_name, CL_package_name, 1, 1);
   ADD_PRIMITIVE(S_package_nicknames, CL_package_nicknames, 1, 1);
@@ -455,10 +455,10 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_sqrt, CL_sqrt, 1, 1);
   ADD_PRIMITIVE(S_standard_char_p, CL_standard_char_p, 1, 1);
   ADD_PRIMITIVE(S_star, CL_multiply, 0, MANY);
-  ADD_PRIMITIVE(S_stream_element_type, CL_stream_element_type, 1, 1);
+  ADD_TEMPORARY(S_stream_element_type, CL_stream_element_type, 1, 1);
   ADD_PRIMITIVE(S_stream_error_stream, CL_stream_error_stream, 1, 1);
   ADD_PRIMITIVE(S_stream_external_format, CL_stream_external_format, 1, 1);
-  ADD_PRIMITIVE(S_streamp, CL_streamp, 1, 1);
+  ADD_TEMPORARY(S_streamp, CL_streamp, 1, 1);
   ADD_PRIMITIVE(S_string, CL_string, 1, 1);
   ADD_PRIMITIVE(S_stringp, CL_stringp, 1, 1);
   ADD_PRIMITIVE(S_subseq, CL_subseq, 2, 3);
@@ -860,6 +860,11 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_stop_profiler, PROF_stop_profiler, 0, 0);
   ADD_PRIMITIVE(S_stream_charpos_internal, SYS_stream_charpos_internal, 1, 1);
   ADD_PRIMITIVE(S_ansi_stream_close, SYS_ansi_stream_close, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_element_type, SYS_ansi_stream_element_type, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_input_stream_p, SYS_ansi_stream_input_stream_p, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_open_stream_p, SYS_ansi_stream_open_stream_p, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_output_stream_p, SYS_ansi_stream_output_stream_p, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_p, SYS_ansi_stream_p, 1, 1);
   ADD_PRIMITIVE(S_stream_fresh_line_internal, SYS_stream_fresh_line_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_princ_internal, SYS_stream_princ_internal, 2, 2);
   ADD_PRIMITIVE(S_stream_read_byte_function, SYS_stream_read_byte_function, 1, 1);
