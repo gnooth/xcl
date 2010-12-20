@@ -80,17 +80,50 @@
 
 ;; other functions
 
-;; (defgeneric close (stream &key abort))
+(fmakunbound 'close)
 
-;; (defgeneric open-stream-p (stream))
+(defgeneric close (stream &key abort))
 
-;; (defgeneric streamp (object)) ; optional
+(defmethod close ((stream ansi-stream) &key abort)
+  (ansi-stream-close stream))
 
-;; (defgeneric input-stream-p (stream)) ; optional
+(fmakunbound 'open-stream-p)
 
-;; (defgeneric output-stream-p (stream)) ; optional
+(defgeneric open-stream-p (stream))
 
-;; (defgeneric stream-element-type (stream))
+(defmethod open-stream-p ((stream ansi-stream))
+  (ansi-stream-open-stream-p stream))
+
+(fmakunbound 'streamp)
+
+(defgeneric streamp (object)) ; optional
+
+(defmethod streamp ((stream ansi-stream))
+  (ansi-stream-p stream))
+
+(defmethod streamp ((non-stream t))
+  nil)
+
+(fmakunbound 'input-stream-p)
+
+(defgeneric input-stream-p (stream)) ; optional
+
+(defmethod input-stream-p ((stream ansi-stream))
+  (ansi-stream-input-stream-p stream))
+
+(fmakunbound 'output-stream-p)
+
+(defgeneric output-stream-p (stream)) ; optional
+
+(defmethod output-stream-p ((stream ansi-stream))
+  (ansi-stream-output-stream-p stream))
+
+(fmakunbound 'stream-element-type)
+
+(defgeneric stream-element-type (stream))
+
+(defmethod stream-element-type ((stream ansi-stream))
+  (ansi-stream-element-type stream))
 
 ;; binary streams
 
@@ -98,7 +131,10 @@
 
 (defgeneric stream-write-byte (stream))
 
-;; CMUCL example character input stream encapsulating a lisp-stream
+#+(or)
+(progn
+
+;; CMUCL example: a character input stream encapsulating a lisp-stream
 
 (defclass character-input-stream (fundamental-character-input-stream)
   ((lisp-stream
@@ -140,3 +176,4 @@
 
 (defmethod stream-clear-input ((stream character-input-stream))
   (clear-input (character-input-stream-lisp-stream stream)))
+)
