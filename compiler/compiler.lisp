@@ -2586,6 +2586,11 @@ for special variables."
         (*constraints* nil)
         (*main* nil)
         (*elsewhere* nil))
+
+    ;; make sure we have a clean slate
+    (clrhash (compiland-common-labels compiland))
+    (setf (compiland-constants compiland) nil)
+
     (when (compiland-needs-thread-var-p compiland)
       (allocate-thread-var compiland))
     (clear-register-contents)
