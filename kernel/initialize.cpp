@@ -413,7 +413,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_read_char, CL_read_char, 0, 4);
   ADD_PRIMITIVE(S_read_char_no_hang, CL_read_char_no_hang, 0, 4);
   ADD_PRIMITIVE(S_read_delimited_list, CL_read_delimited_list, 1, 3);
-  ADD_PRIMITIVE(S_read_line, CL_read_line, 0, 4);
+  ADD_TEMPORARY(S_read_line, CL_read_line, 0, 4);
   ADD_PRIMITIVE(S_read_preserving_whitespace, CL_read_preserving_whitespace, 0, 4);
   ADD_PRIMITIVE(S_readtable_case, CL_readtable_case, 1, 1);
   ADD_PRIMITIVE(S_readtablep, CL_readtablep, 1, 1);
@@ -864,6 +864,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_ansi_stream_input_stream_p, SYS_ansi_stream_input_stream_p, 1, 1);
   ADD_PRIMITIVE(S_ansi_stream_open_stream_p, SYS_ansi_stream_open_stream_p, 1, 1);
   ADD_PRIMITIVE(S_ansi_stream_output_stream_p, SYS_ansi_stream_output_stream_p, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_read_line, SYS_ansi_stream_read_line, 3, 3);
   ADD_PRIMITIVE(S_ansi_stream_p, SYS_ansi_stream_p, 1, 1);
   ADD_PRIMITIVE(S_stream_fresh_line_internal, SYS_stream_fresh_line_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_princ_internal, SYS_stream_princ_internal, 2, 2);

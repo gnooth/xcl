@@ -322,6 +322,7 @@
                 %rplacd
                 %stream-terpri
                 %type-error
+                ansi-stream-p
                 aset
                 assert-error
                 backq-list
@@ -415,6 +416,7 @@
 (defknown (/ two-arg-/) (*) number)
 (defknown acons (*) cons)
 (defknown adjoin (*) list)
+(defknown ansi-stream-p (*) boolean (:safe))
 (defknown append (*) list)
 (defknown arrayp (t) boolean (:safe))
 (defknown array-rank (array) (integer 0 #.array-rank-limit))

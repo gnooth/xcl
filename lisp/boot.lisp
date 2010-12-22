@@ -227,6 +227,8 @@
 
 (load-system-file "lisp/process-command-line-arguments")
 
+(load-system-file "lisp/read-line")
+
 (defvar ext:*load-path* nil)
 
 (in-package "CL-USER")

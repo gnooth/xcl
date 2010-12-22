@@ -485,6 +485,7 @@ extern Value SYS_ansi_stream_input_stream_p(Value arg);
 extern Value SYS_ansi_stream_open_stream_p(Value arg);
 extern Value SYS_ansi_stream_output_stream_p(Value arg);
 extern Value SYS_ansi_stream_p(Value arg);
+extern Value SYS_ansi_stream_read_line(Value streamarg, Value eof_error_p, Value eof_value);
 extern Value SYS_allocate_funcallable_standard_instance(Value arg);
 extern Value SYS_allocate_instance_funcallable_standard_class();
 extern Value SYS_allocate_instance_standard_class();

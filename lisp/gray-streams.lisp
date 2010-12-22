@@ -54,6 +54,16 @@
 
 (defgeneric stream-read-line (stream))
 
+(defmethod stream-read-line ((stream fundamental-character-input-stream))
+  (let ((line (make-array 64 :element-type 'character :fill-pointer 0)))
+    (loop
+      (let ((character (stream-read-char stream)))
+        (if (eq character :eof)
+            (return (values line t))
+            (if (eql character #\newline)
+                (return (values line nil))
+                (vector-push-extend character line)))))))
+
 (defgeneric stream-clear-input (stream))
 
 ;; character output

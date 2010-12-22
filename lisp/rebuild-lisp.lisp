@@ -307,6 +307,7 @@
                           "read-byte"
                           "read-conditional"
                           "read-from-string"
+                          "read-line"
                           "read-sequence"
                           "reader"
                           "reduce"

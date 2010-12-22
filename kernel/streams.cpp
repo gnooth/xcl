@@ -16,22 +16,22 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#include <ctype.h>      // toupper, tolower
+// #include <ctype.h>      // toupper, tolower
 #include "lisp.hpp"
-#include "runtime.h"
+// #include "runtime.h"
 #include "primitives.hpp"
 #include "reader.hpp"
-#include "Complex.hpp"
+// #include "Complex.hpp"
 #include "EndOfFile.hpp"
 #include "Package.hpp"
-#include "Pathname.hpp"
+// #include "Pathname.hpp"
 #include "ProgramError.hpp"
-#include "ReaderError.hpp"
+// #include "ReaderError.hpp"
 #include "Readtable.hpp"
-#include "SimpleArray_T.hpp"
-#include "SimpleArray_UB8_1.hpp"
-#include "ZeroRankArray.hpp"
-#include "keywordp.hpp"
+// #include "SimpleArray_T.hpp"
+// #include "SimpleArray_UB8_1.hpp"
+// #include "ZeroRankArray.hpp"
+// #include "keywordp.hpp"
 
 // ### %stream-princ stream object => object
 Value SYS_stream_princ_internal(Value stream, Value object)
@@ -56,6 +56,9 @@ Value SYS_designator_input_stream(Value arg)
     return thread->symbol_value(S_terminal_io);
   if (arg == NIL)
     return thread->symbol_value(S_standard_input);
+  Function * function = reinterpret_cast<Function *>(the_symbol(S_streamp)->function());
+  if (function->execute(arg))
+    return arg;
   return signal_type_error(arg,
                            list3(S_or, S_stream,
                                  list3(S_member, T, NIL)));
@@ -71,6 +74,9 @@ Value SYS_designator_output_stream(Value arg)
     return thread->symbol_value(S_terminal_io);
   if (arg == NIL)
     return thread->symbol_value(S_standard_output);
+  Function * function = reinterpret_cast<Function *>(the_symbol(S_streamp)->function());
+  if (function->execute(arg))
+    return arg;
   return signal_type_error(arg,
                            list3(S_or, S_stream,
                                  list3(S_member, T, NIL)));
@@ -244,6 +250,12 @@ Value CL_read_preserving_whitespace(unsigned int numargs, Value args[])
   // REVIEW
   return stream_read_preserving_whitespace(make_value(stream), eof_error_p, eof_value,
                                            recursive_p, thread, rt);
+}
+
+// ### ansi-stream-read-line
+Value SYS_ansi_stream_read_line(Value streamarg, Value eof_error_p, Value eof_value)
+{
+  return check_ansi_stream(streamarg)->read_line(eof_error_p != NIL, eof_value);
 }
 
 // ### read-line &optional input-stream eof-error-p eof-value recursive-p => line, missing-newline-p
