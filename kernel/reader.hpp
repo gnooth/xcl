@@ -52,7 +52,7 @@ extern Value stream_read_complex(Value streamarg, Thread * thread, Readtable * r
 extern Value stream_read_array(Value streamarg, Value numarg, Thread * thread,
                                Readtable * rt);
 
-extern Value stream_read_bit_vector(Value streamarg, long n, Thread * thread,
+extern Value stream_read_bit_vector(Value streamarg, Value numarg, Thread * thread,
                                     Readtable * rt);
 
 extern Value stream_read_radix(Value streamarg, long base, Thread * thread,

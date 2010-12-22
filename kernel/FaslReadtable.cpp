@@ -357,8 +357,7 @@ Value SYS_fasl_sharp_s(Value streamarg, Value subchar, Value numarg)
 // ### fasl-sharp-star stream sub-char numarg => value
 Value SYS_fasl_sharp_star(Value streamarg, Value subchar, Value numarg)
 {
-  return stream_read_bit_vector(streamarg, numarg == NIL ? -1 : fixnum_value(numarg),
-                                current_thread(), FASL_READTABLE);
+  return stream_read_bit_vector(streamarg, numarg, current_thread(), FASL_READTABLE);
 }
 
 // ### fasl-sharp-vertical-bar stream sub-char numarg => value

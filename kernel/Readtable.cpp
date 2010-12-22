@@ -687,8 +687,7 @@ Value SYS_sharp_star(Value streamarg, Value subchar, Value numarg)
 {
   Thread * thread = current_thread();
   Readtable * rt = current_readtable(thread);
-  return stream_read_bit_vector(streamarg, numarg == NIL ? -1 : fixnum_value(numarg),
-                                thread, rt);
+  return stream_read_bit_vector(streamarg, numarg, thread, rt);
 }
 
 // ### sharp-vertical-bar stream sub-char numarg => value

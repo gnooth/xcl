@@ -904,7 +904,7 @@ Value stream_read_array(Value streamarg, Value numarg, Thread * thread, Readtabl
     }
 }
 
-Value stream_read_bit_vector(Value streamarg, long n, Thread * thread, Readtable * rt)
+Value stream_read_bit_vector(Value streamarg, Value numarg, Thread * thread, Readtable * rt)
 {
   if (ansi_stream_p(streamarg))
     {
@@ -941,30 +941,31 @@ Value stream_read_bit_vector(Value streamarg, long n, Thread * thread, Readtable
         }
       if (suppress)
         return NIL;
-      if (n >= 0)
+      if (numarg != NIL)
         {
           // numeric arg was supplied
-          const long len = s->length();
+          INDEX specified_length = check_index(numarg);
+          const INDEX len = s->length();
           if (len == 0)
             {
-              if (n > 0)
+              if (specified_length > 0)
                 {
                   String * message = new String("No element specified for bit vector of length ");
-                  message->append_long(n);
+                  message->append_long(specified_length);
                   message->append_char('.');
                   return signal_lisp_error(new ReaderError(streamarg, message));
                 }
             }
-          if (n > len)
+          if (specified_length > len)
             {
               const BASE_CHAR c = s->char_at(len - 1);
-              for (long i = len; i < n; i++)
+              for (INDEX i = len; i < specified_length; i++)
                 s->append_char(c);
             }
-          else if (n < len)
+          else if (specified_length < len)
             {
               String * message = new String("Bit vector is longer than specified length: #");
-              message->append_long(n);
+              message->append_long(specified_length);
               message->append_char('*');
               message->append(s);
               return signal_lisp_error(new ReaderError(streamarg, message));
