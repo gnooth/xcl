@@ -329,7 +329,6 @@ extern Value CL_read(unsigned int numargs, Value args[]);
 extern Value CL_read_char(unsigned int numargs, Value args[]);
 extern Value CL_read_char_no_hang(unsigned int numargs, Value args[]);
 extern Value CL_read_delimited_list(unsigned int numargs, Value args[]);
-extern Value CL_read_line(unsigned int numargs, Value args[]);
 extern Value CL_read_preserving_whitespace(unsigned int numargs, Value args[]);
 extern Value CL_readtable_case(Value arg);
 extern Value CL_readtablep(Value arg);

@@ -258,31 +258,6 @@ Value SYS_ansi_stream_read_line(Value streamarg, Value eof_error_p, Value eof_va
   return check_ansi_stream(streamarg)->read_line(eof_error_p != NIL, eof_value);
 }
 
-// ### read-line &optional input-stream eof-error-p eof-value recursive-p => line, missing-newline-p
-Value CL_read_line(unsigned int numargs, Value args[])
-{
-  if (numargs <= 4)
-    {
-      AnsiStream * stream;
-      if (numargs > 0)
-        stream = check_ansi_stream(SYS_designator_input_stream(args[0]));
-      else
-        stream = check_ansi_stream(current_thread()->symbol_value(S_standard_input));
-      switch (numargs)
-        {
-        case 0:
-        case 1:
-          return stream->read_line(true, NIL);
-        case 2:
-          return stream->read_line(args[1] != NIL, NIL);
-        case 3:
-        case 4:
-          return stream->read_line(args[1] != NIL, args[2]);
-        }
-    }
-  return wrong_number_of_arguments(S_read_line, numargs, 0, 4);
-}
-
 // ### read-char &optional input-stream eof-error-p eof-value recursive-p => char
 Value CL_read_char(unsigned int numargs, Value args[])
 {
