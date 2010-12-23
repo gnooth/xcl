@@ -143,14 +143,19 @@ AbstractString * AbstractArray::write_to_string_internal(int ndims, INDEX dimv[]
 {
   Thread * thread = current_thread();
   bool print_readably = (thread->symbol_value(S_print_readably) != NIL);
-  if (print_readably)
+  if (print_readably && thread->symbol_value(S_read_eval) == NIL)
     {
-      if (element_type() != T)
-        signal_lisp_error(new PrintNotReadable(make_value(this)));
+      // "If *READ-EVAL* is false and *PRINT-READABLY* is true, any method for
+      // PRINT-OBJECT that would output a reference to the #. reader macro
+      // either outputs something different or signals an error of type PRINT-
+      // NOT-READABLE."
+        if (element_type() != T)
+          signal_lisp_error(new PrintNotReadable(make_value(this)));
     }
   if (print_readably || thread->symbol_value(S_print_array) != NIL)
     {
       long max_level = MOST_POSITIVE_FIXNUM;
+      void * last_special_binding = NULL;
       if (print_readably)
         {
           for (int i = 0; i < ndims - 1; i++)
@@ -162,11 +167,15 @@ AbstractString * AbstractArray::write_to_string_internal(int ndims, INDEX dimv[]
                       if (dimv[j] != 0)
                         {
                           signal_lisp_error(new PrintNotReadable(make_value(this)));
-                          return NULL; // Not reached.
+                          return NULL; // not reached
                         }
                     }
                 }
             }
+          last_special_binding = thread->last_special_binding();
+          thread->bind_special(S_print_length, NIL);
+          thread->bind_special(S_print_level, NIL);
+          thread->bind_special(S_print_lines, NIL);
         }
       else
         {
@@ -175,16 +184,29 @@ AbstractString * AbstractArray::write_to_string_internal(int ndims, INDEX dimv[]
             max_level = fixnum_value(print_level);
         }
       long current_level = fixnum_value(thread->symbol_value(S_current_print_level));
-//       if (current_level >= max_level)
-//         return "#";
       String * s = new String();
-      s->append_char('#');
-      if (current_level < max_level)
+      if (print_readably && element_type() != T)
         {
-          s->append_long(ndims);
-          s->append_char('A');
+          s->append("#.(CL:MAKE-ARRAY '");
+          s->append(::write_to_string(dimensions()));
+          s->append(" :ELEMENT-TYPE '");
+          s->append(::write_to_string(element_type()));
+          s->append(" :INITIAL-CONTENTS '");
           append_contents(ndims, dimv, 0, s, thread);
+          s->append_char(')');
         }
+      else
+        {
+          s->append_char('#');
+          if (current_level < max_level)
+            {
+              s->append_long(ndims);
+              s->append_char('A');
+              append_contents(ndims, dimv, 0, s, thread);
+            }
+        }
+      if (print_readably)
+        thread->set_last_special_binding(last_special_binding);
       return s;
     }
   return unreadable_string();
