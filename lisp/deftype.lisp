@@ -1,6 +1,6 @@
 ;;; deftype.lisp
 ;;;
-;;; Copyright (C) 2004-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2010 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -19,9 +19,9 @@
 (in-package "SYSTEM")
 
 (defmacro deftype (name lambda-list &rest body)
-;;   (when (eq (symbol-package name) +common-lisp-package+)
-;;     (error :format-control "Attempt to define ~S, a symbol in the COMMON-LISP package, as a type specifier."
-;;            :format-arguments (list name)))
+  (when (eq (symbol-package name) +common-lisp-package+)
+    (error "Attempt to define ~S, a symbol in the COMMON-LISP package, as a type specifier."
+           name))
 ;;   (check-declaration-type name)
   ;; Optional and keyword parameters default to * rather than NIL.
   (when (or (memq '&optional lambda-list)
