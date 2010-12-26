@@ -1,6 +1,6 @@
 // eval.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -284,10 +284,14 @@ Value eval(Value form, Environment * env, Thread * thread)
 
 Value eval_call(Function * function, Value args, Environment * env, Thread * thread)
 {
+  // args must be a list
+  check_list(args);
+  // args must be a proper list
+  INDEX numargs = length(args);
   const int arity = function->arity();
   if (arity >= 0 && arity <= 6)
     {
-      // Fixed arity.
+      // fixed arity
       if (args == NIL)
         return thread->execute(function);
       Value arg1 = eval(car(args), env, thread);
@@ -320,7 +324,6 @@ Value eval_call(Function * function, Value args, Environment * env, Thread * thr
   else
     {
       // arity < 0 || arity > 6
-      INDEX numargs = length(args);
       Value * vals = (Value *) alloca(numargs * sizeof(Value));
       for (INDEX i = 0; i < numargs; i++)
         {
