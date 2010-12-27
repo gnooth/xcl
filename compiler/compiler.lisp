@@ -2724,6 +2724,8 @@ for special variables."
       (resolve name))
     (setq definition (fdefinition name)))
   (when (compiled-function-p definition)
+    (when name
+      (setf (fdefinition name) definition))
     (return-from %compile (values (or name definition) nil nil)))
 
   ;; FIXME
@@ -2740,6 +2742,9 @@ for special variables."
     (cond ((functionp definition)
            (multiple-value-setq (lambda-expression environment) (function-lambda-expression definition)))
           ((and (consp definition) (eq (%car definition) 'LAMBDA))
+           (unless (and (>= (length definition) 2) (listp (second definition)))
+             (error "Lambda expression has a missing or non-list lambda list: ~S"
+                    definition))
            (setq lambda-expression definition)))
 
     (unless lambda-expression
@@ -2780,7 +2785,11 @@ for special variables."
              ;; directly as the primary value."
              (values compiled-function nil nil))))))
 
-(defun compile (name &optional definition)
+(defun compile (name &optional (definition nil definition-supplied-p))
+  (when definition-supplied-p
+    (unless (or (functionp definition)
+                (and (consp definition) (eq (%car definition) 'lambda)))
+      (error 'type-error :datum definition :expected-type 'function)))
   (if *enable-compiler*
       (%compile name definition)
       (precompile name definition)))
