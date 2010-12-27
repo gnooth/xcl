@@ -136,7 +136,7 @@ void gc_warn_proc(char * msg, GC_word arg)
 }
 
 #ifndef WIN32
-static void segv_handler(int sig, siginfo_t *si, void * context)
+static void sigsegv_handler(int sig, siginfo_t *si, void * context)
 {
   SYS_set_symbol_global_value(S_saved_stack, SYS_current_stack_as_list());
   SYS_set_symbol_global_value(S_saved_backtrace, current_thread()->backtrace_as_list(MOST_POSITIVE_FIXNUM));
@@ -158,15 +158,20 @@ static void segv_handler(int sig, siginfo_t *si, void * context)
 #endif
   siglongjmp(*primordial_frame->jmp(), 101);
 }
+
+static void sigint_handler(int sig, siginfo_t *si, void * context)
+{
+  SYS_set_symbol_global_value(S_saved_stack, SYS_current_stack_as_list());
+  SYS_set_symbol_global_value(S_saved_backtrace, current_thread()->backtrace_as_list(MOST_POSITIVE_FIXNUM));
+  if (CL_fboundp(S_break))
+    current_thread()->execute(the_symbol(S_break)->function());
+}
 #endif
 
 volatile bool boot_loaded_p = false;
 
 int __main(int argc, char * argv[])
 {
-//   initialize_uptime();
-//   GC_init();
-//   GC_set_warn_proc(gc_warn_proc);
   initialize_lisp();
   process_command_line_arguments(argc, argv);
   print_version();
@@ -177,11 +182,14 @@ int __main(int argc, char * argv[])
   struct sigaction sa;
   sa.sa_flags = SA_SIGINFO;
   sigemptyset(&sa.sa_mask);
-  sa.sa_sigaction = segv_handler;
+  sa.sa_sigaction = sigsegv_handler;
   if (sigaction(SIGSEGV, &sa, NULL) == -1)
     perror("sigaction");
   if (sigaction(SIGABRT, &sa, NULL) == -1)
     perror("sigaction2");
+  sa.sa_sigaction = sigint_handler;
+  if (sigaction(SIGINT, &sa, NULL) == -1)
+    perror("sigaction3");
 #endif
 
   primordial_frame = new Frame();
@@ -189,11 +197,6 @@ int __main(int argc, char * argv[])
   Function * interactive_eval = (Function *) the_symbol(S_interactive_eval)->function();
   while (true)
     {
-// #if defined(__linux__) || defined(__FreeBSD__)
-//       int ret = sigsetjmp(*primordial_frame->jmp(), 1);
-// #else
-//       setjmp(*primordial_frame->jmp());
-// #endif
 #ifdef WIN32
       SETJMP(*primordial_frame->jmp());
 #else
