@@ -2402,8 +2402,6 @@ for special variables."
              (let ((arg-index 0))
                (dolist (name required)
                  (let ((var (make-var :name name :kind :required :arg-index arg-index)))
-                   (let ((*print-structure* nil))
-                     (format t "var ~S ~S arg-index = ~S~%" var (var-name var) (var-arg-index var)))
                    (push var vars))
                  (incf arg-index))
                (let ((var (make-var :name rest :kind :rest :arg-index arg-index)))
