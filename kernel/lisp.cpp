@@ -113,6 +113,9 @@ Value EXT_reset()
 // ### quote
 Value CL_quote(Value args, Environment * env, Thread * thread)
 {
+  int numargs = length(args);
+  if (numargs != 1)
+    return wrong_number_of_arguments(S_quote, numargs, 1, 1);
   return car(args);
 }
 
@@ -1046,7 +1049,7 @@ Value CL_ecase(Value args, Environment * env, Thread * thread)
         return progn(cdr(clause), env, thread);
       clauses = xcdr(clauses);
     }
-  // No match.
+  // no match
   Value expected_type = NIL;
   clauses = xcdr(args);
   while (clauses != NIL)
@@ -1073,7 +1076,8 @@ Value CL_ecase(Value args, Environment * env, Thread * thread)
 // ### if
 Value CL_if(Value args, Environment * env, Thread * thread)
 {
-  switch (length(args))
+  INDEX numargs = length(args);
+  switch (numargs)
     {
     case 2:
       {
@@ -1089,7 +1093,7 @@ Value CL_if(Value args, Environment * env, Thread * thread)
         return eval(CL_caddr(args), env, thread);
       }
     default:
-      return wrong_number_of_arguments(S_if, length(args), 2, 3);
+      return wrong_number_of_arguments(S_if, numargs, 2, 3);
     }
 }
 
