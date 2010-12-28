@@ -278,6 +278,9 @@
             (sys:*mumble* nil))
         (stamp out)
         (format out "~&~A ~A~%" (lisp-implementation-type) (lisp-implementation-version))
+        #+xcl
+        (let ((*standard-output* out))
+          (describe-compiler-policy))
         (dolist (test '(run-defclass
                         run-defmethod
                         make-instances
