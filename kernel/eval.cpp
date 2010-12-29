@@ -324,13 +324,16 @@ Value eval_call(Function * function, Value args, Environment * env, Thread * thr
   else
     {
       // arity < 0 || arity > 6
-      Value * vals = (Value *) alloca(numargs * sizeof(Value));
-      for (INDEX i = 0; i < numargs; i++)
+      Value * vals = NULL;
+      if (numargs > 0)
         {
-          vals[i] = eval(xcar(args), env, thread);
-          args = xcdr(args);
+          vals = (Value *) alloca(numargs * sizeof(Value));
+          for (INDEX i = 0; i < numargs; i++)
+            {
+              vals[i] = eval(xcar(args), env, thread);
+              args = xcdr(args);
+            }
         }
-      Value result = thread->execute(function, numargs, vals);
-      return result;
+      return thread->execute(function, numargs, vals);
     }
 }
