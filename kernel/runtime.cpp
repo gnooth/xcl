@@ -417,13 +417,18 @@ Value RT_fast_call_function(Value function, unsigned int numargs, Value args[])
   return the_function(function)->execute(numargs, args);
 }
 
+static Value __attribute__ ((noinline)) error_not_callable(Value arg)
+{
+  return signal_type_error(arg, list3(S_or, S_function, S_symbol));
+}
+
 Value RT_thread_funcall_0(Thread * thread, Value callable)
 {
   if (functionp(callable))
     return thread->execute(the_function(callable));
   if (symbolp(callable))
     return thread_call_symbol_0(thread, callable);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_thread_funcall_1(Thread * thread, Value callable, Value arg)
@@ -432,7 +437,7 @@ Value RT_thread_funcall_1(Thread * thread, Value callable, Value arg)
     return thread->execute(the_function(callable), arg);
   if (symbolp(callable))
     return thread_call_symbol_1(thread, callable, arg);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_thread_funcall_2(Thread * thread, Value callable, Value arg1, Value arg2)
@@ -441,7 +446,7 @@ Value RT_thread_funcall_2(Thread * thread, Value callable, Value arg1, Value arg
     return thread->execute(the_function(callable), arg1, arg2);
   if (symbolp(callable))
     return thread_call_symbol_2(thread, callable, arg1, arg2);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_thread_funcall_3(Thread * thread, Value callable, Value arg1, Value arg2, Value arg3)
@@ -450,7 +455,7 @@ Value RT_thread_funcall_3(Thread * thread, Value callable, Value arg1, Value arg
     return thread->execute(the_function(callable), arg1, arg2, arg3);
   if (symbolp(callable))
     return thread_call_symbol_3(thread, callable, arg1, arg2, arg3);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_thread_funcall_4(Thread * thread, Value callable, Value arg1, Value arg2, Value arg3, Value arg4)
@@ -459,7 +464,7 @@ Value RT_thread_funcall_4(Thread * thread, Value callable, Value arg1, Value arg
     return thread->execute(the_function(callable), arg1, arg2, arg3, arg4);
   if (symbolp(callable))
     return thread_call_symbol_4(thread, callable, arg1, arg2, arg3, arg4);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_fast_funcall_0(Value callable)
@@ -468,7 +473,7 @@ Value RT_fast_funcall_0(Value callable)
     return the_function(callable)->execute();
   if (symbolp(callable))
     return fast_call_symbol_0(callable);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_fast_funcall_1(Value callable, Value arg)
@@ -477,7 +482,7 @@ Value RT_fast_funcall_1(Value callable, Value arg)
     return the_function(callable)->execute(arg);
   if (symbolp(callable))
     return fast_call_symbol_1(callable, arg);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_fast_funcall_2(Value callable, Value arg1, Value arg2)
@@ -486,7 +491,7 @@ Value RT_fast_funcall_2(Value callable, Value arg1, Value arg2)
     return the_function(callable)->execute(arg1, arg2);
   if (symbolp(callable))
     return fast_call_symbol_2(callable, arg1, arg2);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_fast_funcall_3(Value callable, Value arg1, Value arg2, Value arg3)
@@ -495,7 +500,7 @@ Value RT_fast_funcall_3(Value callable, Value arg1, Value arg2, Value arg3)
     return the_function(callable)->execute(arg1, arg2, arg3);
   if (symbolp(callable))
     return fast_call_symbol_3(callable, arg1, arg2, arg3);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_fast_funcall_4(Value callable, Value arg1, Value arg2, Value arg3, Value arg4)
@@ -504,7 +509,7 @@ Value RT_fast_funcall_4(Value callable, Value arg1, Value arg2, Value arg3, Valu
     return the_function(callable)->execute(arg1, arg2, arg3, arg4);
   if (symbolp(callable))
     return fast_call_symbol_4(callable, arg1, arg2, arg3, arg4);
-  return signal_type_error(callable, list3(S_or, S_function, S_symbol));
+  return error_not_callable(callable);
 }
 
 Value RT_current_thread_symbol_value(Value name)
