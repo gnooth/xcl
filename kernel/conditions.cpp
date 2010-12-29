@@ -230,6 +230,11 @@ Value signal_type_error(Value datum, Value expected_type)
   return signal_lisp_error(new TypeError(datum, expected_type));
 }
 
+Value signal_undefined_function(Value name)
+{
+  return signal_lisp_error(new UndefinedFunction(name));
+}
+
 // ### %type-error
 Value SYS_type_error_internal(Value datum, Value expected_type)
 {

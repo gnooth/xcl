@@ -1,6 +1,6 @@
 // StandardObject.cpp
 //
-// Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -158,7 +158,7 @@ Layout * StandardObject::update_layout()
   if (function)
     current_thread()->execute(function, make_value(this), added, discarded, plist);
   else
-    signal_lisp_error(new UndefinedFunction(S_update_instance_for_redefined_class));
+    signal_undefined_function(S_update_instance_for_redefined_class);
   return new_layout;
 }
 

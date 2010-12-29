@@ -676,7 +676,7 @@ Value CL_function(Value args, Environment * env, Thread * thread)
       if (function)
         return make_value(function);
       else
-        return signal_lisp_error(new UndefinedFunction(arg));
+        return signal_undefined_function(arg);
     }
   if (consp(arg))
     {

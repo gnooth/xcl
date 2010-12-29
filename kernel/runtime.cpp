@@ -43,7 +43,7 @@ Value RT_current_thread_call_symbol_0(Value symbol)
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return current_thread()->execute(function);
 }
 
@@ -51,7 +51,7 @@ Value RT_current_thread_call_symbol_1(Value symbol, Value arg)
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg);
 }
 
@@ -59,7 +59,7 @@ Value RT_current_thread_call_symbol_2(Value symbol, Value arg1, Value arg2)
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2);
 }
 
@@ -67,7 +67,7 @@ Value RT_current_thread_call_symbol_3(Value symbol, Value arg1, Value arg2, Valu
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2, arg3);
 }
 
@@ -75,7 +75,7 @@ Value RT_current_thread_call_symbol_4(Value symbol, Value arg1, Value arg2, Valu
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2, arg3, arg4);
 }
 
@@ -83,7 +83,7 @@ Value RT_current_thread_call_symbol_5(Value symbol, Value arg1, Value arg2, Valu
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2, arg3, arg4, arg5);
 }
 
@@ -91,7 +91,7 @@ Value RT_current_thread_call_symbol_6(Value symbol, Value arg1, Value arg2, Valu
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
@@ -99,7 +99,7 @@ Value RT_current_thread_call_symbol(Value symbol, unsigned int numargs, Value ar
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return current_thread()->execute(function, numargs, args);
 }
 
@@ -107,16 +107,12 @@ inline Value thread_call_symbol_0(Thread * thread, Value symbol)
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return thread->execute(function);
 }
 
 Value RT_thread_call_symbol_0(Thread * thread, Value symbol)
 {
-//   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
-//   if (!function)
-//     return signal_lisp_error(new UndefinedFunction(symbol));
-//   return thread->execute(function);
   return thread_call_symbol_0(thread, symbol);
 }
 
@@ -124,7 +120,7 @@ inline Value thread_call_symbol_1(Thread * thread, Value symbol, Value arg)
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return thread->execute(function, arg);
 }
 
@@ -137,7 +133,7 @@ inline Value thread_call_symbol_2(Thread * thread, Value symbol, Value arg1, Val
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2);
 }
 
@@ -150,7 +146,7 @@ inline Value thread_call_symbol_3(Thread * thread, Value symbol, Value arg1, Val
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2, arg3);
 }
 
@@ -163,7 +159,7 @@ inline Value thread_call_symbol_4(Thread * thread, Value symbol, Value arg1, Val
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2, arg3, arg4);
 }
 
@@ -176,7 +172,7 @@ Value RT_thread_call_symbol_5(Thread * thread, Value symbol, Value arg1, Value a
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2, arg3, arg4, arg5);
 }
 
@@ -184,7 +180,7 @@ Value RT_thread_call_symbol_6(Thread * thread, Value symbol, Value arg1, Value a
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
@@ -192,7 +188,7 @@ Value RT_thread_call_symbol(Thread * thread, Value symbol, unsigned int numargs,
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return thread->execute(function, numargs, args);
 }
 
@@ -200,7 +196,7 @@ inline Value fast_call_symbol_0(Value symbol)
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return function->execute();
 }
 
@@ -213,7 +209,7 @@ inline Value fast_call_symbol_1(Value symbol, Value arg)
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return function->execute(arg);
 }
 
@@ -226,7 +222,7 @@ inline Value fast_call_symbol_2(Value symbol, Value arg1, Value arg2)
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return function->execute(arg1, arg2);
 }
 
@@ -239,7 +235,7 @@ inline Value fast_call_symbol_3(Value symbol, Value arg1, Value arg2, Value arg3
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return function->execute(arg1, arg2, arg3);
 }
 
@@ -252,7 +248,7 @@ inline Value fast_call_symbol_4(Value symbol, Value arg1, Value arg2, Value arg3
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return function->execute(arg1, arg2, arg3, arg4);
 }
 
@@ -265,7 +261,7 @@ Value RT_fast_call_symbol_5(Value symbol, Value arg1, Value arg2, Value arg3, Va
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return function->execute(arg1, arg2, arg3, arg4, arg5);
 }
 
@@ -273,7 +269,7 @@ Value RT_fast_call_symbol_6(Value symbol, Value arg1, Value arg2, Value arg3, Va
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return function->execute(arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
@@ -281,7 +277,7 @@ Value RT_fast_call_symbol(Value symbol, unsigned int numargs, Value args[])
 {
   Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
   if (!function)
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
   return function->execute(numargs, args);
 }
 
@@ -653,7 +649,7 @@ Value RT_symbol_function(Value symbol)
   if (op)
     return make_value(op);
   else
-    return signal_lisp_error(new UndefinedFunction(symbol));
+    return signal_undefined_function(symbol);
 }
 
 Value RT_symbol_setf_function(Value symbol)
@@ -662,7 +658,7 @@ Value RT_symbol_setf_function(Value symbol)
   if (value != NIL)
     return value;
   else
-    return signal_lisp_error(new UndefinedFunction(list2(S_setf, symbol)));
+    return signal_undefined_function(list2(S_setf, symbol));
 }
 
 extern Value make_compiled_closure(Value template_function, Value * data);
@@ -763,7 +759,7 @@ Value RT_thread_multiple_value_call(Thread * thread, Value callable, Value args[
     {
       Function * function = reinterpret_cast<Function *>(the_symbol(callable)->function());
       if (!function)
-        return signal_lisp_error(new UndefinedFunction(callable));
+        return signal_undefined_function(callable);
       return funcall(function, numargs, args, thread);
     }
   return signal_type_error(callable, S_function_designator);

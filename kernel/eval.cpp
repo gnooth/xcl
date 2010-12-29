@@ -271,7 +271,7 @@ Value eval(Value form, Environment * env, Thread * thread)
                 return eval_call(function, xcdr(form), env, thread);
             }
           else
-            return signal_lisp_error(new UndefinedFunction(op));
+            return signal_undefined_function(op);
         }
       if (consp(op) && xcar(op) == S_lambda)
         return eval_call(new Closure(op, env), xcdr(form), env, thread);

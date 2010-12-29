@@ -261,7 +261,7 @@ Value CL_funcall(unsigned int numargs, Value args[])
       if (sym->is_special_operator() || sym->is_macro()
           || (function = sym->function()) == NULL)
         {
-          return signal_lisp_error(new UndefinedFunction(args[0]));
+          return signal_undefined_function(args[0]);
         }
     }
   else if (functionp(args[0]))
@@ -503,7 +503,7 @@ Value CL_symbol_function(Value arg)
   TypedObject * op = check_symbol(arg)->function();
   if (op)
     return make_value(op);
-  return signal_lisp_error(new UndefinedFunction(arg));
+  return signal_undefined_function(arg);
 }
 
 // ### set-symbol-function
@@ -535,7 +535,7 @@ Value CL_fdefinition(Value name)
       if (value != NIL)
         return value;
       else
-        return signal_lisp_error(new UndefinedFunction(name));
+        return signal_undefined_function(name);
     }
   return signal_type_error(name, FUNCTION_NAME);
 }
@@ -1557,7 +1557,7 @@ TypedObject * coerce_to_function(Value value)
         }
       if (sym->is_macro() || sym->is_special_operator())
         {
-          signal_lisp_error(new UndefinedFunction(value));
+          signal_undefined_function(value);
           // not reached
           return NULL;
         }
@@ -1576,7 +1576,7 @@ TypedObject * coerce_to_function(Value value)
    }
   else if (consp(value) && xcar(value) == S_lambda)
     return new Closure(value, new Environment());
-  signal_lisp_error(new UndefinedFunction(value));
+  signal_undefined_function(value);
   // not reached
   return NULL;
 }
@@ -1863,7 +1863,7 @@ Value SYS_putf(Value plist, Value indicator, Value new_value)
         }
       list = CL_cddr(list);
     }
-  // Not found.
+  // not found
   return make_cons(indicator, make_cons(new_value, plist));
 }
 
