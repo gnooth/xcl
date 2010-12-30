@@ -2598,6 +2598,9 @@
 (defmethod documentation ((x t) doc-type)
   (%documentation x doc-type))
 
+(defmethod documentation ((x function) (doc-type (eql t)))
+  (%documentation x 'function))
+
 (defmethod (setf documentation) (new-value (x t) doc-type)
   (%set-documentation x doc-type new-value))
 
