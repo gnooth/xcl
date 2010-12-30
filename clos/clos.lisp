@@ -1165,10 +1165,10 @@
          (opts (getf plist ':optional-args))
          (auxs (getf plist ':auxiliary-args)))
     `(,@requireds
+      ,@(if opts `(&optional ,@opts) nil)
       ,@(if rv `(&rest ,rv) nil)
       ,@(if (or ks keysp aok) `(&key ,@ks) nil)
       ,@(if aok '(&allow-other-keys) nil)
-      ,@(if opts `(&optional ,@opts) nil)
       ,@(if auxs `(&aux ,@auxs) nil))))
 
 (defun extract-specializers (specialized-lambda-list)
