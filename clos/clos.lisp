@@ -1038,7 +1038,8 @@
                                                 method-class
                                                 method-combination
                                                 argument-precedence-order
-                                                documentation)
+                                                documentation
+                                                &allow-other-keys)
   (declare (ignore generic-function-class)) ; REVIEW
   (declare (type method-combination method-combination))
   (let ((gf (allocate-instance-standard-generic-function +standard-generic-function-layout+)))
