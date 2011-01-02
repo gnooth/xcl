@@ -2344,13 +2344,14 @@ Value CL_ash(Value arg1, Value arg2)
     }
   if (fixnump(arg1) && fixnump(arg2))
     {
-      const long shift = xlong(arg2);
-#ifdef __x86_64__
       const long n = xlong(arg1);
+      const long shift = xlong(arg2);
       if (shift > 0)
         {
+#ifdef __x86_64__
           if (n > 0 && n < 4294967296 && shift <= 32)
             return make_integer(n << shift);
+#endif
           if (shift < LOWTAG_BITS)
             return make_integer(n << shift);
         }
@@ -2362,20 +2363,6 @@ Value CL_ash(Value arg1, Value arg2)
           else
             return n >= 0 ? FIXNUM_ZERO : FIXNUM_MINUS_ONE;
         }
-#else
-      if (shift < LOWTAG_BITS && shift > -29)
-        {
-          const long n = xlong(arg1);
-          long result;
-          if (shift > 0)
-            result = n << shift;
-          else
-            result = n >> -shift;
-          return make_integer(result);
-        }
-      if (shift <= -29)
-        return xlong(arg1) >= 0 ? FIXNUM_ZERO : FIXNUM_MINUS_ONE;
-#endif
     }
   mpz_t z;
   if (fixnump(arg1))
