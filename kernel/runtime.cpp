@@ -985,6 +985,11 @@ unsigned long RT_unsigned_bignum_to_raw_ub64(Value value)
 }
 #endif
 
+Value RT_make_unsigned_integer(unsigned long n)
+{
+  return make_unsigned_integer(n);
+}
+
 void RT_progv_bind_vars(Thread * thread, Value symbols, Value values)
 {
   for (Value list = symbols; list != NIL; list = xcdr(list))
@@ -1399,6 +1404,9 @@ void initialize_runtime()
   ht_names->put(make_simple_string("RT_unsigned_bignum_to_raw_ub64"),
                 make_integer((unsigned long)RT_unsigned_bignum_to_raw_ub64));
 #endif
+
+  ht_names->put(make_simple_string("RT_make_unsigned_integer"),
+                make_integer((unsigned long)RT_make_unsigned_integer));
 
   ht_names->put(make_simple_string("RT_progv_bind_vars"),
                 make_integer((unsigned long)RT_progv_bind_vars));
