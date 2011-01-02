@@ -1,6 +1,6 @@
 // Primitive.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,8 +32,9 @@ Value Primitive::execute()
     {
       if (_minargs <= 0 && 0 <= _maxargs)
         {
+          Value args[0];
           Value (*code) (unsigned int, Value *) = (Value (*) (unsigned int, Value *)) _code;
-          return (*code)(0, NULL);
+          return (*code)(0, args);
         }
     }
   return wrong_number_of_arguments(operator_name(), 0, _minargs, _maxargs);
