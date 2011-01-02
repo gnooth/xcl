@@ -1,6 +1,6 @@
 // main.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -101,7 +101,7 @@ static void print_version()
 
 static void print_copyright()
 {
-  printf("Copyright (C) 2006-2010 Peter Graves\n");
+  printf("Copyright (C) 2006-2011 Peter Graves\n");
 }
 
 static void process_command_line_arguments(int argc, char * argv[])
