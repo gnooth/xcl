@@ -1,6 +1,6 @@
 // numbers.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -2350,7 +2350,7 @@ Value CL_ash(Value arg1, Value arg2)
         {
 #ifdef __x86_64__
           if (n > 0 && n < 4294967296 && shift <= 32)
-            return make_integer(n << shift);
+            return make_unsigned_integer(n << shift);
 #endif
           if (shift < LOWTAG_BITS)
             return make_integer(n << shift);

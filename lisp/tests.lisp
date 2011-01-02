@@ -771,6 +771,8 @@
 (aver (= (ash most-positive-fixnum 2) (* most-positive-fixnum 4)))
 (aver (= (ash most-positive-fixnum 3) (* most-positive-fixnum 8)))
 
+(aver (= (ash 4294967295 32) 18446744069414584320))
+
 ;; CHARPOS
 #+xcl
 (aver (= (progn (format t "this is a test~%") (charpos *standard-output*)) 0))
