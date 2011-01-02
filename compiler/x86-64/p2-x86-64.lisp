@@ -4620,12 +4620,10 @@
              (let ((reg (process-1-arg arg :register t))
                    (displacement (- +vector-capacity-offset+ +typed-object-lowtag+)))
                (cond ((reg64-p target)
-                      (mumble "p2-length reg64-p target reg = ~S~%" reg)
                       (inst :mov `(,displacement ,reg) target)
                       (clear-register-contents target)
                       (box-fixnum target))
                      (t
-                      (mumble "p2-length other target reg = ~S~%" reg)
                       (inst :mov `(,displacement ,reg) :rax)
                       (clear-register-contents :rax)
                       (box-fixnum :rax)
@@ -4904,6 +4902,18 @@
                         (label EXIT))))
                (move-result-to-target target))
              t)
+            ((and shift
+                  (> shift 0)
+                  (<= shift 32)
+                  (subtypep type1 '(unsigned-byte 32)))
+             (process-2-args args '(:rax :rcx) t)
+             (unbox-fixnum :rax)
+             (unbox-fixnum :rcx)
+             (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
+             (inst :mov :rax :rdi)
+             (emit-call "RT_make_unsigned_integer")
+             (move-result-to-target target)
+             t)
             (t
              (mumble "p2-ash not optimized 5 type1 = ~S type2 = ~S~%" type1 type2)
              nil)))))
@@ -5062,7 +5072,6 @@
                (cond ((and (memq arg2
                                  '#.(loop for i from 1 to 61 collect (1- (expt 2 i)))) ; REVIEW
                            (subtypep type1 `(integer 0 ,arg2)))
-                      (mumble "p2-logand new case 3 arg2 = ~S~%" arg2)
                       (process-1-arg arg1 :rax t)
                       (move-result-to-target target))
                      (t
