@@ -235,7 +235,7 @@
                        ((keywordp value)
                         (format t "; ~S" value))
                        ((symbolp value)
-                        (cond ((memq mnemonic '(:jmpq :callq))
+                        (cond ((memq mnemonic '(:jmpq :callq :call))
                                (format t "; ~S" value))
                               (t
                                (format t "; '~S" value))))
