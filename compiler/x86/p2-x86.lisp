@@ -3593,11 +3593,16 @@
                  ; handle division by zero
                  (inst :test :ecx :ecx)
                  (emit-jmp-short :z FULL-CALL))
-               (inst :xor :edx :edx)
-               (emit-bytes #xf7 #xf1) ; div %ecx
-               (clear-register-contents :eax :ecx :edx)
-               ;; remainder is in edx
-               (inst :mov :edx :eax)
+               (let ((divisor (integer-constant-value type2)))
+                 (case divisor
+                   ((2 4 8 16 32 64 128 256)
+                    (inst :and (fixnumize (1- divisor)) :eax))
+                   (t
+                    (inst :xor :edx :edx)
+                    (emit-bytes #xf7 #xf1) ; div %ecx
+                    (clear-register-contents :eax :ecx :edx)
+                    ;; remainder is in edx
+                    (inst :mov :edx :eax))))
                (unless (and (fixnum-type-p type1)
                             (fixnum-type-p type2)
                             (not (typep 0 type2)))
