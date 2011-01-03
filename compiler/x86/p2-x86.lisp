@@ -3612,7 +3612,8 @@
                  (inst :push :eax)
                  (emit-call-2 'mod :eax)
                  (label EXIT))
-               (move-result-to-target target)))
+               (move-result-to-target target))
+             t)
             (t
              (mumble "p2-mod full call type1 = ~S type2 = ~S~%" type1 type2)
              (process-2-args args :default t)

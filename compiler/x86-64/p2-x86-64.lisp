@@ -3885,21 +3885,47 @@
            (arg2 (%cadr args))
            (type1 (derive-type arg1))
            (type2 (derive-type arg2)))
-      (cond ((and (neq type1 :unknown)
-                  (neq type2 :unknown)
-                  (subtypep type1 '(and fixnum unsigned-byte))
-                  (subtypep type2 '(and fixnum unsigned-byte))
-                  (not (typep 0 type2)) ; don't divide by zero!
-                  )
-             (process-2-args args '(:rax :rcx) t)
-             (inst :xor :edx :edx)
-             (emit-bytes #x48 #xf7 #xf1) ; div %rcx
-             (clear-register-contents :rax :rcx :rdx)
-             ;; remainder is in rdx
-             (inst :mov :rdx :rax)
-             (move-result-to-target target)
+      (cond ((and (subtypep type1 'unsigned-byte)
+                  (subtypep type2 'unsigned-byte))
+             (let ((FULL-CALL (make-label))
+                   (EXIT (make-label)))
+               (process-2-args args '(:rax :rcx) t)
+               ;; number in rax, divisor in rcx
+               (unless (fixnum-type-p type1)
+                 (inst :test +fixnum-tag-mask+ :al)
+                 (emit-jmp-short :nz FULL-CALL))
+               (unless (fixnum-type-p type2)
+                 (inst :test +fixnum-tag-mask+ :cl)
+                 (emit-jmp-short :nz FULL-CALL))
+               ;; falling through, both args are fixnums
+               (unless (and (neq type2 :unknown)
+                            (not (typep 0 type2)))
+                 ; handle division by zero
+                 (inst :test :rcx :rcx)
+                 (emit-jmp-short :z FULL-CALL))
+               (let ((divisor (integer-constant-value type2)))
+                 (case divisor
+                   ((2 4 8 16 32 64 128 256)
+                    (inst :and (fixnumize (1- divisor)) :rax))
+                   (t
+                    (inst :xor :rdx :rdx)
+                    (emit-bytes #x48 #xf7 #xf1) ; div %rcx
+                    (clear-register-contents :rax :rcx :rdx)
+                    ;; remainder is in rdx
+                    (inst :mov :rdx :rax))))
+               (unless (and (fixnum-type-p type1)
+                            (fixnum-type-p type2)
+                            (not (typep 0 type2)))
+                 (emit-jmp-short t EXIT)
+                 (label FULL-CALL)
+                 (inst :mov :rcx :rsi)
+                 (inst :mov :rax :rdi)
+                 (emit-call 'mod)
+                 (label EXIT))
+               (move-result-to-target target))
              t)
             (t
+             (mumble "p2-mod full call type1 = ~S type2 = ~S~%" type1 type2)
              (process-2-args args :default t)
              (emit-call-2 'mod target)
              t)))))
