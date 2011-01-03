@@ -1,6 +1,6 @@
 ;;; p2-x86.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -3463,12 +3463,10 @@
                    (float-type-p type2))
                (cond ((and (subtypep type1 'DOUBLE-FLOAT)
                            (subtypep type2 'DOUBLE-FLOAT))
-                      (mumble "p2-two-arg-+ double-float case~%")
                       (process-2-args args :stack t)
                       (emit-call-2 '%double-float-+ target))
                      (t
                       ;; full call
-                      (mumble "p2-two-arg-+ float case~%")
                       (process-2-args args :stack t)
                       (emit-call-2 'two-arg-+ target))))
               (t
@@ -3679,7 +3677,9 @@
            (arg1 (%car args))
            (arg2 (%cadr args))
            type1
-           type2)
+           type2
+           result-type
+           shift)
       (when (null target)
         (p2 arg1 nil)
         (p2 arg2 nil)
@@ -3689,9 +3689,11 @@
         (p2-constant (ash arg1 arg2) target)
         (return-from p2-ash t))
       (setq type1 (derive-type arg1)
-            type2 (derive-type arg2))
+            type2 (derive-type arg2)
+            result-type (derive-type form)
+            shift (integer-constant-value type2))
       (cond ((and (integer-constant-value type1)
-                  (integer-constant-value type2))
+                  shift)
              (let ((must-clear-values nil))
                (unless (flushable arg1)
                  (p2 arg1 nil)
@@ -3703,10 +3705,9 @@
                    (setq must-clear-values t)))
                (when must-clear-values
                  (emit-clear-values)))
-             (p2-constant (ash (integer-constant-value type1) (integer-constant-value type2))
-                          target)
+             (p2-constant (ash (integer-constant-value type1) shift) target)
              t)
-            ((and (eql (integer-constant-value type2) 0)
+            ((and (eql shift 0)
                   (flushable arg2)
                   (or (integer-type-p type1)
                       (zerop *safety*)))
@@ -3725,80 +3726,84 @@
              t)
             ((and (fixnum-type-p type1)
                   (fixnum-type-p type2)
-                  (fixnum-type-p (derive-type form)))
-             (let ((shift (integer-constant-value type2)))
-               (cond ((and shift
-                           (< shift 0)
-                           (> shift -32))
-                      (cond ((flushable arg2)
-                             (process-1-arg arg1 :eax t)
-                             (inst :sar (- shift) :eax))
-                            (t
-                             (mumble "p2-ash new optimized case 2~%")
-                             (process-2-args args '(:eax :ecx) t)
-                             (unbox-fixnum :ecx)
-                             (emit-bytes #xf7 #xd9) ; neg %ecx
-                             (emit-bytes #xd3 #xf8) ; sar %cl,%eax
-                             ))
-                      ;; clear tag bits
-                      (inst :and #xfc :al)
-                      (move-result-to-target target)
-                      t)
-                     ((and shift
-                           (>= shift 0)
-                           (< shift 32))
-                      (cond ((flushable arg2)
-                             (mumble "p2-ash new optimized case 3~%")
-                             (process-1-arg arg1 :eax t)
-                             (unless (zerop shift)
-                               (inst :shl shift :eax))
-                             )
-                            (t
-                             (mumble "p2-ash new optimized case 4~%")
-                             (process-2-args args '(:eax :ecx) t)
-                             (unbox-fixnum :ecx)
-                             (emit-bytes #xd3 #xe0) ; shl %cl,%rax
-                             ))
-                      (move-result-to-target target)
-                      t)
-                     ;;                    (t
-                     ;;                     (mumble "p2-ash case 1, not optimized~%")
-                     ;;                     nil)
-                     )))
+                  (fixnum-type-p result-type))
+             (cond ((and shift
+                         (< shift 0)
+                         (> shift -32))
+                    (cond ((flushable arg2)
+                           (process-1-arg arg1 :eax t)
+                           (inst :sar (- shift) :eax)
+                           (clear-register-contents :eax))
+                          (t
+                           (process-2-args args '(:eax :ecx) t)
+                           (unbox-fixnum :ecx)
+                           (emit-bytes #xf7 #xd9) ; neg %ecx
+                           (emit-bytes #xd3 #xf8) ; sar %cl,%eax
+                           (clear-register-contents :eax :ecx)))
+                    ;; clear tag bits
+                    (inst :and #xfc :al)
+                    (move-result-to-target target)
+                    t)
+                   ((and shift
+                         (>= shift 0)
+                         (< shift 32))
+                    (cond ((flushable arg2)
+                           (process-1-arg arg1 :eax t)
+                           (unless (eql shift 0)
+                             (inst :shl shift :eax)
+                             (clear-register-contents :eax)))
+                          (t
+                           (process-2-args args '(:eax :ecx) t)
+                           (unbox-fixnum :ecx)
+                           (emit-bytes #xd3 #xe0) ; shl %cl,%rax
+                           (clear-register-contents :eax :ecx)))
+                    (move-result-to-target target)
+                    t)
+                   (t
+                    (mumble "p2-ash full call 1 type1 = ~S type2 = ~S result-type = ~S~%"
+                            type1 type2 result-type)
+                    (process-2-args args :stack t)
+                    (emit-call-2 'ash target)
+                    t)))
             ((and (subtypep type1 '(unsigned-byte 32))
                   (fixnum-type-p type2)
-                  (fixnum-type-p (derive-type form)))
-             (let ((shift (integer-constant-value type2)))
-               (cond ((and shift
-                           (< shift 0)
-                           (> shift -32)
-                           (flushable arg2))
-                      (let ((EXIT (make-label))
-                            (NOT-FIXNUM (make-label)))
-                        (process-1-arg arg1 :eax t)
-                        (inst :test +fixnum-tag-mask+ :al)
-                        (emit-jmp-short :nz NOT-FIXNUM)
-                        (cond ((> (- shift +fixnum-shift+) -32)
-                               (inst :shr (- (- shift +fixnum-shift+)) :eax))
-                              (t
-                               (unbox-fixnum :eax)
-                               (inst :shr (- shift) :eax)))
-                        (box-fixnum :eax)
-                        (emit-jmp-short t EXIT)
-                        (label NOT-FIXNUM)
-                        (inst :push :eax)
-                        (emit-call-1 "RT_unsigned_byte_to_raw_ub32" :eax)
-                        (inst :shr (- shift) :eax)
-                        (box-fixnum :eax)
-                        (label EXIT)
-                        (move-result-to-target target))
-                      t)
-                     (t
-                      (mumble "p2-ash unsigned-byte 32 case (not optimized)~%")
-                      nil))))
+                  (fixnum-type-p result-type))
+             (cond ((and shift
+                         (< shift 0)
+                         (> shift -32)
+                         (flushable arg2))
+                    (let ((EXIT (make-label))
+                          (NOT-FIXNUM (make-label)))
+                      (process-1-arg arg1 :eax t)
+                      (inst :test +fixnum-tag-mask+ :al)
+                      (emit-jmp-short :nz NOT-FIXNUM)
+                      (cond ((> (- shift +fixnum-shift+) -32)
+                             (inst :shr (- (- shift +fixnum-shift+)) :eax))
+                            (t
+                             (unbox-fixnum :eax)
+                             (inst :shr (- shift) :eax)))
+                      (box-fixnum :eax)
+                      (emit-jmp-short t EXIT)
+                      (label NOT-FIXNUM)
+                      (inst :push :eax)
+                      (emit-call-1 "RT_unsigned_byte_to_raw_ub32" :eax)
+                      (inst :shr (- shift) :eax)
+                      (box-fixnum :eax)
+                      (label EXIT)
+                      (move-result-to-target target))
+                    t)
+                   (t
+                    (mumble "p2-ash full call 2 type1 = ~S type2 = ~S result-type = ~S~%"
+                            type1 type2 result-type)
+                    (process-2-args args :stack t)
+                    (emit-call-2 'ash target)
+                    t)))
             (t
-             (mumble "p2-ash not optimized type1 = ~S type2 = ~S~%" type1 (derive-type arg2))
-             nil)))))
+             (mumble "p2-ash full call 3 type1 = ~S type2 = ~S result-type = ~S~%"
+                     type1 type2 result-type)
+             (process-2-args args :stack t)
+             (emit-call-2 'ash target)
+             t)))))
 
 (defun p2-logior/logxor (form target)
   (let ((args (cdr form)))

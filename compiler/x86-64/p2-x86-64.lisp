@@ -1,6 +1,6 @@
 ;;; p2-x86-64.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -4800,17 +4800,15 @@
                       (cond ((flushable arg2)
                              (process-1-arg arg1 :rax t)
                              (inst :sar (- shift) :rax)
-                             ;; zero out tag bits
-                             (inst :and #xfc :al)
                              (clear-register-contents :rax))
                             (t
                              (process-2-args args '(:rax :rcx) t)
                              (unbox-fixnum :rcx)
                              (inst :neg :rcx)
                              (emit-bytes #x48 #xd3 #xf8) ; sar %cl,%rax
-                             ;; zero out tag bits
-                             (inst :and #xfc :al)
                              (clear-register-contents :rax :rcx)))
+                      ;; clear tag bits
+                      (inst :and #xfc :al)
                       (move-result-to-target target)
                       t)
                      ((and shift
@@ -4853,8 +4851,7 @@
                   (flushable arg2))
              (p2 arg1 target)
              t)
-            ((and shift
-                  (eql shift 0))
+            ((eql shift 0)
              ;; zero shift general case
              (process-2-args args '(:rax :rcx) t)
              (inst :mov :rax :rdi)
@@ -4862,7 +4859,7 @@
              (move-result-to-target target)
              t)
             ((and shift
-                  (<= shift 0)
+                  (< shift 0)
                   (> shift -64))
              (let ((FULL-CALL (make-label))
                    (EXIT (make-label)))
