@@ -4745,6 +4745,7 @@
            (arg2 (%cadr args))
            type1
            type2
+           result-type
            shift)
       (when (null target)
         (p2 arg1 nil)
@@ -4756,6 +4757,7 @@
         (return-from p2-ash t))
       (setq type1 (derive-type arg1)
             type2 (derive-type arg2)
+            result-type (derive-type form)
             shift (integer-constant-value type2))
       (cond ((and (integer-constant-value type1)
                   shift)
@@ -4791,7 +4793,7 @@
              t)
             ((and (fixnum-type-p type1)
                   (fixnum-type-p type2)
-                  (fixnum-type-p (derive-type form)))
+                  (fixnum-type-p result-type))
                (cond ((and shift
                            (< shift 0)
                            (> shift -64))
@@ -4905,7 +4907,8 @@
             ((and shift
                   (> shift 0)
                   (<= shift 32)
-                  (subtypep type1 '(unsigned-byte 32)))
+                  (fixnum-type-p type1)
+                  (subtypep result-type '(unsigned-byte 64)))
              (process-2-args args '(:rax :rcx) t)
              (unbox-fixnum :rax)
              (unbox-fixnum :rcx)
