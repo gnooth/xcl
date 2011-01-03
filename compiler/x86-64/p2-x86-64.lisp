@@ -4844,8 +4844,12 @@
                       (move-result-to-target target)
                       t)
                      (t
-                      (mumble "p2-ash not optimized 2 type1 = ~S type2 = ~S~%" type1 type2)
-                      nil)))
+                      (mumble "p2-ash full call 1 type1 = ~S type2 = ~S result-type = ~S~%"
+                              type1 type2 result-type)
+                      (process-2-args args '(:rdi :rsi) t)
+                      (emit-call 'ash)
+                      (move-result-to-target target)
+                      t)))
             ((and (integer-type-p type1)
                   (eql shift 0)
                   (flushable arg2))
@@ -4915,8 +4919,12 @@
              (move-result-to-target target)
              t)
             (t
-             (mumble "p2-ash not optimized 5 type1 = ~S type2 = ~S~%" type1 type2)
-             nil)))))
+             (mumble "p2-ash full call 2 type1 = ~S type2 = ~S result-type = ~S~%"
+                     type1 type2 result-type)
+             (process-2-args args '(:rdi :rsi) t)
+             (emit-call 'ash)
+             (move-result-to-target target)
+             t)))))
 
 (defun p2-logior/logxor (form target)
   (let* ((args (cdr form)))
