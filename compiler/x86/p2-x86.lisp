@@ -2364,7 +2364,6 @@
     (let* ((args (%cdr form))
            (arg1 (%car args))
            (arg2 (%cadr args))
-           (arg3 (%caddr args))
            (type1 (derive-type arg1))
            (type2 (derive-type arg2))
            size)
@@ -2390,7 +2389,7 @@
              (inst :mov :ecx '(:eax))
              ;; return value
              (cond ((null target)
-                    ; nothing to do
+                    ;; nothing to do
                     )
                    ((reg32-p target)
                     (unless (eq target :ecx)
@@ -2401,15 +2400,15 @@
                    ((eq target :return)
                     (inst :mov :ecx :eax))
                    (t
-                    (compiler-unsupported "p2-svset target = ~S" target)))
-             t)
+                    (compiler-unsupported "p2-svset target = ~S" target))))
             ((and (neq type1 :unknown)
                   (subtypep type1 'SIMPLE-VECTOR))
-             (mumble "p2-svset known simple-vector case~%")
-             (p2-function-call `(%svset ,arg1 ,arg2 ,arg3) target)
-             t)
+             (process-3-args args :default t)
+             (emit-call-3 '%svset target))
             (t
-             nil)))))
+             (process-3-args args :default t)
+             (emit-call-3 'svset target))))
+    t))
 
 (defknown p2-symbol (t t) t)
 (defun p2-symbol (form target)
