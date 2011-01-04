@@ -2286,7 +2286,8 @@
            type2
            size)
       (cond ((eq type1 :unknown)
-             nil)
+             (process-2-args args :default t)
+             (emit-call-2 'vector-ref target))
             ((subtypep type1 'simple-vector)
              (p2-svref form target))
             ((subtypep type1 '(simple-array (unsigned-byte 8) (*)))
@@ -2295,7 +2296,6 @@
                              (integer-type-p type2)
                              (setq size (derive-vector-size type1))
                              (subtypep type2 `(INTEGER 0 ,(1- size)))))
-                    (mumble "p2-vector-ref new case~%")
                     (process-2-args args '(:eax :edx) t) ; vector in rax, index in rdx
                     (clear-register-contents :eax :edx)
                     (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :eax)
@@ -2307,16 +2307,17 @@
                     (inst :add :edx :eax)
                     (emit-bytes #x0f #xb6 #x00) ; movzbl (%eax),%eax
                     (box-fixnum :eax)
-                    (move-result-to-target target)
-                    t)
+                    (move-result-to-target target))
                    (t
-                    (p2 `(%VECTOR-REF ,@args) target)
-                    t)))
+                    (process-2-args args :default t)
+                    (emit-call-2 '%vector-ref target))))
             ((subtypep type1 'vector)
-             (p2 (list* '%VECTOR-REF args) target)
-             t)
+             (process-2-args args :default t)
+             (emit-call-2 '%vector-ref target))
             (t
-             nil)))))
+             (process-2-args args :default t)
+             (emit-call-2 'vector-ref target))))
+    t))
 
 (defknown p2-vector-set (t t) t)
 (defun p2-vector-set (form target)
