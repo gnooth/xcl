@@ -1488,7 +1488,7 @@
              nil)))))
 
 (defknown p2-sbit1 (t t) t)
-(defun p2-sbit1 (form target)
+(defun p2-sbit1 (form target) ; used for SBIT1 and %SBIT1
   (when (length-eql form 3)
     (let* ((op (%car form))
            (args (%cdr form))
@@ -1504,7 +1504,8 @@
              (emit-call-2 '%sbit1 target))
             (t
              (mumble "p2-sbit1 default case~%")
-             (p2-function-call form target))))
+             (process-2-args args :default t)
+             (emit-call-2 'sbit1 target))))
     t))
 
 (defknown p2-sxhash (t t) t)
