@@ -2393,12 +2393,13 @@
            (arg1 (%car args))
            (type1 (derive-type arg1)))
       (cond ((eq type1 :unknown)
-             nil)
+             (process-3-args args :default t)
+             (emit-call-3 'vector-set target))
             ((subtypep type1 'SIMPLE-VECTOR)
              (p2-svset form target))
             ((subtypep type1 '(simple-array (unsigned-byte 8) (*)))
              (cond ((zerop *safety*)
-                    ;; FIXME this trashes the first three argument registers, which breaks things
+                    ;; REVIEW this trashes the first three argument registers, which might break things
                     ;; if this code ends up in a trivial leaf function...
                     (process-3-args args '(:rdi :rsi :rdx) t) ; vector in rdi, index in rsi, new element in rdx
 
@@ -2426,18 +2427,17 @@
                     (when target
                       (inst :pop :rax))
 
-                    (move-result-to-target target)
-                    t)
+                    (move-result-to-target target))
                    (t
-                    (p2 (list* '%VECTOR-SET args) target)
-                    t)))
+                    (process-3-args args :default t)
+                    (emit-call-3 '%vector-set target))))
             ((subtypep type1 'vector)
-             (p2 (list* '%VECTOR-SET args) target)
-             t)
+             (process-3-args args :default t)
+             (emit-call-3 '%vector-set target))
             (t
-             (mumble "p2-vector-set full call type1 = ~S type2 = ~S~%"
-                     type1 (derive-type (%cadr args)))
-             nil)))))
+             (process-3-args args :default t)
+             (emit-call-3 'vector-set target))))
+    t))
 
 (defknown p2-svset (t t) t)
 (defun p2-svset (form target)
@@ -2445,7 +2445,6 @@
     (let* ((args (%cdr form))
            (arg1 (%car args))
            (arg2 (%cadr args))
-           (arg3 (%caddr args))
            (type1 (derive-type arg1))
            (type2 (derive-type arg2))
            size)
@@ -2473,17 +2472,17 @@
                       (unless (eq target reg3)
                         (inst :mov reg3 target)))
                      (target
-                      ;;                     (inst :mov :rcx :rax)
                       (unless (eq reg3 :rax)
                         (inst :mov reg3 :rax))
-                      (move-result-to-target target))))
-             t)
+                      (move-result-to-target target)))))
             ((and (neq type1 :unknown)
                   (subtypep type1 'SIMPLE-VECTOR))
-             (p2-function-call (list '%SVSET arg1 arg2 arg3) target)
-             t)
+             (process-3-args args :default t)
+             (emit-call-3 '%svset target))
             (t
-             nil)))))
+             (process-3-args args :default t)
+             (emit-call-3 'svset target))))
+    t))
 
 (defknown p2-symbol (symbol t) t)
 (defun p2-symbol (form target)
