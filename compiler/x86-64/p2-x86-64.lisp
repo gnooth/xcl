@@ -2327,10 +2327,11 @@
            (type1 (derive-type arg1))
            type2
            size)
-      (cond ((eq type1 :unknown)
-             (process-2-args args :default t)
-             (emit-call-2 'vector-ref target))
-            ((subtypep type1 'simple-vector)
+      (when (eq type1 :unknown)
+        (process-2-args args :default t)
+        (emit-call-2 (if (zerop *safety*) '%vector-ref 'vector-ref) target)
+        (return-from p2-vector-ref t))
+      (cond ((subtypep type1 'simple-vector)
              (p2-svref form target))
             ((subtypep type1 'simple-bit-vector)
              (p2 `(sbit1 ,arg1 ,arg2) target))
@@ -2343,11 +2344,9 @@
                     (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
                     (clear-register-contents :rax :rdx)
                     (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
-
                     ;; index is in rdx
                     ;; get rid of the fixnum shift
                     (unbox-fixnum :rdx)
-
                     (inst :add :rdx :rax)
                     (emit-bytes #x48 #x0f #xb6 #x00) ; movzbq (%rax),%rax
                     (box-fixnum :rax)
@@ -2364,13 +2363,11 @@
                     (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
                     (clear-register-contents :rax)
                     (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
-
                     ;; index is in rdx
                     ;; get rid of the fixnum shift and multiply by 4 to get the offset in bytes
                     ;; (emit-bytes #x48 #xc1 #xfa +fixnum-shift+)         ; sar $0x2,%rdx
                     ;; (emit-bytes #x48 #xc1 #xe2 #x02)                   ; shl $0x2,%rdx
                     ;; nothing to do!
-
                     (inst :add :rdx :rax)
                     (emit-bytes #x8b #x00) ; mov (%rax),%eax
                     (box-fixnum :rax)
@@ -2383,7 +2380,7 @@
              (emit-call-2 '%vector-ref target))
             (t
              (process-2-args args :default t)
-             (emit-call-2 'vector-ref target))))
+             (emit-call-2 (if (zerop *safety*) '%vector-ref 'vector-ref) target))))
     t))
 
 (defknown p2-vector-set (t t) t)
