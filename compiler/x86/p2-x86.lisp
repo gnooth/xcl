@@ -2326,14 +2326,37 @@
            (arg1 (%car args))
            (type1 (derive-type arg1)))
       (cond ((eq type1 :unknown)
-             nil)
+             (process-3-args args :default t)
+             (emit-call-3 'vector-set target))
             ((subtypep type1 'simple-vector)
              (p2-svset form target))
+            ((subtypep type1 '(simple-array (unsigned-byte 8) (*)))
+             (cond ((zerop *safety*)
+                    (process-3-args args '(:eax :edx :ecx) t) ; vector in eax, index in edx, new element in ecx
+                    (clear-register-contents :eax :edx :ecx)
+                    (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :eax)
+                    ;; index is in edx
+                    (unbox-fixnum :edx)
+                    (inst :add :edx :eax)
+                    ;; new element is in ecx
+                    (when target
+                      (inst :push :ecx)) ; save it for return value
+                    ;; unbox it and store it in the array
+                    (unbox-fixnum :ecx)
+                    (inst :mov :cl '(:eax))
+                    (when target
+                      (inst :pop :eax)) ; return value
+                    (move-result-to-target target))
+                   (t
+                    (process-3-args args :default t)
+                    (emit-call-3 '%vector-set target))))
             ((subtypep type1 'vector)
-             (p2 (list* '%VECTOR-SET args) target)
-             t)
+             (process-3-args args :default t)
+             (emit-call-3 '%vector-set target))
             (t
-             nil)))))
+             (process-3-args args :default t)
+             (emit-call-3 'vector-set target))))
+    t))
 
 (defknown p2-svset (t t) t)
 (defun p2-svset (form target)
