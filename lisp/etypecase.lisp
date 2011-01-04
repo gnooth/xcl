@@ -1,6 +1,6 @@
 ;;; etypecase.lisp
 ;;;
-;;; Copyright (C) 2007 Peter Graves
+;;; Copyright (C) 2007-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -33,8 +33,7 @@
                (setq typespec `(typep ,keyvar ',typespec))))
         (push `(,typespec ,@(or consequents '(nil))) cond-body)))
     (unless t-seen-p
-      (push `(t (error 'type-error
-                       :datum ,keyvar :expected-type '(or ,@(mapcar #'car clauses))))
+      (push `(t (%type-error ,keyvar '(or ,@(mapcar #'car clauses))))
             cond-body))
     `(let ((,keyvar ,keyform))
        (cond ,@(nreverse cond-body)))))
