@@ -1,6 +1,6 @@
 ;;; subtypep.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -278,12 +278,12 @@
              (unknown () `(return-from %subtypep (values nil nil))))
     (cond ((eq type1 type2)
            (yes))
+          ((eq type2 :unknown) ; DERIVE-TYPE returns :UNKNOWN if it can't do anything useful
+           (unknown))
           ((eq type2 t)
            (yes))
           ((eq type1 nil)
            (yes))
-          ((eq type2 :unknown) ; REVIEW
-           (unknown))
           ((eq type2 'ATOM)
            (if (memq type1 '(CONS LIST SEQUENCE)) (no) (yes))))
     (when (and (atom type1) (atom type2))
