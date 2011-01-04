@@ -2328,10 +2328,10 @@
            type2
            size)
       (cond ((eq type1 :unknown)
-             nil)
+             (process-2-args args :default t)
+             (emit-call-2 'vector-ref target))
             ((subtypep type1 'simple-vector)
-             (p2-svref form target)
-             t)
+             (p2-svref form target))
             ((subtypep type1 'simple-bit-vector)
              (p2 `(sbit1 ,arg1 ,arg2) target))
             ((subtypep type1 '(simple-array (unsigned-byte 8) (*)))
@@ -2351,11 +2351,10 @@
                     (inst :add :rdx :rax)
                     (emit-bytes #x48 #x0f #xb6 #x00) ; movzbq (%rax),%rax
                     (box-fixnum :rax)
-                    (move-result-to-target target)
-                    t)
+                    (move-result-to-target target))
                    (t
-                    (p2 `(%vector-ref ,arg1 ,arg2) target)
-                    t)))
+                    (process-2-args args :default t)
+                    (emit-call-2 '%vector-ref target))))
             ((subtypep type1 '(simple-array (unsigned-byte 32) (*)))
              (cond ((or (zerop *safety*)
                         (and (neq (setq type2 (derive-type arg2)) :unknown)
@@ -2375,16 +2374,17 @@
                     (inst :add :rdx :rax)
                     (emit-bytes #x8b #x00) ; mov (%rax),%eax
                     (box-fixnum :rax)
-                    (move-result-to-target target)
-                    t)
+                    (move-result-to-target target))
                    (t
-                    (p2 `(%VECTOR-REF ,arg1 ,arg2) target)
-                    t)))
+                    (process-2-args args :default t)
+                    (emit-call-2 '%vector-ref target))))
             ((subtypep type1 'vector)
-             (p2 `(%VECTOR-REF ,arg1 ,arg2) target)
-             t)
+             (process-2-args args :default t)
+             (emit-call-2 '%vector-ref target))
             (t
-             nil)))))
+             (process-2-args args :default t)
+             (emit-call-2 'vector-ref target))))
+    t))
 
 (defknown p2-vector-set (t t) t)
 (defun p2-vector-set (form target)
