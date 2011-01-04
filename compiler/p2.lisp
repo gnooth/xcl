@@ -1,6 +1,6 @@
 ;;; p2.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -601,11 +601,16 @@
            (arg2 (%cadr args))
            (type1 (derive-type arg1)))
       (cond ((subtypep type1 '(SIMPLE-ARRAY * (*)))
-             (mumble "p2-elt simple-array case type1 = ~S~%" type1)
              (p2 `(vector-ref ,arg1 ,arg2) target))
+            ((subtypep type1 'VECTOR)
+             (process-2-args args :default t)
+             (emit-call-2 '%vector-elt target))
+            ((subtypep type1 'LIST)
+             (process-2-args args :default t)
+             (emit-call-2 'list-elt target))
             (t
-             (mumble "p2-elt default case type1 = ~S~%" type1)
-             (p2-function-call form target))))
+             (process-2-args args :default t)
+             (emit-call-2 'elt target))))
     t))
 
 (defun eq-comparable-type-p (type)
