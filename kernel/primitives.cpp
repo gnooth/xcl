@@ -1,6 +1,6 @@
 // primitives.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1231,11 +1231,15 @@ Value SYS_builtin_typep(Value object, Value type_specifier)
   return typep(object, type_specifier) ? T : NIL;
 }
 
-// ### elt sequence index => object
-Value CL_elt(Value arg1, Value arg2)
+// ### %vector-elt vector index => object
+Value SYS_vector_elt_internal(Value arg1, Value arg2)
 {
-  if (vectorp(arg1))
-    return the_vector(arg1)->elt(check_index(arg2));
+  return the_vector(arg1)->elt(check_index(arg2));
+}
+
+// ### list-elt list index => object
+Value SYS_list_elt(Value arg1, Value arg2)
+{
   if (consp(arg1))
     {
       Value list = arg1;
@@ -1250,12 +1254,20 @@ Value CL_elt(Value arg1, Value arg2)
         return xcar(list);
       if (list == NIL)
         return bad_index(index, 0, length(arg1));
-      // Dotted list.
+      // dotted list
       return signal_type_error(list, S_list);
     }
   if (arg1 == NIL)
     return signal_type_error(arg1, S_cons);
   return signal_type_error(arg1, S_sequence);
+}
+
+// ### elt sequence index => object
+Value CL_elt(Value arg1, Value arg2)
+{
+  if (vectorp(arg1))
+    return SYS_vector_elt_internal(arg1, arg2);
+  return SYS_list_elt(arg1, arg2);
 }
 
 // ### setelt sequence index new-value => new-value

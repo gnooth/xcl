@@ -1,6 +1,6 @@
 // initialize.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -660,6 +660,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_list_delete_eq, SYS_list_delete_eq, 2, 2);
   ADD_PRIMITIVE(S_list_delete_eql, SYS_list_delete_eql, 2, 2);
   ADD_PRIMITIVE(S_list_directory, SYS_list_directory, 1, 1);
+  ADD_PRIMITIVE(S_list_elt, SYS_list_elt, 2, 2);
   ADD_PRIMITIVE(S_list_find_eq, SYS_list_find_eq, 2, 2);
   ADD_PRIMITIVE(S_list_find_eql, SYS_list_find_eql, 2, 2);
   ADD_PRIMITIVE(S_list_position_eql, SYS_list_position_eql, 2, 2);
@@ -927,6 +928,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_vector2, SYS_vector2, 2, 2);
   ADD_PRIMITIVE(S_vector3, SYS_vector3, 3, 3);
   ADD_PRIMITIVE(S_vector_data, SYS_vector_data, 1, 1);
+  ADD_PRIMITIVE(S_vector_elt_internal, SYS_vector_elt_internal, 2, 2);
   ADD_PRIMITIVE(S_vector_length, SYS_vector_length, 1, 1);
   ADD_PRIMITIVE(S_vector_length_internal, SYS_vector_length_internal, 1, 1);
   ADD_PRIMITIVE(S_vector_position_eql, SYS_vector_position_eql, 2, 2);

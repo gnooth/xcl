@@ -1,6 +1,6 @@
 // symdefs.hpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1254,6 +1254,7 @@ DEFINE_SYMBOL(list5, PACKAGE_SYS, "LIST5");
 DEFINE_SYMBOL(list_delete_eq, PACKAGE_SYS, "LIST-DELETE-EQ");
 DEFINE_SYMBOL(list_delete_eql, PACKAGE_SYS, "LIST-DELETE-EQL");
 DEFINE_SYMBOL(list_directory, PACKAGE_SYS, "LIST-DIRECTORY");
+DEFINE_SYMBOL(list_elt, PACKAGE_SYS, "LIST-ELT");
 DEFINE_SYMBOL(list_find_eq, PACKAGE_SYS, "LIST-FIND-EQ");
 DEFINE_SYMBOL(list_find_eql, PACKAGE_SYS, "LIST-FIND-EQL");
 DEFINE_SYMBOL(list_lowtag, PACKAGE_SYS, "+LIST-LOWTAG+");
@@ -1543,6 +1544,7 @@ DEFINE_SYMBOL(vector2, PACKAGE_SYS, "VECTOR2");
 DEFINE_SYMBOL(vector3, PACKAGE_SYS, "VECTOR3");
 DEFINE_SYMBOL(vector_capacity_offset, PACKAGE_SYS, "+VECTOR-CAPACITY-OFFSET+");
 DEFINE_SYMBOL(vector_data, PACKAGE_SYS, "VECTOR-DATA");
+DEFINE_SYMBOL(vector_elt_internal, PACKAGE_SYS, "%VECTOR-ELT");
 DEFINE_SYMBOL(vector_length, PACKAGE_SYS, "VECTOR-LENGTH");
 DEFINE_SYMBOL(vector_length_internal, PACKAGE_SYS, "%VECTOR-LENGTH");
 DEFINE_SYMBOL(vector_position_eql, PACKAGE_SYS, "VECTOR-POSITION-EQL");

@@ -1,6 +1,6 @@
 // Primitives.hpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -616,6 +616,7 @@ extern Value SYS_list5(Value arg1, Value arg2, Value arg3, Value arg4, Value arg
 extern Value SYS_list_delete_eq(Value item, Value list);
 extern Value SYS_list_delete_eql(Value item, Value list);
 extern Value SYS_list_directory(Value arg);
+extern Value SYS_list_elt(Value arg1, Value arg2);
 extern Value SYS_list_find_eq(Value item, Value list);
 extern Value SYS_list_find_eql(Value item, Value list);
 extern Value SYS_list_position_eql(Value arg1, Value arg2);
@@ -864,6 +865,7 @@ extern Value SYS_value_to_ub32(Value arg);
 extern Value SYS_vector2(Value arg1, Value arg2);
 extern Value SYS_vector3(Value arg1, Value arg2, Value arg3);
 extern Value SYS_vector_data(Value arg);
+extern Value SYS_vector_elt_internal(Value arg1, Value arg2);
 extern Value SYS_vector_length(Value arg);
 extern Value SYS_vector_length_internal(Value arg);
 extern Value SYS_vector_position_eql(Value arg1, Value arg2);
