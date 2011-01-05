@@ -1,6 +1,6 @@
 ;;; rebuild-lisp.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -104,53 +104,57 @@
                 zone
                 year)))))
 
-(defun rebuild-lisp ()
-  (clean)
+(defun rebuild-lisp (&key full)
+  (when full
+    (clean))
   (load-system-file "compiler/load-compiler.lisp")
   (with-compilation-unit ()
     (let ((*default-pathname-defaults* *xcl-home*))
-      (load (compile-file "lisp/precompiler.lisp"))
-      (load (compile-file "compiler/dump-form.lisp"))
-      (load (compile-file "lisp/instruction.lisp"))
-      (load (compile-file "lisp/local-variable-information.lisp"))
-      (load (compile-file "lisp/canonicalize-type.lisp"))
-      (load (compile-file "lisp/typep.lisp"))
-      (load (compile-file "lisp/print.lisp"))
-      (load (compile-file "lisp/dpb.lisp"))
-      (load (compile-file "lisp/member.lisp"))
-      (load (compile-file "lisp/mumble.lisp"))
-      #+x86
-      (load (compile-file "lisp/x86.lisp"))
-      #+x86-64
-      (load (compile-file "lisp/x86-64.lisp"))
-      (load (compile-file "compiler/derive-type.lisp"))
-      (load (compile-file "compiler/ir2-defs.lisp"))
-      (load (compile-file "compiler/p2.lisp"))
-      #+x86
-      (load (compile-file "compiler/x86/p2-x86.lisp"))
-      #+x86-64
-      (load (compile-file "compiler/x86-64/p2-x86-64.lisp"))
-      (load (compile-file "compiler/p3.lisp"))
-      #+x86
-      (load (compile-file "compiler/x86/p3-x86.lisp"))
-      #+x86-64
-      (load (compile-file "compiler/x86-64/p3-x86-64.lisp"))
-      (load (compile-file "compiler/assembler.lisp"))
-      #+x86
-      (load (compile-file "compiler/x86/asm-x86.lisp"))
-      #+x86-64
-      (load (compile-file "compiler/x86-64/asm-x86-64.lisp"))
-      (load (compile-file "compiler/known-functions.lisp"))
-      (load (compile-file "compiler/source-transforms.lisp"))
-      (load (compile-file "compiler/compiler.lisp"))
-      (load (compile-file "compiler/compile-file.lisp"))
-      (load (compile-file "lisp/backquote.lisp"))
-      (load (compile-file "lisp/find.lisp"))
-      (load (compile-file "lisp/coerce.lisp"))
-      (load (compile-file "lisp/delete.lisp"))
-      (load (compile-file "compiler/with-compilation-unit.lisp"))
-      (load (compile-file "lisp/subtypep.lisp"))
-      (load (compile-file "lisp/format.lisp")))
+      (dolist (filespec '("lisp/precompiler.lisp"
+                          "compiler/dump-form.lisp"
+                          "lisp/instruction.lisp"
+                          "lisp/local-variable-information.lisp"
+                          "lisp/canonicalize-type.lisp"
+                          "lisp/typep.lisp"
+                          "lisp/print.lisp"
+                          "lisp/dpb.lisp"
+                          "lisp/member.lisp"
+                          "lisp/mumble.lisp"
+                          #+x86
+                          "lisp/x86.lisp"
+                          #+x86-64
+                          "lisp/x86-64.lisp"
+                          "compiler/derive-type.lisp"
+                          "compiler/ir2-defs.lisp"
+                          "compiler/p2.lisp"
+                          #+x86
+                          "compiler/x86/p2-x86.lisp"
+                          #+x86-64
+                          "compiler/x86-64/p2-x86-64.lisp"
+                          "compiler/p3.lisp"
+                          #+x86
+                          "compiler/x86/p3-x86.lisp"
+                          #+x86-64
+                          "compiler/x86-64/p3-x86-64.lisp"
+                          "compiler/assembler.lisp"
+                          #+x86
+                          "compiler/x86/asm-x86.lisp"
+                          #+x86-64
+                          "compiler/x86-64/asm-x86-64.lisp"
+                          "compiler/known-functions.lisp"
+                          "compiler/source-transforms.lisp"
+                          "compiler/compiler.lisp"
+                          "compiler/compile-file.lisp"
+                          "lisp/backquote.lisp"
+                          "lisp/find.lisp"
+                          "lisp/coerce.lisp"
+                          "lisp/delete.lisp"
+                          "compiler/with-compilation-unit.lisp"
+                          "lisp/subtypep.lisp"
+                          "lisp/format.lisp"))
+        (let ((values (multiple-value-list (compile-file-if-needed filespec :force-compile full))))
+          (when (length-eql values 3)
+            (load (%car values))))))
     (let ((*default-pathname-defaults* (merge-pathnames "lisp/" *xcl-home*)))
       (dolist (filespec '("acos"
                           "acosh"
@@ -385,16 +389,16 @@
                           #+x86 "disasm-x86"
                           #+x86-64 "disasm-x86-64"
                           ))
-        (compile-file filespec)))
+        (compile-file-if-needed filespec :force-compile full)))
     (let ((*default-pathname-defaults* (merge-pathnames "compiler/" *xcl-home*)))
-      (compile-file "install-p2-handlers"))
+      (compile-file-if-needed "install-p2-handlers" :force-compile full))
     (let ((*default-pathname-defaults* (merge-pathnames "clos/" *xcl-home*)))
       (dolist (filespec '("initialize-classes"
                           "clos"
                           "define-method-combination"
                           "defclass"
                           "defmethod"))
-        (compile-file filespec)))
+        (compile-file-if-needed filespec :force-compile full)))
     (write-version)
     (write-build)
     t))
