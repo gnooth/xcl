@@ -1,6 +1,6 @@
 ;;; disasm-x86.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -592,6 +592,15 @@
                    (push absolute-address *labels*)
                    (setq length 2
                          mnemonic :jne
+                         operand1 (make-absolute-operand absolute-address))))
+                (#x77
+                 ;; jump short if above (CF=0 and ZF=0), 1-byte displacement relative to next instruction
+                 (let* ((displacement (mref-8-signed block-start (1+ offset)))
+                        (absolute-address (+ block-start offset 2 displacement)))
+                   (push (make-disassembly-block :start-address absolute-address) *blocks*)
+                   (push absolute-address *labels*)
+                   (setq length 2
+                         mnemonic :ja
                          operand1 (make-absolute-operand absolute-address))))
                 (#x78
                  ;; jump short if SF=1, 1-byte displacement relative to next instruction
