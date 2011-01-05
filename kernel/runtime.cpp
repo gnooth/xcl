@@ -1,6 +1,6 @@
 // runtime.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -990,6 +990,12 @@ Value RT_make_unsigned_integer(unsigned long n)
   return make_unsigned_integer(n);
 }
 
+Value RT_make_unsigned_bignum(unsigned long n)
+{
+  assert(n > (unsigned long)MOST_POSITIVE_FIXNUM);
+  return make_value(new Bignum(n));
+}
+
 void RT_progv_bind_vars(Thread * thread, Value symbols, Value values)
 {
   for (Value list = symbols; list != NIL; list = xcdr(list))
@@ -1407,6 +1413,9 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_make_unsigned_integer"),
                 make_integer((unsigned long)RT_make_unsigned_integer));
+
+  ht_names->put(make_simple_string("RT_make_unsigned_bignum"),
+                make_integer((unsigned long)RT_make_unsigned_bignum));
 
   ht_names->put(make_simple_string("RT_progv_bind_vars"),
                 make_integer((unsigned long)RT_progv_bind_vars));
