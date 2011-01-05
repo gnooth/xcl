@@ -2285,11 +2285,14 @@
            (type1 (derive-type arg1))
            type2
            size)
-      (cond ((eq type1 :unknown)
-             (process-2-args args :default t)
-             (emit-call-2 'vector-ref target))
-            ((subtypep type1 'simple-vector)
+      (when (eq type1 :unknown)
+        (process-2-args args :default t)
+        (emit-call-2 (if (zerop *safety*) '%vector-ref 'vector-ref) target)
+        (return-from p2-vector-ref t))
+      (cond ((subtypep type1 'simple-vector)
              (p2-svref form target))
+            ((subtypep type1 'simple-bit-vector)
+             (p2 `(sbit1 ,arg1 ,arg2) target))
             ((subtypep type1 '(simple-array (unsigned-byte 8) (*)))
              (cond ((or (zerop *safety*)
                         (and (neq (setq type2 (derive-type arg2)) :unknown)
@@ -2299,15 +2302,43 @@
                     (process-2-args args '(:eax :edx) t) ; vector in rax, index in rdx
                     (clear-register-contents :eax :edx)
                     (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :eax)
-
                     ;; index is in edx
-                    ;; get rid of the fixnum shift
                     (unbox-fixnum :edx)
-
                     (inst :add :edx :eax)
                     (emit-bytes #x0f #xb6 #x00) ; movzbl (%eax),%eax
                     (box-fixnum :eax)
                     (move-result-to-target target))
+                   (t
+                    (process-2-args args :default t)
+                    (emit-call-2 '%vector-ref target))))
+            ((subtypep type1 '(simple-array (unsigned-byte 32) (*)))
+             (cond ((or (zerop *safety*)
+                        (and (neq (setq type2 (derive-type arg2)) :unknown)
+                             (integer-type-p type2)
+                             (setq size (derive-vector-size type1))
+                             (subtypep type2 (list 'INTEGER 0 (1- size)))))
+                    (let ((BIGNUM (make-label))
+                          (EXIT (make-label)))
+                      (process-2-args args '(:eax :edx) t) ; vector in eax, index in edx
+                      (clear-register-contents :eax)
+                      (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :eax)
+                      ;; index is in edx
+                      ;; get rid of the fixnum shift and multiply by 4 to get the offset in bytes
+                      ;; (emit-bytes #xc1 #xfa +fixnum-shift+)         ; sar $0x2,%rdx
+                      ;; (emit-bytes #xc1 #xe2 #x02)                   ; shl $0x2,%rdx
+                      ;; nothing to do!
+                      (inst :add :edx :eax)
+                      (inst :mov '(:eax) :eax)
+                      (inst :cmp most-positive-fixnum :eax)
+                      (emit-jmp-short :a BIGNUM)
+                      (box-fixnum :eax)
+                      (label EXIT)
+                      (move-result-to-target target)
+                      (let ((*current-segment* :elsewhere))
+                        (label BIGNUM)
+                        (inst :push :eax)
+                        (emit-call-1 "RT_make_unsigned_bignum" :eax)
+                        (emit-jmp-short t EXIT))))
                    (t
                     (process-2-args args :default t)
                     (emit-call-2 '%vector-ref target))))
@@ -2316,7 +2347,7 @@
              (emit-call-2 '%vector-ref target))
             (t
              (process-2-args args :default t)
-             (emit-call-2 'vector-ref target))))
+             (emit-call-2 (if (zerop *safety*) '%vector-ref 'vector-ref) target))))
     t))
 
 (defknown p2-vector-set (t t) t)
