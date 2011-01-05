@@ -1,6 +1,6 @@
 ;;; compile-file.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -327,12 +327,13 @@
 
 (defun %compile-file (input-file output-file external-format)
   (declare (ignore external-format)) ; FIXME
-  (unless (or (and (probe-file input-file) (not (file-directory-p input-file)))
+  (unless (or (and (probe-file input-file)
+                   (not (file-directory-p input-file)))
               (pathname-type input-file))
     (let ((pathname (merge-pathnames (make-pathname :type "lisp") input-file)))
       (when (probe-file pathname)
-        (setf input-file pathname))))
-  (setf output-file (if output-file
+        (setq input-file pathname))))
+  (setq output-file (if output-file
                         (merge-pathnames output-file *default-pathname-defaults*)
                         (compile-file-pathname input-file)))
   (let* ((type (pathname-type output-file))
@@ -404,11 +405,16 @@
         :report (lambda (stream) (format stream "Skip compiling ~S" input-file))
         (return)))))
 
-;; From ABCL.
-(defun compile-file-if-needed (input-file &rest allargs &key force)
-  (setf input-file (truename input-file))
-  (cond (force
-         (remf allargs :force-compile)
+(defun compile-file-if-needed (input-file &rest allargs &key force-compile)
+  (unless (or (and (probe-file input-file)
+                   (not (file-directory-p input-file)))
+              (pathname-type input-file))
+    (let ((pathname (merge-pathnames (make-pathname :type "lisp") input-file)))
+      (when (probe-file pathname)
+        (setq input-file pathname))))
+  (setq input-file (truename input-file))
+  (remf allargs :force-compile)
+  (cond (force-compile
          (apply 'compile-file input-file allargs))
         (t
          (let* ((source-write-time (file-write-date input-file))
