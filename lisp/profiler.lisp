@@ -1,6 +1,6 @@
 ;;; profiler.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -116,7 +116,8 @@
                (push (make-profile-info key value) results))
              ht)
     (setq results (sort results #'> :key 'profile-info-count))
-    (format t "~2&Number of samples:     ~D~%" nsamples)
+    (format t "~2&XCL version:           ~A~%" (lisp-implementation-version))
+    (format t "~&Number of samples:     ~D~%" nsamples)
     (format t "~&Sample interval:       ~D millisecond~:P~2%" *sample-interval*)
     (format t "~&           Self        Cumul~%")
     (format t "~&      Count     %  Count     %    Function~%")
