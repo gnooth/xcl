@@ -1,6 +1,6 @@
 // require-type.cpp
 //
-// Copyright (C) 2007-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2007-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -148,6 +148,18 @@ Value SYS_require_vector(Value arg)
   if (vectorp(arg))
     return arg;
   return signal_type_error(arg, S_vector);
+}
+
+// ### require-unsigned-byte arg => arg
+Value SYS_require_unsigned_byte(Value arg)
+{
+  if (fixnump(arg))
+    if (arg >= 0)
+      return arg;
+  if (bignump(arg))
+    if (the_bignum(arg)->plusp())
+      return arg;
+  return signal_type_error(arg, S_unsigned_byte);
 }
 
 // ### require-ub32 arg => arg

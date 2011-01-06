@@ -721,6 +721,7 @@ extern Value SYS_require_string(Value arg);
 extern Value SYS_require_structure_type(Value object, Value type_name);
 extern Value SYS_require_symbol(Value arg);
 extern Value SYS_require_ub32(Value arg);
+extern Value SYS_require_unsigned_byte(Value arg);
 extern Value SYS_require_vector(Value arg);
 extern Value SYS_restart_function(Value arg);
 extern Value SYS_restart_interactive_function(Value arg);

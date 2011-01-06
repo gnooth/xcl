@@ -777,6 +777,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_require_structure_type, SYS_require_structure_type, 2, 2);
   ADD_PRIMITIVE(S_require_symbol, SYS_require_symbol, 1, 1);
   ADD_PRIMITIVE(S_require_ub32, SYS_require_ub32, 1, 1);
+  ADD_PRIMITIVE(S_require_unsigned_byte, SYS_require_unsigned_byte, 1, 1);
   ADD_PRIMITIVE(S_require_vector, SYS_require_vector, 1, 1);
   ADD_PRIMITIVE(S_reset, EXT_reset, 0, 0);
   ADD_PRIMITIVE(S_resolve, EXT_resolve, 1, 1);
