@@ -2477,7 +2477,7 @@ bool plusp(Value arg)
   switch (typecode)
     {
     case TYPECODE_FIXNUM:
-      return xlong(arg) > 0;
+      return arg > 0;
     case TYPECODE_BIGNUM:
       return the_bignum(arg)->plusp();
     case TYPECODE_RATIO:
@@ -2487,7 +2487,9 @@ bool plusp(Value arg)
     case TYPECODE_DOUBLE_FLOAT:
       return the_double_float(arg)->_d > 0;
     }
-  return signal_type_error(arg, S_real);
+  signal_type_error(arg, S_real);
+  // not reached
+  return false;
 }
 
 // ### plusp
@@ -2501,7 +2503,7 @@ bool minusp(Value arg)
   switch (typecode_of(arg))
     {
     case TYPECODE_FIXNUM:
-      return xlong(arg) < 0;
+      return arg < 0;
     case TYPECODE_BIGNUM:
       return the_bignum(arg)->minusp();
     case TYPECODE_RATIO:
@@ -2510,11 +2512,10 @@ bool minusp(Value arg)
       return the_single_float(arg)->_f < 0;
     case TYPECODE_DOUBLE_FLOAT:
       return the_double_float(arg)->_d < 0;
-    default:
-      signal_type_error(arg, S_real);
-      // not reached
-      return false;
     }
+  signal_type_error(arg, S_real);
+  // not reached
+  return false;
 }
 
 // ### minusp
