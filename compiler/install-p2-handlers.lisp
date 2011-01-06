@@ -1,6 +1,6 @@
 ;;; install-p2-handlers.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -139,6 +139,7 @@
 (install-p2-handler 'require-symbol             'p2-require-symbol)
 (install-p2-handler 'require-type               'p2-require-type)
 (install-p2-handler 'require-ub32               'p2-require-ub32)
+(install-p2-handler 'require-unsigned-byte      'p2-require-unsigned-byte)
 (install-p2-handler 'require-vector             'p2-require-vector)
 (install-p2-handler 'rest                       'p2-cdr)
 (install-p2-handler 'reverse                    'p2-reverse/nreverse)
