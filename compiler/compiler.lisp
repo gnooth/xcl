@@ -1,6 +1,6 @@
 ;;; compiler.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -1698,6 +1698,8 @@ for special variables."
                  (setq new-form `(require-keyword ,arg1)))
                 ((eq type 'STREAM)
                  (setq new-form `(require-stream ,arg1)))
+                ((eq type 'UNSIGNED-BYTE)
+                 (setq new-form `(require-unsigned-byte ,arg1)))
                 ((or (eq type 'BOOLEAN)
                      (equal type '(MEMBER T NIL))
                      (equal type '(MEMBER NIL T)))
@@ -1731,11 +1733,11 @@ for special variables."
                                                                  ,(integer-type-high type)))))))
                 ((subtypep type 'FUNCTION)
                  (setq new-form `(require-function ,arg1)))
-                ;; REVIEW on x86-64 this should be handled by the fixnum case
-                ((or (eq type '(UNSIGNED-BYTE 32))
-                     (equal type '(INTEGER 0 4294967295)))
-                 #+x86-64 (aver nil)
+                #+x86
+                ((equal type '(INTEGER 0 4294967295))
                  (setq new-form `(require-ub32 ,arg1)))
+                ((equal type '(INTEGER 0 *))
+                 (setq new-form `(require-unsigned-byte ,arg1)))
 ;;                 ((eq type 'NUMBER)
 ;;                  (setq new-form `(require-number ,arg1)))
 ;;                 ((eq type 'KEYWORD)
