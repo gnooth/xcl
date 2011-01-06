@@ -1,6 +1,6 @@
 ;;; known-functions.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -345,6 +345,7 @@
                 kernel-function-p
                 list-copy-seq
                 list-directory
+                list-elt
                 make-code-vector
                 mumble
                 package-external-symbols
@@ -387,6 +388,7 @@
                 value-to-ub64
                 vector-copy-seq
                 vector-data
+                vector-elt
                 vector-ref
                 vector-set
                 write-8-bits
