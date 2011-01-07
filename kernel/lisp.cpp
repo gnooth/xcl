@@ -1,6 +1,6 @@
 // lisp.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -71,9 +71,7 @@ Value SYS_interactive_eval(Value form)
 {
   Thread * const thread = current_thread();
   thread->set_symbol_value(S_minus, form);
-  Value result =
-    thread->execute(reinterpret_cast<Function *>(the_symbol(S_eval)->function()),
-                    form);
+  Value result = thread->execute(the_symbol(S_eval)->function(), form);
   thread->set_symbol_value(S_star_star_star,
                            thread->symbol_value(S_star_star));
   thread->set_symbol_value(S_star_star,
