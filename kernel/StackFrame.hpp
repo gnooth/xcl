@@ -1,6 +1,6 @@
 // StackFrame.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@ private:
   Value _arg6;
   Value * _args;
   unsigned int _numargs;
+  unsigned long * _sp;
 
 public:
   StackFrame()
@@ -64,6 +65,7 @@ public:
     _function = function;
     _args = NULL;
     _numargs = 0;
+    _sp = current_sp();
   }
 
   void initialize_1(TypedObject * function, Value arg)
@@ -71,6 +73,7 @@ public:
     _function = function;
     _arg1 = arg;
     _numargs = 1;
+    _sp = current_sp();
   }
 
   void initialize_2(TypedObject * function, Value arg1, Value arg2)
@@ -80,6 +83,7 @@ public:
     _arg2 = arg2;
     _args = NULL;
     _numargs = 2;
+    _sp = current_sp();
   }
 
   void initialize_3(TypedObject * function, Value arg1, Value arg2, Value arg3)
@@ -90,6 +94,7 @@ public:
     _arg3 = arg3;
     _args = NULL;
     _numargs = 3;
+    _sp = current_sp();
   }
 
   void initialize_4(TypedObject * function, Value arg1, Value arg2, Value arg3, Value arg4)
@@ -101,6 +106,7 @@ public:
     _arg4 = arg4;
     _args = NULL;
     _numargs = 4;
+    _sp = current_sp();
   }
 
   void initialize_5(TypedObject * function, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5)
@@ -113,6 +119,7 @@ public:
     _arg5 = arg5;
     _args = NULL;
     _numargs = 5;
+    _sp = current_sp();
   }
 
   void initialize_6(TypedObject * function, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5, Value arg6)
@@ -126,6 +133,7 @@ public:
     _arg6 = arg6;
     _args = NULL;
     _numargs = 6;
+    _sp = current_sp();
   }
 
   void initialize(TypedObject * function, unsigned int numargs, Value * args, Value * temp)
@@ -157,6 +165,7 @@ public:
         _args = NULL;
       }
     _numargs = numargs;
+    _sp = current_sp();
   }
 
   Value to_list();
