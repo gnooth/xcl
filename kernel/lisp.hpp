@@ -1,6 +1,6 @@
 // lisp.hpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -798,6 +798,16 @@ extern Thread * primordial_thread;
 
 // stack.cpp
 extern unsigned long * stack_top;
-extern unsigned long * __attribute__ ((noinline)) current_sp();
+
+inline unsigned long * __attribute__ ((always_inline)) current_sp()
+{
+  unsigned long * sp;
+#ifdef __x86_64__
+  asm volatile ("movq %%rsp,%0" : "=g" (sp));
+#else
+  asm volatile ("movl %%esp,%0" : "=g" (sp));
+#endif
+  return sp;
+}
 
 #endif // lisp.hpp

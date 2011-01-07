@@ -1,6 +1,6 @@
 // stack.cpp
 //
-// Copyright (C) 2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2010-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,19 +20,6 @@
 #include "primitives.hpp"
 
 unsigned long * stack_top;
-
-unsigned long * __attribute__ ((noinline)) current_sp()
-{
-  unsigned long * sp;
-
-#ifdef __x86_64__
-  asm volatile ("movq %%rsp,%0" : "=g" (sp));
-#else
-  asm volatile ("movl %%esp,%0" : "=g" (sp));
-#endif
-
-  return (unsigned long *) (((unsigned long) sp) + sizeof(unsigned long));
-}
 
 // ### current-stack-as-list
 Value SYS_current_stack_as_list()
