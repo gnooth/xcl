@@ -2316,7 +2316,7 @@ static BYTE * check_address(Value address)
   else if (bignump(address))
     {
       Bignum * b = the_bignum(address);
-      if (mpz_fits_uint_p (b->_z))
+      if (mpz_fits_ulong_p (b->_z))
         return reinterpret_cast<unsigned char *>(mpz_get_ui(b->_z));
     }
   signal_type_error(address, list3(S_integer, list1(FIXNUM_ZERO),
