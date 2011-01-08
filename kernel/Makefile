@@ -22,7 +22,8 @@ CC=g++
 
 DEBUG=no
 
-CFLAGS := -Wall -fno-exceptions -c
+# REVIEW -fno-omit-frame-pointer
+CFLAGS := -Wall -fno-exceptions -fno-omit-frame-pointer -c
 
 ifeq ($(DEBUG), yes)
   CFLAGS := $(CFLAGS) -g
@@ -117,6 +118,10 @@ ifeq ($(MACHINE_TYPE), x86_64)
 UnwindProtect.o : UnwindProtect.cpp
 	$(CC) $(CFLAGS) -mno-red-zone $<
 endif
+
+# REVIEW
+eval.o: eval.cpp
+	$(CC) $(CFLAGS) -fno-optimize-sibling-calls $<
 
 %.o : %.cpp
 	$(CC) $(CFLAGS) $<
