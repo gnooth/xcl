@@ -1120,7 +1120,9 @@ Value SYS_two_arg_plus(Value v1, Value v2)
         return make_value(new Complex(SYS_two_arg_plus(c->realpart(), v2), c->imagpart()));
       }
     default:
-      return signal_type_error(v1, S_number);
+      signal_type_error(v1, S_number);
+      // not reached
+      return 0;
     }
 }
 
