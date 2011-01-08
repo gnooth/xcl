@@ -104,6 +104,7 @@
 (defun apropos-command (arg)
   (when arg (apropos arg)))
 
+;; FIXME this no longer works as intended if (caar frames) is now the address
 (defun adjust-saved-backtrace ()
   (let ((frames *saved-backtrace*))
     (when (and (consp (car frames)) (eq (caar frames) 'BACKTRACE-AS-LIST))
@@ -115,7 +116,7 @@
       (setq *saved-backtrace* frames))))
 
 (defun backtrace-command (arg)
-  (adjust-saved-backtrace)
+;;   (adjust-saved-backtrace)
   (let* ((limit (or (and arg (ignore-errors (parse-integer arg)))
                     8))
          (frames *saved-backtrace*)
@@ -130,8 +131,30 @@
         (when (< n len)
           (format t "; ~D frames~%" len)
           (return)))
-      (ignore-errors (format t "~3D: ~S~%" n frame))
+;;       (ignore-errors (format t "~3D: ~S~%" n (cdr frame)))
+      (ignore-errors (format t "~3D: ~S [0x~X]~%" n (cdr frame) (car frame)))
       (incf n)))
+  (values))
+
+(defun bt2-command (arg)
+;;   (adjust-saved-backtrace)
+  (let* ((limit (or (and arg (ignore-errors (parse-integer arg)))
+                    most-positive-fixnum))
+;;          (frames *saved-backtrace*)
+         (frames (sys::bt2))
+         (len (length frames))
+         (frame-number 0)
+         (*print-pretty* t)
+         (*print-array* t)
+         (*print-structure* nil)
+         (*enable-autocompile* nil))
+    (dolist (frame frames)
+      (when (>= frame-number limit)
+        (when (< frame-number len)
+          (format t "; ~D frames~%" len)
+          (return)))
+      (sys::print-frame frame-number frame)
+      (incf frame-number)))
   (values))
 
 (defun error-command (ignored)
@@ -150,7 +173,9 @@
   (adjust-saved-backtrace)
   (let* ((n (or (and arg (ignore-errors (parse-integer arg)))
                 0))
-         (frame (nth n *saved-backtrace*)))
+;;          (frame (nth n *saved-backtrace*))
+         (frame (sys::nth-frame n))
+         )
     (when frame
       (format t "~S~%" frame)
       (setq *** **)
@@ -390,7 +415,8 @@
 
 (defparameter *command-table*
   '(("apropos" "ap" apropos-command "apropos")
-    ("bt" nil backtrace-command "backtrace n stack frames (default 8)")
+    ("b" nil bt2-command "backtrace n stack frames (default all)")
+;;     ("b" nil bt2-command "backtrace n stack frames (default all)")
     ("cd" nil cd-command "change default directory")
     ("cf" nil cf-command "compile file")
     ("cl" nil cl-command "compile and load file")
@@ -405,8 +431,8 @@
     ("frame" "fr" frame-command "set the value of cl:* to be frame n (default 0)")
     ("help" "he" help-command "show this help")
     ("history" "hi" history-command "show input history")
-    ("inspect" "in" inspect-command "inspect an object")
     ("istep" "i" istep-command "navigate within inspection of an object")
+    ("inspect" "in" inspect-command "inspect an object")
     ("ld" nil ld-command "load file")
     #-windows
     ("ls" nil ls-command "list directory")
@@ -440,7 +466,7 @@
             len (1- len)))
     (dolist (entry *command-table*)
       (when (or (string-equal string (entry-abbreviation entry))
-                (and (<= 2 len (length (entry-name entry)))
+                (and (<= 1 len (length (entry-name entry)))
                      (string-equal string (subseq (entry-name entry) 0 len))))
         (return (entry-command entry))))))
 

@@ -98,7 +98,7 @@
   (values))
 
 (defun process-samples ()
-  (sys::load-lisp-symbols)
+  (sys::load-lisp-names)
   (let ((ht (make-hash-table :test 'equal))
         (results nil)
         (nsamples (length *samples*))
