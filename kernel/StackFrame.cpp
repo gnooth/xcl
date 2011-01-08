@@ -1,6 +1,6 @@
 // StackFrame.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -50,7 +50,11 @@ Value StackFrame::to_list()
     {
       Value name = function()->operator_name();
       if (name != NULL_VALUE && name != NIL)
-        return make_cons(name, args);
+        {
+          Value frame = make_cons(name, args);
+          return make_cons(make_unsigned_integer((unsigned long)_sp), frame);
+        }
     }
-  return make_cons(make_value(function()), args);
+  Value frame = make_cons(make_value(function()), args);
+  return make_cons(make_unsigned_integer((unsigned long)_sp), frame);
 }
