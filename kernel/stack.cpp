@@ -36,3 +36,26 @@ Value SYS_current_stack_as_list()
     }
   return list;
 }
+
+inline unsigned long * __attribute__ ((always_inline)) current_bp()
+{
+  unsigned long * bp;
+#ifdef __x86_64__
+  asm volatile ("movq %%rsp,%0" : "=g" (bp));
+#else
+  asm volatile ("movl %%esp,%0" : "=g" (bp));
+#endif
+  return bp;
+}
+
+// ### current-bp
+Value SYS_current_bp()
+{
+  return make_unsigned_integer((unsigned long) current_bp());
+}
+
+// ### current-sp
+Value SYS_current_sp()
+{
+  return make_unsigned_integer((unsigned long) current_sp());
+}

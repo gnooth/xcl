@@ -507,6 +507,8 @@ extern Value SYS_conditionp(Value arg);
 extern Value SYS_copy_structure_slot_definition(Value arg);
 extern Value SYS_crash();
 extern Value SYS_create_new_file(Value namestring);
+extern Value SYS_current_bp();
+extern Value SYS_current_sp();
 extern Value SYS_current_stack_as_list();
 extern Value SYS_default_time_zone();
 extern Value SYS_defconstant_internal(Value name, Value initial_value);
