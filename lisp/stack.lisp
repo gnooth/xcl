@@ -20,9 +20,9 @@
 
 (defstruct syminfo address size name)
 
-(defvar *kernel-symbols* nil)
+(defvar *kernel-names* nil)
 
-(defvar *lisp-symbols* nil)
+(defvar *lisp-names* nil)
 
 (defvar *lisp-code-addresses*)
 
@@ -46,7 +46,7 @@
                                         :size size
                                         :name name)
                           symbols))))))))
-      (setq *kernel-symbols* symbols))))
+      (setq *kernel-names* symbols))))
 
 #+windows
 (defun load-kernel-symbols ()
@@ -82,14 +82,14 @@
                                            :size size
                                            :name name)
                              symbols)))))))))
-    (setq *kernel-symbols* (nreverse symbols))
+    (setq *kernel-names* (nreverse symbols))
     (let ((last-entry nil))
-      (dolist (this-entry *kernel-symbols*)
+      (dolist (this-entry *kernel-names*)
         (when (and last-entry
                    (null (syminfo-size last-entry)))
           (setf (syminfo-size last-entry) (- (syminfo-address this-entry) (syminfo-address last-entry))))
         (setq last-entry this-entry)))
-;;     (dolist (entry *kernel-symbols*)
+;;     (dolist (entry *kernel-names*)
 ;;       (format t "address = #x~X size = ~S name = |~A|~%"
 ;;               (syminfo-address entry)
 ;;               (syminfo-size entry)
@@ -172,7 +172,7 @@
             (process-symbol symbol))
           (dolist (symbol (package-internal-symbols package))
             (process-symbol symbol))))
-    (setq *lisp-symbols* (sort names #'< :key #'syminfo-address))))
+    (setq *lisp-names* (sort names #'< :key #'syminfo-address))))
 
 ;; only needed for debugging
 (defun dump-symbols (symbols)
@@ -180,9 +180,9 @@
     (format t "~X ~X ~S~%" (syminfo-address info) (syminfo-size info) (syminfo-name info))))
 
 (defun name-from-code-address (address)
-  (when (null *kernel-symbols*)
+  (when (null *kernel-names*)
     (load-kernel-symbols))
-  (dolist (info *kernel-symbols*)
+  (dolist (info *kernel-names*)
 ;;     (when (null (syminfo-size info))
 ;;       (format t "~A has no size information~%" (syminfo-name info)))
     (when (and (<= (syminfo-address info) address)
@@ -192,7 +192,7 @@
       (let ((lisp-name (gethash (syminfo-address info) *lisp-code-addresses*)))
         (return-from name-from-code-address (or lisp-name (syminfo-name info))))))
   ;; not a kernel address
-  (dolist (info *lisp-symbols*)
+  (dolist (info *lisp-names*)
     (when (> (syminfo-address info) address)
       (return nil))
     (when (and (syminfo-size info)
@@ -252,17 +252,17 @@
                   (return)))
               (decf i)))))))
 
-  #+x86-64
-  (dotimes (i (length *stack-entry-vector*))
-    (let* ((entry (aref *stack-entry-vector* i))
-           (contents (stack-entry-contents entry)))
-      (when (address-is-in-saved-stack contents)
-        (setf (stack-entry-flag entry) "**")
-;;         (d (stack-entry-contents entry))
-        (setf *bp* contents)
-        (return))))
+;;   #+x86-64
+;;   (dotimes (i (length *stack-entry-vector*))
+;;     (let* ((entry (aref *stack-entry-vector* i))
+;;            (contents (stack-entry-contents entry)))
+;;       (when (address-is-in-saved-stack contents)
+;;         (setf (stack-entry-flag entry) "**")
+;; ;;         (d (stack-entry-contents entry))
+;;         (setf *bp* contents)
+;;         (return))))
 
-  #+x86
+;;   #+x86
   (dotimes (i (length *stack-entry-vector*))
     (let* ((entry (aref *stack-entry-vector* i))
            (contents (stack-entry-contents entry)))
@@ -276,7 +276,6 @@
   )
 
 (defun print-saved-stack (&optional (limit most-positive-fixnum))
-  (load-lisp-names)
   (analyze-saved-stack)
   (let ((count 0))
 ;;     (dolist (entry (reverse *saved-stack*))
@@ -329,27 +328,6 @@
         (when (stack-entry-name entry)
           (return entry)))
       (incf i))))
-
-(defun d (bp)
-  (let* ((first-entry (aref *stack-entry-vector* 0))
-         (first-address (stack-entry-address first-entry)))
-    (loop
-      (format t "bp = 0x~X~%" bp)
-      (unless (address-is-in-saved-stack bp)
-        (return))
-      (let* ((i (/ (- bp first-address) +bytes-per-word+))
-             (entry (aref *stack-entry-vector* i)))
-        (format t "address = 0x~X contents = 0x~X~%"
-                (stack-entry-address entry)
-                (stack-entry-contents entry))
-        (let ((e (next-named-entry (stack-entry-address entry))))
-          (format t "address = 0x~X name = ~A"
-                  (stack-entry-address e)
-                  (stack-entry-name e))
-          (when (stack-entry-args e)
-            (format t " args = ~S" (stack-entry-args e)))
-          (terpri))
-        (setq bp (stack-entry-contents entry))))))
 
 (defun bt2 ()
   (analyze-saved-stack)
