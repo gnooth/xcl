@@ -1,6 +1,6 @@
 // conditions.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -202,7 +202,9 @@ Value CL_simple_condition_format_arguments(Value arg)
 
 Value signal_lisp_error(Condition * condition)
 {
-  return current_thread()->execute(the_symbol(S_error)->function(), make_value(condition));
+  current_thread()->execute(the_symbol(S_error)->function(), make_value(condition));
+  // not reached
+  return 0;
 }
 
 Value signal_lisp_error(const char * s)
