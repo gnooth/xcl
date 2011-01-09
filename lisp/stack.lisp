@@ -252,6 +252,7 @@
                   (return)))
               (decf i)))))))
 
+  #+x86-64
   (dotimes (i (length *stack-entry-vector*))
     (let* ((entry (aref *stack-entry-vector* i))
            (contents (stack-entry-contents entry)))
@@ -260,6 +261,18 @@
 ;;         (d (stack-entry-contents entry))
         (setf *bp* contents)
         (return))))
+
+  #+x86
+  (dotimes (i (length *stack-entry-vector*))
+    (let* ((entry (aref *stack-entry-vector* i))
+           (contents (stack-entry-contents entry)))
+      (when (address-is-in-saved-stack contents)
+        (let ((next-entry (if (< i (1- (length *stack-entry-vector*)))
+                              (aref *stack-entry-vector* (1+ i)))))
+          (when (eq (stack-entry-name next-entry) 'INVOKE-DEBUGGER)
+            (setf (stack-entry-flag entry) "**")
+            (setf *bp* contents)
+            (return))))))
   )
 
 (defun print-saved-stack (&optional (limit most-positive-fixnum))
@@ -283,11 +296,15 @@
                 (if name name "")
                 (if args args ""))
         #+x86
-        (format t "0x~8,'0X 0x~8,'0X ~A~%"
-                address
-                contents
-                (if flag flag "")
-                (if name name ""))
+        (progn
+          (let ((str (when args
+                       (format nil "args = ~S" args))))
+            (format t "0x~8,'0X 0x~8,'0X ~A~A ~A~%"
+                    address
+                    contents
+                    (if flag flag "")
+                    (if name name "")
+                    (if str str ""))))
         )
       (incf count)
       (when (>= count limit)
