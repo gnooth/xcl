@@ -270,6 +270,12 @@
                              :mnemonic :not
                              :operand1 (make-register-operand (register rm))))
           ((and (eql mod #b11)
+                (eql reg 3))
+           (make-instruction :start start
+                             :length 2
+                             :mnemonic :negate
+                             :operand1 (make-register-operand (register rm))))
+          ((and (eql mod #b11)
                 (eql reg 6))
            (make-instruction :start start
                              :length 2
