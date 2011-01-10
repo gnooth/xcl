@@ -665,6 +665,7 @@ extern Value SYS_maybe_load_system_file(Value arg);
 extern Value SYS_member_internal(Value item, Value list, Value key, Value test,
                                  Value test_not);
 extern Value SYS_mkdir(Value arg);
+extern Value SYS_negate(Value arg);
 extern Value SYS_not_equals_2(Value arg1, Value arg2);
 extern Value SYS_nstring_capitalize_internal(Value arg1, Value arg2, Value arg3);
 extern Value SYS_nstring_downcase_internal(Value arg1, Value arg2, Value arg3);

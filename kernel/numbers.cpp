@@ -1278,6 +1278,32 @@ Value CL_add(unsigned int numargs, Value args[])
     }
 }
 
+// ### negate
+Value SYS_negate(Value arg)
+{
+  if (fixnump(arg))
+    {
+      long n = xlong(arg);
+      if (n == MOST_NEGATIVE_FIXNUM)
+        return make_integer(-n);
+      else
+        return make_fixnum(-n);
+    }
+  if (bignump(arg))
+    return the_bignum(arg)->negate();
+  if (ratiop(arg))
+    return the_ratio(arg)->negate();
+  if (single_float_p(arg))
+    return the_single_float(arg)->negate();
+  if (double_float_p(arg))
+    return the_double_float(arg)->negate();
+  if (complexp(arg))
+    return the_complex(arg)->negate();
+  signal_type_error(arg, S_number);
+  // not reached
+  return 0;
+}
+
 // ### -
 Value CL_subtract(unsigned int numargs, Value args[])
 {
@@ -1286,27 +1312,7 @@ Value CL_subtract(unsigned int numargs, Value args[])
     case 0:
       return wrong_number_of_arguments(S_minus, 0, 1, -1);
     case 1:
-      {
-        if (fixnump(args[0]))
-          {
-            long n = xlong(args[0]);
-            if (n == MOST_NEGATIVE_FIXNUM)
-              return make_integer(-n);
-            else
-              return make_fixnum(-n);
-          }
-        if (bignump(args[0]))
-          return the_bignum(args[0])->negate();
-        if (ratiop(args[0]))
-          return the_ratio(args[0])->negate();
-        if (single_float_p(args[0]))
-          return the_single_float(args[0])->negate();
-        if (double_float_p(args[0]))
-          return the_double_float(args[0])->negate();
-        if (complexp(args[0]))
-          return the_complex(args[0])->negate();
-        return signal_type_error(args[0], S_number);
-      }
+      return SYS_negate(args[0]);
     case 2:
       return SYS_two_arg_minus(args[0], args[1]);
     default:

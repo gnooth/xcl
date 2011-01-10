@@ -717,6 +717,7 @@ void initialize_lisp()
 #endif
   ADD_PRIMITIVE(S_mref_8, SYS_mref_8, 2, 2);
   ADD_PRIMITIVE(S_mref_8_signed, SYS_mref_8_signed, 2, 2);
+  ADD_PRIMITIVE(S_negate, SYS_negate, 1, 1);
   ADD_PRIMITIVE(S_neq, EXT_neq, 2, 2);
   ADD_PRIMITIVE(S_not_equals_2, SYS_not_equals_2, 2, 2);
   ADD_PRIMITIVE(S_nstring_capitalize_internal, SYS_nstring_capitalize_internal, 3, 3);

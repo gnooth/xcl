@@ -348,6 +348,7 @@
                 list-elt
                 make-code-vector
                 mumble
+                negate
                 package-external-symbols
                 package-internal-symbols
                 package-symbols
