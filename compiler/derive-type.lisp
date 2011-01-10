@@ -1,6 +1,6 @@
 ;;; derive-type.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -650,6 +650,10 @@
             (setq result-type (derive-type last-subform))))))
     result-type))
 
+(defun derive-type-m-v-l (form)
+  (declare (ignore form))
+  'LIST)
+
 (defun derive-type-progn (form)
   (let* ((body (cdr form))
          (last-subform (car (last body))))
@@ -737,6 +741,7 @@
 (install-derive-type-handler 'logxor                 'derive-type-logior/logxor)
 (install-derive-type-handler 'make-array             'derive-type-make-array)
 (install-derive-type-handler 'make-simple-vector     'derive-type-make-simple-vector)
+(install-derive-type-handler 'multiple-value-list    'derive-type-m-v-l)
 (install-derive-type-handler 'nreverse               'derive-type-reverse/nreverse)
 (install-derive-type-handler 'progn                  'derive-type-progn)
 (install-derive-type-handler 'quote                  'derive-type-quote)
