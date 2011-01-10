@@ -70,6 +70,8 @@
 
 (load-system-file "compiler/source-transforms")
 
+(load-system-file "compiler/policy")
+
 (load-system-file "compiler/compiler")
 
 ;; (dolist (sym '(allocate-instance

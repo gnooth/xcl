@@ -2380,12 +2380,6 @@ for special variables."
                                             (operand2 instruction))))
        (make-instruction :bytes (length asm:*output*) (coerce-vector-to-list asm:*output*))))))
 
-(defknown use-fast-call-p () t)
-(defun use-fast-call-p ()
-  (if *force-full-calls*
-      nil
-      (> *speed* *debug*)))
-
 (defun p1-lambda-list (lambda-list compiland)
   (multiple-value-bind (required optional restp rest keyp keys allowp auxp aux)
       (parse-lambda-list lambda-list)

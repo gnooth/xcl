@@ -143,6 +143,7 @@
                           "compiler/x86-64/asm-x86-64.lisp"
                           "compiler/known-functions.lisp"
                           "compiler/source-transforms.lisp"
+                          "compiler/policy.lisp"
                           "compiler/compiler.lisp"
                           "compiler/compile-file.lisp"
                           "lisp/backquote.lisp"
