@@ -53,7 +53,7 @@
         (t
          (let ((op (%car form)))
            (cond ((special-operator-p op)
-                  (cond ((memq op '(FUNCTION GO QUOTE SETQ))
+                  (cond ((memq op '(FUNCTION GO QUOTE SETQ MULTIPLE-VALUE-LIST))
                          t)
                         ((eq op 'IF)
                          (and (single-valued-p (third form))
