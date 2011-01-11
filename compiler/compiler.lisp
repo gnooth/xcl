@@ -2560,6 +2560,7 @@ for special variables."
     (setf (var-register-worthiness var) 0)
     (setf (var-register var) nil))
   (clrhash (compiland-common-labels compiland))
+  (setf (compiland-constants compiland) nil)
   (clear-register-contents)
   (clear-constraints)
   (p2-trivial-function-prolog compiland)
