@@ -2533,9 +2533,9 @@
            (p2 arg2 reg2))
           (t
            (p2 arg1 :stack)
-           (inst :sub +bytes-per-word+ :rsp) ; align stack
+;;            (inst :sub +bytes-per-word+ :rsp) ; align stack
            (p2 arg2 reg2)
-           (inst :add +bytes-per-word+ :rsp) ; align stack
+;;            (inst :add +bytes-per-word+ :rsp) ; align stack
            (when clear-values-p
              (unless (and (single-valued-p arg1)
                           (single-valued-p arg2))
