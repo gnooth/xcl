@@ -4860,7 +4860,7 @@
                             (t
                              (process-2-args args '(:rax :rcx) t)
                              (unbox-fixnum :rcx)
-                             (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
+                             (inst :shl :cl :rax)
                              (clear-register-contents :rax :rcx)))
                       (move-result-to-target target)
                       t)
@@ -4868,7 +4868,7 @@
                       (process-2-args args '(:rax :rcx) t)
                       (unbox-fixnum :rcx)
                       (inst :neg :rcx)
-                      (emit-bytes #x48 #xd3 #xf8) ; sar %cl,%rax
+                      (inst :sar :cl :rax)
                       ;; zero out tag bits
                       (inst :and #xfc :al)
                       (clear-register-contents :rax)
@@ -4877,7 +4877,7 @@
                      ((subtypep type2 '(INTEGER 0 63))
                       (process-2-args args '(:rax :rcx) t)
                       (unbox-fixnum :rcx)
-                      (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
+                      (inst :shl :cl :rax)
                       (clear-register-contents :rax)
                       (move-result-to-target target)
                       t)
@@ -4951,10 +4951,53 @@
              (process-2-args args '(:rax :rcx) t)
              (unbox-fixnum :rax)
              (unbox-fixnum :rcx)
-             (emit-bytes #x48 #xd3 #xe0) ; shl %cl,%rax
+             (inst :shl :cl :rax)
              (inst :mov :rax :rdi)
              (emit-call "RT_make_unsigned_integer")
              (move-result-to-target target)
+             t)
+            ((and (subtypep type1 'unsigned-byte)
+                  (subtypep type2 '(integer -31 31)) ; REVIEW
+                  (subtypep result-type '(unsigned-byte 64)))
+             (let ((FULL-CALL (make-label))
+                   (RIGHT-SHIFT (make-label))
+                   (BIGNUM (make-label))
+                   (EXIT (make-label)))
+               (let ((*current-segment* :elsewhere))
+                 (label BIGNUM)
+                 (inst :mov :rax :rdi)
+                 (emit-call "RT_make_unsigned_bignum")
+                 (emit-jmp-short t EXIT)
+                 (unless (fixnum-type-p type1)
+                   (label FULL-CALL)
+                   (emit-call 'ash))
+                 (emit-jmp-short t EXIT))
+               (process-2-args args '(:rax :rcx) t)
+               (clear-register-contents :rax :rcx :rdi :rsi :rdx)
+               ;; save boxed args in case we need to do a full call
+               (inst :mov :rax :rdi)
+               (inst :mov :rcx :rsi)
+               (unless (fixnum-type-p type1)
+                 (inst :test +fixnum-tag-mask+ :al)
+                 (emit-jmp-short :nz FULL-CALL))
+               (unbox-fixnum :rcx)
+               (unbox-fixnum :rax)
+               (inst :test :rcx :rcx)
+               (emit-jmp-short :s RIGHT-SHIFT)
+               ;; left shift
+               (inst :shl :cl :rax)
+               (inst :mov (ldb (byte 64 0) (lognot most-positive-fixnum)) :rdx)
+               (inst :test :rax :rdx)
+               (emit-jmp-short :nz BIGNUM)
+               (box-fixnum :rax)
+               (emit-jmp-short t EXIT)
+               (label RIGHT-SHIFT)
+               (inst :neg :rcx)
+               (inst :sar :cl :rax)
+               ;; if number was a fixnum and shift is negative, result must be a fixnum
+               (box-fixnum :rax)
+               (label EXIT)
+               (move-result-to-target target))
              t)
             (t
              (mumble "p2-ash full call 2 type1 = ~S type2 = ~S result-type = ~S~%"
