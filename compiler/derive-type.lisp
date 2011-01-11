@@ -393,6 +393,11 @@
                  ;; negative (or zero) second argument
                  (setq result-type (list 'INTEGER
                                          (ash low1 low2)
+                                         (ash high1 high2))))
+                ((and (subtypep type1 '(unsigned-byte 32))
+                      (subtypep type2 '(INTEGER -31 31)))
+                 (setq result-type (list 'INTEGER
+                                         (ash low1 low2)
                                          (ash high1 high2))))))))
 ;;     (format t "derive-type-ash result-type = ~S~%" result-type)
     result-type))
