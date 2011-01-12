@@ -2551,6 +2551,7 @@ for special variables."
          (<= arity 6)
          (null *closure-vars*))))
 
+#+nil
 (defun repeat-p2 (compiland)
   (setq *code* nil
         *main* nil
@@ -2629,6 +2630,7 @@ for special variables."
 
 ;;     (dump-code) ; IR2
 
+    #+nil
     (when (and (trivial-p compiland)
                (not (compiland-child-p compiland))
                (not (compiland-needs-thread-var-p compiland)))
