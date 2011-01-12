@@ -140,10 +140,10 @@ include $(OBJS:.o=.d)
 
 libxcl.so: xcl_home.h $(LIBOBJS) $(LIBS)
 # 	g++ -shared -Wl,-soname,libxcl.so -o libxcl.so $(LIBOBJS) $(LIBS)
-	g++ -shared -o libxcl.so $(LIBOBJS) $(LIBS)
+	$(CC) -shared -o libxcl.so $(LIBOBJS) $(LIBS)
 
 xcl.dll: xcl_home.h $(LIBOBJS) $(LIBS)
-	g++ -shared -o xcl.dll $(LIBOBJS) $(LIBS)
+	$(CC) -shared -o xcl.dll $(LIBOBJS) $(LIBS)
 
 ifeq ($(PLATFORM), mingw)
   EXE := xcl.exe
@@ -154,7 +154,7 @@ endif
 
 .PHONY: static
 static: xcl_home.h $(OBJS) $(LIBS)
-	g++ $(LDOPTS) $(OBJS) $(LIBS) -o ../$(EXE)
+	$(CC) $(LDOPTS) $(OBJS) $(LIBS) -o ../$(EXE)
 	nm -C -n -S ../$(EXE) | grep " [TtWw] " > xcl.nm
 	date > ../build
 
