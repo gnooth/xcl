@@ -3144,6 +3144,18 @@
     (declare (type compiland compiland))
     (declare (type local-function local-function))
     (aver thread-register)
+
+    (when (and (<= 0 numargs 4)
+               (local-function-callable-name local-function)
+               (eql (compiland-arity (local-function-compiland local-function)) numargs))
+      (mumble "p2-local-function-call new case~%")
+      (when args
+        (process-args args +call-argument-registers+ use-fast-call-p))
+      (emit-call (local-function-callable-name local-function))
+      (pushnew (local-function-callable-name local-function) (compiland-constants compiland) :test 'eq)
+      (move-result-to-target target)
+      (return-from p2-local-function-call t))
+
     (cond ((<= 0 numargs 4)
            (cond (use-fast-call-p
                   (setq op-register   (first  +call-argument-registers+)) ; rdi
