@@ -3158,14 +3158,11 @@
            (cond ((local-function-callable-name local-function)
                   ;; COMPILE-FILE, no closure vars
                   (mumble "p2-local-function-call local-function-callable-name case~%")
+                  (when args
+                    (process-args args arg-registers use-fast-call-p))
                   (emit-move-function-to-register (local-function-callable-name local-function)
                                                   op-register)
-                  (clear-register-contents op-register)
-                  (when args
-                    (inst :push op-register)
-                    (process-args args arg-registers use-fast-call-p)
-                    (inst :pop op-register)
-                    (clear-register-contents op-register)))
+                  (clear-register-contents op-register))
                  ((local-function-function local-function)
                   ;; COMPILE, no closure vars
                   (mumble "p2-local-function-call local-function-function case~%")
@@ -3184,7 +3181,7 @@
           ((eql numargs 5)
            (p2-local-function-call-5 op args target))
           (t
-           ;; more than 4 arguments
+           ;; more than 5 arguments
            (compiler-unsupported "P2-LOCAL-FUNCTION-CALL numargs = ~D not supported" numargs)))))
 
 (defknown p2-local-function-call-5 (t t t) t)
@@ -6072,9 +6069,9 @@
                  (inst :mov :rsp :rcx)
                  ;; REVIEW do we need to make sure the stack is aligned for this call?
                  ;; fix stack alignment
-                 (inst :sub +bytes-per-word+ :rsp)
+;;                  (inst :sub +bytes-per-word+ :rsp)
                  (emit-call "RT_process_args")
-                 (inst :add +bytes-per-word+ :rsp)
+;;                  (inst :add +bytes-per-word+ :rsp)
                  (incf index n))
 
                ;; address of args array is now in rax

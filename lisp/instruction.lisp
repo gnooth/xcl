@@ -1,6 +1,6 @@
 ;;; instruction.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -209,10 +209,10 @@
                                    (or (gethash2-1 what *runtime-names*)
                                        (error "Unknown runtime name ~S." what)))
                                   (symbol
-                                   (cond ((symbol-package (truly-the symbol what))
+                                   (cond ((fboundp (truly-the symbol what))
                                           (function-code-address (symbol-function what)))
-                                         ;; an uninterned symbol is a label
                                          (t
+                                          ;; a label
                                           (+ (vector-data code-vector) (symbol-global-value what)))))))
                        (displacement (- address (+ here 5))))
                   (emit #xe8)
@@ -353,10 +353,10 @@
                                    (or (gethash2-1 what *runtime-names*)
                                        (error "Unknown runtime name ~S." what)))
                                   (symbol
-                                   (cond ((symbol-package (truly-the symbol what))
+                                   (cond ((fboundp (truly-the symbol what))
                                           (function-code-address (symbol-function what)))
-                                         ;; an uninterned symbol is a label
                                          (t
+                                          ;; a label
                                           (+ (vector-data code-vector) (symbol-global-value what)))))))
                        (displacement (- address (+ here 5))))
                   (emit #xe8)
