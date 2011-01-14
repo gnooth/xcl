@@ -422,6 +422,7 @@ Value SYS_make_macro(Value name, Value expander)
 }
 
 // ### macro-function
+// returns expansion function
 Value CL_macro_function(unsigned int numargs, Value args[])
 {
   if (numargs < 1 || numargs > 2)

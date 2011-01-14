@@ -1,6 +1,6 @@
 // eval.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -43,31 +43,16 @@ Value macroexpand_1(Value form, Environment * env, Thread * thread)
   assert(env != NULL);
   if (consp(form))
     {
-      length(form); // Force an error if form is not a proper list.
+      length(form); // force an error if form is not a proper list
       Value first = xcar(form);
       if (symbolp(first))
         {
-//           Symbol * sym = the_symbol(first);
-//           if (sym->is_macro())
-//             {
-//               Function * function = (Function *) sym->function();
-//               //               Value hook =
-//               //                 coerceToFunction(Symbol.MACROEXPAND_HOOK.symbolValue(thread));
-//               //               return thread.setValues(hook.execute(expander, form, env),
-//               //                                       T);
-//               return thread->set_values(function->execute(form, NIL), // FIXME should be env instead of NIL
-//                                         T);
-//             }
-
-//           Function * function = sym->macro_function();
           Function * function = (Function *) env->lookup_function(first);
-
           if (function && function->widetag() == WIDETAG_AUTOLOAD)
             {
               reinterpret_cast<Autoload *>(function)->load();
               function = reinterpret_cast<Function *>(the_symbol(first)->function());
             }
-
           if (function && function->widetag() == WIDETAG_SPECIAL_OPERATOR)
             {
               Symbol * sym = the_symbol(first);
@@ -80,42 +65,14 @@ Value macroexpand_1(Value form, Environment * env, Thread * thread)
               if (macrop(value))
                 function = the_macro(value);
             }
-
           if (function && function->widetag() == WIDETAG_MACRO)
             {
-//               printf("expanding macro %s\n", sym->prin1_to_string()->as_c_string());
-//               if (env)
-//                 printf("enviroment = %s\n", env->prin1_to_string()->as_c_string());
-//               else
-//                 printf("enviroment = NULL\n");
-
               // FIXME env should never be NULL
               Value env_val = (env != NULL) ? make_value(env) : NULL_VALUE;
-
-//               return thread->set_values(function->execute(form, env_val),
-//                                         T);
-
-//               return thread->set_values(thread->execute(function, form, env_val),
-//                                         T);
-
-//               if (function->widetag() != WIDETAG_MACRO)
-//                 {
-//                   printf("macroexpand_1 form = %s\n",
-//                          ::prin1_to_string(form)->as_c_string());
-//                   fflush(stdout);
-//                 }
-//               assert(function->widetag() == WIDETAG_MACRO);
-
               Function * expansion_function =
                 reinterpret_cast<Macro *>(function)->expansion_function();
               assert(expansion_function != NULL);
-//               assert(expansion_function->arity() == 2);
-
-              Value hook = thread->symbol_value(S_macroexpand_hook);
-
-//               return thread->set_values(thread->execute(expansion_function,
-//                                                         form, env_val),
-//                                         T);
+              Value hook = thread->symbol_value(S_macroexpand_hook); // initial value is 'FUNCALL
               return thread->set_values(thread->execute(coerce_to_function(hook),
                                                         make_value(expansion_function),
                                                         form, env_val),
@@ -123,19 +80,6 @@ Value macroexpand_1(Value form, Environment * env, Thread * thread)
             }
         }
     }
-//   else if (form instanceof Symbol)
-//     {
-//       Symbol symbol = (Symbol) form;
-//       LispObject obj = null;
-//       if (symbol.isSpecialVariable())
-//         obj = thread.lookupSpecial(symbol);
-//       else
-//         obj = env.lookup(symbol);
-//       if (obj == null)
-//         obj = symbol.getSymbolValue();
-//       if (obj instanceof SymbolMacro)
-//         return thread.setValues(((SymbolMacro)obj).getExpansion(), T);
-//     }
   else if (symbolp(form))
     {
       Symbol * sym = the_symbol(form);
@@ -147,10 +91,11 @@ Value macroexpand_1(Value form, Environment * env, Thread * thread)
       if (symbol_macro_p(value))
         return thread->set_values(the_symbol_macro(value)->expansion(), T);
     }
-  // Not a macro.
+  // not a macro
   return thread->set_values(form, NIL);
 }
 
+// ### macroexpand-1
 Value CL_macroexpand_1(unsigned int numargs, Value args[])
 {
   Environment * env;
