@@ -154,6 +154,8 @@
 (maybe-load-system-file "lisp/early-macros.xcl")
 (maybe-load-system-file "lisp/apply-key.xcl")
 
+(maybe-load-system-file "lisp/reader.xcl")
+
 (load-system-file "lisp/invoke-debugger")
 ;; (load-system-file "lisp/stack")
 (load-system-file "lisp/signal")
