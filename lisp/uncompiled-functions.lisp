@@ -1,3 +1,5 @@
+(in-package "COMMON-LISP-USER")
+
 (defun uncompiled-functions ()
   (let ((excluded-packages nil))
     (push (find-package "COMMON-LISP-USER") excluded-packages)
