@@ -1,6 +1,6 @@
 ;;; clos.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -547,7 +547,7 @@
   (let ((classes-to-order (collect-superclasses* class)))
     (topological-sort classes-to-order
                       (remove-duplicates
-                        (mapappend #'local-precedence-ordering
+                        (mappend #'local-precedence-ordering
                                    classes-to-order))
                       #'std-tie-breaker-rule)))
 
@@ -633,7 +633,7 @@
 #+nil
 (defun std-compute-slots (class)
 ;;   (format t "std-compute-slots ~S~%" class)
-  (let* ((all-slots (mapappend #'%class-direct-slots
+  (let* ((all-slots (mappend #'%class-direct-slots
 ;;                                (if *preserve-layout*
                                    (reverse (class.precedence-list class))
 ;;                                    (class.precedence-list class))
@@ -694,14 +694,14 @@
                        (slot-definition-initfunction initer)
                        nil)
      :initargs (remove-duplicates
-                (mapappend #'slot-definition-initargs
-                           direct-slots))
+                (mappend #'slot-definition-initargs
+                         direct-slots))
      :allocation (slot-definition-allocation (car direct-slots))
      :allocation-class (slot-definition-class (car direct-slots))
      )))
 
 (defun std-compute-default-initargs (class)
-  (let ((default-initargs (mapappend #'%class-direct-default-initargs (class.precedence-list class))))
+  (let ((default-initargs (mappend #'%class-direct-default-initargs (class.precedence-list class))))
     (when default-initargs
       (let ((names nil)
             (result nil))
@@ -889,7 +889,7 @@
            `(%find-method-combination ',type-name ',options)))))
 
 (defun canonicalize-defgeneric-options (options)
-  (mapappend #'canonicalize-defgeneric-option options))
+  (mappend #'canonicalize-defgeneric-option options))
 
 (defun canonicalize-defgeneric-option (option)
   (case (car option)

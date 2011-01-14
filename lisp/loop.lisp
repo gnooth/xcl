@@ -414,8 +414,8 @@
                                 ,@(declarations mv-bindings)
                                 ,@(when padding-temps
                                         `((declare (ignore ,@padding-temps)))))))
-    (let ((bindings (mapappend #'(lambda (d-binding) (apply #'bindings d-binding))
-                               d-bindings)))
+    (let ((bindings (mappend #'(lambda (d-binding) (apply #'bindings d-binding))
+                             d-bindings)))
       (when bindings (fill-in :binding-forms `(,(let-form bindings)))))))
 
 (defun d-var-type-spec ()
@@ -440,9 +440,8 @@
                  (declare (ignore type))
                  (and (consp var) (multiple-value-list-form-p form))))
           (apply #'destructuring-multiple-value-bind d-binding0)
-          (let ((bindings (mapappend #'(lambda (d-binding)
-                                         (apply #'bindings d-binding))
-                                     d-bindings)))
+          (let ((bindings (mappend #'(lambda (d-binding) (apply #'bindings d-binding))
+                                   d-bindings)))
             (fill-in :binding-forms `(,(let-form bindings))))))))
 
 
@@ -534,7 +533,7 @@
           (appendf bindings (apply #'bindings (car d-bindings)))))
       (when iterator-p (setq mv-setq-form `(unless ,mv-setq-form (loop-finish))))
       (if bindings
-          `(progn ,mv-setq-form (setq ,@(mapappend #'cdr bindings)))
+          `(progn ,mv-setq-form (setq ,@(mappend #'cdr bindings)))
           mv-setq-form))))
 
 (defun along-with (var type &key equals (then equals))
@@ -542,9 +541,9 @@
                                                          `(,equals))))
   (unless (quoted-form-p equals)
     (for-as-fill-in :after-head
-                    `((setq ,@(mapappend #'cdr (bindings type var equals))))))
+                    `((setq ,@(mappend #'cdr (bindings type var equals))))))
   (for-as-fill-in :after-tail
-                  `((setq ,@(mapappend #'cdr (bindings type var then))))))
+                  `((setq ,@(mappend #'cdr (bindings type var then))))))
 
 (defun for-as-equals-then-subclause (var type)
   ;; 6.1.1.4 Expanding Loop Forms
@@ -562,12 +561,12 @@
                         `(,(destructuring-multiple-value-setq var
                              (multiple-value-list-argument-form first))))
         (unless (quoted-form-p first)
-          (for-as-fill-in :head-psetq (mapappend #'cdr (bindings type var first)))))
+          (for-as-fill-in :head-psetq (mappend #'cdr (bindings type var first)))))
     (if (and (not parallel-p) (consp var) (multiple-value-list-form-p then))
         (for-as-fill-in :before-tail
                         `(,(destructuring-multiple-value-setq var
                              (multiple-value-list-argument-form then))))
-        (for-as-fill-in :tail-psetq (mapappend #'cdr (bindings type var then))))))
+        (for-as-fill-in :tail-psetq (mappend #'cdr (bindings type var then))))))
 
 
 (defun for-as-arithmetic-step-and-test-functions (used-prepositions)
@@ -1115,7 +1114,7 @@
                                   head neck body tail finally results)
             *loop-components*
           (check-multiple-bindings
-           (append *temporaries* (mapappend #'bound-variables binding-forms)
+           (append *temporaries* (mappend #'bound-variables binding-forms)
                    (mapcar #'(lambda (spec) (getf (cdr spec) :var)) *accumulators*)))
           `(block ,*loop-name*
             ,(with-temporaries `(,*temporaries* :ignorable ,*ignorable*)

@@ -272,6 +272,7 @@
                           "map-into"
                           "mapcan"
                           "mapcon"
+                          "mappend"
                           "mapl"
                           "maplist"
                           "mask-field"

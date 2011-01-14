@@ -1,6 +1,6 @@
 ;;; defclass.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -160,7 +160,7 @@
 ;;   `(find-class ',class-name))
 
 (defun canonicalize-defclass-options (options)
-  (mapappend #'canonicalize-defclass-option options))
+  (mappend #'canonicalize-defclass-option options))
 
 (defun canonicalize-defclass-option (option)
   (case (car option)

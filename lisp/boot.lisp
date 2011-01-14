@@ -95,11 +95,7 @@
 (load-system-file "lisp/setf.lisp")
 (load-system-file "lisp/compiler-error.lisp")
 (load-system-file "lisp/precompiler.lisp")
-
-(defun mapappend (function &rest lists)
-  (apply #'append (apply #'mapcar function lists)))
-(export 'mapappend)
-
+(load-system-file "lisp/mappend.lisp")
 (load-system-file "lisp/member.lisp")
 
 ;; needed for reader.lisp
@@ -148,6 +144,7 @@
 (maybe-load-system-file "lisp/make-package.xcl")
 (maybe-load-system-file "lisp/adjoin.xcl")
 (maybe-load-system-file "lisp/pushnew.xcl")
+(maybe-load-system-file "lisp/mappend.xcl")
 (maybe-load-system-file "lisp/member.xcl")
 (maybe-load-system-file "lisp/make-hash-table.xcl")
 
