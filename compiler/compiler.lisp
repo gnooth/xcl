@@ -2718,71 +2718,72 @@ for special variables."
 ;;       (let ((*print-readably* nil))
 ;;         (mumble "~&; Compiling top-level form ~S~%" definition))
       (mumble "~&; Compiling top-level form~%"))
-  (unless definition
-    (when (autoloadp name)
-      (resolve name))
-    (setq definition (fdefinition name)))
-  (when (compiled-function-p definition)
-    (when name
-      (setf (fdefinition name) definition))
-    (return-from %compile (values (or name definition) nil nil)))
+  (let ((macro-p (macro-function name)))
+    (unless definition
+      (when (autoloadp name)
+        (resolve name))
+      (setq definition (or macro-p (fdefinition name))))
+    (when (compiled-function-p definition)
+      (when name
+        (if macro-p
+            (setf (macro-function name) definition)
+            (setf (fdefinition name) definition)))
+      (return-from %compile (values (or name definition) nil nil)))
 
-  ;; FIXME
-  (when (typep definition 'generic-function)
-    (mumble "not compiling generic function ~S~%" name)
-    (return-from %compile (values name nil nil)))
+    ;; FIXME
+    (when (typep definition 'generic-function)
+      (mumble "not compiling generic function ~S~%" name)
+      (return-from %compile (values name nil nil)))
 
-;;   (let ((lambda-expression (cond ((functionp definition)
-;;                                   (function-lambda-expression definition))
-;;                                  ((and (consp definition) (eq (%car definition) 'LAMBDA))
-;;                                   definition))))
-  (let ((lambda-expression nil)
-        (environment nil))
-    (cond ((functionp definition)
-           (multiple-value-setq (lambda-expression environment) (function-lambda-expression definition)))
-          ((and (consp definition) (eq (%car definition) 'LAMBDA))
-           (unless (and (>= (length definition) 2) (listp (second definition)))
-             (error "Lambda expression has a missing or non-list lambda list: ~S"
-                    definition))
-           (setq lambda-expression definition)))
+    (let ((lambda-expression nil)
+          (environment nil))
+      (cond ((functionp definition)
+             (multiple-value-setq (lambda-expression environment) (function-lambda-expression definition)))
+            ((and (consp definition) (eq (%car definition) 'LAMBDA))
+             (unless (and (>= (length definition) 2) (listp (second definition)))
+               (error "Lambda expression has a missing or non-list lambda list: ~S"
+                      definition))
+             (setq lambda-expression definition)))
 
-    (unless lambda-expression
-      (error "Can't find a definition for ~S." name))
+      (unless lambda-expression
+        (error "Can't find a definition for ~S." name))
 
-    (unless (or (null environment) (environment-empty-p environment))
-      (mumble "; Unable to compile LAMBDA form defined in non-null lexical environment.")
-      ;; REVIEW
-      (values (or name definition) nil nil))
+      (unless (or (null environment) (environment-empty-p environment))
+        (mumble "; Unable to compile LAMBDA form defined in non-null lexical environment.")
+        ;; REVIEW
+        (values (or name definition) nil nil))
 
-    (let* ((*speed* *speed*)
-           (*space* *space*)
-           (*safety* *safety*)
-           (*debug* *debug*)
-           (compiled-function
-            (if *catch-errors*
-                (handler-case
-                    (compile-defun name lambda-expression)
-                  (compiler-unsupported-feature-error (condition)
-                    (mumble "~&; ~A~%" condition)))
-                (compile-defun name lambda-expression))))
-      (cond ((null compiled-function)
-             (fresh-line)
-             (if name
-                 (mumble "; Unable to compile ~S~%" name)
-                 (let ((*print-readably* nil))
-                   (mumble "; Unable to compile ~S~%" definition)))
-             (precompile name lambda-expression))
-            (name
-             ;; Preserve existing source information (if any).
-             (let ((source (and (symbolp name) (get name '%source))))
-               (set-fdefinition name compiled-function)
-               (when source
-                 (put name '%source source)))
-             (values name nil nil))
-            (t
-             ;; "If the name is nil, the resulting compiled function is returned
-             ;; directly as the primary value."
-             (values compiled-function nil nil))))))
+      (let* ((*speed* *speed*)
+             (*space* *space*)
+             (*safety* *safety*)
+             (*debug* *debug*)
+             (compiled-function
+              (if *catch-errors*
+                  (handler-case
+                      (compile-defun name lambda-expression)
+                    (compiler-unsupported-feature-error (condition)
+                                                        (mumble "~&; ~A~%" condition)))
+                  (compile-defun name lambda-expression))))
+        (cond ((null compiled-function)
+               (fresh-line)
+               (if name
+                   (mumble "; Unable to compile ~S~%" name)
+                   (let ((*print-readably* nil))
+                     (mumble "; Unable to compile ~S~%" definition)))
+               (precompile name lambda-expression))
+              (name
+               ;; preserve existing source information (if any)
+               (let ((source (and (symbolp name) (get name '%source))))
+                 (if macro-p
+                     (setf (macro-function name) compiled-function)
+                     (setf (fdefinition name) compiled-function))
+                 (when source
+                   (put name '%source source)))
+               (values name nil nil))
+              (t
+               ;; "If the name is nil, the resulting compiled function is returned
+               ;; directly as the primary value."
+               (values compiled-function nil nil)))))))
 
 (defun compile (name &optional (definition nil definition-supplied-p))
   (when definition-supplied-p
