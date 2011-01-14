@@ -839,6 +839,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_simple_bit_vector_bit_and, SYS_simple_bit_vector_bit_and, 3, 3);
   ADD_PRIMITIVE(S_simple_bit_vector_bit_andc1, SYS_simple_bit_vector_bit_andc1, 3, 3);
   ADD_PRIMITIVE(S_simple_bit_vector_bit_andc2, SYS_simple_bit_vector_bit_andc2, 3, 3);
+  ADD_PRIMITIVE(S_simple_bit_vector_equal, SYS_simple_bit_vector_equal, 2, 2);
   ADD_PRIMITIVE(S_simple_bit_vector_bit_eqv, SYS_simple_bit_vector_bit_eqv, 3, 3);
   ADD_PRIMITIVE(S_simple_bit_vector_bit_ior, SYS_simple_bit_vector_bit_ior, 3, 3);
   ADD_PRIMITIVE(S_simple_bit_vector_bit_nand, SYS_simple_bit_vector_bit_nand, 3, 3);

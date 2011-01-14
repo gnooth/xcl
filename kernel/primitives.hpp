@@ -787,6 +787,7 @@ extern Value SYS_simple_array_p(Value arg);
 extern Value SYS_simple_bit_vector_bit_and(Value arg1, Value arg2, Value arg3);
 extern Value SYS_simple_bit_vector_bit_andc1(Value arg1, Value arg2, Value arg3);
 extern Value SYS_simple_bit_vector_bit_andc2(Value arg1, Value arg2, Value arg3);
+extern Value SYS_simple_bit_vector_equal(Value arg1, Value arg2);
 extern Value SYS_simple_bit_vector_bit_eqv(Value arg1, Value arg2, Value arg3);
 extern Value SYS_simple_bit_vector_bit_ior(Value arg1, Value arg2, Value arg3);
 extern Value SYS_simple_bit_vector_bit_nand(Value arg1, Value arg2, Value arg3);

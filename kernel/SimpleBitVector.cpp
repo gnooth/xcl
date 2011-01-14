@@ -1,6 +1,6 @@
 // SimpleBitVector.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -498,4 +498,25 @@ Value SYS_simple_bit_vector_bit_not(Value arg1, Value arg2)
   for (INDEX i = 0; i < size; i++)
     p2[i] = ~p1[i];
   return arg2;
+}
+
+// ### simple-bit-vector-equal vector-1 vector-2
+Value SYS_simple_bit_vector_equal(Value arg1, Value arg2)
+{
+  SimpleBitVector * v1 = check_simple_bit_vector(arg1);
+  SimpleBitVector * v2 = check_simple_bit_vector(arg2);
+  if (v1 == v2)
+    return T;
+  INDEX length = v1->length();
+  if (v2->length() != length)
+    return NIL;
+  INDEX size = length >> BIT_VECTOR_SHIFT;
+  if ((length & BIT_VECTOR_MASK) != 0)
+    ++size;
+  unsigned int * p1 = v1->data();
+  unsigned int * p2 = v2->data();
+  for (INDEX i = 0; i < size; i++)
+    if (p1[i] != p2[i])
+      return NIL;
+  return T;
 }
