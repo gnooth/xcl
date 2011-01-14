@@ -1,6 +1,6 @@
 ;;; autoloads.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -288,3 +288,4 @@
 (autoload '(do-tests do-compiled-tests) "lisp/rt")
 (autoload 'run-random-tests)
 (autoload '(run-other-tests run-mop-tests) "lisp/run-other-tests")
+(autoload 'uncompiled-functions)
