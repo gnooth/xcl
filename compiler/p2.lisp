@@ -663,6 +663,23 @@
              (emit-call-2 'eql target)
              t)))))
 
+(defun p2-equal (form target)
+  (when (check-arg-count form 2)
+    (let* ((args (%cdr form))
+           (arg1 (%car args))
+           (arg2 (%cadr args))
+           (type1 (derive-type arg1))
+           (type2 (derive-type arg2)))
+      (process-2-args args :default t)
+      (cond ((and (subtypep type1 'SIMPLE-BIT-VECTOR)
+                  (subtypep type2 'SIMPLE-BIT-VECTOR))
+             (mumble "p2-equal simple-bit vector case~%")
+             (emit-call-2 'simple-bit-vector-equal target))
+            (t
+             (mumble "p2-equal full call type1 = ~S type2 = ~S~%" type1 type2)
+             (emit-call-2 'equal target)))
+      t)))
+
 (defknown p2-fill (t t) t)
 (defun p2-fill (form target)
   (let* ((args (cdr form))

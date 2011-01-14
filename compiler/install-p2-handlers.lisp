@@ -83,6 +83,7 @@
 (install-p2-handler 'endp                       'p2-endp)
 (install-p2-handler 'eq                         'p2-eq)
 (install-p2-handler 'eql                        'p2-eql)
+(install-p2-handler 'equal                      'p2-equal)
 (install-p2-handler 'evenp                      'p2-oddp/evenp)
 (install-p2-handler 'fill                       'p2-fill)
 (install-p2-handler 'find                       'p2-find)
