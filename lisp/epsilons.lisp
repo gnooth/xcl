@@ -1,6 +1,6 @@
 ;;; epsilons.lisp
 ;;;
-;;; Copyright (C) 2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2009-2011 Peter Graves <peter@armedbear.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -57,3 +57,6 @@
 (%defconstant 'short-float-negative-epsilon single-float-negative-epsilon)
 (%defconstant 'double-float-negative-epsilon (compute-negative-epsilon 'double-float))
 (%defconstant 'long-float-negative-epsilon double-float-negative-epsilon)
+
+(fmakunbound 'compute-epsilon)
+(fmakunbound 'compute-negative-epsilon)
