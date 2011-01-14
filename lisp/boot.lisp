@@ -72,15 +72,8 @@
   (set-symbol-plist 'defmacro nil)
   (set-macro-function 'defmacro x))
 
-(defun ansi-loop (exps)
-  (load-system-file "lisp/loop")
-  (fmakunbound 'ansi-loop)
-  `(loop ,@exps))
-
+;; redefined in loop.lisp
 (defmacro loop (&rest exps)
-  (dolist (exp exps)
-    (when (atom exp)
-      (return-from loop (ansi-loop exps))))
   (let ((tag (gensym)))
     `(block nil (tagbody ,tag ,@exps (go ,tag)))))
 
