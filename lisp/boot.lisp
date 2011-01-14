@@ -1,6 +1,6 @@
 ;;; boot.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -28,12 +28,7 @@
 (load-system-file "lisp/read-conditional.lisp")
 (load-system-file "lisp/autoloads.lisp")
 (load-system-file "lisp/cxr.lisp")
-
-(defun mapcan (function &rest lists)
-  (apply #'nconc (apply #'mapcar function lists)))
-
-(defun make-package (package-name &key nicknames use)
-  (%make-package package-name nicknames use))
+(load-system-file "lisp/make-package.lisp")
 
 ;; redefined in define-modify-macro.lisp
 (defmacro incf (place &optional (delta 1))
@@ -101,12 +96,6 @@
 (load-system-file "lisp/compiler-error.lisp")
 (load-system-file "lisp/precompiler.lisp")
 
-(defun make-thread (function &key name)
-  (%make-thread function name))
-
-(defun make-mutex (&key name)
-  (%make-mutex name))
-
 (defun mapappend (function &rest lists)
   (apply #'append (apply #'mapcar function lists)))
 (export 'mapappend)
@@ -156,6 +145,7 @@
 (maybe-load-system-file "lisp/featurep.xcl")
 (maybe-load-system-file "lisp/read-conditional.xcl")
 (maybe-load-system-file "lisp/cxr.xcl")
+(maybe-load-system-file "lisp/make-package.xcl")
 (maybe-load-system-file "lisp/adjoin.xcl")
 (maybe-load-system-file "lisp/pushnew.xcl")
 (maybe-load-system-file "lisp/member.xcl")
@@ -173,19 +163,9 @@
 (load-system-file "lisp/concatenate")
 (load-system-file "lisp/copy-seq")
 
-(defun complement (f)
-  #'(lambda (&rest x) (not (apply f x))))
-
-(defun constantly (x)
-  #'(lambda (&rest args) (declare (ignore args)) x))
-
 (load-system-file "lisp/require-type")
 
 (load-system-file "lisp/late-setf")
-
-;; REVIEW
-(defun shrink-vector (vector new-size)
-  (subseq vector 0 new-size))
 
 (load-system-file "lisp/define-modify-macro")
 

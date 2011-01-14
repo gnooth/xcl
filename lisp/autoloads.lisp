@@ -265,7 +265,15 @@
 
 (autoload-macro 'step)
 
+(autoload 'constantly)
+(autoload 'complement)
+(autoload 'shrink-vector)
+(autoload 'mapcan)
+
 (in-package "EXTENSIONS")
+
+(autoload 'make-mutex)
+(autoload 'make-thread)
 
 ;; REVIEW
 (export 'dump-ir2)
