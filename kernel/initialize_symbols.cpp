@@ -1,6 +1,6 @@
 // initialize_symbols.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -178,6 +178,7 @@ void initialize_symbols()
   the_symbol(S_plus)->initialize_special(NIL);
   the_symbol(S_plus_plus)->initialize_special(NIL);
   the_symbol(S_plus_plus_plus)->initialize_special(NIL);
+  the_symbol(S_minus)->initialize_special(NIL);
   the_symbol(S_slash)->initialize_special(NIL);
   the_symbol(S_slash_slash)->initialize_special(NIL);
   the_symbol(S_slash_slash_slash)->initialize_special(NIL);
