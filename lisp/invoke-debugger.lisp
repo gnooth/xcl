@@ -1,6 +1,6 @@
 ;;; invoke-debugger.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -88,4 +88,4 @@
 (defun invoke-debugger (condition)
   (let ((*saved-backtrace* (backtrace-as-list))
         (*saved-stack* (current-stack-as-list)))
-  (%invoke-debugger condition)))
+    (%invoke-debugger condition)))
