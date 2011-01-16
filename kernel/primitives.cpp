@@ -1380,8 +1380,13 @@ Value SYS_value_to_ub32(Value arg)
     return make_fixnum((long)n);
   return make_value(new Bignum(n));
 }
-
 #endif
+
+// ### lisp-object
+Value SYS_lisp_object(Value arg)
+{
+  return (unsigned long) fixnum_value(arg);
+}
 
 // ### vector-data
 Value SYS_vector_data(Value arg)
@@ -2306,19 +2311,19 @@ Value CL_logbitp(Value arg1, Value arg2)
   return signal_type_error(arg1, S_integer);
 }
 
-static BYTE * check_address(Value address)
+static BYTE* check_address(Value address)
 {
   if (fixnump(address))
     {
       long n = xlong(address);
       if (n > 0)
-        return reinterpret_cast<unsigned char *>(n);
+        return reinterpret_cast<BYTE*>(n);
     }
   else if (bignump(address))
     {
       Bignum * b = the_bignum(address);
       if (mpz_fits_ulong_p (b->_z))
-        return reinterpret_cast<unsigned char *>(mpz_get_ui(b->_z));
+        return reinterpret_cast<BYTE*>(mpz_get_ui(b->_z));
     }
   signal_type_error(address, list3(S_integer, list1(FIXNUM_ZERO),
                                    make_integer(0xffffffff)));
@@ -2345,7 +2350,7 @@ Value SYS_mref_8_signed(Value address, Value offset)
 // ### mref-32 address offset => unsigned int
 Value SYS_mref_32(Value address, Value offset)
 {
-  BYTE * p = check_address(address) + fixnum_value(offset);
+  BYTE* p = check_address(address) + fixnum_value(offset);
   BYTE byte1 = *p++;
   BYTE byte2 = *p++;
   BYTE byte3 = *p++;
@@ -2359,7 +2364,7 @@ Value SYS_mref_32(Value address, Value offset)
 // ### mref-32-signed address offset => signed int
 Value SYS_mref_32_signed(Value address, Value offset)
 {
-  BYTE * p = check_address(address) + fixnum_value(offset);
+  BYTE* p = check_address(address) + fixnum_value(offset);
   BYTE byte1 = *p++;
   BYTE byte2 = *p++;
   BYTE byte3 = *p++;
@@ -2379,7 +2384,7 @@ Value SYS_mref_32_signed(Value address, Value offset)
 // ### mref-64 address offset => unsigned long
 Value SYS_mref_64(Value address, Value offset)
 {
-  BYTE * p = check_address(address) + fixnum_value(offset);
+  BYTE* p = check_address(address) + fixnum_value(offset);
   unsigned long byte1 = *p++;
   unsigned long byte2 = *p++;
   unsigned long byte3 = *p++;

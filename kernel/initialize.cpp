@@ -654,6 +654,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_layout_slot_names, SYS_layout_slot_names, 1, 1);
   ADD_PRIMITIVE(S_le_2, SYS_le_2, 2, 2);
   ADD_PRIMITIVE(S_length_eql, SYS_length_eql, 2, 2);
+  ADD_PRIMITIVE(S_lisp_object, SYS_lisp_object, 1, 1);
   ADD_PRIMITIVE(S_list1, SYS_list1, 1, 1);
   ADD_PRIMITIVE(S_list2, SYS_list2, 2, 2);
   ADD_PRIMITIVE(S_list3, SYS_list3, 3, 3);

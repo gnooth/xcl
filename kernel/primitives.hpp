@@ -610,6 +610,7 @@ extern Value SYS_layout_slot_location(Value arg1, Value arg2);
 extern Value SYS_layout_slot_names(Value arg);
 extern Value SYS_le_2(Value arg1, Value arg2);
 extern Value SYS_length_eql(Value arg1, Value arg2);
+extern Value SYS_lisp_object(Value arg);
 extern Value SYS_list1(Value arg);
 extern Value SYS_list2(Value arg1, Value arg2);
 extern Value SYS_list3(Value arg1, Value arg2, Value arg3);
