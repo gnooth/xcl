@@ -207,7 +207,8 @@
   address
   contents
   name
-  args
+  (args 0)
+  bp
   flag)
 
 (defvar *stack-entry-vector* nil)
@@ -329,6 +330,20 @@
           (return entry)))
       (incf i))))
 
+(defun extract-args (bp count)
+  (let* ((first-entry (aref *stack-entry-vector* 0))
+         (first-address (stack-entry-address first-entry))
+         (i (/ (- bp first-address) +bytes-per-word+))
+         (args nil))
+    (dotimes (j count)
+      (decf i)
+      (when (minusp i)
+        (return))
+      (let ((entry (aref *stack-entry-vector* i)))
+        (push (lisp-object (stack-entry-contents entry)) args)))
+;;     (format t "extract-args args = ~S~%" args)
+    (nreverse args)))
+
 (defun bt2 ()
   (analyze-saved-stack)
   (let* ((first-entry (aref *stack-entry-vector* 0))
@@ -356,19 +371,40 @@
 ;;             (if (stringp name)
 ;;                 (push name result)
 ;;                 (push (cons name args) result)))
+          (setf (stack-entry-bp e) (stack-entry-contents entry))
+
+          (let* ((name (stack-entry-name e))
+                 (function (and (symbolp name)
+                                (not (kernel-function-p name))
+                                (fboundp name)
+                                (symbol-function name))))
+            (when function
+              (let ((arity (function-arity function)))
+                (cond ((and arity (> arity 0))
+                       (setf (stack-entry-args e)
+                             (extract-args (stack-entry-bp e) (function-arity function))))
+                      ((eql arity 0)
+                       (setf (stack-entry-args e) nil))))))
+
           (push e result)
           )
         (setq bp (stack-entry-contents entry))))
     (nreverse result)))
 
 (defun print-frame (frame-number frame)
-  (let ((address (stack-entry-address frame))
-        (contents (stack-entry-contents frame))
+  (let ((contents (stack-entry-contents frame))
         (name (stack-entry-name frame))
-        (args (stack-entry-args frame)))
-    (if (stringp name)
-        (format t "~3D: 0x~X ~A at 0x~X~%" frame-number address name contents)
-        (ignore-errors (format t "~3D: 0x~X ~S at 0x~X~%" frame-number address (list* name args) contents)))))
+        (args (stack-entry-args frame))
+;;         (bp (stack-entry-bp frame))
+        )
+;;     (format t "~3D: 0x~X " frame-number (stack-entry-address frame))
+    (format t "~3D: " frame-number)
+    (cond ((stringp name)
+           (format t "~A at 0x~X~%" name contents))
+          ((eql args 0)
+           (format t "(~S ...) at 0x~X~%" name contents))
+          (t
+           (format t "~S at 0x~X~%" (list* name args) contents)))))
 
 (defun nth-frame (n)
   (let* ((frames (bt2))
