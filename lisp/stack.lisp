@@ -273,8 +273,7 @@
           (when (eq (stack-entry-name next-entry) 'INVOKE-DEBUGGER)
             (setf (stack-entry-flag entry) "**")
             (setf *bp* contents)
-            (return))))))
-  )
+            (return)))))))
 
 (defun print-saved-stack (&optional (limit most-positive-fixnum))
   (analyze-saved-stack)
@@ -297,7 +296,7 @@
                 (if args args ""))
         #+x86
         (progn
-          (let ((str (when args
+          (let ((str (unless (eql args 0)
                        (format nil "args = ~S" args))))
             (format t "0x~8,'0X 0x~8,'0X ~A~A ~A~%"
                     address
@@ -330,6 +329,7 @@
           (return entry)))
       (incf i))))
 
+#+x86-64
 (defun extract-args (bp count)
   (let* ((first-entry (aref *stack-entry-vector* 0))
          (first-address (stack-entry-address first-entry))
@@ -343,6 +343,26 @@
         (push (lisp-object (stack-entry-contents entry)) args)))
 ;;     (format t "extract-args args = ~S~%" args)
     (nreverse args)))
+
+#+x86
+(defun extract-args (bp count)
+;;   (format t "extract-args bp = 0x~X~%" bp)
+  (when (> count 0)
+    (let* ((length (length *stack-entry-vector*))
+           (first-entry (aref *stack-entry-vector* 0))
+           (first-address (stack-entry-address first-entry))
+           (i (/ (- bp first-address) +bytes-per-word+))
+           (args nil))
+      (incf i) ; skip one entry
+      (dotimes (j count)
+        (incf i)
+        (when (>= i length)
+          (return))
+        (let ((entry (aref *stack-entry-vector* i)))
+;;           (format t "0x~X 0x~X~%" (stack-entry-address entry) (stack-entry-contents entry))
+          (push (lisp-object (stack-entry-contents entry)) args)))
+;;       (format t "extract-args args = ~S~%" args)
+      (nreverse args))))
 
 (defun bt2 ()
   (analyze-saved-stack)
@@ -381,6 +401,7 @@
             (when function
               (let ((arity (function-arity function)))
                 (cond ((and arity (> arity 0))
+;;                        (format t "calling extract-args for ~S~%" name)
                        (setf (stack-entry-args e)
                              (extract-args (stack-entry-bp e) (function-arity function))))
                       ((eql arity 0)
@@ -400,11 +421,13 @@
 ;;     (format t "~3D: 0x~X " frame-number (stack-entry-address frame))
     (format t "~3D: " frame-number)
     (cond ((stringp name)
-           (format t "~A at 0x~X~%" name contents))
+           (format t "~A at 0x~X" name contents))
           ((eql args 0)
-           (format t "(~S ...) at 0x~X~%" name contents))
+           (format t "(~S ...) at 0x~X" name contents))
           (t
-           (format t "~S at 0x~X~%" (list* name args) contents)))))
+           (format t "~S at 0x~X" (list* name args) contents)))
+;;     (format t " bp = 0x~X" (stack-entry-bp frame))
+    (terpri)))
 
 (defun nth-frame (n)
   (let* ((frames (bt2))
