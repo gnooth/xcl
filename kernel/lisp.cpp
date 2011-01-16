@@ -66,39 +66,6 @@ Value EXT_backtrace()
   return thread->set_values();
 }
 
-// ### interactive-eval
-Value SYS_interactive_eval(Value form)
-{
-  Thread * const thread = current_thread();
-  thread->set_symbol_value(S_minus, form);
-  Value result = thread->execute(the_symbol(S_eval)->function(), form);
-  thread->set_symbol_value(S_star_star_star,
-                           thread->symbol_value(S_star_star));
-  thread->set_symbol_value(S_star_star,
-                           thread->symbol_value(S_star));
-  thread->set_symbol_value(S_star, result);
-  thread->set_symbol_value(S_plus_plus_plus,
-                           thread->symbol_value(S_plus_plus));
-  thread->set_symbol_value(S_plus_plus,
-                           thread->symbol_value(S_plus));
-  thread->set_symbol_value(S_plus,
-                           thread->symbol_value(S_minus));
-  thread->set_symbol_value(S_slash_slash_slash,
-                           thread->symbol_value(S_slash_slash));
-  thread->set_symbol_value(S_slash_slash,
-                           thread->symbol_value(S_slash));
-  if (thread->values_length() >= 0)
-    {
-      Value slash = NIL;
-      for (long i = thread->values_length(); i-- > 0;)
-        slash = make_cons(thread->nth_value(i), slash);
-      thread->set_symbol_value(S_slash, slash);
-    }
-  else
-    thread->set_symbol_value(S_slash, make_cons(result));
-  return result;
-}
-
 // ### reset
 Value EXT_reset()
 {

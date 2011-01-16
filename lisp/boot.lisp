@@ -170,6 +170,7 @@
 (load-system-file "clos/initialize-classes")
 
 (load-system-file "lisp/restart")
+(load-system-file "lisp/interactive-eval")
 (load-system-file "lisp/top-level")
 
 (load-system-file "lisp/define-compiler-macro")

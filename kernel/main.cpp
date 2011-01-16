@@ -194,7 +194,6 @@ int __main(int argc, char * argv[])
 
   primordial_frame = new Frame();
   Thread * const thread = current_thread();
-  Function * interactive_eval = (Function *) the_symbol(S_interactive_eval)->function();
   while (true)
     {
 #ifdef WIN32
@@ -234,7 +233,7 @@ int __main(int argc, char * argv[])
               out->write_string("* ");
               out->finish_output();
               Value obj = SYS_stream_read_internal(thread->symbol_value(S_standard_output), true, NIL, false);
-              Value result = thread->execute(interactive_eval, obj);
+              Value result = CL_eval(obj);
               assert(thread->stack() == 0);
               long values_length = thread->values_length();
               if (values_length < 0)

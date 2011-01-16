@@ -639,7 +639,6 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_in_package_internal, SYS_in_package_internal, 1, 1);
   ADD_PRIMITIVE(S_init_fasl, SYS_init_fasl, 1, 1);
   ADD_PRIMITIVE(S_int3, SYS_int3, 0, 0);
-  ADD_PRIMITIVE(S_interactive_eval, SYS_interactive_eval, 1, 1);
   ADD_PRIMITIVE(S_interrupt_lisp, SYS_interrupt_lisp, 0, 0);
   ADD_PRIMITIVE(S_intersection_eql, SYS_intersection_eql, 2, 2);
   ADD_PRIMITIVE(S_iref, SYS_iref, 2, 2);

@@ -595,7 +595,6 @@ extern Value SYS_in_package_internal(Value arg);
 extern Value SYS_incq(Value args, Environment * env, Thread * thread);
 extern Value SYS_init_fasl(Value arg);
 extern Value SYS_int3();
-extern Value SYS_interactive_eval(Value form);
 extern Value SYS_interrupt_lisp();
 extern Value SYS_intersection_eql(Value list1, Value list2);
 extern Value SYS_iref(Value arg1, Value arg2);

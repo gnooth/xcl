@@ -243,6 +243,7 @@
                           "grovel"
                           "inline-expansion"
                           "inspect"
+                          "interactive-eval"
                           "intersection"
                           "invoke-debugger"
                           "late-setf"
