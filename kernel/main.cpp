@@ -269,6 +269,7 @@ struct arginfo
 DWORD WINAPI main_thread_proc(LPVOID p)
 {
   arginfo * args = (arginfo *) p;
+  stack_top = current_sp();
   return __main(args->argc, args->argv);
 }
 
@@ -299,7 +300,9 @@ int main(int argc, char * argv[])
 {
   initialize_uptime();
 
+#ifndef WIN32
   stack_top = current_sp();
+#endif
 
   GC_init();
   GC_set_warn_proc(gc_warn_proc);
