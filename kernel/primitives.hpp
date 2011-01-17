@@ -526,6 +526,7 @@ extern Value SYS_double_float_high_bits(Value arg);
 extern Value SYS_double_float_low_bits(Value arg);
 extern Value SYS_double_float_p(Value arg);
 extern Value SYS_double_float_subtract_internal(Value arg1, Value arg2);
+extern Value SYS_enable_gc(Value arg);
 extern Value SYS_environment_add_function_definition(Value env, Value name, Value value);
 extern Value SYS_environment_add_macro_definition(Value env, Value name, Value value);
 extern Value SYS_environment_empty_p(Value arg);

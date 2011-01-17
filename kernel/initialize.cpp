@@ -563,6 +563,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_double_float_low_bits, SYS_double_float_low_bits, 1, 1);
   ADD_PRIMITIVE(S_double_float_p, SYS_double_float_p, 1, 1);
   ADD_PRIMITIVE(S_double_float_subtract_internal, SYS_double_float_subtract_internal, 2, 2);
+  ADD_PRIMITIVE(S_enable_gc, SYS_enable_gc, 1, 1);
   ADD_PRIMITIVE(S_environment_add_function_definition, SYS_environment_add_function_definition, 3, 3);
   ADD_PRIMITIVE(S_environment_add_macro_definition, SYS_environment_add_macro_definition, 3, 3);
   ADD_PRIMITIVE(S_environment_empty_p, SYS_environment_empty_p, 1, 1);

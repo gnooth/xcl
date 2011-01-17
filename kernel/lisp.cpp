@@ -116,6 +116,16 @@ Value EXT_gc()
   return NIL;
 }
 
+// ### enable-gc
+Value SYS_enable_gc(Value arg)
+{
+  if (arg == NIL)
+    GC_disable();
+  else
+    GC_enable();
+  return GC_dont_gc == 0 ? T : NIL;
+}
+
 // ### heap-size
 Value SYS_heap_size()
 {

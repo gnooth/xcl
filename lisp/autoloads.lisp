@@ -270,6 +270,8 @@
 (autoload 'shrink-vector)
 (autoload 'mapcan)
 
+(autoload-macro 'without-gcing)
+
 (in-package "EXTENSIONS")
 
 (autoload 'make-mutex)
