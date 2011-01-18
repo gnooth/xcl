@@ -66,11 +66,9 @@
 
 (defmethod simple-method ((self class-0-0) other) other)
 
-#-(or clisp poplog)
 (defgeneric complex-method (a b &rest rest)
   (:method-combination and))
 
-#-(or clisp poplog)
 (defmethod complex-method and ((self class-0-0) other &rest rest)
    (declare (ignore rest))
    other)
@@ -137,7 +135,6 @@
     (loop :for dpth :from 2 to #.+hierarchy-depth+ :do
           (loop :for wdth :to #.+hierarchy-width+ :do
                 (push `(simple-method-definition ,dpth ,wdth) forms)
-                #-(or clisp poplog)
                 (push `(complex-method-definition ,dpth ,wdth) forms)))
     (nreverse forms)))
 
@@ -201,12 +198,10 @@
   (dotimes (w #.+hierarchy-width+)
     (methodcall/simple w)))
 
-#-(or clisp poplog)
 (defun methodcall/complex (num)
   (dotimes (i 5000)
     (complex-method (aref *instances* num) i)))
 
-#-(or clisp poplog)
 (defun methodcalls/complex ()
   (dotimes (w #.+hierarchy-width+)
     (methodcall/complex w)))
