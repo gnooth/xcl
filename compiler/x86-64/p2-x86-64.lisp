@@ -4499,85 +4499,19 @@
                       (t
                        nil))))
             (t
-             (case numargs
-               (0
-                (cond (use-fast-call-p
-                       (process-1-arg (cadr form) :rdi t)
-                       (emit-call "RT_fast_funcall_0")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-1-arg (cadr form) :rsi nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_funcall_0")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 6~%")
-                       nil)))
-               (1
-                (cond (use-fast-call-p
-                       (process-2-args (cdr form) '(:rdi :rsi) t)
-                       (emit-call "RT_fast_funcall_1")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-2-args (cdr form) '(:rsi :rdx) nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_funcall_1")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 7~%")
-                       nil)))
-               (2
-                (cond (use-fast-call-p
-                       (process-3-args (cdr form) '(:rdi :rsi :rdx) t)
-                       (emit-call "RT_fast_funcall_2")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-3-args (cdr form) '(:rsi :rdx :rcx) nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_funcall_2")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 8~%")
-                       nil)))
-               (3
-                (cond (use-fast-call-p
-                       (process-4-args (cdr form) '(:rdi :rsi :rdx :rcx) t)
-                       (emit-call "RT_fast_funcall_3")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-4-args (cdr form) '(:rsi :rdx :rcx :r8) nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_funcall_3")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 9~%")
-                       nil)))
-               (4
-                (cond (use-fast-call-p
-                       (process-5-args (cdr form) '(:rdi :rsi :rdx :rcx :r8) t)
-                       (emit-call "RT_fast_funcall_4")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-5-args (cdr form) '(:rsi :rdx :rcx :r8 :r9) nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_funcall_4")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 10~%")
-                       nil)))
-               (t
-                (mumble "p2-funcall not optimized 11 numargs = ~D~%" numargs)
-                nil)))))))
+             (when (<= 0 numargs 4)
+               (cond (use-fast-call-p
+                      (process-args (cdr form) +call-argument-registers+ t)
+                      (emit-call (format nil "RT_fast_funcall_~D" numargs))
+                      (move-result-to-target target)
+                      t)
+                     (thread-register
+                      (process-args (cdr form) (cdr +call-argument-registers+) nil)
+                      (inst :mov thread-register :rdi)
+                      (emit-call (format nil "RT_thread_funcall_~D" numargs))
+                      t)
+                     (t
+                      nil))))))))
 
 (defun p2-length (form target)
   (when (check-arg-count form 1)
