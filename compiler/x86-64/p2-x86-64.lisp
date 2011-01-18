@@ -4449,46 +4449,31 @@
                       (p2-function-call (list* name args) target))))
              t)
             ((eq operator-derived-type 'SYMBOL)
-;;              (mumble "p2-funcall optimization 3~%")
-             (case numargs
-               (1
+             (when (<= 0 numargs 4)
                 (cond (use-fast-call-p
-                       (process-2-args (cdr form) '(:rdi :rsi) t)
-                       (emit-call "RT_fast_call_symbol_1")
+                       (process-args (cdr form) +call-argument-registers+ t)
+                       ;; gcprotect function object for duration of call
+                       (inst :push :rdi)
+                       (emit-call (format nil "RT_fast_call_symbol_~D" numargs))
+                       (inst :add +bytes-per-word+ :rsp)
                        (move-result-to-target target)
                        t)
                       (thread-register
-                       (process-2-args (cdr form) '(:rsi :rdx) nil)
+                       (process-args (cdr form) (cdr +call-argument-registers+) nil)
                        (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_call_symbol_1")
-                       (move-result-to-target target)
+                       (emit-call (format nil "RT_thread_call_symbol_~D" numargs))
                        t)
                       (t
-                       (mumble "p2-funcall not optimized 1a~%")
                        nil)))
-               (4
-                (cond (use-fast-call-p
-                       (process-5-args (cdr form) '(:rdi :rsi :rdx :rcx :r8) t)
-                       (emit-call "RT_fast_call_symbol_4")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-5-args (cdr form) '(:rsi :rdx :rcx :r8 :r9) nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_call_symbol_4")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 1b~%")
-                       nil)))
-               (t
-                (mumble "p2-funcall not optimized 2~%")
-                nil)))
+             )
             ((subtypep operator-derived-type 'FUNCTION)
              (when (<= 0 numargs 4)
                 (cond (use-fast-call-p
                        (process-args (cdr form) +call-argument-registers+ t)
+                       ;; gcprotect function object for duration of call
+                       (inst :push :rdi)
                        (emit-call (format nil "RT_fast_call_function_~D" numargs))
+                       (inst :add +bytes-per-word+ :rsp)
                        (move-result-to-target target)
                        t)
                       (thread-register
@@ -4502,7 +4487,10 @@
              (when (<= 0 numargs 4)
                (cond (use-fast-call-p
                       (process-args (cdr form) +call-argument-registers+ t)
+                      ;; gcprotect function object for duration of call
+                      (inst :push :rdi)
                       (emit-call (format nil "RT_fast_funcall_~D" numargs))
+                      (inst :add +bytes-per-word+ :rsp)
                       (move-result-to-target target)
                       t)
                      (thread-register
