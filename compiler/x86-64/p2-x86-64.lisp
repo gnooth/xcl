@@ -4484,95 +4484,21 @@
                (t
                 (mumble "p2-funcall not optimized 2~%")
                 nil)))
-            ((eq operator-derived-type 'FUNCTION)
-;;              (mumble "p2-funcall optimization 4~%")
-             (case numargs
-               (0
+            ((subtypep operator-derived-type 'FUNCTION)
+             (when (<= 0 numargs 4)
                 (cond (use-fast-call-p
-                       (process-1-arg (cadr form) :rdi t)
-                       (emit-call "RT_fast_call_function_0")
+                       (process-args (cdr form) +call-argument-registers+ t)
+                       (emit-call (format nil "RT_fast_call_function_~D" numargs))
                        (move-result-to-target target)
                        t)
                       (thread-register
-                       (process-1-arg (cadr form) :rsi nil)
+                       (process-args (cdr form) (cdr +call-argument-registers+) nil)
                        (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_call_function_0")
-                       (move-result-to-target target)
+                       (emit-call (format nil "RT_thread_call_function_~D" numargs))
                        t)
                       (t
-                       (mumble "p2-funcall not optimized 3a~%")
-                       nil)
-                      ))
-               (1
-                (cond (use-fast-call-p
-                       (process-2-args (cdr form) '(:rdi :rsi) t)
-                       (emit-call "RT_fast_call_function_1")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-2-args (cdr form) '(:rsi :rdx) nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_call_function_1")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 3b~%")
-                       nil)
-                      ))
-               (2
-                (cond (use-fast-call-p
-                       (process-3-args (cdr form) '(:rdi :rsi :rdx) t)
-                       (emit-call "RT_fast_call_function_2")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-3-args (cdr form) '(:rsi :rdx :rcx) nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_call_function_2")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 4a~%")
-                       nil)
-                      ))
-               (3
-                (cond (use-fast-call-p
-                       (process-4-args (cdr form) '(:rdi :rsi :rdx :rcx) t)
-                       (emit-call "RT_fast_call_function_3")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-4-args (cdr form) '(:rsi :rdx :rcx :r8) nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_call_function_3")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 4b~%")
-                       nil)
-                      ))
-               (4
-                (cond (use-fast-call-p
-                       (process-5-args (cdr form) '(:rdi :rsi :rdx :rcx :r8) t)
-                       (emit-call "RT_fast_call_function_4")
-                       (move-result-to-target target)
-                       t)
-                      (thread-register
-                       (process-5-args (cdr form) '(:rsi :rdx :rcx :r8 :r9) nil)
-                       (inst :mov thread-register :rdi)
-                       (emit-call "RT_thread_call_function_4")
-                       (move-result-to-target target)
-                       t)
-                      (t
-                       (mumble "p2-funcall not optimized 4c~%")
-                       nil)
-                      ))
-               (t
-                (mumble "p2-funcall not optimized 5 numargs = ~D~%" numargs)
-                nil)
-               ))
+                       nil))))
             (t
-;;              (mumble "p2-funcall optimization 5~%")
              (case numargs
                (0
                 (cond (use-fast-call-p
