@@ -4462,10 +4462,10 @@
                        (process-args (cdr form) (cdr +call-argument-registers+) nil)
                        (inst :mov thread-register :rdi)
                        (emit-call (format nil "RT_thread_call_symbol_~D" numargs))
+                       (move-result-to-target target)
                        t)
                       (t
-                       nil)))
-             )
+                       nil))))
             ((subtypep operator-derived-type 'FUNCTION)
              (when (<= 0 numargs 4)
                 (cond (use-fast-call-p
@@ -4480,6 +4480,7 @@
                        (process-args (cdr form) (cdr +call-argument-registers+) nil)
                        (inst :mov thread-register :rdi)
                        (emit-call (format nil "RT_thread_call_function_~D" numargs))
+                       (move-result-to-target target)
                        t)
                       (t
                        nil))))
@@ -4497,6 +4498,7 @@
                       (process-args (cdr form) (cdr +call-argument-registers+) nil)
                       (inst :mov thread-register :rdi)
                       (emit-call (format nil "RT_thread_funcall_~D" numargs))
+                      (move-result-to-target target)
                       t)
                      (t
                       nil))))))))
