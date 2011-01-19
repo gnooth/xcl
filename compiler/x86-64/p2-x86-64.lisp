@@ -5802,6 +5802,36 @@
            (set-register-contents (var-arg-register var) var))))
   t)
 
+(defun p2-function-prolog-n-args (compiland)
+  (declare (type compiland compiland))
+  (let ((arity (compiland-arity compiland)))
+    (aver (not (null arity)))
+    (aver (> arity 6))
+    (aver (null *closure-vars*))
+    (inst :save-thread-register)
+    (inst :enter-frame)
+    (let ((lambda-list (cadr (compiland-lambda-expression compiland)))
+          (index 0))
+      (aver (null (intersection lambda-list-keywords lambda-list)))
+      ;; numargs in rdi, arg vector in rsi
+      (let* ((n arity)
+             (numbytes (* n +bytes-per-word+)))
+        (inst :sub numbytes :rsp)
+        (inst :mov :rsp :rdx) ; address of values vector for RT_process_args
+        (emit-call "RT_process_n_args")
+        (incf index n))
+      ;; address of values vector is now in rax
+      (let ((base (1- index)))
+        (dolist (var (compiland-arg-vars compiland))
+          (declare (type var var))
+          (aver (var-arg-index var))
+          (aver (null (var-index var)))
+          (aver (null (var-closure-index var)))
+          (setf (var-index var) (- base (var-arg-index var)))))
+      (allocate-locals compiland index))
+    (inst :initialize-thread-register))
+  t)
+
 (defknown allocate-closure-data-vector (t t) t)
 (defun allocate-closure-data-vector (compiland numvars)
   ;; preserve argument registers around call!
@@ -6057,10 +6087,10 @@
 (defun p2-function-prolog (compiland)
   (declare (type compiland compiland))
   (let ((arity (compiland-arity compiland)))
-    (when (and arity
-               (<= arity 6)
-               (null *closure-vars*))
-      (return-from p2-function-prolog (p2-trivial-function-prolog compiland))))
+    (when (and arity (null *closure-vars*))
+      (if (<= arity 6)
+          (return-from p2-function-prolog (p2-trivial-function-prolog compiland))
+          (return-from p2-function-prolog (p2-function-prolog-n-args compiland)))))
 
   (when (and *closure-vars* (compiland-child-p compiland))
     (return-from p2-function-prolog (p2-child-function-prolog compiland)))
