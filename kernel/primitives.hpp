@@ -707,7 +707,7 @@ extern Value SYS_real_atanh(Value arg);
 extern Value SYS_real_cosh(Value arg);
 extern Value SYS_real_sinh(Value arg);
 extern Value SYS_real_tanh(Value arg);
-extern Value SYS_record_source_information(Value name);
+extern Value SYS_record_source_information(Value name, Value source_position);
 extern Value SYS_require_boolean(Value arg);
 extern Value SYS_require_character(Value arg);
 extern Value SYS_require_cons(Value arg);

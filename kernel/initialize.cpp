@@ -762,7 +762,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_real_cosh, SYS_real_cosh, 1, 1);
   ADD_PRIMITIVE(S_real_sinh, SYS_real_sinh, 1, 1);
   ADD_PRIMITIVE(S_real_tanh, SYS_real_tanh, 1, 1);
-  ADD_PRIMITIVE(S_record_source_information, SYS_record_source_information, 1, 1);
+  ADD_PRIMITIVE(S_record_source_information, SYS_record_source_information, 2, 2);
   ADD_PRIMITIVE(S_release_mutex, EXT_release_mutex, 1, 1);
   ADD_PRIMITIVE(S_require_boolean, SYS_require_boolean, 1, 1);
   ADD_PRIMITIVE(S_require_character, SYS_require_character, 1, 1);

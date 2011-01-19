@@ -1,6 +1,6 @@
 ;;; local-variable-information.lisp
 ;;;
-;;; Copyright (C) 2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -25,5 +25,5 @@
 
 (defun set-local-variable-information (function info)
   (let ((plist (function-plist function)))
-    (setf plist (putf plist 'local-variable-information info))
+    (setq plist (putf plist 'local-variable-information info))
     (set-function-plist function plist)))

@@ -117,17 +117,8 @@
             (report-error (compile-defun-for-compile-file name lambda-expression))
           (cond (code
                  (setq form
-                       `(multiple-value-bind (final-code final-constants)
-                            (c::generate-code-vector ',code ',constants)
-                          (set-fdefinition ',name
-                                           (make-compiled-function ',name
-                                                                   final-code
-                                                                   ,minargs
-                                                                   ,maxargs
-                                                                   final-constants))
-                          (setq *source-position* ,*source-position*)
-                          (record-source-information ',name)
-                          (set-local-variable-information #',name ',l-v-info))))
+                       `(c::load-defun ',name ',code ',constants ,minargs ,maxargs
+                                       ',l-v-info ,*source-position*)))
                 (t
                  ;; FIXME this should be a warning or error of some sort
                  (format t "~&~%; Unable to compile function ~A~%" name)
@@ -135,8 +126,7 @@
                    (setq form
                          `(progn
                             (set-fdefinition ',name ,precompiled-function)
-                            (setq *source-position* ,*source-position*)
-                            (record-source-information ',name))))))))
+                            (record-source-information ',name ,*source-position*))))))))
       (when (inline-p name)
         ;; FIXME need to support SETF functions too!
         (set-inline-expansion name
@@ -169,8 +159,7 @@
                                                                   ,minargs
                                                                   ,maxargs
                                                                   final-constants))
-                      (setq *source-position* ,*source-position*)
-                      (record-source-information ',name)
+                      (record-source-information ',name ,*source-position*)
                       (set-local-variable-information (macro-function ',name) ',l-v-info))))
             (t
              ;; FIXME this should be a warning or error of some sort
@@ -178,8 +167,7 @@
              (setq form
                    `(progn
                       (set-macro-function ',name ,lambda-expression)
-                      (setq *source-position* ,*source-position*)
-                      (record-source-information ',name)))))))
+                      (record-source-information ',name ,*source-position*)))))))
   (dump-top-level-form form stream)
   t)
 

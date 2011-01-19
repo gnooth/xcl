@@ -756,7 +756,7 @@ Value CL_defun(Value args, Environment * env, Thread * thread)
   else if (is_valid_setf_function_name(name))
     check_symbol(CL_cadr(name))->put(S_setf_function, make_value(closure));
   closure->set_operator_name(name);
-  SYS_record_source_information(name);
+  SYS_record_source_information(name, thread->symbol_value(S_source_position));
   return name;
 }
 
@@ -770,11 +770,11 @@ Value SYS_defun_internal(Value name, Value function)
 // ### defmacro
 Value CL_defmacro(Value args, Environment * env, Thread * thread)
 {
-  Value name_arg = car(args);
-  Symbol * symbol = check_symbol(name_arg);
+  Value name = car(args);
+  Symbol * symbol = check_symbol(name);
   Value lambda_list = check_list(CL_cadr(args));
   Value body = CL_cddr(args);
-  Value block = make_cons(S_block, make_cons(name_arg, body));
+  Value block = make_cons(S_block, make_cons(name, body));
   Value to_be_applied =
     make_value(new Closure(list3(S_lambda, lambda_list, block), env));
   Value form_arg = gensym(thread);
@@ -784,10 +784,10 @@ Value CL_defmacro(Value args, Environment * env, Thread * thread)
           list3(S_apply, to_be_applied,
                 list2(S_cdr, form_arg)));
   Closure * expansion_function =
-    new Closure(list2(S_macro_function, name_arg), expander, env);
+    new Closure(list2(S_macro_function, name), expander, env);
   symbol->set_macro_function(expansion_function);
-  SYS_record_source_information(name_arg);
-  return name_arg;
+  SYS_record_source_information(name, thread->symbol_value(S_source_position));
+  return name;
 }
 
 // ### macrolet

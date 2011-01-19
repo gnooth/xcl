@@ -494,7 +494,7 @@ Value SYS_set_macro_function(unsigned int numargs, Value args[])
       return wrong_number_of_arguments(S_set_macro_function, numargs, 2, 3);
     }
   check_symbol(name)->set_macro_function(check_function(value));
-  SYS_record_source_information(name);
+  SYS_record_source_information(name, current_thread()->symbol_value(S_source_position));
   return value;
 }
 
@@ -571,7 +571,7 @@ Value SYS_set_fdefinition(Value name, Value value)
     if (functionp(value))
       the_function(value)->set_operator_name(name);
 
-  SYS_record_source_information(name);
+  SYS_record_source_information(name, current_thread()->symbol_value(S_source_position));
 
   extern Value RT_fast_call_symbol_2(Value symbol, Value arg1, Value arg2); // FIXME
   RT_fast_call_symbol_2(S_trace_redefined_update, name, value);
@@ -580,7 +580,7 @@ Value SYS_set_fdefinition(Value name, Value value)
 }
 
 // ### record-source-information
-Value SYS_record_source_information(Value name)
+Value SYS_record_source_information(Value name, Value source_position)
 {
   if (symbolp(name)) // FIXME support setf functions too
     {
@@ -588,7 +588,6 @@ Value SYS_record_source_information(Value name)
       Value source = thread->symbol_value(S_source_file);
       if (source != NIL)
         {
-          Value source_position = thread->symbol_value(S_source_position);
           if (source_position != NIL)
             the_symbol(name)->put(S_source_internal, make_cons(source, source_position));
         }

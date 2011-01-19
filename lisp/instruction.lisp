@@ -426,3 +426,15 @@
                  (emit (aref bytes j)))))))
 ;;      (aver (eql i length))
      (return-from generate-code-vector (values code-vector constants)))))
+
+(defun load-defun (name code constants minargs maxargs l-v-info source-position)
+  (multiple-value-bind (final-code final-constants)
+      (generate-code-vector code constants)
+    (let ((compiled-function (make-compiled-function name
+                                                     final-code
+                                                     minargs
+                                                     maxargs
+                                                     final-constants)))
+      (set-fdefinition name compiled-function)
+      (sys:set-local-variable-information compiled-function l-v-info)))
+  (record-source-information name source-position))
