@@ -351,6 +351,7 @@
                (<= arity 6)
                (null *closure-vars*))
 ;;       (return-from p2-function-prolog (p2-trivial-function-prolog compiland))
+      (aver nil)
       (return-from p2-function-prolog t)
       ))
 
@@ -3103,7 +3104,8 @@
 (defknown p2-function-call-n (t t t t) t)
 (defun p2-function-call-n (numargs op args target)
   (aver (< 0 numargs call-arguments-limit)) ; FIXME compiler-error
-  (let ((size (* numargs +bytes-per-word+))
+  (let ((kernel-function-p (kernel-function-p op))
+        (size (* numargs +bytes-per-word+))
         (index 0)
         thread-var)
     (inst :sub size :esp)
@@ -3112,20 +3114,32 @@
       (inst :mov :eax `(,index :esp))
       (incf index +bytes-per-word+))
     (when (use-fast-call-p)
+      ;; RT_current_thread_call_xxx() calls thread->clear_values(), RT_fast_call_xxx() does not
       (dolist (arg args)
         (unless (single-valued-p arg)
           (emit-clear-values)
           (return))))
     (inst :push :esp)
     (inst :push numargs)
-    (p2-symbol op :stack)
-    (cond ((use-fast-call-p)
-           (emit-call-3 "RT_fast_call_symbol" :eax))
-          ((setq thread-var (compiland-thread-var *current-compiland*))
-           (inst :push thread-var)
-           (emit-call-4 "RT_thread_call_symbol" :eax))
-          (t
-           (emit-call-3 "RT_current_thread_call_symbol" :eax)))
+    (cond (kernel-function-p
+           (inst :move-immediate `(:function ,op) :eax)
+           (inst :push :eax)
+           (cond ((use-fast-call-p)
+                  (emit-call-3 "RT_fast_call_function" :eax))
+                 ((setq thread-var (compiland-thread-var *current-compiland*))
+                  (inst :push thread-var)
+                  (emit-call-4 "RT_thread_call_function" :eax))
+                 (t
+                  (emit-call-3 "RT_current_thread_call_function" :eax))))
+           (t
+            (p2-symbol op :stack)
+            (cond ((use-fast-call-p)
+                   (emit-call-3 "RT_fast_call_symbol" :eax))
+                  ((setq thread-var (compiland-thread-var *current-compiland*))
+                   (inst :push thread-var)
+                   (emit-call-4 "RT_thread_call_symbol" :eax))
+                  (t
+                   (emit-call-3 "RT_current_thread_call_symbol" :eax)))))
     (inst :add size :esp)
     (move-result-to-target target)))
 
