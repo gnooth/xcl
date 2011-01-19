@@ -347,6 +347,7 @@
                 list-directory
                 list-elt
                 make-code-vector
+                make-compiled-function
                 mumble
                 negate
                 package-external-symbols
@@ -361,6 +362,7 @@
                 require-type
                 row-major-aset
                 set-cadr
+                set-local-variable-information
                 setcar
                 setcdr
                 setelt
