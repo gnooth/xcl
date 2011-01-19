@@ -736,7 +736,14 @@ Value RT_restify(Value args[], int start, int end)
   return result;
 }
 
-Value * RT_process_args(unsigned int numargs, Value args[], Value closure, Value vals[])
+Value* RT_process_n_args(unsigned int numargs, Value args[], Value vals[])
+{
+  for (unsigned int i = 0; i < numargs; i++)
+    vals[i] = args[i];
+  return vals;
+}
+
+Value* RT_process_args(unsigned int numargs, Value args[], Value closure, Value vals[])
 {
   return check_closure(closure)->process_args(numargs, args, vals);
 }
@@ -1270,6 +1277,9 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_restify"),
                 make_integer((unsigned long)RT_restify));
+
+  ht_names->put(make_simple_string("RT_process_n_args"),
+                make_integer((unsigned long)RT_process_n_args));
 
   ht_names->put(make_simple_string("RT_process_args"),
                 make_integer((unsigned long)RT_process_args));
