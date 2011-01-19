@@ -2,7 +2,6 @@
 
 (defun uncompiled-functions ()
   (let ((excluded-packages nil))
-    (push (find-package "COMMON-LISP-USER") excluded-packages)
     (when (find-package "SWANK")
       (push (find-package "SWANK") excluded-packages))
     (when (find-package "SWANK-PROTOCOL")
