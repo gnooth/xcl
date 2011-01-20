@@ -5807,21 +5807,20 @@
   (let ((arity (compiland-arity compiland)))
     (inst :save-thread-register)
     (inst :enter-frame)
-    (let ((index 0))
-      ;; numargs in rdi, arg vector in rsi
-      (let* ((n arity)
-             (numbytes (* n +bytes-per-word+)))
-        (inst :sub numbytes :rsp)
-        (inst :mov :rsp :rdx) ; address of values vector for RT_process_args
-        (emit-call "RT_process_n_args")
-        (incf index n))
-      ;; address of values vector is now in rax
+    ;; numargs in rdi, arg vector in rsi
+    (let* ((index 0)
+           (n arity)
+           (numbytes (* n +bytes-per-word+)))
+      (inst :sub numbytes :rsp)
+      (inst :mov :rsp :rdx) ; address of values vector for RT_process_n_args
+      (emit-call "RT_process_n_args")
+      (incf index n)
       (let ((base (1- index)))
         (dolist (var (compiland-arg-vars compiland))
           (declare (type var var))
           (setf (var-index var) (- base (var-arg-index var)))))
-      (allocate-locals compiland index))
-    (inst :initialize-thread-register))
+      (allocate-locals compiland index)))
+  (inst :initialize-thread-register)
   t)
 
 (defknown allocate-closure-data-vector (t t) t)
