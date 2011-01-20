@@ -438,3 +438,18 @@
       (set-fdefinition name compiled-function)
       (sys:set-local-variable-information compiled-function l-v-info)))
   (record-source-information name source-position))
+
+(defun load-compiled-lambda-form (code constants minargs maxargs l-v-info source-position)
+  (declare (ignore source-position))
+  (multiple-value-bind (final-code final-constants)
+      (generate-code-vector code constants)
+    (let ((compiled-function (make-compiled-function (gensym "ANONYMOUS-LAMBDA-")
+                                                     final-code
+                                                     minargs
+                                                     maxargs
+                                                     final-constants)))
+;;       (set-fdefinition name compiled-function)
+      (sys:set-local-variable-information compiled-function l-v-info)
+;;   (record-source-information name source-position)
+      compiled-function
+  )))

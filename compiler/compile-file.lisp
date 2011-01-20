@@ -171,6 +171,57 @@
   (dump-top-level-form form stream)
   t)
 
+(defun process-ensure-method (form stream)
+;;   (mumble "process-ensure-method~%")
+  (flet ((get-lambda-to-compile (thing)
+           (cond ((functionp thing)
+;;                   (format t "thing is functionp~%")
+                  (function-lambda-expression thing))
+                 ((and (consp thing)
+                       (eq (%car thing) 'LAMBDA))
+                  thing)
+                 ((and (consp thing)
+                       (eq (%car thing) 'FUNCTION)
+                       (consp (cadr thing))
+                       (eq (caadr thing) 'LAMBDA))
+;;                   (format t "thing is #'(lambda ...)~%")
+                  (cadr thing)))))
+    (let* ((all-keys (cddr form))
+           (function-form (getf all-keys :function))
+           (fast-function-form (getf all-keys :fast-function)))
+      (let ((function-lambda-form (get-lambda-to-compile function-form)))
+;;         (format t "function-lambda-form = ~%")
+;;         (pprint function-lambda-form)
+;;         (terpri)
+        (when function-lambda-form
+          (multiple-value-bind (code minargs maxargs constants l-v-info)
+              (report-error (compile-lambda-for-compile-file function-lambda-form))
+            (when code
+              (setq function-form
+                    `(c::load-compiled-lambda-form ',code ',constants ,minargs ,maxargs
+                                                   ',l-v-info ,*source-position*))
+              (remf all-keys :function)
+              ;;             (mumble "all-keys = ~S~%" all-keys)
+              (setq all-keys (append all-keys (list :function function-form)))
+              ;;             (mumble "all-keys = ~S~%" all-keys)
+              ))))
+      (let ((fast-function-lambda-form (get-lambda-to-compile fast-function-form)))
+;;         (format t "fast-function-lambda-form = ~%")
+;;         (pprint fast-function-lambda-form)
+;;         (terpri)
+        (when fast-function-lambda-form
+          (multiple-value-bind (code minargs maxargs constants l-v-info)
+              (report-error (compile-lambda-for-compile-file fast-function-lambda-form))
+            (when code
+              (setq fast-function-form
+                    `(c::load-compiled-lambda-form ',code ',constants ,minargs ,maxargs
+                                                   ',l-v-info ,*source-position*))
+              (remf all-keys :fast-function)
+              (setq all-keys (append all-keys (list :fast-function function-form)))
+              ))))
+      (setq form `(sys::ensure-method ,(cadr form) ,@all-keys))
+      (dump-top-level-form form stream))))
+
 (defun convert-toplevel-form (form)
   (let ((lambda-expression `(lambda () ,form))
         (name (gensym)))
@@ -248,6 +299,9 @@
        (let ((*compile-print* nil))
          (process-top-level-form (macroexpand-1 form *compile-file-environment*)
                                  stream compile-time-too))
+       (return-from process-top-level-form))
+      (SYS::ENSURE-METHOD
+       (process-ensure-method form stream)
        (return-from process-top-level-form))
       (DEFTYPE
        (note-top-level-form form)
