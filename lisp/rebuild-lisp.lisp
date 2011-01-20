@@ -388,6 +388,7 @@
                           "with-package-iterator"
                           "with-slots"
                           "with-standard-io-syntax"
+                          "without-gcing"
                           "write"
                           "write-byte"
                           "write-line"
