@@ -120,14 +120,8 @@
                                       (var-closure-index var))
                             (incf count)))))
              (numbytes (* numvars +bytes-per-word+)))
-        (cond ((zerop numbytes)
-               ; nothing to do
-               )
-              ((< numbytes 128)
-               (inst :sub numbytes :esp)
-               )
-              (t
-               (inst :sub numbytes :esp)))))))
+        (unless (eql numbytes 0)
+          (inst :sub numbytes :esp))))))
 
 (defknown trivial-allocate-locals (t) t)
 (defun trivial-allocate-locals (compiland)
@@ -157,6 +151,26 @@
   (inst :initialize-thread-var)
   (clear-register-contents)
   t)
+
+(defun p2-function-prolog-n-args (compiland)
+  (declare (type compiland compiland))
+  (let ((arity (compiland-arity compiland)))
+    (inst :enter-frame)
+    (let* ((index -1) ; first local is at -4(%ebp)
+           (n arity)
+           (numbytes (* n +bytes-per-word+)))
+      (inst :sub numbytes :esp)
+      (inst :push :esp) ; address of values vector for RT_process_n_args
+      (decf index n)
+      (inst :push '(12 :ebp)) ; args
+      (inst :push '(8 :ebp)) ; numargs
+      (emit-call-3 "RT_process_n_args" :eax)
+      (let ((base (1+ index)))
+        (dolist (var (compiland-arg-vars compiland))
+          (declare (type var var))
+          (setf (var-index var) (+ base (var-arg-index var)))))
+      (allocate-locals compiland index)))
+  (inst :initialize-thread-var))
 
 (defknown p2-child-function-prolog (compiland) t)
 (defun p2-child-function-prolog (compiland)
@@ -353,7 +367,12 @@
 ;;       (return-from p2-function-prolog (p2-trivial-function-prolog compiland))
       (aver nil)
       (return-from p2-function-prolog t)
-      ))
+      )
+    (when (and arity
+               (> arity 6)
+               (null *closure-vars*))
+      (return-from p2-function-prolog (p2-function-prolog-n-args compiland)))
+    )
 
   (when (and *closure-vars* (compiland-child-p compiland))
     (return-from p2-function-prolog (p2-child-function-prolog compiland)))
