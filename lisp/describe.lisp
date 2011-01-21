@@ -1,6 +1,6 @@
 ;;; describe.lisp
 ;;;
-;;; Copyright (C) 2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2009-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -118,3 +118,15 @@
     (format stream "Class: ~S~%" (class-of object))
     (dolist (slot slots)
       (format stream "~A: ~S~%" (slot-name slot) (structure-ref object (slot-index slot))))))
+
+(defmethod describe-object ((object standard-object) stream)
+  (format stream "~S~%" object)
+  (format stream "Slots:~%")
+  (let ((*print-structure* nil)
+        (names (layout-slot-names (std-instance-layout object)))
+        (elements nil))
+    (dolist (name names)
+      (let ((value (if (slot-boundp object name)
+                       (slot-value object name)
+                       +unbound-marker+)))
+        (format stream "  ~A = ~S~%" name value)))))
