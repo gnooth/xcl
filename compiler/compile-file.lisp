@@ -208,7 +208,7 @@
           (multiple-value-bind (code minargs maxargs constants l-v-info)
               (report-error (compile-lambda-for-compile-file function-lambda-form))
             (when code
-              (let ((function-name `(method-function ,name ,specializers)))
+              (let ((function-name `(mop:method-function ,name ,specializers)))
                 (setq function-form
                       `(c::load-compiled-lambda-form ',function-name ',code ',constants ,minargs ,maxargs
                                                      ',l-v-info ,*source-position*))

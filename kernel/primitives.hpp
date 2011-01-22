@@ -863,6 +863,7 @@ extern Value SYS_type_error_internal(Value datum, Value expected_type);
 extern Value SYS_untraced_function(Value name);
 extern Value SYS_upgraded_array_element_type_internal(Value arg);
 extern Value SYS_uptime();
+extern Value SYS_valid_function_name_p(Value arg);
 #ifdef __x86_64__
 extern Value SYS_value_to_ub64(Value arg);
 #else

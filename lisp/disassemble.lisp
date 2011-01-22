@@ -408,10 +408,9 @@
                (disassemble-function (symbol-function constant))))))))
 
 (defun disassemble (arg)
-  (unless (or (symbolp arg)
-              (functionp arg)
-              (setf-function-name-p arg)
-              (lambda-expression-p arg))
+  (unless (or (functionp arg)
+              (lambda-expression-p arg)
+              (valid-function-name-p arg))
     (error 'type-error
            :datum arg
            :expected-type
@@ -419,9 +418,12 @@
   (setq *lambda-name* (if (symbolp arg) arg nil))
   (when (and (symbolp arg) (autoloadp arg))
     (resolve arg))
-  (let ((function (if (symbolp arg)
-                      (fdefinition arg)
-                      (coerce-to-function arg))))
+  (let ((function (cond ((functionp arg)
+                         arg)
+                        ((lambda-expression-p arg)
+                         (coerce-to-function arg))
+                        (t
+                         (fdefinition arg)))))
     (when (typep function 'standard-generic-function)
       (setq function (funcallable-instance-function function)))
     (unless (compiled-function-p function)

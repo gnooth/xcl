@@ -764,6 +764,7 @@ extern Value gensym(const char * prefix, Thread * thread);
 extern Value parse_body(Value forms, bool doc_string_allowed, Thread * thread);
 
 extern bool is_valid_setf_function_name(Value arg);
+extern bool is_valid_method_function_name(Value arg);
 
 extern Value FUNCTION_NAME;
 

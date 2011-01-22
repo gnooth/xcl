@@ -1,6 +1,6 @@
 // runtime.h
 //
-// Copyright (C) 2007-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2007-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -44,6 +44,16 @@ extern "C" {
   extern Value RT_thread_call_symbol_6(Thread * thread, Value symbol, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5, Value arg6);
 
   extern Value RT_thread_call_symbol(Thread * thread, Value symbol, unsigned int numargs, Value args[]);
+
+  extern Value RT_fast_call_symbol_0(Value symbol);
+  extern Value RT_fast_call_symbol_1(Value symbol, Value arg);
+  extern Value RT_fast_call_symbol_2(Value symbol, Value arg1, Value arg2);
+  extern Value RT_fast_call_symbol_3(Value symbol, Value arg1, Value arg2, Value arg3);
+  extern Value RT_fast_call_symbol_4(Value symbol, Value arg1, Value arg2, Value arg3, Value arg4);
+  extern Value RT_fast_call_symbol_5(Value symbol, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5);
+  extern Value RT_fast_call_symbol_6(Value symbol, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5, Value arg6);
+
+  extern Value RT_fast_call_symbol(Value symbol, unsigned int numargs, Value args[]);
 
   extern void RT_handle_interrupt();
 

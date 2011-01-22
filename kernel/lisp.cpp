@@ -666,6 +666,12 @@ Value CL_function(Value args, Environment * env, Thread * thread)
           if (value != NIL)
             return value;
         }
+      if (is_valid_method_function_name(arg))
+        {
+          Value function = CL_fdefinition(arg);
+          if (function != NIL)
+            return function;
+        }
     }
   return signal_type_error(arg, S_symbol);
 }

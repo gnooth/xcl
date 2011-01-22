@@ -24,6 +24,7 @@
 #include <ctype.h>      // toupper, tolower
 #include "lisp.hpp"
 #include "primitives.hpp"
+#include "runtime.h"
 #include "Closure.hpp"
 #include "Complex.hpp"
 #include "Environment.hpp"
@@ -527,7 +528,6 @@ Value CL_fdefinition(Value name)
           return RT_fast_call_symbol_1(S_untraced_function, name);
         }
     }
-
   if (symbolp(name))
     return CL_symbol_function(name);
   if (is_valid_setf_function_name(name))
@@ -537,6 +537,32 @@ Value CL_fdefinition(Value name)
         return value;
       else
         return signal_undefined_function(name);
+    }
+  if (CL_fboundp(S_find_method) != NIL)
+    {
+      if (consp(name))
+        {
+          Cons * cons = the_cons(name);
+          Value accessor = cons->xcar();
+          if (accessor == S_method_function || accessor == S_method_fast_function)
+            {
+              Value generic_function_name = CL_cadr(name);
+              if (CL_fboundp(generic_function_name) != NIL)
+                {
+                  Value specializers = CL_caddr(name);
+                  if (specializers != NIL)
+                    {
+                      Value method = RT_fast_call_symbol_4(S_find_method,
+                                                           CL_symbol_function(generic_function_name),
+                                                           NIL,
+                                                           specializers,
+                                                           NIL);
+                      if (method != NIL)
+                        return RT_fast_call_symbol_1(accessor, method);
+                    }
+                }
+            }
+        }
     }
   return signal_type_error(name, FUNCTION_NAME);
 }
@@ -1497,6 +1523,34 @@ bool is_valid_setf_function_name(Value arg)
         }
     }
   return false;
+}
+
+bool is_valid_method_function_name(Value arg)
+{
+  if (consp(arg))
+    {
+      // REVIEW
+      if (length(arg) >= 3)
+        {
+          Cons * cons = the_cons(arg);
+          Value accessor = cons->xcar();
+          if (accessor == S_method_function || accessor == S_method_fast_function)
+            return true;
+        }
+    }
+  return false;
+}
+
+// ### valid-function-name-p
+Value SYS_valid_function_name_p(Value arg)
+{
+  if (symbolp(arg))
+    return T;
+  if (is_valid_setf_function_name(arg))
+    return T;
+  if (is_valid_method_function_name(arg))
+    return T;
+  return NIL;
 }
 
 // ### setf-function-name-p
