@@ -1316,8 +1316,8 @@
 ;; CL generic function
 (defun find-method (gf qualifiers specializers &optional (errorp t))
   ;; "If the specializers argument does not correspond in length to the number
-  ;; of required arguments of the generic-function, an an error of type ERROR
-  ;; is signaled."
+  ;; of required arguments of the generic function, an error of type ERROR is
+  ;; signaled."
   (unless (eql (length specializers) (length (gf-required-arglist gf)))
     (error "The specializers argument has length ~D, but ~S has ~D required parameter~:P."
            (length specializers)
