@@ -439,11 +439,11 @@
       (sys:set-local-variable-information compiled-function l-v-info)))
   (record-source-information name source-position))
 
-(defun load-compiled-lambda-form (code constants minargs maxargs l-v-info source-position)
+(defun load-compiled-lambda-form (name code constants minargs maxargs l-v-info source-position)
   (declare (ignore source-position))
   (multiple-value-bind (final-code final-constants)
       (generate-code-vector code constants)
-    (let ((compiled-function (make-compiled-function (gensym "ANONYMOUS-LAMBDA-")
+    (let ((compiled-function (make-compiled-function name
                                                      final-code
                                                      minargs
                                                      maxargs
