@@ -1,6 +1,6 @@
 // Function.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -70,7 +70,8 @@ Value Function::parts()
 AbstractString * Function::write_to_string()
 {
   Value name = operator_name();
-  if (current_thread()->symbol_value(S_print_readably) != NIL)
+  Thread * thread = current_thread();
+  if (thread->symbol_value(S_print_readably) != NIL)
     {
       if (symbolp(name) || is_valid_setf_function_name(name))
         {
@@ -91,7 +92,11 @@ AbstractString * Function::write_to_string()
   if (name != NULL_VALUE)
     {
       s->append_char(' ');
+      void* last_special_binding = thread->last_special_binding();
+      thread->bind_special(S_print_length, NIL);
+      thread->bind_special(S_print_level, NIL);
       s->append(::prin1_to_string(name));
+      thread->set_last_special_binding(last_special_binding);
     }
   return unreadable_string(s);
 }
