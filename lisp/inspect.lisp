@@ -1,6 +1,6 @@
 ;;; inspect.lisp
 ;;;
-;;; Copyright (C) 2003-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -167,7 +167,7 @@
            (multiple-value-bind (len kind) (safe-length object)
              (case kind
                (:proper
-                (format t "A proper list with ~D elements at #x~X~%" len (address-of object))
+                (format t "A proper list with ~D element~P at #x~X~%" len len (address-of object))
                 (let ((i 0))
                   (dolist (item object)
                     (cond ((< i 25)
