@@ -331,6 +331,8 @@
                 backq-nconc
                 backq-cons
                 check-subsequence
+                current-bp
+                current-sp
                 designator-input-stream
                 designator-list
                 designator-output-stream
