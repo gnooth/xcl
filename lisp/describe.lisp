@@ -95,7 +95,12 @@
       (format stream "Flags:" flags)
       (dotimes (i +bits-per-word+)
         (when (logbitp i flags)
-          (format stream "~12T~A~%" (symbol-flags-bit-name i)))))))
+          (format stream "~12T~A~%" (symbol-flags-bit-name i))))))
+  (let ((tagged #+x86-64
+                (value-to-ub64 object)
+                #+x86
+                (value-to-ub32 object)))
+    (format t "Tagged:~12T~D #x~X" tagged tagged)))
 
 (defmethod describe-object ((object pathname) stream)
   (format stream "Pathname: ~12T~S~%" object)
