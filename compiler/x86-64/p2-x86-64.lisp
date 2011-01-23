@@ -5714,6 +5714,15 @@
        (move-result-to-target target)
        t))))
 
+(defun p2-current-bp (form target)
+  (when (length-eql form 1)
+    (when target
+      (mumble "p2-current-bp")
+      (inst :mov :rbp :rax)
+      (box-fixnum :rax)
+      (move-result-to-target target)
+      t)))
+
 (defknown allocate-locals (t t) t)
 (defun allocate-locals (compiland index)
   (declare (type index index))
