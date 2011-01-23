@@ -140,15 +140,19 @@
                              names)
                        (setf (gethash (function-code-address function) *lisp-code-addresses*) symbol)))
                    (dolist (method (generic-function-methods function))
-                     (let ((name (format nil "(~S ~S ~S)"
-                                         (class-name (class-of method))
-                                         symbol
-                                         (mapcar 'specializer-name (method-specializers method)))))
+                     (let (
+;;                            (name (format nil "(~S ~S ~S)"
+;;                                          (class-name (class-of method))
+;;                                          symbol
+;;                                          (mapcar 'specializer-name (method-specializers method))))
+                           )
                        (let ((method-function (method-function method)))
                          (cond ((function-code-address method-function)
                                 (push (make-syminfo :address (function-code-address method-function)
                                                     :size (function-code-size method-function)
-                                                    :name name)
+;;                                                     :name name
+                                                    :name (function-name method-function)
+                                                    )
                                       names)
                                 (setf (gethash (function-code-address method-function) *lisp-code-addresses*) symbol)))
 ;;                          (method-function
@@ -159,7 +163,9 @@
 ;;                                 (format t "method fast function ~S~%" method-fast-function)
                                 (push (make-syminfo :address (function-code-address method-fast-function)
                                                     :size (function-code-size method-fast-function)
-                                                    :name (format nil "~S [fast function]" name))
+;;                                                     :name (format nil "~S [fast function]" name)
+                                                    :name (function-name method-fast-function)
+                                                    )
                                       names)
                                 (setf (gethash (function-code-address method-fast-function) *lisp-code-addresses*) symbol))
 ;;                                (method-fast-function
@@ -263,7 +269,7 @@
 ;;         (setf *bp* contents)
 ;;         (return))))
 
-;;   #+x86
+  #+x86
   (dotimes (i (length *stack-entry-vector*))
     (let* ((entry (aref *stack-entry-vector* i))
            (contents (stack-entry-contents entry)))
@@ -272,8 +278,11 @@
                               (aref *stack-entry-vector* (1+ i)))))
           (when (eq (stack-entry-name next-entry) 'INVOKE-DEBUGGER)
             (setf (stack-entry-flag entry) "**")
-            (setf *bp* contents)
-            (return)))))))
+            (setq *bp* contents)
+            (return))))))
+  #+x86-64
+  (setq *bp* *saved-bp*)
+  )
 
 (defun print-saved-stack (&optional (limit most-positive-fixnum))
   (analyze-saved-stack)
@@ -286,25 +295,19 @@
              (contents (stack-entry-contents entry))
              (name (stack-entry-name entry))
              (flag (stack-entry-flag entry))
-             (args (stack-entry-args entry)))
-        #+x86-64
-        (format t "0x~8,'0X 0x~16,'0X ~A~A ~A~%"
+             (args (stack-entry-args entry))
+             (str (unless (eql args 0)
+                    (format nil "args = ~S" args))))
+        (format t
+                #+x86-64
+                "0x~8,'0X 0x~16,'0X ~A~A ~A~%"
+                #+x86
+                "0x~8,'0X 0x~8,'0X ~A~A ~A~%"
                 address
                 contents
                 (if flag flag "")
                 (if name name "")
-                (if args args ""))
-        #+x86
-        (progn
-          (let ((str (unless (eql args 0)
-                       (format nil "args = ~S" args))))
-            (format t "0x~8,'0X 0x~8,'0X ~A~A ~A~%"
-                    address
-                    contents
-                    (if flag flag "")
-                    (if name name "")
-                    (if str str ""))))
-        )
+                (if str str "")))
       (incf count)
       (when (>= count limit)
         (return)))))
@@ -418,7 +421,7 @@
         (args (stack-entry-args frame))
 ;;         (bp (stack-entry-bp frame))
         )
-;;     (format t "~3D: 0x~X " frame-number (stack-entry-address frame))
+    (format t "0x~X " (stack-entry-address frame))
     (format t "~3D: " frame-number)
     (cond ((stringp name)
            (format t "~A at 0x~X" name contents))
