@@ -5841,7 +5841,7 @@
       (setq regs (subseq regs 0 arity)))
     (dolist (reg regs)
       (inst :push reg))
-    (emit-move-immediate-dword-to-register (* numvars +bytes-per-word+) :rdi)
+    (inst :mov numvars :rdi)
     (emit-call "RT_allocate_closure_data_vector")
     (dolist (reg (reverse regs))
       (inst :pop reg))))
