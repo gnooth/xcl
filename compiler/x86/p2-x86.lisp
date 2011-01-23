@@ -355,7 +355,7 @@
   t)
 
 (defun allocate-closure-data-vector (numvars)
-  (inst :push (* numvars +bytes-per-word+))
+  (inst :push numvars)
   (emit-call-1 "RT_allocate_closure_data_vector" :eax))
 
 (defun p2-function-prolog (compiland)
