@@ -100,7 +100,7 @@
                 (value-to-ub64 object)
                 #+x86
                 (value-to-ub32 object)))
-    (format t "Tagged:~12T~D #x~X" tagged tagged)))
+    (format stream "Tagged:~12T~D #x~X" tagged tagged)))
 
 (defmethod describe-object ((object pathname) stream)
   (format stream "Pathname: ~12T~S~%" object)
