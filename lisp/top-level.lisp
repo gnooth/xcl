@@ -331,7 +331,8 @@
          (thing (values (ignore-errors (eval form)))))
     (when (and thing
                (or (functionp thing)
-                   (and (symbolp thing) (fboundp thing))))
+                   (lambda-expression-p thing)
+                   (valid-function-name-p thing)))
       (disassemble thing))))
 
 (defun edit-command (arg)
