@@ -87,5 +87,6 @@
 
 (defun invoke-debugger (condition)
   (let ((*saved-backtrace* (backtrace-as-list))
-        (*saved-stack* (current-stack-as-list)))
+        (*saved-stack* (current-stack-as-list))
+        (*saved-bp* (current-bp)))
     (%invoke-debugger condition)))
