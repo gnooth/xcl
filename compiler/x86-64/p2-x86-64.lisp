@@ -5996,11 +5996,13 @@
 
                         ;; arg vector is in rdx
                         (emit-move-relative-to-register :rdx (var-arg-index var) :rax)
-
-                        (setf (var-index var) index)
-                        (incf index)
-                        (inst :push :rax)
-                        (incf stack-used)
+                        (cond ((var-closure-index var)
+                               (emit-move-register-to-closure-var :rax var compiland))
+                              (t
+                               (setf (var-index var) index)
+                               (incf index)
+                               (inst :push :rax)
+                               (incf stack-used)))
 ;;                         (setf (var-arg-index var) nil)
                         )
                        ((eq (var-kind var) :rest)
