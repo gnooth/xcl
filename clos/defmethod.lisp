@@ -50,13 +50,12 @@
 
 (defun %make-method-lambda (generic-function method lambda-expression environment)
   (declare (ignore generic-function method environment)) ; REVIEW
-  (let* ((lambda-list (allow-other-keys (cadr lambda-expression)))
-         (numargs (length lambda-list)))
+  (let* ((lambda-list (allow-other-keys (cadr lambda-expression))))
     (multiple-value-bind (body declarations)
         (parse-body (cddr lambda-expression))
       (let ((*call-next-method-p* nil)
             (*next-method-p-p* nil)
-            (next-methods (gensym))
+            (next-methods (gensym "NEXT-METHOD-LIST-"))
             method-lambda)
         (walk-form body)
         (cond ((or *call-next-method-p* *next-method-p-p*)
@@ -84,7 +83,7 @@
                           (apply #'(lambda ,lambda-list ,@declarations ,@body) ,+gf-args-var+)))))
               ((null (intersection lambda-list lambda-list-keywords))
                (setq method-lambda
-                     (case numargs
+                     (case (length lambda-list)
                        (0
                         `(lambda (,+gf-args-var+ ,next-methods)
                            (declare (ignore ,next-methods))
