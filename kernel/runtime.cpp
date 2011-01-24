@@ -704,19 +704,19 @@ void RT_set_value_cell_value(ValueCell * value_cell, Value value)
   value_cell->set_value(value);
 }
 
-ValueCell * * RT_allocate_closure_data_vector(INDEX data_length)
+ValueCell** RT_allocate_closure_data_vector(INDEX data_length)
 {
-  INDEX size = data_length * sizeof(ValueCell *);
-  ValueCell * * data = (ValueCell * *) GC_malloc(size);
+  INDEX size = data_length * sizeof(ValueCell*);
+  ValueCell** data = (ValueCell**) GC_malloc(size);
   for (INDEX i = 0; i < data_length; i++)
     data[i] = new ValueCell(NIL);
   return data;
 }
 
-Value * RT_copy_closure_data_vector(Value * data, INDEX data_length)
+ValueCell** RT_copy_closure_data_vector(Value * data, INDEX data_length)
 {
-  INDEX size = data_length * sizeof(Value);
-  Value * copy = (Value *) GC_malloc(size);
+  INDEX size = data_length * sizeof(ValueCell*);
+  ValueCell** copy = (ValueCell**) GC_malloc(size);
   memcpy(copy, data, size);
   return copy;
 }
