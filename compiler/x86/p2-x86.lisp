@@ -2770,9 +2770,18 @@
                   (emit-call-1 op target))
                  (use-fast-call-p
                   (process-1-arg arg :stack t)
-                  (emit-move-function-to-register op :eax)
-                  (inst :push :eax)
-                  (emit-call-2 "RT_fast_call_function_1" target))
+                  (cond ((and (eql (function-arity op) -1)
+                              (verify-call op 0))
+                         (mumble "p2-function-call-1 new case op = ~S~%" op)
+                         (inst :push :esp)
+                         (inst :push 1)
+                         (emit-call op)
+                         (inst :add (* +bytes-per-word+ 3) :esp)
+                         (move-result-to-target target))
+                        (t
+                         (emit-move-function-to-register op :eax)
+                         (inst :push :eax)
+                         (emit-call-2 "RT_fast_call_function_1" target))))
                  ;; not use-fast-call-p
                  ((setq thread-var (compiland-thread-var compiland))
                   ;; RT_thread_call_function_1() calls thread->clear_values()
