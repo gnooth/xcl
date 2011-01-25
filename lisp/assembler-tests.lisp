@@ -197,6 +197,7 @@
     ((:mov :rcx (0 :rcx))       #(#x48 #x89 #x09))
     ((:mov :rcx (4 :rcx))       #(#x48 #x89 #x49 #x04))
     ((:mov :rax (:rsp))         #(#x48 #x89 #x04 #x24))
+    ((:mov :rax (0 :rsp))       #(#x48 #x89 #x04 #x24))
     ((:mov :rax (8 :rsp))       #(#x48 #x89 #x44 #x24 #x08))
     ((:mov :r12 (-8 :rsp))      #(#x4c #x89 #x64 #x24 #xf8))
     ((:mov (-8 :rsp) :r12)      #(#x4c #x8b #x64 #x24 #xf8))
