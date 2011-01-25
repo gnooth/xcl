@@ -2822,7 +2822,7 @@
            (emit-call-2 "RT_current_thread_call_symbol_1" target)))))
 
 (defknown call-with-vectorized-args (t t t) t)
-(defun call-with-vectorized-args (op args target)
+(defun call-with-vectorized-args (op args)
   (let ((numargs (length args)))
     (declare (type (integer 0 #.(1- call-arguments-limit)) numargs))
     (unless (zerop numargs)
@@ -2836,8 +2836,7 @@
     (inst :push :esp)
     (inst :push numargs)
     (emit-call op)
-    (inst :add (* +bytes-per-word+ (+ numargs 2)) :esp)
-    (move-result-to-target target)))
+    (inst :add (* +bytes-per-word+ (+ numargs 2)) :esp)))
 
 (defknown p2-function-call-2 (t t t) t)
 (defun p2-function-call-2 (op args target)
@@ -2856,7 +2855,8 @@
                  (use-fast-call-p
                   (cond ((and (eql (function-arity op) -1)
                               (verify-call op 2))
-                         (call-with-vectorized-args op args target))
+                         (call-with-vectorized-args op args)
+                         (move-result-to-target target))
                         (t
                          (process-2-args args :stack t)
                          (emit-move-function-to-register op :eax)
@@ -2923,7 +2923,8 @@
                  (use-fast-call-p
                   (cond ((and (eql (function-arity op) -1)
                               (verify-call op 3))
-                         (call-with-vectorized-args op args target))
+                         (call-with-vectorized-args op args)
+                         (move-result-to-target target))
                         (t
                          (process-3-args args :stack t)
                          (emit-move-function-to-register op :eax)
@@ -2982,7 +2983,8 @@
                  (kernel-function-p
                   (cond ((and (eql (function-arity op) -1)
                               (verify-call op 4))
-                         (call-with-vectorized-args op args target))
+                         (call-with-vectorized-args op args)
+                         (move-result-to-target target))
                         (t
                          (process-4-args args :stack use-fast-call-p)
                          (emit-move-function-to-register op :eax)
@@ -3031,7 +3033,8 @@
                  (kernel-function-p
                   (cond ((and (eql (function-arity op) -1)
                               (verify-call op 5))
-                         (call-with-vectorized-args op args target))
+                         (call-with-vectorized-args op args)
+                         (move-result-to-target target))
                         (t
                          (process-5-args args :stack use-fast-call-p)
                          (emit-move-function-to-register op :eax)
