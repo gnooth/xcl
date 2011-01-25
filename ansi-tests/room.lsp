@@ -35,7 +35,7 @@
 
 ;;; Error tests
 
-(deftest room.errpr.1
+(deftest room.error.1
   (signals-error (with-output-to-string (*standard-output*) (room nil nil)) program-error)
   t)
 
