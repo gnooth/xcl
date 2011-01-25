@@ -165,6 +165,8 @@ Value SYS_gc_total_cons_cells()
 // ### room &optional x => implementation-dependent
 Value CL_room(unsigned int numargs, Value args[])
 {
+  if (numargs > 1)
+    return signal_lisp_error(new WrongNumberOfArgumentsError(S_room, numargs, 0, 1));
   long heap_size = GC_get_heap_size();
   long free_bytes = GC_get_free_bytes();
   char buf[1024];
@@ -175,8 +177,6 @@ Value CL_room(unsigned int numargs, Value args[])
            heap_size,
            (long) GC_get_bytes_since_gc());
   check_ansi_stream(current_thread()->symbol_value(S_standard_output))->write_string(buf);
-  // If we change this to return multiple values (or no values), remember to
-  // update known-functions.lisp!
   return NIL;
 }
 
