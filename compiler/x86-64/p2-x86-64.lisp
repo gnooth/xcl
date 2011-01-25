@@ -2793,6 +2793,23 @@
     (inst :mov :rsp :rsi)
     (inst :mov numargs :rdi)))
 
+(defknown call-with-vectorized-args (t t) t)
+(defun call-with-vectorized-args (op args)
+  (let ((numargs (length args)))
+    (declare (type (integer 0 #.(1- call-arguments-limit)) numargs))
+    (unless (zerop numargs)
+      (inst :sub (* +bytes-per-word+ numargs) :rsp))
+    (let ((index 0))
+      (declare (type (integer 0 #.(1- call-arguments-limit)) index))
+      (dolist (arg args)
+        (process-1-arg arg :rax t)
+        (inst :mov :rax `(,(* index +bytes-per-word+) :rsp))
+        (incf index)))
+    (inst :mov :rsp :rsi)
+    (inst :mov numargs :rdi)
+    (emit-call op)
+    (inst :add (* numargs +bytes-per-word+) :rsp)))
+
 (defknown p2-function-call-2 (t t t) t)
 (defun p2-function-call-2 (op args target)
   (let ((compiland *current-compiland*)
@@ -2810,9 +2827,7 @@
                  (use-fast-call-p
                   (cond ((and (eql (function-arity op) -1)
                               (verify-call op 2))
-                         (vectorize-args args)
-                         (emit-call op)
-                         (inst :add (* +bytes-per-word+ 2) :rsp))
+                         (call-with-vectorized-args op args))
                         (t
                          (process-2-args args '(:rsi :rdx) t)
                          (inst :move-immediate `(:function ,op) :rdi)
@@ -2872,9 +2887,7 @@
                  (use-fast-call-p
                   (cond ((and (eql (function-arity op) -1)
                               (verify-call op 3))
-                         (vectorize-args args)
-                         (emit-call op)
-                         (inst :add (* +bytes-per-word+ 3) :rsp))
+                         (call-with-vectorized-args op args))
                         (t
                          (process-3-args args '(:rsi :rdx :rcx) t)
                          (inst :move-immediate `(:function ,op) :rdi)
@@ -2931,9 +2944,7 @@
                  (kernel-function-p
                   (cond ((and (eql (function-arity op) -1)
                               (verify-call op 4))
-                         (vectorize-args args)
-                         (emit-call op)
-                         (inst :add (* +bytes-per-word+ 4) :rsp))
+                         (call-with-vectorized-args op args))
                         (t
                          (process-4-args args '(:rsi :rdx :rcx :r8) t)
                          (inst :move-immediate `(:function ,op) :rdi)
@@ -2984,9 +2995,7 @@
                  (kernel-function-p
                   (cond ((and (eql (function-arity op) -1)
                               (verify-call op 5))
-                         (vectorize-args args)
-                         (emit-call op)
-                         (inst :add (* +bytes-per-word+ 5) :rsp))
+                         (call-with-vectorized-args op args))
                         (t
                          (process-5-args args '(:rsi :rdx :rcx :r8 :r9) t)
                          (inst :move-immediate `(:function ,op) :rdi)
