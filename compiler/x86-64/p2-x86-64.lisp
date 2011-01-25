@@ -2803,8 +2803,14 @@
     (let ((index 0))
       (declare (type (integer 0 #.(1- call-arguments-limit)) index))
       (dolist (arg args)
-        (process-1-arg arg :rax nil)
-        (inst :mov :rax `(,(* index +bytes-per-word+) :rsp))
+        (let ((reg nil))
+          (cond ((and (var-ref-p arg)
+                      (setq reg (find-register-containing-var (var-ref-var arg))))
+                 (mumble "call-with-vectorized-args new case~%")
+                 (inst :mov reg `(,(* index +bytes-per-word+) :rsp)))
+                (t
+                 (process-1-arg arg :rax nil)
+                 (inst :mov :rax `(,(* index +bytes-per-word+) :rsp)))))
         (incf index)
         (unless must-clear-values
           (unless (single-valued-p arg)
