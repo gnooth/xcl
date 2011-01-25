@@ -943,6 +943,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_vector_push_extend_3, SYS_vector_push_extend_3, 3, 3);
   ADD_PRIMITIVE(S_vector_ref, SYS_vector_ref, 2, 2);
   ADD_PRIMITIVE(S_vector_set, SYS_vector_set, 3, 3);
+  ADD_PRIMITIVE(S_verify_call, SYS_verify_call, 2, 2);
   ADD_PRIMITIVE(S_whitespacep, SYS_whitespacep, 1, 1);
   ADD_PRIMITIVE(S_write_8_bits, SYS_write_8_bits, 2, 2);
   ADD_PRIMITIVE(S_xcaddr, SYS_xcaddr, 1, 1);

@@ -880,6 +880,7 @@ extern Value SYS_vector_push_extend_2(Value arg1, Value arg2);
 extern Value SYS_vector_push_extend_3(Value arg1, Value arg2, Value arg3);
 extern Value SYS_vector_ref(Value vector, Value index);
 extern Value SYS_vector_set(Value vector, Value index, Value new_element);
+extern Value SYS_verify_call(Value arg1, Value arg2);
 extern Value SYS_whitespacep(Value arg);
 extern Value SYS_write_8_bits(Value byte, Value stream);
 extern Value SYS_write_to_string_internal(Value arg);

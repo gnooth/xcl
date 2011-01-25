@@ -215,6 +215,14 @@ Value SYS_function_arity(Value arg)
   return make_fixnum(coerce_to_function(arg)->arity());
 }
 
+// ### verify-call function-designator numargs => boolean
+Value SYS_verify_call(Value arg1, Value arg2)
+{
+  TypedObject * function = coerce_to_function(arg1);
+  INDEX numargs = check_index(arg2);
+  return (numargs >= function->minargs() && numargs <= function->maxargs()) ? T : NIL;
+}
+
 // ### function-name function-designator
 Value SYS_function_name(Value arg)
 {
