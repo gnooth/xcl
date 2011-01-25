@@ -2723,7 +2723,6 @@
                  (kernel-function-p
                   (cond ((and (eql (function-arity op) -1)
                               (verify-call op 0))
-                         (mumble "p2-function-call-0 new case op = ~S~%" op)
                          (inst :push :esp)
                          (inst :push 0)
                          (emit-call-2 op target))
@@ -2771,8 +2770,7 @@
                  (use-fast-call-p
                   (process-1-arg arg :stack t)
                   (cond ((and (eql (function-arity op) -1)
-                              (verify-call op 0))
-                         (mumble "p2-function-call-1 new case op = ~S~%" op)
+                              (verify-call op 1))
                          (inst :push :esp)
                          (inst :push 1)
                          (emit-call op)
@@ -2823,6 +2821,24 @@
            (p2-symbol op :stack)
            (emit-call-2 "RT_current_thread_call_symbol_1" target)))))
 
+(defknown call-with-vectorized-args (t t t) t)
+(defun call-with-vectorized-args (op args target)
+  (let ((numargs (length args)))
+    (declare (type (integer 0 #.(1- call-arguments-limit)) numargs))
+    (unless (zerop numargs)
+      (inst :sub (* +bytes-per-word+ numargs) :esp))
+    (let ((index 0))
+      (declare (type (integer 0 #.(1- call-arguments-limit)) index))
+      (dolist (arg args)
+        (process-1-arg arg :eax t)
+        (inst :mov :eax `(,(* index +bytes-per-word+) :esp))
+        (incf index)))
+    (inst :push :esp)
+    (inst :push numargs)
+    (emit-call op)
+    (inst :add (* +bytes-per-word+ (+ numargs 2)) :esp)
+    (move-result-to-target target)))
+
 (defknown p2-function-call-2 (t t t) t)
 (defun p2-function-call-2 (op args target)
   (let ((compiland *current-compiland*)
@@ -2838,10 +2854,14 @@
                   (process-2-args args :stack t)
                   (emit-call-2 op target))
                  (use-fast-call-p
-                  (process-2-args args :stack t)
-                  (emit-move-function-to-register op :eax)
-                  (inst :push :eax)
-                  (emit-call-3 "RT_fast_call_function_2" target))
+                  (cond ((and (eql (function-arity op) -1)
+                              (verify-call op 2))
+                         (call-with-vectorized-args op args target))
+                        (t
+                         (process-2-args args :stack t)
+                         (emit-move-function-to-register op :eax)
+                         (inst :push :eax)
+                         (emit-call-3 "RT_fast_call_function_2" target))))
                  ;; not use-fast-call-p
                  ((setq thread-var (compiland-thread-var compiland))
                   ;; RT_thread_call_function_2() calls thread->clear_values()
@@ -2901,10 +2921,14 @@
                   (process-3-args args :stack t)
                   (emit-call-3 op target))
                  (use-fast-call-p
-                  (process-3-args args :stack t)
-                  (emit-move-function-to-register op :eax)
-                  (inst :push :eax)
-                  (emit-call-4 "RT_fast_call_function_3" target))
+                  (cond ((and (eql (function-arity op) -1)
+                              (verify-call op 3))
+                         (call-with-vectorized-args op args target))
+                        (t
+                         (process-3-args args :stack t)
+                         (emit-move-function-to-register op :eax)
+                         (inst :push :eax)
+                         (emit-call-4 "RT_fast_call_function_3" target))))
                  ;; not use-fast-call-p
                  ((setq thread-var (compiland-thread-var compiland))
                   ;; RT_thread_call_function_3() calls thread->clear_values()
@@ -2949,26 +2973,34 @@
         (use-fast-call-p (use-fast-call-p))
         thread-var)
     (declare (type compiland compiland))
-    (process-4-args args :stack use-fast-call-p)
     (cond (use-fast-call-p
            (cond ((and kernel-function-p
                        (eql (function-arity op) 4)
                        (function-code-address (symbol-function op)))
+                  (process-4-args args :stack use-fast-call-p)
                   (emit-call-4 op target))
                  (kernel-function-p
-                  (emit-move-function-to-register op :eax)
-                  (inst :push :eax)
-                  (emit-call-5 "RT_fast_call_function_4" target))
+                  (cond ((and (eql (function-arity op) -1)
+                              (verify-call op 4))
+                         (call-with-vectorized-args op args target))
+                        (t
+                         (process-4-args args :stack use-fast-call-p)
+                         (emit-move-function-to-register op :eax)
+                         (inst :push :eax)
+                         (emit-call-5 "RT_fast_call_function_4" target))))
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 4))
+                  (process-4-args args :stack use-fast-call-p)
                   (emit-recurse)
                   (emit-adjust-stack-after-call 4)
                   (move-result-to-target target))
                  (t
+                  (process-4-args args :stack use-fast-call-p)
                   (p2-symbol op :stack)
                   (emit-call-5 "RT_fast_call_symbol_4" target))))
           ;; not use-fast-call-p
           ((setq thread-var (compiland-thread-var compiland))
+           (process-4-args args :stack use-fast-call-p)
            (cond (kernel-function-p
                   (emit-move-function-to-register op :eax)
                   (inst :push :eax)
@@ -2979,6 +3011,7 @@
                   (inst :push thread-var)
                   (emit-call-6 "RT_thread_call_symbol_4" target))))
           (t
+           (process-4-args args :stack use-fast-call-p)
            (p2-symbol op :stack)
            (emit-call-5 "RT_current_thread_call_symbol_4" target)))))
 
@@ -2989,26 +3022,34 @@
         (use-fast-call-p (use-fast-call-p))
         thread-var)
     (declare (type compiland compiland))
-    (process-5-args args :stack use-fast-call-p)
     (cond (use-fast-call-p
            (cond ((and kernel-function-p
                        (eql (function-arity op) 5)
                        (function-code-address (symbol-function op)))
+                  (process-5-args args :stack use-fast-call-p)
                   (emit-call-5 op target))
                  (kernel-function-p
-                  (emit-move-function-to-register op :eax)
-                  (inst :push :eax)
-                  (emit-call-6 "RT_fast_call_function_5" target))
+                  (cond ((and (eql (function-arity op) -1)
+                              (verify-call op 5))
+                         (call-with-vectorized-args op args target))
+                        (t
+                         (process-5-args args :stack use-fast-call-p)
+                         (emit-move-function-to-register op :eax)
+                         (inst :push :eax)
+                         (emit-call-6 "RT_fast_call_function_5" target))))
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 5))
+                  (process-5-args args :stack use-fast-call-p)
                   (emit-recurse)
                   (emit-adjust-stack-after-call 5)
                   (move-result-to-target target))
                  (t
+                  (process-5-args args :stack use-fast-call-p)
                   (p2-symbol op :stack)
                   (emit-call-6 "RT_fast_call_symbol_5" target))))
           ;; not use-fast-call-p
           ((setq thread-var (compiland-thread-var compiland))
+           (process-5-args args :stack use-fast-call-p)
            (cond (kernel-function-p
                   (emit-move-function-to-register op :eax)
                   (inst :push :eax)
@@ -3019,6 +3060,7 @@
                   (inst :push thread-var)
                   (emit-call-7 "RT_thread_call_symbol_5" target))))
           (t
+           (process-5-args args :stack use-fast-call-p)
            (p2-symbol op :stack)
            (emit-call-6 "RT_current_thread_call_symbol_5" target)))))
 
