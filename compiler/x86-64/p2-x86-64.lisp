@@ -6183,9 +6183,7 @@
            (when (compiland-needs-thread-var-p compiland)
              (inst :push :r12)
              (incf stack-used))
-           (inst :push :rbp)
-           (incf stack-used)
-           (inst :mov :rsp :rbp))
+           (inst :enter-frame))
           (t
            (setf (compiland-omit-frame-pointer compiland) t)))
 
@@ -6299,12 +6297,7 @@
                  (inst :mov :rdi :rdx)
                  (inst :mov :rsi :rdi)
                  (emit-move-immediate-dword-to-register start :rsi)
-                 ;; REVIEW do we need to make sure the stack is aligned for this call?
-                 (when (oddp stack-used)
-                   (inst :sub +bytes-per-word+ :rsp))
                  (emit-call "RT_restify")
-                 (when (oddp stack-used)
-                   (inst :add +bytes-per-word+ :rsp))
                  (cond ((var-closure-index restvar)
                         (emit-move-register-to-closure-var :rax restvar compiland))
                        (t
@@ -6322,7 +6315,6 @@
                         (setf (var-arg-register var) nil))
                        ((eq (var-kind var) :required)
                         (unless (var-closure-index var)
-;;                           (aver (not (null (var-arg-index var))))
                           (unless (var-arg-index var)
                             (aver (not 3)))
                           (let ((n (* (var-arg-index var) 8)))
@@ -6333,9 +6325,7 @@
                           (setf (var-index var) index)
                           (incf index)
                           (inst :push :rax)
-                          (incf stack-used)
-;;                           (setf (var-arg-index var) nil)
-                          ))
+                          (incf stack-used)))
                        ((eq (var-kind var) :rest)
                         ;; shouldn't happen
                         (mumble "P2-FUNCTION-PROLOG shouldn't happen~%")
