@@ -2802,7 +2802,6 @@
         (let ((reg nil))
           (cond ((and (var-ref-p arg)
                       (setq reg (find-register-containing-var (var-ref-var arg))))
-                 (mumble "call-with-vectorized-args new case~%")
                  (inst :mov reg `(,(* index +bytes-per-word+) :rsp)))
                 (t
                  (process-1-arg arg :rax nil)
@@ -2814,7 +2813,7 @@
     (when must-clear-values
       (emit-clear-values))
     (inst :mov :rsp :rsi)
-    (inst :mov numargs :rdi)
+    (inst :mov numargs :edi)
     (emit-call op)
     (inst :add (* numargs +bytes-per-word+) :rsp)))
 
@@ -5759,12 +5758,21 @@
        (move-result-to-target target)
        t)
       (2
-       (process-2-args args '(:rax :rdx) nil)
-       (inst :mov :rax `(,+values-offset+ ,thread-reg))
-       (inst :mov :rdx `(,(+ +values-offset+ +bytes-per-word+) ,thread-reg))
-       (inst :movb numargs `(,+values-length-offset+ ,thread-reg))
-       (move-result-to-target target)
-       t)
+       (let ((arg1 (%car args))
+             (arg2 (%cadr args)))
+         (cond ((and (eq arg1 arg2)
+                     (constantp arg1))
+                (mumble "p2-values new case~%")
+                (p2-constant arg1 :rax)
+                (inst :mov :rax `(,+values-offset+ ,thread-reg))
+                (inst :mov :rax `(,(+ +values-offset+ +bytes-per-word+) ,thread-reg)))
+               (t
+                (process-2-args args '(:rax :rdx) nil)
+                (inst :mov :rax `(,+values-offset+ ,thread-reg))
+                (inst :mov :rdx `(,(+ +values-offset+ +bytes-per-word+) ,thread-reg))))
+         (inst :movb numargs `(,+values-length-offset+ ,thread-reg))
+         (move-result-to-target target)
+         t))
       (3
        (process-3-args args '(:rax :rdx :rcx) nil)
        (inst :mov :rax `(,+values-offset+ ,thread-reg))
@@ -5786,7 +5794,6 @@
 (defun p2-current-bp (form target)
   (when (length-eql form 1)
     (when target
-      (mumble "p2-current-bp")
       (inst :mov :rbp :rax)
       (box-fixnum :rax)
       (move-result-to-target target)
