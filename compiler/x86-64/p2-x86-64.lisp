@@ -5762,7 +5762,6 @@
              (arg2 (%cadr args)))
          (cond ((and (eq arg1 arg2)
                      (constantp arg1))
-                (mumble "p2-values new case~%")
                 (p2-constant arg1 :rax)
                 (inst :mov :rax `(,+values-offset+ ,thread-reg))
                 (inst :mov :rax `(,(+ +values-offset+ +bytes-per-word+) ,thread-reg)))
@@ -6334,10 +6333,6 @@
                         (compiler-unsupported "unsupported var-kind ~S" (var-kind var))))))))
 
       (incf stack-used (allocate-locals compiland index))
-
-      ;; fix stack alignment if necessary
-      (when (oddp stack-used)
-        (inst :sub +bytes-per-word+ :rsp))
 
       (when (compiland-thread-register compiland)
         (emit-call "RT_current_thread")
