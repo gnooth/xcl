@@ -202,6 +202,8 @@
     ((:mov :rax (8 :rsp))       #(#x48 #x89 #x44 #x24 #x08))
     ((:mov :r12 (-8 :rsp))      #(#x4c #x89 #x64 #x24 #xf8))
     ((:mov (-8 :rsp) :r12)      #(#x4c #x8b #x64 #x24 #xf8))
+    ((:mov 3 :edi)              #(#xbf #x03 #x00 #x00 #x00))
+    ((:mov 3 :rdi)              #(#x48 #xc7 #xc7 #x03 #x00 #x00 #x00))
     ;; (sys:value-to-ub64 most-positive-fixnum)
     ((:mov 9223372036854775804
            :rax)                #(#x48 #xb8 #xfc #xff #xff #xff #xff #xff #xff #x7f))

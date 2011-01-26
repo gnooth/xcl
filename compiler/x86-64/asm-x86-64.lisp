@@ -334,6 +334,11 @@
          (let* ((prefix-byte (if (extended-register-p operand2) #x49 #x48)))
            (emit-bytes prefix-byte (+ #xb8 (register-number operand2)))
            (emit-raw-qword operand1)))
+        ((and (integerp operand1)
+              (typep operand1 '(signed-byte 32))
+              (reg32-p operand2))
+         (emit-byte (+ #xb8 (register-number operand2)))
+         (emit-raw-dword operand1))
         (t
          (unsupported))))
 
