@@ -152,7 +152,9 @@
      (format t "$0x~X" (operand-data op)))
     (:relative
      (cond ((zerop (operand-data op))
-            (format t "0x~X(~A)" (operand-data op) (register-string (operand-register op))))
+;;             (format t "0x~X(~A)" (operand-data op) (register-string (operand-register op)))
+            (format t "(~A)" (register-string (operand-register op)))
+            )
 ;;            #+x86-64
 ;;            ((eq (operand-register op) :rip)
 ;;             ;; gdb prints the displacement in decimal if the register is %rip

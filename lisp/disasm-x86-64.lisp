@@ -258,19 +258,21 @@
                     (setq annotation (cdr (assoc index *locals*)))))
                 (make-instruction :start start
                                   :length 3
-                                  :mnemonic :push
+                                  :mnemonic :pushq
                                   ;; "In 64-bit mode, the operand size of all
                                   ;; PUSH instructions defaults to 64 bits, and
                                   ;; there is no prefix available to encode a 32-
                                   ;; bit operand size."
                                   :operand1 (make-operand :kind :relative
                                                           :register (register rm #x48) ; force 64-bit reg
-                                                          :data (mref-8-signed start 2))
+;;                                                           :data (mref-8-signed start 2)
+                                                          :data displacement
+                                                          )
                                   :annotation annotation)))
              (#b10
               (make-instruction :start start
                                 :length 6
-                                :mnemonic :push
+                                :mnemonic :pushq
                                 :operand1 (make-operand :kind :relative
                                                         :register (register rm)
                                                         :data (mref-32-signed start 2))))

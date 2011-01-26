@@ -184,6 +184,8 @@
     ((:mov (0 :rdi) :rax)       #(#x48 #x8b #x07))
     ((:mov (:rdi) :rdi)         #(#x48 #x8b #x3f))
     ((:mov (0 :rdi) :rdi)       #(#x48 #x8b #x3f))
+    ((:mov (0 :rsi) :rax)       #(#x48 #x8b #x06))
+    ((:mov (:rsi) :rax)         #(#x48 #x8b #x06))
     ((:mov (:r11) :rax)         #(#x49 #x8b #x03))
     ((:mov (:r11) :r8)          #(#x4d #x8b #x03))
     ((:mov (:rax) :r11)         #(#x4c #x8b #x18))
