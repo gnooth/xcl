@@ -6258,15 +6258,14 @@
                         (let ((n (* (var-arg-index var) +bytes-per-word+)))
                           (unless (<= 0 n 255)
                             (compiler-unsupported "too many vars"))
-                          (emit-bytes #x48 #x8b #x46) ; mov n(%rsi),%rax
-                          (emit-byte n))
-                        (cond ((var-closure-index var)
-                               (emit-move-register-to-closure-var :rax var compiland))
-                              (t
-                               (setf (var-index var) index)
-                               (incf index)
-                               (inst :push :rax)
-                               (incf stack-used))))
+                          (cond ((var-closure-index var)
+                                 (inst :mov `(,n :rsi) :rax)
+                                 (emit-move-register-to-closure-var :rax var compiland))
+                                (t
+                                 (setf (var-index var) index)
+                                 (incf index)
+                                 (inst :push `(,n :rsi))
+                                 (incf stack-used)))))
                        ((eq (var-kind var) :rest)
                         (unless (var-arg-index var)
                           (aver (not 2)))
