@@ -377,12 +377,7 @@
   (when (and *closure-vars* (compiland-child-p compiland))
     (return-from p2-function-prolog (p2-child-function-prolog compiland)))
 
-  ;; REVIEW (or t ...)
-  (cond ((or t (compiland-arg-vars compiland) *local-variables* *closure-vars*)
-         (inst :push :ebp)
-         (inst :mov :esp :ebp))
-        (t
-         (setf (compiland-omit-frame-pointer compiland) t)))
+  (inst :enter-frame)
 
   (let ((index -1)) ; first local is at -4(%ebp)
     (when (and *closure-vars* (null (compiland-parent compiland))) ; top-level compiland
@@ -470,7 +465,7 @@
                          (aver (fixnump (var-closure-index var))))
                         (t
                          ;; reserve space for rest var
-                         (inst :push :eax)
+                         (inst :sub +bytes-per-word+ :esp)
                          (setf (var-index var) index)
                          (decf index))))
                  (t
@@ -497,9 +492,8 @@
                      (t
                       (inst :mov :eax restvar)))))))
     (allocate-locals compiland index))
-  (when (compiland-thread-var compiland)
-    (emit-call "RT_current_thread")
-    (inst :mov :eax (compiland-thread-var compiland))))
+  (inst :initialize-thread-var)
+  (clear-register-contents))
 
 ;; index-displacement index => displacement
 (defknown index-displacement (t) t)
@@ -5321,7 +5315,6 @@
              nil)))))
 
 (defun p2-values (form target)
-  (mumble "p2-values called~%")
   (let* ((args (cdr form))
          (numargs (length args))
          (thread-var (compiland-thread-var *current-compiland*)))
