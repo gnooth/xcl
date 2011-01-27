@@ -628,8 +628,9 @@
              (characterp form)
              (hash-table-p form)
              (packagep form)
+             (pathnamep form)
              (functionp form) ; REVIEW
-             )
+             (classp form))
          (cond ((null target)
                 ; nothing to do
                 )
