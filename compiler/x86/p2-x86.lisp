@@ -2155,7 +2155,7 @@
              (clear-register-contents)
              (process-2-args args '(:eax :edx) t) ; string in eax, offset in edx
              (inst :add (- +simple-string-data-offset+ +typed-object-lowtag+) :eax)
-             (emit-bytes #xc1 #xfa +fixnum-shift+) ; sar $0x2,%edx
+             (inst :sar +fixnum-shift+ :edx)
              (inst :add :eax :edx)
              (emit-bytes #x0f #xb6 #x02) ; movzbl (%edx),%eax
              (inst :shl +character-shift+ :eax)
@@ -3706,8 +3706,7 @@
                      (emit-jmp-short :nz FULL-CALL))
                    ;; falling through, both args are fixnums
                    (inst :mov :eax :ecx) ; we're about to trash :eax
-                   ;;              (emit-bytes #x01 #xd0) ; add %edx,%eax
-                   (emit-bytes #xc1 #xf8 #x02) ; sar $0x2,%eax
+                   (inst :sar +fixnum-shift+ :eax)
                    (emit-bytes #x0f #xaf #xc2) ; imul %edx,%eax
                    (case target
                      (:return
@@ -3924,8 +3923,8 @@
                           (t
                            (process-2-args args '(:eax :ecx) t)
                            (unbox-fixnum :ecx)
-                           (emit-bytes #xf7 #xd9) ; neg %ecx
-                           (emit-bytes #xd3 #xf8) ; sar %cl,%eax
+                           (inst :neg :ecx)
+                           (inst :sar :cl :eax)
                            (clear-register-contents :eax :ecx)))
                     ;; clear tag bits
                     (inst :and #xfc :al)
