@@ -61,6 +61,8 @@
     ((:neg :ecx)                #(#xf7 #xd9))
     ((:shl 4 :eax)              #(#xc1 #xe0 #x04))
     ((:sar 4 :eax)              #(#xc1 #xf8 #x04))
+    ((:sar 2 :edx)              #(#xc1 #xfa #x02))
+    ((:sar :cl :eax)            #(#xd3 #xf8))
     ((:shr 8 :eax)              #(#xc1 #xe8 #x08))
     ((:and :eax :edx)           #(#x21 #xc2))
     ((:and :edx :eax)           #(#x21 #xd0))
