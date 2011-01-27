@@ -448,18 +448,16 @@
                (case (var-kind var)
                  (:required
                   (aver (var-arg-index var))
-;;                   (aver (null (var-index var)))
-                  (emit-move-relative-to-register :ecx (var-arg-index var) :eax)
                   (cond ((var-closure-index var)
+                         (emit-move-relative-to-register :ecx (var-arg-index var) :eax)
                          (inst :push :ecx)
                          (emit-move-register-to-closure-var :eax var compiland)
                          (inst :pop :ecx))
                         (t
+                         (inst :push `(,(* (var-arg-index var) +bytes-per-word+) :ecx))
                          (setf (var-index var) index)
-                         (decf index)
-                         (inst :push :eax))))
+                         (decf index))))
                  (:rest
-;;                   (aver (null (var-index var)))
                   (cond ((var-closure-index var)
                          ; nothing to do
                          (aver (fixnump (var-closure-index var))))
@@ -481,11 +479,9 @@
                     (setq restvar var)
                     (aver (or (var-index restvar) (var-closure-index restvar)))
                     (return))))
-               (emit-move-local-to-register 2 :eax) ; numargs (end index)
-               (inst :push :eax)
+               (inst :push `(,(* 2 +bytes-per-word+) :ebp))
                (inst :push start) ; start index
-               (emit-move-local-to-register 3 :eax) ; argument vector
-               (inst :push :eax)
+               (inst :push `(,(* 3 +bytes-per-word+) :ebp))
                (emit-call-3 "RT_restify" :eax)
                (cond ((var-closure-index restvar)
                       (emit-move-register-to-closure-var :eax restvar compiland))
