@@ -2608,7 +2608,7 @@
 		     :good
 		   (list v1 v2)))
 	       :good)))
-      (print test-form stream)
+      (pprint test-form stream)
       (terpri stream)
       (incf index)))
   (values))
