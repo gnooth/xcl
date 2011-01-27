@@ -5321,6 +5321,7 @@
              nil)))))
 
 (defun p2-values (form target)
+  (mumble "p2-values called~%")
   (let* ((args (cdr form))
          (numargs (length args))
          (thread-var (compiland-thread-var *current-compiland*)))
@@ -5362,7 +5363,6 @@
        (inst :pop :eax)
        (clear-register-contents :eax)
        (inst :mov :eax `(,+values-offset+ :ecx))
-;;        (inst :pop `(,+values-offset+ :ecx))
        (inst :pop `(,(+ +values-offset+ +bytes-per-word+) :ecx))
        (inst :pop `(,(+ +values-offset+ (* 2 +bytes-per-word+)) :ecx))
        (inst :movb 3 `(,+values-length-offset+ :ecx))
