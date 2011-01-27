@@ -6179,9 +6179,7 @@
   ;; transferred to the function entry point."
   (let ((stack-used -1))
     (cond ((or t (compiland-arg-vars compiland) *local-variables* *closure-vars*)
-           (when (compiland-needs-thread-var-p compiland)
-             (inst :push :r12)
-             (incf stack-used))
+           (inst :save-thread-register)
            (inst :enter-frame))
           (t
            (setf (compiland-omit-frame-pointer compiland) t)))
@@ -6334,7 +6332,6 @@
 
       (incf stack-used (allocate-locals compiland index))
 
-      (when (compiland-thread-register compiland)
-        (emit-call "RT_current_thread")
-        (inst :mov :rax (compiland-thread-register compiland)))))
+      (inst :initialize-thread-register)
+      (clear-register-contents)))
   t)
