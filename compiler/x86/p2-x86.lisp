@@ -1467,13 +1467,9 @@
     (when (block-last-special-binding-var block)
       (let ((thread-var (compiland-thread-var compiland)))
         (cond (thread-var
-;;                (inst :mov thread-var :eax)
-;;                (emit-bytes #x8b #x40)
-;;                (emit-byte +last-special-binding-offset+) ; mov 0x10(%eax),%eax
-               (inst :push thread-var)
-               (emit-call-1 "RT_thread_last_special_binding" :eax)
-;;                (clear-register-contents :eax)
-               )
+               (inst :mov thread-var :eax)
+               (inst :mov `(,+last-special-binding-offset+ :eax) :eax)
+               (clear-register-contents :eax))
               (t
                (mumble "P2-LET/LET*: emitting call to RT_current_thread_last_special_binding~%")
                (emit-call "RT_current_thread_last_special_binding"))))
@@ -1488,28 +1484,24 @@
           (*space*  *space*)
           (*safety* *safety*)
           (*debug*  *debug*)
-          (*inline-declarations* *inline-declarations*)
-          ;;(*explain* *explain*)
-          )
+          (*inline-declarations* *inline-declarations*))
       (process-optimization-declarations (cddr (block-form block)))
       (cond ((block-last-special-binding-var block)
              (p2-progn-body body :stack)
              ;; restore last special binding
-             (cond ((compiland-thread-var compiland)
-;;                     (inst :mov (block-last-special-binding-var block) :edx)
-;;                     (inst :mov (compiland-thread-var compiland) :eax)
-;;                     (inst :mov :edx `(,+last-special-binding-offset+ :eax))
-                    (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
-                    (inst :push (compiland-thread-var compiland))
-                    (emit-call-2 "RT_thread_set_last_special_binding" nil)
-;;                     (clear-register-contents :eax :edx)
-                    )
-                   (t
-                    (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
-                    (mumble "P2-LET/LET*: emitting call to RT_current_thread_set_last_special_binding~%")
-                    (emit-call-1 "RT_current_thread_set_last_special_binding" nil)))
-             (inst :pop :eax)
-             (move-result-to-target target))
+             ;; can't inline this easily since RT_thread_last_special_binding calls Thread::unbind_to(INDEX)
+             (let ((thread-var (compiland-thread-var compiland)))
+               (cond (thread-var
+                      (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
+                      (inst :push thread-var)
+                      (emit-call-2 "RT_thread_set_last_special_binding" nil))
+                     (t
+                      (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
+                      (mumble "P2-LET/LET*: emitting call to RT_current_thread_set_last_special_binding~%")
+                      (emit-call-1 "RT_current_thread_set_last_special_binding" nil))))
+             (unless (eq target :stack)
+               (inst :pop :eax)
+               (move-result-to-target target)))
             (t
              (p2-progn-body body target))))))
 
@@ -1526,9 +1518,10 @@
     (declare (type compiland compiland))
     (aver thread-var)
     (when (block-last-special-binding-var block)
-      (inst :push thread-var)
-      (emit-call-1 "RT_thread_last_special_binding" :eax)
-      (inst :mov :eax (block-last-special-binding-var block)))
+      (inst :mov thread-var :eax)
+      (inst :mov `(,+last-special-binding-offset+ :eax) :eax)
+      (inst :mov :eax (block-last-special-binding-var block))
+      (clear-register-contents :eax))
     (p2 values-form :eax)
     ;; push args right to left!
     (inst :push numvars) ; numvars
