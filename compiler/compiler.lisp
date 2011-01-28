@@ -1429,7 +1429,7 @@ for special variables."
                                  :body body
                                  :free-specials free-specials)))
           (when (some #'var-special-p vars)
-            (let ((var (make-var :name (gensym) :kind :local)))
+            (let ((var (make-var :name (gensym "LAST-SPECIAL-BINDING-") :kind :local)))
               (push var *local-variables*)
               (setf (block-last-special-binding-var block) var)))
           (list 'MULTIPLE-VALUE-BIND block))))))
