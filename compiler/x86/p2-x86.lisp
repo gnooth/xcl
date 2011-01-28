@@ -673,8 +673,9 @@
     (declare (type compiland compiland))
     (when last-special-binding-var
       (aver thread-var)
-      (inst :push thread-var)
-      (emit-call-1 "RT_thread_last_special_binding" :eax)
+      (inst :mov thread-var :eax)
+      (inst :mov `(,+last-special-binding-offset+ :eax) :eax)
+      (clear-register-contents :eax)
       (inst :mov :eax last-special-binding-var))
     (setf (block-exit block) BLOCK-EXIT)
     (setf (block-target block) target)
@@ -1489,7 +1490,7 @@
       (cond ((block-last-special-binding-var block)
              (p2-progn-body body :stack)
              ;; restore last special binding
-             ;; can't inline this easily since RT_thread_last_special_binding calls Thread::unbind_to(INDEX)
+             ;; can't inline this easily since RT_thread_set_last_special_binding calls Thread::unbind_to(INDEX)
              (let ((thread-var (compiland-thread-var compiland)))
                (cond (thread-var
                       (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
@@ -1552,7 +1553,6 @@
               ((var-closure-index var)
                (inst :push base-reg)
                ;; each new binding gets a new value cell
-               (mumble "p2-m-v-b new code~%")
                (inst :push value-reg)
                (emit-call-1 "RT_make_value_cell_1" :eax)
                (emit-move-local-to-register (compiland-closure-data-index compiland) :edx)
@@ -1572,6 +1572,7 @@
            (p2-progn-body body :stack)
            (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
            (inst :push thread-var)
+           ;; can't inline this easily since RT_thread_set_last_special_binding calls Thread::unbind_to(INDEX)
            (emit-call-2 "RT_thread_set_last_special_binding" nil)
            (inst :pop :eax)
            (move-result-to-target target))
