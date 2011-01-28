@@ -255,6 +255,7 @@
     ((:mov (-8 :rbp) :r11)      #(#x4c #x8b #x5d #xf8))
     ((:mov (-256 :rbp) :r8)     #(#x4c #x8b #x85 #x00 #xff #xff #xff))
     ((:mov (8 :r11) :r11)       #(#x4d #x8b #x5b #x08))
+    ((:mov (48 :r12) :rax)      #(#x49 #x8b #x44 #x24 #x30))
     ((:mov :rax (72 :r12))      #(#x49 #x89 #x44 #x24 #x48))
     ((:mov :rdx (80 :r12))      #(#x49 #x89 #x54 #x24 #x50))
     ((:mov :cl (:rax))          #(#x88 #x08))

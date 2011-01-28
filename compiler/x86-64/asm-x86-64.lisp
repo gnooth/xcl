@@ -209,7 +209,7 @@
                                 (modrm-byte (make-modrm-byte mod reg rm)))
                            (emit-bytes prefix-byte #x8b modrm-byte)
                            ;; REVIEW
-                           (when (eq reg1 :rsp)
+                           (when (memq reg1 '(:rsp :r12))
                              (emit-byte #x24))
                            (emit-byte displacement-byte)))
                         (t
