@@ -1,6 +1,6 @@
 // Symbol.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -204,10 +204,6 @@ public:
   void fmakunbound()
   {
     _function = NULL;;
-//     _flags &= ~FLAG_SPECIAL_OPERATOR;
-//     _flags &= ~FLAG_MACRO;
-//     _flags &= ~FLAG_AUTOLOAD;
-//     _flags &= ~FLAG_KERNEL_FUNCTION;
     _flags &= ~(FLAG_SPECIAL_OPERATOR | FLAG_MACRO | FLAG_AUTOLOAD | FLAG_KERNEL_FUNCTION);
   }
 
