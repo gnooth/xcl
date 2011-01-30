@@ -451,15 +451,16 @@
                      ((:verbose *compile-verbose*) *compile-verbose*)
                      ((:print *compile-print*) *compile-print*)
                      external-format)
-  (loop
-    (restart-case
-        (return (%compile-file input-file output-file external-format))
-      (retry ()
-        :report (lambda (stream) (format stream "Retry compiling ~S" input-file))
-        nil)
-      (skip ()
-        :report (lambda (stream) (format stream "Skip compiling ~S" input-file))
-        (return)))))
+  (let ((*compiler-busy-p* t))
+    (loop
+      (restart-case
+          (return (%compile-file input-file output-file external-format))
+        (retry ()
+          :report (lambda (stream) (format stream "Retry compiling ~S" input-file))
+          nil)
+        (skip ()
+          :report (lambda (stream) (format stream "Skip compiling ~S" input-file))
+          (return))))))
 
 (defun compile-file-if-needed (input-file &rest allargs &key force-compile)
   (unless (or (and (probe-file input-file)

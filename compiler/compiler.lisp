@@ -2810,18 +2810,22 @@ for special variables."
                (values compiled-function nil nil)))))))
 
 (defun compile (name &optional (definition nil definition-supplied-p))
-  (when definition-supplied-p
-    (unless (or (functionp definition)
-                (and (consp definition) (eq (%car definition) 'lambda)))
-      (error 'type-error :datum definition :expected-type 'function)))
-  (if *enable-compiler*
-      (%compile name definition)
-      (precompile name definition)))
+  (let ((*compiler-busy-p* t))
+    (when definition-supplied-p
+      (unless (or (functionp definition)
+                  (and (consp definition) (eq (%car definition) 'lambda)))
+        (error 'type-error :datum definition :expected-type 'function)))
+    (if *enable-compiler*
+        (%compile name definition)
+        (precompile name definition))))
 
 ;; replaces do-nothing stub defined in kernel
 (defun autocompile (function)
-  (when *enable-autocompile* ; true by default
-    (let* ((verbose *autocompile-verbose*) ; false by default
+  (when *enable-autocompile*
+    (let* ((*compiler-busy-p* t)
+           (verbose *autocompile-verbose*) ; false by default
            (*compile-verbose* verbose)
            (*mumble* verbose))
       (values (compile nil function)))))
+
+(setq *enable-autocompile* t)
