@@ -1,6 +1,6 @@
 ;;; gray-streams.lisp
 ;;;
-;;; Copyright (C) 2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2010-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -89,13 +89,6 @@
 (defgeneric stream-advance-to-column (stream column))
 
 ;; other functions
-
-(fmakunbound 'close)
-
-(defgeneric close (stream &key abort))
-
-(defmethod close ((stream ansi-stream) &key abort)
-  (ansi-stream-close stream))
 
 (fmakunbound 'open-stream-p)
 
