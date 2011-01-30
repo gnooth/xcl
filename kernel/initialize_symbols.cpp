@@ -296,6 +296,7 @@ void initialize_symbols()
   the_symbol(S_documentation_hash_table)->initialize_constant(make_value(DOCUMENTATION_HASH_TABLE));
 
   // REVIEW
+  the_symbol(S_compiler_busy_p)->initialize_special(NIL);
   the_symbol(S_enable_autocompile)->initialize_special(T);
   the_symbol(S_autocompile_verbose)->initialize_special(NIL);
 
