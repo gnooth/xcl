@@ -2751,6 +2751,12 @@
 (define-method-combination or     :identity-with-one-argument t)
 (define-method-combination progn  :identity-with-one-argument t)
 
+;; redefine CLOSE as a generic function
+(defgeneric close (stream &key abort))
+
+(defmethod close ((stream ansi-stream) &key abort)
+  (ansi-stream-close stream))
+
 (setq *mop-working-p* t)
 
 (provide "CLOS")
