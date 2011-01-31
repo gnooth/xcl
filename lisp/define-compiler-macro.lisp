@@ -1,6 +1,6 @@
 ;;; define-compiler-macro.lisp
 ;;;
-;;; Copyright (C) 2003-2008 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -44,6 +44,7 @@
            (setf (compiler-macro-function ',name) (function ,expander))
            ',name)))))
 
+(defknown compiler-macroexpand-1 (t t) (values t t))
 (defun compiler-macroexpand-1 (form env)
   (let ((expander nil)
         (new-form nil))
@@ -61,6 +62,7 @@
           (t
            (values form nil)))))
 
+(defknown compiler-macroexpand (t t) (values t t))
 (defun compiler-macroexpand (form &optional env)
   (let ((expanded-p nil))
     (loop

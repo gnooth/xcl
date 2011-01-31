@@ -1,6 +1,6 @@
 ;;; define-source-transform.lisp
 ;;;
-;;; Copyright (C) 2004-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2004-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -45,6 +45,7 @@
        (setf (source-transform ',name) ,expander)
        ',name)))
 
+(defknown expand-source-transform-1 (t) (values t t))
 (defun expand-source-transform-1 (form)
   (let ((expander nil)
         (new-form nil))
@@ -62,6 +63,7 @@
           (t
            (values form nil)))))
 
+(defknown expand-source-transform (t) (values t t))
 (defun expand-source-transform (form)
   (let ((expanded-p nil))
     (loop
