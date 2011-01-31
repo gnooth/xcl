@@ -121,6 +121,29 @@
                     :length (if prefix-byte 2 1)
                     :mnemonic :cwtl))
 
+(define-handler #x8a
+  ;; /r move r/m byte to byte register
+  (with-modrm-byte (mref-8 start (1+ offset))
+    (cond ((eql mod #b01)
+           ;; 1-byte displacement
+           (cond ((eql rm #b100)
+                  (let ((sib-byte (mref-8 start (+ offset 2)))
+                        (displacement-byte (mref-8-signed start (+ offset 3))))
+                    (cond ((eql sib-byte #x24)
+                           (make-instruction :start start
+                                             :length 5
+                                             :mnemonic :movb
+                                             :operand1 (make-operand :kind :relative
+                                                                     :register (register-rm rm prefix-byte)
+                                                                     :data displacement-byte)
+                                             :operand2 (make-register-operand (byte-register reg))))
+                          (t
+                           (unsupported)))))
+                 (t
+                  (unsupported))))
+          (t
+           (unsupported)))))
+
 (define-handler #x8b
   ;; /r move r/m dword to dword register
   (let (length operand1 operand2 annotation)
@@ -774,11 +797,7 @@
                                                                   :data displacement))
                                      (when (eq (register-rm rm prefix-byte) :rbp)
                                        (let ((index (/ (+ displacement 8) -8)))
-                                         (setq annotation (cdr (assoc index *locals*)))))))
-                                  ;;                             (t
-                                  ;;                              (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte))
-                                  )
-                            ))
+                                         (setq annotation (cdr (assoc index *locals*))))))))))
                          ((eql mod #b10)
                           ;; 4-byte displacement
                           (let ((displacement (mref-32-signed block-start (+ offset 2))))
@@ -810,13 +829,23 @@
                           ))))
                 (#x8d
                  (with-modrm-byte (mref-8 block-start (1+ offset))
-                   (cond ((= mod #b01)
-                          (setq length 3
-                                mnemonic :lea
-                                operand1 (make-operand :kind :relative
-                                                       :register (register rm prefix-byte)
-                                                       :data (mref-8-signed block-start (+ offset 2)))
-                                operand2 (make-register-operand (register reg prefix-byte))))
+                   (cond ((eql mod #b01)
+                          (let ((byte3 (mref-8 block-start (+ offset 2))))
+                            (cond ((and (eql rm #b100) (eql byte3 #x24))
+                                   (setq length 4
+                                         mnemonic :lea
+                                         operand1 (make-operand :kind :relative
+                                                                :register (register-rm rm prefix-byte)
+                                                                :data (mref-8-signed block-start (+ offset 3)))
+                                         operand2 (make-register-operand (register-reg reg prefix-byte))))
+                                  (t
+                                   (let ((displacement (mref-8-signed block-start (+ offset 2))))
+                                     (setq length 3
+                                           mnemonic :lea
+                                           operand1 (make-operand :kind :relative
+                                                                  :register (register-rm rm prefix-byte)
+                                                                  :data displacement)
+                                           operand2 (make-register-operand (register-reg reg prefix-byte))))))))
                          (t
                           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
                 (#x90

@@ -1,6 +1,6 @@
 ;;; asm-x86-64.lisp
 ;;;
-;;; Copyright (C) 2007-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -142,6 +142,36 @@
 (define-assembler :leave
   (emit-byte #xc9))
 
+(define-assembler :lea
+  (cond ((and (consp operand1)
+              (length-eql operand1 2)
+              (integerp (%car operand1))
+              (reg64-p (%cadr operand1))
+              (reg64-p operand2))
+         (let ((displacement (%car operand1))
+               (reg1 (%cadr operand1))
+               (reg2 operand2)
+               (prefix-byte #x48))
+           (cond ((typep displacement '(signed-byte 8))
+                  (let* ((displacement-byte (ldb (byte 8 0) displacement))
+                         (mod #b01)
+                         (reg (register-number reg2))
+                         (rm  (register-number reg1))
+                         (modrm-byte (make-modrm-byte mod reg rm)))
+                    (when (extended-register-p reg1)
+                      (setq prefix-byte (logior prefix-byte rex.b)))
+                    (when (extended-register-p reg2)
+                      (setq prefix-byte (logior prefix-byte rex.r)))
+                    (emit-bytes prefix-byte #x8d modrm-byte)
+                    ;; REVIEW
+                    (when (memq reg1 '(:rsp :r12))
+                      (emit-byte #x24))
+                    (emit-byte displacement-byte)))
+                 (t
+                  (unsupported)))))
+        (t
+         (unsupported))))
+
 (define-assembler :mov
   (cond ((and (reg64-p operand1)
               (reg64-p operand2))
@@ -188,8 +218,8 @@
                      (integerp (%car operand1))
                      (reg64-p (%cadr operand1))
                      (reg64-p operand2))
-                (let ((displacement (first operand1))
-                      (reg1 (second operand1))
+                (let ((displacement (%car operand1))
+                      (reg1 (%cadr operand1))
                       (reg2 operand2)
                       (prefix-byte #x48))
                   (when (extended-register-p reg1)
@@ -345,11 +375,11 @@
 (define-assembler :movb
   (cond ((and (consp operand2)
               (length-eql operand2 2)
-              (integerp (first operand2))
-              (reg64-p (second operand2))
+              (integerp (%car operand2))
+              (reg64-p (%cadr operand2))
               (typep operand1 '(unsigned-byte 8)))
-         (let ((displacement (first operand2))
-               (reg2 (second operand2))
+         (let ((displacement (%car operand2))
+               (reg2 (%cadr operand2))
                (prefix-byte #x40))
            (when (extended-register-p reg2)
              (setq prefix-byte (logior prefix-byte rex.b)))
@@ -357,6 +387,32 @@
            (if (eq reg2 :r12)
                (emit-bytes prefix-byte #xc6 #x44 #x24 displacement operand1)
                (unsupported))))
+        ((and (consp operand1)
+              (length-eql operand1 2)
+              (integerp (%car operand1))
+              (reg64-p (%cadr operand1))
+              (reg8-p operand2))
+         (let ((displacement (%car operand1))
+               (reg1 (%cadr operand1))
+               (reg2 operand2)
+               (prefix-byte #x40))
+           (when (extended-register-p reg1)
+             (setq prefix-byte (logior prefix-byte rex.b)))
+           (when (extended-register-p reg2)
+             (setq prefix-byte (logior prefix-byte rex.r)))
+           (cond ((typep displacement '(signed-byte 8))
+                  (let* ((displacement-byte (ldb (byte 8 0) displacement))
+                         (mod #b01)
+                         (reg (register-number reg2))
+                         (rm  (register-number reg1))
+                         (modrm-byte (make-modrm-byte mod reg rm)))
+                    (emit-bytes prefix-byte #x8a modrm-byte)
+                    ;; REVIEW
+                    (when (memq reg1 '(:rsp :r12))
+                      (emit-byte #x24))
+                    (emit-byte displacement-byte)))
+                 (t
+                  (unsupported)))))
         (t
          (unsupported))))
 
