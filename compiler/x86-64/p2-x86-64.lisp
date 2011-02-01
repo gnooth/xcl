@@ -102,41 +102,7 @@
   (declare (type fixnum index))
   (let ((displacement (index-displacement index)))
     (aver (minusp displacement))
-;;     (cond ((>= displacement -128)
-;;            (let ((displacement-byte (ldb (byte 8 0) displacement)))
-;;              (case to
-;;                (:r8
-;;                 (emit-bytes #x4c #x8b #x45 displacement-byte))
-;;                (:r9
-;;                 (emit-bytes #x4c #x8b #x4d displacement-byte))
-;;                (:r12
-;;                 (emit-bytes #x4c #x8b #x65 displacement-byte))
-;;                (t
-;;                 (let* ((mod #b01)
-;;                        (reg (register-number to))
-;;                        (rm  (register-number :rbp))
-;;                        (modrm-byte (make-modrm-byte mod reg rm)))
-;;                   (emit-bytes #x48 #x8b modrm-byte displacement-byte))))))
-;;           (t
-;;            (case to
-;;              (:r8
-;;               (emit-bytes #x4c #x8b #x85)
-;;               (emit-raw-dword displacement))
-;;              (:r9
-;;               (emit-bytes #x4c #x8b #x8d)
-;;               (emit-raw-dword displacement))
-;;              (:r12
-;;               (emit-bytes #x4c #x8b #xa5)
-;;               (emit-raw-dword displacement))
-;;              (t
-;;               (let* ((mod #b10)
-;;                      (reg (register-number to))
-;;                      (rm  (register-number :rbp))
-;;                      (modrm-byte (make-modrm-byte mod reg rm)))
-;;                 (emit-bytes #x48 #x8b modrm-byte)
-;;                 (emit-raw-dword displacement))))))
-    (inst :mov `(,displacement :rbp) to)
-    ))
+    (inst :mov `(,displacement :rbp) to)))
 
 (defknown emit-move-register-to-local (t t) t)
 (defun emit-move-register-to-local (from index)
@@ -1541,6 +1507,7 @@
     (declare (type cblock block))
     (aver thread-reg)
 ;;     (mumble "p2-m-v-b op = ~S result-type = ~S values-length = ~S~%" op result-type values-length)
+    (emit-clear-values)
     (when last-special-binding-var
       (inst :mov `(,+last-special-binding-offset+ ,thread-reg) :rax)
       (inst :mov :rax last-special-binding-var)
@@ -1548,77 +1515,70 @@
     (when (eql op 'VALUES)
       (aver (eql result-type '*))
       (setq values-length (length (cdr values-form))))
-    (cond (#+nil
-           (and values-length
-                (>= values-length (length vars))
-                (every #'(lambda (x) (and (not (var-special-p x))
-                                          (not (var-used-non-locally-p x))))
-                       vars))
-           (mumble "p2-m-v-b new case ~S ~D vars~%" op (length vars))
-           (p2 values-form :rax)
-           (let ((index 0))
-             (dolist (var vars)
-               (cond ((zerop index)
-                      (inst :mov :rax var))
-                     (t
-                      (inst :mov `(,(+ index +values-offset+) :r12) :rdx)
-                      (inst :mov :rdx var)))
-               (incf index +bytes-per-word+)))
-           (clear-register-contents))
-          (t
-;;            (mumble "p2-m-v-b default case op = ~S result-type = ~S~%" op result-type)
-           (let ((LABEL1 (make-label)))
-             (cond ((and values-length
-                         (>= values-length numvars))
-                    (mumble "p2-m-v-b case 1~%")
-                    (p2 values-form :rax)
-                    (inst :lea `(,+values-offset+ :r12) :rax)
-                    (clear-register-contents :rax))
-                   (t
-                    (mumble "p2-m-v-b case 2~%")
-                    (p2 values-form :rsi)
-                    (inst :movb `(,+values-length-offset+ :r12) :cl)
-                    (inst :cmp numvars :cl)
-                    (inst :lea `(,+values-offset+ :r12) :rax)
-                    (clear-register-contents :rax)
-                    (emit-jmp-short :ge LABEL1)
-                    ; primary value returned by values-form is in rsi
-                    (inst :mov numvars :rdx)
-                    (inst :mov thread-reg :rdi)
-                    (emit-call "RT_thread_get_values")))
-             ;; pointer to values vector is now in rax
-             (label LABEL1)
-             (let ((base-reg :rax)
-                   (value-reg :rdx)
-                   (index 0))
-               (unless (eq base-reg :rax)
-                 (inst :mov :rax base-reg))
-               ;; pointer to values array is now in base-reg
-               (dolist (var vars)
-                 (declare (type var var))
-                 (inst :mov `(,index ,base-reg) value-reg)
-                 (clear-register-contents value-reg)
-                 (incf index +bytes-per-word+)
-                 (cond ((var-special-p var)
-                        (inst :push base-reg)
-                        (unless (eq value-reg :rdx)
-                          (inst :mov value-reg :rdx))
-                        (p2-constant (var-name var) :rsi)
-                        (inst :mov thread-reg :rdi)
-                        (emit-call "RT_thread_bind_special")
-                        (inst :pop base-reg))
-                       ((var-closure-index var)
-                        (inst :push base-reg)
-                        ;; each new binding gets a new value cell
-                        (inst :mov value-reg :rdi)
-                        (emit-call "RT_make_value_cell_1")
-                        (aver (fixnump (compiland-closure-data-index compiland)))
-                        (emit-move-local-to-register (compiland-closure-data-index compiland) :rdi)
-                        (inst :mov :rax `(,(* (var-closure-index var) +bytes-per-word+) :rdi))
-                        (inst :pop base-reg))
-                       (t
-                        (inst :mov value-reg var)
-                        (set-register-contents value-reg var))))))))
+
+    (let ((LABEL1 (make-label))
+          (LABEL2 (make-label)))
+      (cond ((and values-length
+                  (>= values-length numvars))
+             (mumble "p2-m-v-b case 1~%")
+             (p2 values-form :rax)
+             (clear-register-contents :rax)
+             (inst :lea `(,+values-offset+ :r12) :rsi)
+             (clear-register-contents :rsi))
+            (t
+             (mumble "p2-m-v-b case 2~%")
+             (p2 values-form :rax)
+             (inst :movb `(,+values-length-offset+ :r12) :cl)
+             (clear-register-contents :rcx)
+             (inst :cmp numvars :cl)
+             (emit-jmp-short :s LABEL1)
+             (inst :lea `(,+values-offset+ :r12) :rsi)
+             (clear-register-contents :rsi)
+             (let ((*current-segment* :elsewhere))
+               (label LABEL1)
+               (inst :mov thread-reg :rdi) ; thread
+               (inst :mov :rax :rsi) ; primary value
+               (inst :mov numvars :rdx) ; numvars
+               (emit-call "RT_thread_get_values")
+               (inst :mov :rax :rsi)
+               (emit-jmp-short t LABEL2))))
+      ;; pointer to values vector is now in rsi
+      (label LABEL2)
+      (let ((base-reg :rsi)
+            (value-reg :rax)
+            (index 0))
+        (unless (eq base-reg :rsi)
+          (inst :mov :rsi base-reg)
+          (clear-register-contents base-reg))
+        ;; pointer to values array is now in base-reg
+        (dolist (var vars)
+          (declare (type var var))
+          (inst :mov `(,index ,base-reg) value-reg)
+          (clear-register-contents value-reg)
+          (incf index +bytes-per-word+)
+          (cond ((var-special-p var)
+                 (inst :push base-reg)
+                 (unless (eq value-reg :rdx)
+                   (inst :mov value-reg :rdx)
+                   (clear-register-contents :rdx))
+                 (p2-constant (var-name var) :rsi)
+                 (inst :mov thread-reg :rdi)
+                 (emit-call "RT_thread_bind_special")
+                 (inst :pop base-reg))
+                ((var-closure-index var)
+                 (inst :push base-reg)
+                 ;; each new binding gets a new value cell
+                 (inst :mov value-reg :rdi)
+                 (emit-call "RT_make_value_cell_1")
+                 (aver (fixnump (compiland-closure-data-index compiland)))
+                 (emit-move-local-to-register (compiland-closure-data-index compiland) :rdi)
+                 (inst :mov :rax `(,(* (var-closure-index var) +bytes-per-word+) :rdi))
+                 (clear-register-contents :rdi)
+                 (inst :pop base-reg))
+                (t
+                 (inst :mov value-reg var)
+                 (set-register-contents value-reg var))))))
+
     (dolist (var vars)
       (p2-check-var-type var nil)
       (push var *visible-variables*))
