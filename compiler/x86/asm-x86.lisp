@@ -113,6 +113,31 @@
 (define-assembler :leave
   (emit-byte #xc9))
 
+(define-assembler :lea
+  (cond ((and (consp operand1)
+              (length-eql operand1 2)
+              (integerp (%car operand1))
+              (reg32-p (%cadr operand1))
+              (reg32-p operand2))
+         (let ((displacement (%car operand1))
+               (reg1 (%cadr operand1))
+               (reg2 operand2))
+           (cond ((typep displacement '(signed-byte 8))
+                  (let* ((displacement-byte (ldb (byte 8 0) displacement))
+                         (mod #b01)
+                         (reg (register-number reg2))
+                         (rm  (register-number reg1))
+                         (modrm-byte (make-modrm-byte mod reg rm)))
+                    (emit-bytes #x8d modrm-byte)
+;;                     ;; REVIEW
+;;                     (when (memq reg1 '(:rsp :r12))
+;;                       (emit-byte #x24))
+                    (emit-byte displacement-byte)))
+                 (t
+                  (unsupported)))))
+        (t
+         (unsupported))))
+
 (define-assembler :mov
   (cond ((and (reg32-p operand1)
               (reg32-p operand2))
@@ -260,6 +285,27 @@
                 (rm (register-number (second operand2)))
                 (modrm-byte (make-modrm-byte mod reg rm)))
            (emit-bytes #xc6 modrm-byte (first operand2) operand1)))
+        ((and (consp operand1)
+              (length-eql operand1 2)
+              (integerp (%car operand1))
+              (reg32-p (%cadr operand1))
+              (reg8-p operand2))
+         (let ((displacement (%car operand1))
+               (reg1 (%cadr operand1))
+               (reg2 operand2))
+           (cond ((typep displacement '(signed-byte 8))
+                  (let* ((displacement-byte (ldb (byte 8 0) displacement))
+                         (mod #b01)
+                         (reg (register-number reg2))
+                         (rm  (register-number reg1))
+                         (modrm-byte (make-modrm-byte mod reg rm)))
+                    (emit-bytes #x8a modrm-byte)
+;;                     ;; REVIEW
+;;                     (when (memq reg1 '(:rsp :r12))
+;;                       (emit-byte #x24))
+                    (emit-byte displacement-byte)))
+                 (t
+                  (unsupported)))))
         (t
          (unsupported))))
 
