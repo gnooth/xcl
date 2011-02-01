@@ -1523,6 +1523,7 @@
     (declare (type cblock block))
     (declare (type compiland compiland))
     (aver thread-var)
+    (emit-clear-values)
     (when last-special-binding-var
       (inst :mov thread-var :eax)
       (inst :mov `(,+last-special-binding-offset+ :eax) :eax)
