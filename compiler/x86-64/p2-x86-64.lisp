@@ -1536,13 +1536,15 @@
              (clear-register-contents :rsi)
              (let ((*current-segment* :elsewhere))
                (label LABEL1)
+               (inst :push :rax)
                (inst :mov thread-reg :rdi) ; thread
                (inst :mov :rax :rsi) ; primary value
                (inst :mov numvars :rdx) ; numvars
                (emit-call "RT_thread_get_values")
                (inst :mov :rax :rsi)
+               (inst :pop :rax)
                (emit-jmp-short t LABEL2))))
-      ;; pointer to values vector is now in rsi
+      ;; primary value in rax, pointer to values vector in rsi
       (label LABEL2)
       (let ((base-reg :rsi)
             (value-reg :rax)
@@ -1553,9 +1555,9 @@
         ;; pointer to values array is now in base-reg
         (dolist (var vars)
           (declare (type var var))
-          (inst :mov `(,index ,base-reg) value-reg)
-          (clear-register-contents value-reg)
-          (incf index +bytes-per-word+)
+          (unless (eql index 0)
+            (inst :mov `(,index ,base-reg) value-reg)
+            (clear-register-contents value-reg))
           (cond ((var-special-p var)
                  (inst :push base-reg)
                  (unless (eq value-reg :rdx)
@@ -1577,7 +1579,8 @@
                  (inst :pop base-reg))
                 (t
                  (inst :mov value-reg var)
-                 (set-register-contents value-reg var))))))
+                 (set-register-contents value-reg var)))
+          (incf index +bytes-per-word+))))
 
     (dolist (var vars)
       (p2-check-var-type var nil)
