@@ -141,6 +141,36 @@
           (t
            (error "unhandled byte sequence #x~2,'0x #x~2,'0x" #x6b byte2)))))
 
+(define-disassembler #x8a
+  ;; /r move r/m byte to byte register
+  (with-modrm-byte (mref-8 start 1)
+    (cond ((eql mod #b01)
+           ;; 1-byte displacement
+           (cond ((eql rm #b100)
+                  (let ((sib-byte (mref-8 start 2))
+                        (displacement-byte (mref-8-signed start 3)))
+                    (cond ((eql sib-byte #x24)
+                           (make-instruction :start start
+                                             :length 4
+                                             :mnemonic :movb
+                                             :operand1 (make-operand :kind :relative
+                                                                     :register (register rm)
+                                                                     :data displacement-byte)
+                                             :operand2 (make-register-operand (byte-register reg))))
+                          (t
+                           (unsupported)))))
+                 (t
+                  (let ((displacement-byte (mref-8-signed start 2)))
+                    (make-instruction :start start
+                                      :length 3
+                                      :mnemonic :movb
+                                      :operand1 (make-operand :kind :relative
+                                                              :register (register rm)
+                                                              :data displacement-byte)
+                                      :operand2 (make-register-operand (byte-register reg)))))))
+          (t
+           (unsupported)))))
+
 (define-disassembler #x8b
    ;; /r move r/m dword to dword register
    (with-modrm-byte (mref-8 start 1)
@@ -229,7 +259,9 @@
                           mnemonic :lea
                           operand1 (make-operand :kind :relative
                                                  :register (register rm)
-                                                 :data (mref-32-signed start 2))
+;;                                                  :data (mref-32-signed start 2)
+                                                 :data (mref-8-signed start 2)
+                                                 )
                           operand2 (make-register-operand (register reg))))))
             ((eql mod #b10)
              (cond ((eql rm #b100)
