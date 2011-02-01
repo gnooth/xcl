@@ -1508,8 +1508,13 @@
 
 (defun p2-m-v-b (form target)
   (let* ((*visible-variables* *visible-variables*)
-         (block (second form))
-         (values-form (third (block-form block)))
+         (block (cadr form))
+         (last-special-binding-var (block-last-special-binding-var block))
+         (values-form (caddr (block-form block)))
+         (op (and (consp values-form) (%car values-form)))
+         (result-type (and op (function-result-type op)))
+         (values-length (and result-type (consp result-type) (eq (%car result-type) 'VALUES)
+                             (1- (length result-type))))
          (vars (block-vars block))
          (body (block-body block))
          (numvars (length vars))
@@ -1518,53 +1523,81 @@
     (declare (type cblock block))
     (declare (type compiland compiland))
     (aver thread-var)
-    (when (block-last-special-binding-var block)
+    (when last-special-binding-var
       (inst :mov thread-var :eax)
       (inst :mov `(,+last-special-binding-offset+ :eax) :eax)
-      (inst :mov :eax (block-last-special-binding-var block))
+      (inst :mov :eax last-special-binding-var)
       (clear-register-contents :eax))
-    (p2 values-form :eax)
-    ;; push args right to left!
-    (inst :push numvars) ; numvars
-    (inst :push :eax) ; result
-    (inst :push thread-var)
-    (emit-call-3 "RT_thread_get_values" :eax)
-    ;; pointer to values array is now in eax
-    (let ((base-reg :eax)
-          (value-reg :edx)
-          (index 0))
-      (unless (eq base-reg :eax)
-        ;; if base-reg is callee-saved, we need to save it
-        (inst :push base-reg)
-        (inst :mov :eax base-reg))
-      ;; pointer to values array is now in base-reg
-      (dolist (var vars)
-        (declare (type var var))
-        (inst :mov `(,index ,base-reg) value-reg)
-        (clear-register-contents value-reg)
-        (incf index +bytes-per-word+)
-        (cond ((var-special-p var)
-               (inst :push base-reg)
-               (inst :push value-reg)
-               (p2-constant (var-name var) :stack)
+    (when (eql op 'VALUES)
+      (aver (eql result-type '*))
+      (setq values-length (length (cdr values-form))))
+
+;;     (p2 values-form :eax)
+;;     ;; push args right to left!
+;;     (inst :push numvars) ; numvars
+;;     (inst :push :eax) ; result
+;;     (inst :push thread-var)
+;;     (emit-call-3 "RT_thread_get_values" :eax)
+    (let ((LABEL1 (make-label))
+          (LABEL2 (make-label)))
+      (cond ((and values-length
+                  (>= values-length numvars))
+             (mumble "p2-m-v-b case 1~%")
+             (p2 values-form :eax)
+             (clear-register-contents :eax)
+             (inst :mov thread-var :edx)
+             (inst :lea `(,+values-offset+ :edx) :edx)
+             (clear-register-contents :edx))
+            (t
+             (mumble "p2-m-v-b case 2~%")
+             (p2 values-form :eax)
+             (inst :mov thread-var :edx)
+             (inst :movb `(,+values-length-offset+ :edx) :cl)
+             (clear-register-contents :rcx)
+             (inst :cmp numvars :cl)
+             (emit-jmp-short :s LABEL1)
+             (inst :lea `(,+values-offset+ :edx) :edx)
+             (clear-register-contents :edx)
+             (let ((*current-segment* :elsewhere))
+               (label LABEL1)
+;;                (inst :mov thread-reg :rdi) ; thread
+;;                (inst :mov :rax :rsi) ; primary value
+;;                (inst :mov numvars :rdx) ; numvars
+               ;; push args right to left
+               (inst :push numvars)
+               (inst :push :eax) ; primary value
                (inst :push thread-var)
-               (emit-call-3 "RT_thread_bind_special" nil)
-               (inst :pop base-reg))
-              ((var-closure-index var)
-               (inst :push base-reg)
-               ;; each new binding gets a new value cell
-               (inst :push value-reg)
-               (emit-call-1 "RT_make_value_cell_1" :eax)
-               (emit-move-local-to-register (compiland-closure-data-index compiland) :edx)
-               (inst :mov :eax `(,(* (var-closure-index var) +bytes-per-word+) :edx))
-               (inst :pop base-reg))
-              (t
-               (inst :mov value-reg var)
-               (set-register-contents value-reg var)))
-        (push var *visible-variables*))
-      (unless (eq base-reg :eax)
-        ;; restore base-reg
-        (inst :pop base-reg)))
+               (emit-call-3 "RT_thread_get_values" :eax)
+               (inst :mov :eax :edx)
+               (emit-jmp-short t LABEL2))))
+      ;; pointer to values vector is now in edx
+      (label LABEL2)
+      (let ((index 0))
+        (dolist (var vars)
+          (declare (type var var))
+          (inst :mov `(,index :edx) :eax)
+          (clear-register-contents :eax)
+          (incf index +bytes-per-word+)
+          (cond ((var-special-p var)
+                 (inst :push :edx)
+                 (inst :push :eax)
+                 (p2-constant (var-name var) :stack)
+                 (inst :push thread-var)
+                 (emit-call-3 "RT_thread_bind_special" nil)
+                 (inst :pop :edx))
+                ((var-closure-index var)
+                 (inst :push :edx)
+                 ;; each new binding gets a new value cell
+                 (inst :push :eax)
+                 (emit-call-1 "RT_make_value_cell_1" :eax)
+                 (emit-move-local-to-register (compiland-closure-data-index compiland) :edx)
+                 (inst :mov :eax `(,(* (var-closure-index var) +bytes-per-word+) :edx))
+                 (inst :pop :edx))
+                (t
+                 (inst :mov :eax var)
+                 (set-register-contents :eax var)))
+          (push var *visible-variables*))))
+
     (dolist (var vars)
       (p2-check-var-type var nil))
     (emit-clear-values)
