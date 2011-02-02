@@ -1,6 +1,6 @@
 // SimpleBitVector.cpp
 //
-// Copyright (C) 2006-2011 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -238,6 +238,12 @@ AbstractVector * SimpleBitVector::displace_vector(INDEX new_capacity,
                                                   INDEX offset)
 {
   return new BitVector(new_capacity, displaced_to, offset, NIL);
+}
+
+long simple_bit_vector_data_offset()
+{
+  SimpleBitVector * bv = new_simple_bit_vector(1);
+  return bv->data_offset();
 }
 
 // ### simple-bit-vector-p object => generalized-boolean

@@ -31,6 +31,7 @@
 #include "Pathname.hpp"
 #include "RandomState.hpp"
 #include "Readtable.hpp"
+#include "SimpleBitVector.hpp"
 #include "SimpleString.hpp"
 #include "StructureObject.hpp"
 #include "TwoWayStream.hpp"
@@ -276,6 +277,7 @@ void initialize_symbols()
 
   the_symbol(S_simple_string_data_offset)->initialize_constant(make_fixnum(simple_string_data_offset()));
   the_symbol(S_simple_vector_data_offset)->initialize_constant(make_fixnum(simple_vector_data_offset()));
+  the_symbol(S_simple_bit_vector_data_offset)->initialize_constant(make_fixnum(simple_bit_vector_data_offset()));
   the_symbol(S_vector_capacity_offset)->initialize_constant(make_fixnum(vector_capacity_offset()));
   the_symbol(S_structure_slots_offset)->initialize_constant(make_fixnum(structure_slots_offset()));
   the_symbol(S_symbol_name_offset)->initialize_constant(make_fixnum(SYMBOL_NAME_OFFSET));

@@ -1,6 +1,6 @@
 // SimpleBitVector.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -43,6 +43,11 @@ public:
   }
 
   SimpleBitVector(AbstractString * string);
+
+  long data_offset()
+  {
+    return ((long)(&(this->_data))) - ((long)this);
+  }
 
   unsigned int * data()
   {
@@ -197,5 +202,7 @@ inline SimpleBitVector * check_simple_bit_vector(Value value)
   // not reached
   return NULL;
 }
+
+extern long simple_bit_vector_data_offset();
 
 #endif // SimpleBitVector.hpp
