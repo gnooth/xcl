@@ -1524,7 +1524,10 @@
             (t
              nil)))))
 
+
+#+x86
 (defknown p2-sbit1 (t t) t)
+#+x86
 (defun p2-sbit1 (form target) ; used for SBIT1 and %SBIT1
   (when (length-eql form 3)
     (let* ((op (%car form))
