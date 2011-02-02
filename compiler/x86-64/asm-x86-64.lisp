@@ -624,6 +624,10 @@
            (when (extended-register-p operand2)
              (setq prefix-byte (logior prefix-byte rex.b)))
            (emit-bytes prefix-byte #xd3 modrm-byte)))
+        ((and (eq operand1 :cl)
+              (reg32-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 4 (register-number operand2))))
+           (emit-bytes #xd3 modrm-byte)))
         (t
          (unsupported))))
 
@@ -705,6 +709,14 @@
                 (rm  (register-number operand2))
                 (modrm-byte (make-modrm-byte mod reg rm)))
            (emit-bytes #x84 modrm-byte)))
+        ((and (reg32-p operand1)
+              (consp operand2)
+              (length-eql operand2 1)
+              (reg64-p (%car operand2)))
+         (let ((modrm-byte (make-modrm-byte #xb00
+                                            (register-number operand1)
+                                            (register-number (%car operand2)))))
+           (emit-bytes #x85 modrm-byte)))
         ((and (typep operand1 '(unsigned-byte 8))
               (eq operand2 :al))
          (emit-bytes #xa8 operand1))

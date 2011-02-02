@@ -739,7 +739,14 @@
                 (#x85
                  ;; /r AND dword register with r/m dword
                  (with-modrm-byte (mref-8 block-start (1+ offset))
-                   (cond ((eql mod #b11)
+                   (cond ((and (eql mod #b00)
+                               (null prefix-byte))
+                          (setq length 2
+                                mnemonic :test
+                                operand1 (make-register-operand (register reg))
+                                operand2 (make-indirect-operand (register rm)))
+                          )
+                         ((eql mod #b11)
                           (setq length 2
                                 mnemonic :test
                                 operand1 (make-register-operand (register reg prefix-byte))
