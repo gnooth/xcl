@@ -755,8 +755,14 @@
                           (setq length 2
                                 mnemonic :test
                                 operand1 (make-register-operand (register reg))
-                                operand2 (make-indirect-operand (register rm)))
-                          )
+                                operand2 (make-indirect-operand (reg64 (register rm)))))
+                         ((eql mod #b01)
+                          (setq length 3
+                                mnemonic :test
+                                operand1 (make-register-operand (register reg))
+                                operand2 (make-operand :kind :relative
+                                                       :register (reg64 (register rm))
+                                                       :data (mref-8-signed block-start (+ offset 2)))))
                          ((eql mod #b11)
                           (setq length 2
                                 mnemonic :test
@@ -765,8 +771,7 @@
                          (t
                           (format t "~%modrm-byte = #x~x mod = ~s reg = ~s rm = ~s~%"
                                   modrm-byte mod reg rm)
-                          (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)
-                          ))))
+                          (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
                 (#x88
                  ;; /r MOV r/m8,r8
                  (with-modrm-byte (mref-8 block-start (1+ offset))

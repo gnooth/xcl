@@ -163,6 +163,7 @@
     ((:test :al :al)            #(#x84 #xc0))
     ((:test :rax :rax)          #(#x48 #x85 #xc0))
     ((:test :eax (:rdi))        #(#x85 #x07))
+    ((:test :eax (#x1e :rdi))   #(#x85 #x47 #x1e))
     ((:test 15 :esp)            #(#xf7 #xc4 #x0f #x00 #x00 #x00))
     ((:test 15 :rsp)            #(#x48 #xf7 #xc4 #x0f #x00 #x00 #x00))
     ((:mov :edi :eax)           #(#x89 #xf8))
