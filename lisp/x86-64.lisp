@@ -1,6 +1,6 @@
 ;;; x86-64.lisp
 ;;;
-;;; Copyright (C) 2006-2008 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -234,7 +234,15 @@
     (:rsp :spl)
     (:rbp :bpl)
     (:rsi :sil)
-    (:rdi :dil)))
+    (:rdi :dil)
+    (:eax :al)
+    (:ecx :cl)
+    (:edx :dl)
+    (:ebx :bl)
+    (:esp :spl)
+    (:ebp :bpl)
+    (:esi :sil)
+    (:edi :dil)))
 
 (defun reg32 (reg)
   (ecase reg
