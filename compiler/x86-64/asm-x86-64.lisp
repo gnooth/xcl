@@ -97,6 +97,23 @@
         (t
          (unsupported))))
 
+(define-assembler :bt
+  (cond ((and (reg64-p operand1)
+              (consp operand2)
+              (length-eql operand2 2)
+              (typep (%car operand2) '(signed-byte 8))
+              (reg64-p (%cadr operand2)))
+         (let* ((displacement (%car operand2))
+                (displacement-byte (ldb (byte 8 0) displacement))
+                (mod #b01)
+                (reg (register-number operand1))
+                (rm  (register-number (%cadr operand2)))
+                (modrm-byte (make-modrm-byte mod reg rm))
+                (prefix-byte #x48))
+           (emit-bytes prefix-byte #x0f #xa3 modrm-byte displacement-byte)))
+        (t
+         (unsupported))))
+
 (define-assembler :cmp
   (cond ((and (reg64-p operand1)
               (reg64-p operand2))
@@ -679,6 +696,14 @@
            (when (extended-register-p operand2)
              (setq prefix-byte (logior prefix-byte rex.b)))
            (emit-bytes prefix-byte #xd3 modrm-byte)))
+        (t
+         (unsupported))))
+
+(define-assembler :setb
+  (cond ((and (reg8-p operand1)
+              (null operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 0 (register-number operand1))))
+           (emit-bytes #x0f #x92 modrm-byte)))
         (t
          (unsupported))))
 

@@ -153,7 +153,6 @@
     ((:sub 2147483647 :r10)     #(#x49 #x81 #xea #xff #xff #xff #x7f))
     ((:sub :rdx :rax)           #(#x48 #x29 #xd0))
     ((:sub 6 :al)               #(#x2c #x06))
-    ((:setne :al)               #(#x0f #x95 #xc0))
     ((:test 3 :al)              #(#xa8 #x03))
     ((:test 3 :dl)              #(#xf6 #xc2 #x03))
     ((:test 3 :cl)              #(#xf6 #xc1 #x03))
@@ -323,6 +322,10 @@
     ((:xor :rdx :rdx)           #(#x48 #x31 #xd2))
     ((:xor :rax :rdx)           #(#x48 #x31 #xc2))
     ((:xor :rdx :rax)           #(#x48 #x31 #xd0))
+    ((:setne :al)               #(#x0f #x95 #xc0))
+    ((:setb :al)                #(#x0f #x92 #xc0))
+    ((:bt :rax (#x1e :rdi))     #(#x48 #x0f #xa3 #x47 #x1e))
+    ((:bt :rsi (#x1e :rdi))     #(#x48 #x0f #xa3 #x77 #x1e))
     ((:ret)                     #(#xc3))
     ))
 
