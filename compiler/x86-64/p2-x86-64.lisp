@@ -1065,7 +1065,7 @@
              (when label-if-false
                (emit-jmp-short :z label-if-false)))
             (t
-             (mumble "%p2-test-plusp default case~%")
+             (mumble "%p2-test-plusp default case type = ~S~%" type)
              (process-1-arg arg :rdi t)
              (emit-call "RT_plusp")
              (inst :test :al :al)
@@ -2213,17 +2213,22 @@
              (process-2-args args :default t)
              (unbox-fixnum :rsi) ; unboxed index in rsi
              (clear-register-contents :rsi)
-             (inst :mov :esi :ecx)
-             (clear-register-contents :rcx)
-             (inst :shr 3 :rsi) ; divide by 8 to convert bit index into byte index
-             (inst :and 7 :ecx) ; index of bit within its byte
-             (inst :mov 1 :eax)
+;;              (inst :mov :esi :ecx)
+;;              (clear-register-contents :rcx)
+;;              (inst :shr 3 :rsi) ; divide by 8 to convert bit index into byte index
+;;              (inst :and 7 :ecx) ; index of bit within its byte
+;;              (inst :mov 1 :eax)
+;;              (clear-register-contents :rax)
+;;              (inst :shl :cl :eax)
+;;              (clear-register-contents :rdi)
+;;              (inst :add :rsi :rdi)
+;;              (inst :test :eax `(,(- +simple-bit-vector-data-offset+ +typed-object-lowtag+) :rdi))
+;;              (inst :setne :al)
+;;              (inst :movzbl :al :eax)
+;;              (box-fixnum :eax)
+             (emit-bytes #x48 #x0f #xa3 #x77 #x1e) ; bt %rsi,0x1e(%rdi)
+             (emit-bytes #x0f #x92 #xc0) ; setb %al
              (clear-register-contents :rax)
-             (inst :shl :cl :eax)
-             (clear-register-contents :rdi)
-             (inst :add :rsi :rdi)
-             (inst :test :eax `(,(- +simple-bit-vector-data-offset+ +typed-object-lowtag+) :rdi))
-             (inst :setne :al)
              (inst :movzbl :al :eax)
              (box-fixnum :eax)
              (move-result-to-target target))
