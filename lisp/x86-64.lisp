@@ -32,7 +32,7 @@
           +call-return-register+
           +extended-registers+
           reg8-p reg32-p reg64-p
-          reg8 reg32
+          reg8 reg32 reg64
           extended-register-p
           make-modrm-byte))
 
@@ -254,6 +254,18 @@
     (:rbp :ebp)
     (:rsi :esi)
     (:rdi :edi)))
+
+(defun reg64 (reg)
+  (ecase reg
+    (:eax :rax)
+    (:ecx :rcx)
+    (:edx :rdx)
+    (:ebx :rbx)
+    (:esp :rsp)
+    (:ebp :rbp)
+    (:esi :rsi)
+    (:edi :rdi)))
+
 
 (defun extended-register-p (thing)
   (memq thing +extended-registers+))
