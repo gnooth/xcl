@@ -2226,8 +2226,11 @@
 ;;              (inst :setne :al)
 ;;              (inst :movzbl :al :eax)
 ;;              (box-fixnum :eax)
-             (emit-bytes #x48 #x0f #xa3 #x77 #x1e) ; bt %rsi,0x1e(%rdi)
-             (emit-bytes #x0f #x92 #xc0) ; setb %al
+
+;;              (emit-bytes #x48 #x0f #xa3 #x77 #x1e) ; bt %rsi,0x1e(%rdi)
+             (inst :bt :rsi `(,(- +simple-bit-vector-data-offset+ +typed-object-lowtag+) :rdi))
+;;              (emit-bytes #x0f #x92 #xc0) ; setb %al
+             (inst :setb :al)
              (clear-register-contents :rax)
              (inst :movzbl :al :eax)
              (box-fixnum :eax)
