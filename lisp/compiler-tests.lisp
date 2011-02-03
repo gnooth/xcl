@@ -34,6 +34,11 @@
   (format t "~%;;; speed ~D debug ~D~%~%" sys:*speed* sys:*debug*)
   (load (merge-pathnames "compiler-tests-aux.lisp" *load-truename*))
 
+  (declaim (optimize (speed 1) (debug 2)))
+  #+xcl
+  (format t "~%;;; speed ~D debug ~D~%~%" sys:*speed* sys:*debug*)
+  (load (merge-pathnames "compiler-tests-aux.lisp" *load-truename*))
+
   (declaim (optimize (speed 1) (debug 3)))
   #+xcl
   (format t "~%;;; speed ~D debug ~D~%~%" sys:*speed* sys:*debug*)

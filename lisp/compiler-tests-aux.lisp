@@ -576,6 +576,12 @@
   (format t "~D~%" x)
   (aver (eql (test86 x) (ash x -2))))
 
+(defun-compile test87 ()
+  (let ((v #*10101010101010101010101010101010101010101010101010101010101010101010))
+    (dotimes (i (length v))
+      (aver (eql (sbit v i) (if (oddp i) 0 1))))))
+(test87)
+
 (defun-compile fact (n)
   (labels
     ((fact1 (n m)
