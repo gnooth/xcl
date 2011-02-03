@@ -1,6 +1,6 @@
 ;;; disasm-x86-64.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -362,7 +362,18 @@
                       ))))
                 (#x0f
                  (let ((byte2 (mref-8 block-start (1+ offset))))
-                   (cond ((eql byte2 #xaf)
+                   (cond ((eql byte2 #x95)
+                          (with-modrm-byte (mref-8 block-start (+ offset 2))
+                            (cond ((and (eql mod #b11)
+                                        (eql reg 0)
+                                        (null prefix-byte))
+                                   (setq length 3
+                                         mnemonic :setne
+                                         operand1 (make-register-operand (reg8 (register rm)))))
+                                  (t
+                                   (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
+                                          byte1 byte2 modrm-byte)))))
+                         ((eql byte2 #xaf)
                           (with-modrm-byte (mref-8 block-start (+ offset 2))
                             (setq length 3
                                   mnemonic :imul

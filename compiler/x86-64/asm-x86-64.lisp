@@ -416,6 +416,17 @@
         (t
          (unsupported))))
 
+(define-assembler :movzbl
+  (cond ((and (reg8-p operand1)
+              (reg32-p operand2))
+         (let* ((mod #b11)
+                (reg (register-number operand2))
+                (rm  (register-number operand1))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x0f #xb6 modrm-byte)))
+        (t
+         (unsupported))))
+
 (define-assembler :movq
   (cond ((and (consp operand2)
               (length-eql operand2 2)
@@ -610,13 +621,17 @@
            (when (extended-register-p operand2)
              (setq prefix-byte (logior prefix-byte rex.b)))
            (emit-bytes prefix-byte #xd1 modrm-byte)))
-        ((and (typep operand1 '(unsigned-byte 8))
-              (reg64-p operand2))
-         (let ((modrm-byte (make-modrm-byte #b11 4 (register-number operand2)))
-               (prefix-byte #x48))
-           (when (extended-register-p operand2)
-             (setq prefix-byte (logior prefix-byte rex.b)))
-           (emit-bytes prefix-byte #xc1 modrm-byte operand1)))
+        ((typep operand1 '(unsigned-byte 8)) ;; REVIEW 0-31 or 0-63
+         (let ((modrm-byte (make-modrm-byte #b11 4 (register-number operand2))))
+           (cond ((reg32-p operand2)
+                  (emit-bytes #xc1 modrm-byte operand1))
+                 ((reg64-p operand2)
+                  (let ((prefix-byte #x48))
+                    (when (extended-register-p operand2)
+                      (setq prefix-byte (logior prefix-byte rex.b)))
+                    (emit-bytes prefix-byte #xc1 modrm-byte operand1)))
+                 (t
+                  (unsupported)))))
         ((and (eq operand1 :cl)
               (reg64-p operand2))
          (let ((modrm-byte (make-modrm-byte #b11 4 (register-number operand2)))
@@ -664,6 +679,14 @@
            (when (extended-register-p operand2)
              (setq prefix-byte (logior prefix-byte rex.b)))
            (emit-bytes prefix-byte #xd3 modrm-byte)))
+        (t
+         (unsupported))))
+
+(define-assembler :setne
+  (cond ((and (reg8-p operand1)
+              (null operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 0 (register-number operand1))))
+           (emit-bytes #x0f #x95 modrm-byte)))
         (t
          (unsupported))))
 
