@@ -270,6 +270,12 @@ Value SYS_sbit1(Value arg1, Value arg2)
   return check_simple_bit_vector(arg1)->inline_aref(check_index(arg2));
 }
 
+// ### %set-sbit1 simple-bit-vector index new-value => new-value
+Value SYS_xset_sbit1(Value arg1, Value arg2, Value arg3)
+{
+  return the_simple_bit_vector(arg1)->inline_aset(xlong(arg2), arg3);
+}
+
 // ### set-sbit1 simple-bit-vector index new-value => new-value
 Value SYS_set_sbit1(Value arg1, Value arg2, Value arg3)
 {

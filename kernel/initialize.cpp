@@ -569,6 +569,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_environment_empty_p, SYS_environment_empty_p, 1, 1);
   ADD_PRIMITIVE(S_environment_variables, EXT_environment_variables, 1, 1);
   ADD_PRIMITIVE(S_equals_2, SYS_equals_2, 2, 2);
+  ADD_PRIMITIVE(S_error_not_bit, SYS_error_not_bit, 1, 1);
   ADD_PRIMITIVE(S_error_not_cons, SYS_error_not_cons, 1, 1);
   ADD_PRIMITIVE(S_error_not_list, SYS_error_not_list, 1, 1);
   ADD_PRIMITIVE(S_error_not_simple_bit_vector, SYS_error_not_simple_bit_vector, 1, 1);
@@ -960,6 +961,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_xrplacd, SYS_xrplacd, 2, 2);
   ADD_PRIMITIVE(S_xsbit1, SYS_xsbit1, 2, 2);
   ADD_PRIMITIVE(S_xschar, SYS_xschar, 2, 2);
+  ADD_PRIMITIVE(S_xset_sbit1, SYS_xset_sbit1, 3, 3);
   ADD_PRIMITIVE(S_xsetcar, SYS_xsetcar, 2, 2);
   ADD_PRIMITIVE(S_xsetcdr, SYS_xsetcdr, 2, 2);
   ADD_PRIMITIVE(S_xstandard_char_p, SYS_xstandard_char_p, 1, 1);

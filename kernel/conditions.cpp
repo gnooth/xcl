@@ -243,6 +243,12 @@ Value SYS_type_error_internal(Value datum, Value expected_type)
   return signal_lisp_error(new TypeError(datum, expected_type));
 }
 
+// ### error-not-bit
+Value SYS_error_not_bit(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, list3(S_integer, FIXNUM_ZERO, FIXNUM_ONE)));
+}
+
 // ### error-not-cons
 Value SYS_error_not_cons(Value datum)
 {
