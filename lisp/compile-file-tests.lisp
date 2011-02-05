@@ -302,6 +302,14 @@
       (aver (eql (sbit v i) (if (oddp i) 0 1))))))
 (test87)
 
+(defun-compile-file test88 ()
+  (let ((v (make-array 129 :element-type 'bit)))
+    (dotimes (i (length v))
+      (setf (sbit v i) (if (oddp i) 1 0)))
+    (dotimes (i (length v))
+      (aver (eql (sbit v i) (if (oddp i) 1 0))))))
+(test88)
+
 (defun-compile-file fact (n)
   (labels
     ((fact1 (n m)
