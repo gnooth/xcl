@@ -326,6 +326,8 @@
     ((:setb :al)                #(#x0f #x92 #xc0))
     ((:bt :rax (#x1e :rdi))     #(#x48 #x0f #xa3 #x47 #x1e))
     ((:bt :rsi (#x1e :rdi))     #(#x48 #x0f #xa3 #x77 #x1e))
+    ((:bts :rsi (#x1e :rdi))    #(#x48 #x0f #xab #x77 #x1e))
+    ((:btr :rsi (#x1e :rdi))    #(#x48 #x0f #xb3 #x77 #x1e))
     ((:ret)                     #(#xc3))
     ))
 

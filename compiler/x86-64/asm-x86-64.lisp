@@ -97,7 +97,7 @@
         (t
          (unsupported))))
 
-(define-assembler :bt
+(defun assemble-bt* (mnemonic operand1 operand2)
   (cond ((and (reg64-p operand1)
               (consp operand2)
               (length-eql operand2 2)
@@ -110,9 +110,23 @@
                 (rm  (register-number (%cadr operand2)))
                 (modrm-byte (make-modrm-byte mod reg rm))
                 (prefix-byte #x48))
-           (emit-bytes prefix-byte #x0f #xa3 modrm-byte displacement-byte)))
+           (emit-bytes prefix-byte #x0f
+                       (ecase mnemonic
+                         (:bt #xa3)
+                         (:bts #xab)
+                         (:btr #xb3))
+                       modrm-byte displacement-byte)))
         (t
          (unsupported))))
+
+(define-assembler :bt
+  (assemble-bt* :bt operand1 operand2))
+
+(define-assembler :bts
+  (assemble-bt* :bts operand1 operand2))
+
+(define-assembler :btr
+  (assemble-bt* :btr operand1 operand2))
 
 (define-assembler :cmp
   (cond ((and (reg64-p operand1)
