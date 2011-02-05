@@ -31,6 +31,7 @@
           +call-argument-registers+
           +call-return-register+
           +extended-registers+
+          $ax
           reg8-p reg32-p reg64-p
           reg8 reg32 reg64
           extended-register-p
@@ -212,6 +213,8 @@
 (defconstant +call-return-register+ :rax)
 
 (defconstant +extended-registers+ '(:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15))
+
+(defconstant $ax :rax)
 
 (defun reg8-p (x)
   (and (keywordp x)

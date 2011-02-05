@@ -1,6 +1,6 @@
 ;;; x86.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@
           register
           byte-register register-number register-bit-size
           +call-return-register+
+          $ax
           reg8
           make-modrm-byte))
 
@@ -86,6 +87,8 @@
      nil)))
 
 (defconstant +call-return-register+ :eax)
+
+(defconstant $ax :eax)
 
 (defun reg8 (reg)
   (ecase reg
