@@ -1064,6 +1064,14 @@
                (emit-jmp-short :nz label-if-true))
              (when label-if-false
                (emit-jmp-short :z label-if-false)))
+            ((fixnum-type-p type)
+             (mumble "%p2-test-plusp fixnum case~%")
+             (process-1-arg arg :rax t)
+             (inst :test :rax :rax)
+             (when label-if-true
+               (emit-jmp-short :g label-if-true))
+             (when label-if-false
+               (emit-jmp-short :ng label-if-false)))
             (t
              (mumble "%p2-test-plusp default case type = ~S~%" type)
              (process-1-arg arg :rdi t)
