@@ -1,6 +1,6 @@
 ;;; source-transforms.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -344,16 +344,26 @@
   `(cons ,@args))
 
 (define-source-transform sbit (&whole form simple-bit-array &rest subscripts)
-  (mumble "sbit source transform~%")
   (cond ((length-eql subscripts 1)
-;;          `(sbit1 ,simple-bit-array ,(%car subscripts))
          (let ((vector (gensym))
                (index (gensym)))
            `(let ((,vector ,simple-bit-array)
                   (,index ,(%car subscripts)))
               (check-fixnum-bounds ,index 0 (1- (length (the simple-bit-vector ,vector))))
-              (%sbit1 (truly-the simple-bit-vector ,vector) ,index)))
-         )
+              (%sbit1 (truly-the simple-bit-vector ,vector) ,index))))
+        (t
+         form)))
+
+(define-source-transform set-sbit1 (&whole form &rest args)
+  (cond ((length-eql args 3)
+         (let ((vector (gensym))
+               (index (gensym))
+               (new-value (gensym)))
+           `(let ((,vector ,(%car args))
+                  (,index ,(%cadr args))
+                  (,new-value ,(%caddr args)))
+              (check-fixnum-bounds ,index 0 (1- (length (the simple-bit-vector ,vector))))
+              (%set-sbit1 (truly-the simple-bit-vector ,vector) ,index (the bit ,new-value)))))
         (t
          form)))
 
