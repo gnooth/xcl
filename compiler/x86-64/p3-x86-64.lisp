@@ -1,6 +1,6 @@
 ;;; p3-x86-64.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -52,9 +52,9 @@
                  (aver (not locals-allocated-p))
                  (unless (compiland-omit-frame-pointer compiland)
                    (let ((numwords local-var-count))
-                     (unless (compiland-leaf-p compiland)
-                       (when (evenp stack-used)
-                         (incf numwords)))
+;;                      (unless (compiland-leaf-p compiland)
+;;                        (when (evenp stack-used)
+;;                          (incf numwords)))
                      (unless (zerop numwords)
                        (add-ir2-instruction (make-ir2-instruction :sub (* numwords +bytes-per-word+) :rsp)
                                             new-code))))
