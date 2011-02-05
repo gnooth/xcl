@@ -157,6 +157,11 @@
               (eq (%car thing) 'PROGN))
          (and (length-eql thing 2)
               (integerp (%cadr thing)))) ; e.g. (PROGN 0)
+        ((and (consp thing)
+              (eq (%car thing) 'TRULY-THE))
+         (and (length-eql thing 3)
+              (var-ref-p (%caddr thing))
+              (constant-or-local-var-ref-p (%caddr thing))))
         (t
          (constantp thing))))
 
