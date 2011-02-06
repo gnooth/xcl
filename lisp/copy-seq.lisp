@@ -18,15 +18,6 @@
 
 (in-package "SYSTEM")
 
-(defun copy-vector (sequence)
-  (declare (type vector sequence))
-  (let* ((length (length sequence))
-         (copy (make-array length :element-type (array-element-type sequence))))
-    (dotimes (index length copy)
-      (declare (type index index))
-      (declare (optimize speed (safety 0)))
-      (vector-set copy index (vector-ref sequence index)))))
-
 (defun copy-seq (sequence)
   (cond ((listp sequence)
          (copy-list sequence))

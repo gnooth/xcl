@@ -506,6 +506,7 @@ extern Value SYS_concatenate_to_string(Value sequences);
 extern Value SYS_conditionp(Value arg);
 extern Value SYS_copy_simple_bit_vector(Value arg);
 extern Value SYS_copy_structure_slot_definition(Value arg);
+extern Value SYS_copy_vector(Value arg);
 extern Value SYS_crash();
 extern Value SYS_create_new_file(Value namestring);
 extern Value SYS_current_bp();
