@@ -1056,31 +1056,36 @@
   (when (check-arg-count form 1)
     (let* ((arg (cadr form))
            (type (derive-type arg)))
+      (process-1-arg arg :rax t)
       (cond ((equal type '(INTEGER 0 1))
-             (mumble "%p2-test-plusp bit case~%")
-             (process-1-arg arg :rax t)
              (inst :test :al :al)
              (when label-if-true
                (emit-jmp-short :nz label-if-true))
              (when label-if-false
                (emit-jmp-short :z label-if-false)))
-            ((fixnum-type-p type)
-             (mumble "%p2-test-plusp fixnum case~%")
-             (process-1-arg arg :rax t)
-             (inst :test :rax :rax)
-             (when label-if-true
-               (emit-jmp-short :g label-if-true))
-             (when label-if-false
-               (emit-jmp-short :ng label-if-false)))
             (t
-             (mumble "%p2-test-plusp default case type = ~S~%" type)
-             (process-1-arg arg :rdi t)
-             (emit-call "RT_plusp")
-             (inst :test :al :al)
-             (when label-if-true
-               (emit-jmp-short :nz label-if-true))
-             (when label-if-false
-               (emit-jmp-short :z label-if-false)))))
+             (let ((EXIT (make-label))
+                   (FULL-CALL (make-label)))
+               (unless (fixnum-type-p type)
+                 (inst :test +fixnum-tag-mask+ :al)
+                 (emit-jmp-short :nz FULL-CALL))
+               (inst :test :rax :rax)
+               (when label-if-true
+                 (emit-jmp-short :g label-if-true))
+               (when label-if-false
+                 (emit-jmp-short :ng label-if-false))
+               (unless (fixnum-type-p type)
+                 (label EXIT)
+                 (let ((*current-segment* :elsewhere))
+                   (label FULL-CALL)
+                   (inst :mov :rax :rdi)
+                   (emit-call "RT_plusp")
+                   (inst :test :al :al)
+                   (when label-if-true
+                     (emit-jmp-short :nz label-if-true))
+                   (when label-if-false
+                     (emit-jmp-short :z label-if-false))
+                   (emit-jmp-short t EXIT)))))))
     t))
 
 (defknown p2-test-plusp (t t) t)
