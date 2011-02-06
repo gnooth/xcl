@@ -5684,14 +5684,14 @@
     t))
 
 (defun p2-require-vector (form target)
-  (let ((op (%car form))
-        (arg (%cadr form))
-        type)
+  (mumble "p2-require-vector~%")
+  (let* ((op (%car form))
+         (arg (%cadr form))
+         (type (derive-type arg)))
     (aver (eq op 'require-vector))
     (cond ((zerop *safety*)
            (p2 arg target))
-          ((and (neq (setq type (derive-type arg)) :unknown)
-                (subtypep type 'VECTOR))
+          ((subtypep type 'VECTOR)
            (p2 arg target))
           (t
            (let ((ERROR-NOT-VECTOR (common-label-error-not-vector *current-compiland* :rdi))
@@ -5716,7 +5716,9 @@
              (emit-jmp-short :z ERROR-NOT-VECTOR)
              (when target
                (inst :mov :rdi :rax)
-               (move-result-to-target target))))))
+               (move-result-to-target target))
+             (when (var-ref-p arg)
+                 (add-type-constraint (var-ref-var arg) 'VECTOR))))))
   t)
 
 (defun p2-require-simple-string (form target)
