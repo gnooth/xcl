@@ -1,6 +1,6 @@
 ;;; copy-seq.lisp
 ;;;
-;;; Copyright (C) 2003-2007 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -18,9 +18,7 @@
 
 (in-package "SYSTEM")
 
-;; Adapted from CMUCL.
-
-(defun vector-copy-seq (sequence)
+(defun copy-vector (sequence)
   (declare (type vector sequence))
   (let* ((length (length sequence))
          (copy (make-array length :element-type (array-element-type sequence))))
@@ -29,21 +27,12 @@
       (declare (optimize speed (safety 0)))
       (vector-set copy index (vector-ref sequence index)))))
 
-(defun list-copy-seq (list)
-  (if (atom list)
-      nil
-      (let ((result (cons (%car list) nil)))
-        (do ((x (%cdr list) (%cdr x))
-             (splice result (%cdr (%rplacd splice (cons (car x) nil)))))
-            ((atom x)
-             (unless (null x)
-               (%rplacd splice x))
-             result)))))
-
 (defun copy-seq (sequence)
   (cond ((listp sequence)
-         (list-copy-seq sequence))
+         (copy-list sequence))
+        ((simple-bit-vector-p sequence)
+         (copy-simple-bit-vector sequence))
         ((stringp sequence)
          (copy-string sequence))
         (t
-         (vector-copy-seq sequence))))
+         (copy-vector sequence))))
