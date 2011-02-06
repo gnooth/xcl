@@ -29,7 +29,7 @@ public:
     INDEX data_length = capacity >> BIT_VECTOR_SHIFT;
     if ((capacity & BIT_VECTOR_MASK) != 0)
       ++data_length;
-    return GC_malloc_ignore_off_page(sizeof(SimpleBitVector) + data_length * sizeof(unsigned int));
+    return GC_malloc_atomic_ignore_off_page(sizeof(SimpleBitVector) + data_length * sizeof(unsigned int));
   }
 
   SimpleBitVector(INDEX capacity)

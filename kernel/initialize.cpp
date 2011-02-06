@@ -508,6 +508,13 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_allocate_instance_standard_class, SYS_allocate_instance_standard_class, 0, 0);
   ADD_PRIMITIVE(S_allocate_instance_standard_generic_function, SYS_allocate_instance_standard_generic_function, 1, 1);
   ADD_PRIMITIVE(S_allocate_standard_instance, SYS_allocate_standard_instance, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_close, SYS_ansi_stream_close, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_element_type, SYS_ansi_stream_element_type, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_input_stream_p, SYS_ansi_stream_input_stream_p, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_open_stream_p, SYS_ansi_stream_open_stream_p, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_output_stream_p, SYS_ansi_stream_output_stream_p, 1, 1);
+  ADD_PRIMITIVE(S_ansi_stream_read_line, SYS_ansi_stream_read_line, 3, 3);
+  ADD_PRIMITIVE(S_ansi_stream_p, SYS_ansi_stream_p, 1, 1);
   ADD_PRIMITIVE(S_aset, SYS_aset, 2, MANY);
   ADD_PRIMITIVE(S_assq, EXT_assq, 2, 2);
   ADD_PRIMITIVE(S_assql, EXT_assql, 2, 2);
@@ -538,6 +545,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_condition_notify, EXT_condition_notify, 1, 1);
   ADD_PRIMITIVE(S_condition_wait, EXT_condition_wait, 2, 2);
   ADD_PRIMITIVE(S_conditionp, SYS_conditionp, 1, 1);
+  ADD_PRIMITIVE(S_copy_simple_bit_vector, SYS_copy_simple_bit_vector, 1, 1);
   ADD_PRIMITIVE(S_copy_string, EXT_copy_string, 1, 1);
   ADD_PRIMITIVE(S_copy_structure_slot_definition, SYS_copy_structure_slot_definition, 1, 1);
   ADD_PRIMITIVE(S_crash, SYS_crash, 0, 0);
@@ -866,13 +874,6 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_sample_count, PROF_sample_count, 0, 0);
   ADD_PRIMITIVE(S_stop_profiler, PROF_stop_profiler, 0, 0);
   ADD_PRIMITIVE(S_stream_charpos_internal, SYS_stream_charpos_internal, 1, 1);
-  ADD_PRIMITIVE(S_ansi_stream_close, SYS_ansi_stream_close, 1, 1);
-  ADD_PRIMITIVE(S_ansi_stream_element_type, SYS_ansi_stream_element_type, 1, 1);
-  ADD_PRIMITIVE(S_ansi_stream_input_stream_p, SYS_ansi_stream_input_stream_p, 1, 1);
-  ADD_PRIMITIVE(S_ansi_stream_open_stream_p, SYS_ansi_stream_open_stream_p, 1, 1);
-  ADD_PRIMITIVE(S_ansi_stream_output_stream_p, SYS_ansi_stream_output_stream_p, 1, 1);
-  ADD_PRIMITIVE(S_ansi_stream_read_line, SYS_ansi_stream_read_line, 3, 3);
-  ADD_PRIMITIVE(S_ansi_stream_p, SYS_ansi_stream_p, 1, 1);
   ADD_PRIMITIVE(S_stream_fresh_line_internal, SYS_stream_fresh_line_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_princ_internal, SYS_stream_princ_internal, 2, 2);
   ADD_PRIMITIVE(S_stream_read_byte_function, SYS_stream_read_byte_function, 1, 1);

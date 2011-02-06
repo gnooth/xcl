@@ -532,3 +532,16 @@ Value SYS_simple_bit_vector_equal(Value arg1, Value arg2)
       return NIL;
   return T;
 }
+
+// ### copy-simple-bit-vector
+Value SYS_copy_simple_bit_vector(Value arg)
+{
+  SimpleBitVector* v1 = check_simple_bit_vector(arg);
+  INDEX capacity = v1->capacity();
+  SimpleBitVector* v2 = new_simple_bit_vector(capacity);
+  size_t nbytes = capacity >> 3;
+  if ((capacity & 7) != 0)
+    ++nbytes;
+  memcpy(v2->data(), v1->data(), nbytes);
+  return make_value(v2);
+}
