@@ -299,6 +299,7 @@
                 ;; ext
                 autoloadp
                 classp
+                copy-string
                 featurep
                 file-directory-p
                 memq
@@ -331,6 +332,8 @@
                 backq-nconc
                 backq-cons
                 check-subsequence
+                copy-simple-bit-vector
+                copy-vector
                 current-bp
                 current-sp
                 designator-input-stream
@@ -391,7 +394,6 @@
                 two-arg-logior
                 two-arg-logxor
                 value-to-ub64
-                vector-copy-seq
                 vector-data
                 vector-elt
                 vector-ref
@@ -469,7 +471,10 @@
 (defknown copy-alist (list) list)
 (defknown copy-list (list) list)
 (defknown copy-seq (sequence) sequence)
+(defknown copy-simple-bit-vector (simple-bit-vector) simple-bit-vector)
+(defknown copy-string (string) simple-string)
 (defknown copy-symbol (*) symbol)
+(defknown copy-vector (vector) vector)
 (defknown (count count-if count-if-not) (*) index)
 (defknown decode-float (t) (values t t t))
 (defknown (delete delete-if delete-if-not) (*) sequence)
