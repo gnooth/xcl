@@ -153,7 +153,6 @@
 ;; (load-system-file "lisp/stack")
 (load-system-file "lisp/signal")
 (load-system-file "lisp/concatenate")
-(load-system-file "lisp/copy-seq")
 
 (load-system-file "lisp/require-type")
 

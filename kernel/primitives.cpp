@@ -2510,7 +2510,7 @@ Value SYS_check_subsequence(Value arg1, Value arg2, Value arg3)
 }
 
 // ### copy-string string => simple-string
-Value EXT_copy_string(Value arg)
+Value SYS_copy_string(Value arg)
 {
   AbstractString * s1 = check_string(arg);
   INDEX len = s1->length();

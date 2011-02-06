@@ -187,7 +187,6 @@
                           "conjugate"
                           "constantly"
                           "copy-file"
-                          "copy-seq"
                           "copy-symbol"
                           "cosh"
                           "count"

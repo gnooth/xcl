@@ -222,6 +222,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_copy_list, CL_copy_list, 1, 1);
   ADD_PRIMITIVE(S_copy_readtable, CL_copy_readtable, 0, 2);
   ADD_PRIMITIVE(S_copy_structure, CL_copy_structure, 1, 1);
+  ADD_PRIMITIVE(S_copy_seq, CL_copy_seq, 1, 1);
   ADD_PRIMITIVE(S_copy_tree, CL_copy_tree, 1, 1);
   ADD_PRIMITIVE(S_cos, CL_cos, 1, 1);
   ADD_PRIMITIVE(S_decode_float, CL_decode_float, 1, 1);
@@ -546,7 +547,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_condition_wait, EXT_condition_wait, 2, 2);
   ADD_PRIMITIVE(S_conditionp, SYS_conditionp, 1, 1);
   ADD_PRIMITIVE(S_copy_simple_bit_vector, SYS_copy_simple_bit_vector, 1, 1);
-  ADD_PRIMITIVE(S_copy_string, EXT_copy_string, 1, 1);
+  ADD_PRIMITIVE(S_copy_string, SYS_copy_string, 1, 1);
   ADD_PRIMITIVE(S_copy_structure_slot_definition, SYS_copy_structure_slot_definition, 1, 1);
   ADD_PRIMITIVE(S_copy_vector, SYS_copy_vector, 1, 1);
   ADD_PRIMITIVE(S_crash, SYS_crash, 0, 0);
