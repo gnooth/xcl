@@ -80,6 +80,7 @@
 (install-p2-handler 'code-char                  'p2-code-char)
 (install-p2-handler 'coerce                     'p2-coerce)
 (install-p2-handler 'consp                      'p2-consp)
+(install-p2-handler 'copy-seq                   'p2-copy-seq)
 (install-p2-handler 'current-bp                 'p2-current-bp)
 (install-p2-handler 'delete                     'p2-delete)
 (install-p2-handler 'elt                        'p2-elt)
