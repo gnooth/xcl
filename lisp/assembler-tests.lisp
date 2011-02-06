@@ -73,6 +73,7 @@
     ((:and 7 :dl)               #(#x80 #xe2 #x07))
     ((:and 1 :eax)              #(#x83 #xe0 #x01))
     ((:and 1 :edx)              #(#x83 #xe2 #x01))
+    ((:and #x100 :edx)          #(#x81 #xe2 #x00 #x01 #x00 #x00))
     ((:xor :eax :eax)           #(#x31 #xc0))
     ((:push 0)                  #(#x6a #x00))
     ((:push 4)                  #(#x6a #x04))

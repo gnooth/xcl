@@ -78,6 +78,14 @@
               (eq operand2 :eax))
          (emit-byte #x25)
          (emit-raw operand1))
+        ((and (typep operand1 '(unsigned-byte 32))
+              (reg32-p operand2))
+         (let* ((mod #b11)
+                (reg 4)
+                (rm (register-number operand2))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x81 modrm-byte)
+           (emit-raw operand1)))
         (t
          (unsupported))))
 
