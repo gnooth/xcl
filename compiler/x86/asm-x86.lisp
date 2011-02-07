@@ -1,6 +1,6 @@
 ;;; asm-x86.lisp
 ;;;
-;;; Copyright (C) 2007-2008 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -115,6 +115,21 @@
               (eq operand2 :eax))
          (emit-bytes #x3d)
          (emit-raw operand1))
+        (t
+         (unsupported))))
+
+(define-assembler :cmpl
+  (cond ((and (typep operand1 '(unsigned-byte 32))
+              (consp operand2)
+              (length-eql operand2 2)
+              (typep (%car operand2) '(signed-byte 8))
+              (reg32-p (%cadr operand2)))
+         (let* ((mod #b01)
+                (reg 7)
+                (rm (register-number (%cadr operand2)))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x81 modrm-byte (%car operand2))
+           (emit-raw operand1)))
         (t
          (unsupported))))
 
@@ -469,6 +484,21 @@
               (memq operand2 '(:bl :cl :dl)))
          (let ((modrm-byte (make-modrm-byte #b11 0 (register-number operand2))))
            (emit-bytes #xf6 modrm-byte operand1)))
+        (t
+         (unsupported))))
+
+(define-assembler :testl
+  (cond ((and (typep operand1 '(unsigned-byte 32))
+              (consp operand2)
+              (length-eql operand2 2)
+              (typep (%car operand2) '(signed-byte 8))
+              (reg32-p (%cadr operand2)))
+         (let* ((mod #b01)
+                (reg 0)
+                (rm (register-number (%cadr operand2)))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #xf7 modrm-byte (%car operand2))
+           (emit-raw operand1)))
         (t
          (unsupported))))
 

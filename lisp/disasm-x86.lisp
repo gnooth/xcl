@@ -313,6 +313,15 @@
                              :length 2
                              :mnemonic :div
                              :operand1 (make-register-operand (register rm))))
+          ((and (eql mod #b01)
+                (eql reg 0))
+           (make-instruction :start start
+                             :length 7
+                             :mnemonic :testl
+                             :operand1 (make-immediate-operand (mref-32 start 3))
+                             :operand2 (make-operand :kind :relative
+                                                     :register (register rm)
+                                                     :data (mref-8 start 2))))
           (t
            (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
 
@@ -701,14 +710,21 @@
                                 operand1 (make-immediate-operand (mref-32 block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm))))
                          ((and (eql mod #b11)
-                               (eql reg #b101))
+                               (eql reg 5))
                           (setq length 6
                                 mnemonic :sub
                                 operand1 (make-immediate-operand (mref-32 block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm))))
+                         ((and (eql mod #b01)
+                               (eql reg 7))
+                          (setq length 7
+                                mnemonic :cmpl
+                                operand1 (make-immediate-operand (mref-32 block-start (+ offset 3)))
+                                operand2 (make-operand :kind :relative
+                                                       :register (register rm)
+                                                       :data (mref-8 block-start (+ offset 2)))))
                          (t
-                          (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)
-                          ))))
+                          (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
                 (#x83
                  (with-modrm-byte (mref-8 block-start (1+ offset))
                    (cond ((eql modrm-byte #x3d)
