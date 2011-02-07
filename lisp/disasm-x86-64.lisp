@@ -1147,6 +1147,14 @@
                           (setq length 2
                                 mnemonic :div
                                 operand1 (make-register-operand (register rm prefix-byte))))
+                         ((and (eql mod #b01)
+                               (eql reg 0))
+                          (setq length 7
+                                mnemonic :testq
+                                operand1 (make-immediate-operand (mref-32 block-start (+ offset 3)))
+                                operand2 (make-operand :kind :relative
+                                                       :register (register rm prefix-byte)
+                                                       :data (mref-8 block-start (+ offset 2)))))
                          (t
                           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
                 (#xf8
