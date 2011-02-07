@@ -2227,6 +2227,29 @@
              (p2-function-call form target))))
     t))
 
+(defknown p2-sbit1 (t t) t)
+(defun p2-sbit1 (form target) ; used for SBIT1 and %SBIT1
+  (when (length-eql form 3)
+    (let* ((op (%car form))
+           (args (%cdr form)))
+      (cond ((or (zerop *safety*)
+                 (eq op '%sbit1))
+             (mumble "p2-sbit1 optimized case~%")
+             (process-2-args args '(:eax :edx) t)
+             (unbox-fixnum :edx) ; unboxed index in edx
+             (clear-register-contents :edx)
+             (inst :bt :edx `(,(- +simple-bit-vector-data-offset+ +typed-object-lowtag+) :eax))
+             (inst :setb :al)
+             (clear-register-contents :rax)
+             (inst :movzbl :al :eax)
+             (box-fixnum :eax)
+             (move-result-to-target target))
+            (t
+             (mumble "p2-sbit1 default case~%")
+             (process-2-args args :default t)
+             (emit-call-2 'sbit1 target))))
+    t))
+
 (defknown p2-svref (t t) t)
 (defun p2-svref (form target)
   (when (check-arg-count form 2)

@@ -1521,30 +1521,6 @@
             (t
              nil)))))
 
-
-#+x86
-(defknown p2-sbit1 (t t) t)
-#+x86
-(defun p2-sbit1 (form target) ; used for SBIT1 and %SBIT1
-  (when (length-eql form 3)
-    (let* ((op (%car form))
-           (args (%cdr form))
-           (vector-arg (%car args))
-           (index-arg (%cadr args))
-           (vector-type (derive-type vector-arg))
-           (index-type (derive-type index-arg)))
-      (mumble "p2-sbit1 vector-type = ~S index-type = ~S~%" vector-type index-type)
-      (cond ((or (zerop *safety*)
-                 (eq op '%sbit1))
-             (mumble "p2-sbit1 %sbit1 case~%")
-             (process-2-args args :default t)
-             (emit-call-2 '%sbit1 target))
-            (t
-             (mumble "p2-sbit1 default case~%")
-             (process-2-args args :default t)
-             (emit-call-2 'sbit1 target))))
-    t))
-
 (defknown p2-sxhash (t t) t)
 (defun p2-sxhash (form target)
   (when (check-arg-count form 1)
