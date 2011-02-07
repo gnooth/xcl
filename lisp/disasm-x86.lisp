@@ -429,12 +429,34 @@
                                   (t
                                    (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
                                           byte1 byte2 modrm-byte)))))
+                         ((eql byte2 #xab)
+                          (with-modrm-byte (mref-8 block-start (+ offset 2))
+                            (cond ((eql mod #b01)
+                                   (setq length 4
+                                         mnemonic :bts
+                                         operand1 (make-register-operand (register reg))
+                                         operand2 (make-operand :kind :relative
+                                                                :register (register rm)
+                                                                :data (mref-8-signed block-start (+ offset 3)))))
+                                  (t
+                                   (unsupported)))))
                          ((eql byte2 #xaf)
                           (with-modrm-byte (mref-8 block-start (+ offset 2))
                             (setq length 3
                                   mnemonic :imul
                                   operand1 (make-register-operand (register rm))
                                   operand2 (make-register-operand (register reg)))))
+                         ((eql byte2 #xb3)
+                          (with-modrm-byte (mref-8 block-start (+ offset 2))
+                            (cond ((eql mod #b01)
+                                   (setq length 4
+                                         mnemonic :btr
+                                         operand1 (make-register-operand (register reg))
+                                         operand2 (make-operand :kind :relative
+                                                                :register (register rm)
+                                                                :data (mref-8-signed block-start (+ offset 3)))))
+                                  (t
+                                   (unsupported)))))
                          ((eql byte2 #xb6)
                           (let ((byte3 (mref-8 block-start (+ offset 2))))
                             (cond ((eql byte3 #x02)
