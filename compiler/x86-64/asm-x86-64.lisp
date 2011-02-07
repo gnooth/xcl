@@ -812,6 +812,22 @@
         (t
          (unsupported))))
 
+(define-assembler :testq
+  (cond ((and (typep operand1 '(unsigned-byte 32))
+              (consp operand2)
+              (length-eql operand2 2)
+              (typep (%car operand2) '(signed-byte 8))
+              (reg64-p (%cadr operand2)))
+         (let* ((mod #b01)
+                (reg 0)
+                (rm (register-number (%cadr operand2)))
+                (modrm-byte (make-modrm-byte mod reg rm))
+                (prefix-byte #x48))
+           (emit-bytes prefix-byte #xf7 modrm-byte (%car operand2))
+           (emit-raw operand1)))
+        (t
+         (unsupported))))
+
 (define-assembler :xor
   (cond ((and (reg64-p operand1)
               (reg64-p operand2))
