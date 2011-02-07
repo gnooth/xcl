@@ -61,6 +61,7 @@
     ((:mov :al :dl)             #(#x88 #xc2))
     ((:mov :dl :al)             #(#x88 #xd0))
     ((:movb (#x50 :edx) :cl)    #(#x8a #x4a #x50))
+    ((:movzbl :al :eax)         #(#x0f #xb6 #xc0))
     ((:neg :eax)                #(#xf7 #xd8))
     ((:neg :ecx)                #(#xf7 #xd9))
     ((:shl 4 :eax)              #(#xc1 #xe0 #x04))
@@ -96,6 +97,9 @@
     ((:sub :eax :edx)           #(#x29 #xc2))
     ((:pop (4 :ecx))            #(#x8f #x41 #x04))
     ((:pop (:ecx))              #(#x8f #x01))
+    ((:setb :al)                #(#x0f #x92 #xc0))
+    ((:bt :eax (#x1e :edx))     #(#x0f #xa3 #x42 #x1e))
+    ((:bt :edx (#x1e :eax))     #(#x0f #xa3 #x50 #x1e))
     ((:ret)                     #(#xc3))
     ))
 

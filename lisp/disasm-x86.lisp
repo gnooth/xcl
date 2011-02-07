@@ -419,7 +419,17 @@
                       (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
                 (#x0f
                  (let ((byte2 (mref-8 block-start (1+ offset))))
-                   (cond ((eql byte2 #xaf)
+                   (cond ((eql byte2 #x92)
+                          (with-modrm-byte (mref-8 block-start (+ offset 2))
+                            (cond ((and (eql mod #b11)
+                                        (eql reg 0))
+                                   (setq length 3
+                                         mnemonic :setb
+                                         operand1 (make-register-operand (reg8 (register rm)))))
+                                  (t
+                                   (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
+                                          byte1 byte2 modrm-byte)))))
+                         ((eql byte2 #xaf)
                           (with-modrm-byte (mref-8 block-start (+ offset 2))
                             (setq length 3
                                   mnemonic :imul
@@ -434,9 +444,25 @@
                                                                 :register :edx
                                                                 :data 0)
                                          operand2 (make-register-operand :eax)))
+                                  ((eql byte3 #xc0)
+                                   (setq length 3
+                                         mnemonic :movzbl
+                                         operand1 (make-register-operand :al)
+                                         operand2 (make-register-operand :eax)))
                                   (t
                                    (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
                                           byte1 byte2 byte3)))))
+                         ((eql byte2 #xa3)
+                          (with-modrm-byte (mref-8 block-start (+ offset 2))
+                            (cond ((eql mod #b01)
+                                   (setq length 4
+                                         mnemonic :bt
+                                         operand1 (make-register-operand (register reg))
+                                         operand2 (make-operand :kind :relative
+                                                                :register (register rm)
+                                                                :data (mref-8-signed block-start (+ offset 3)))))
+                                  (t
+                                   (unsupported)))))
                          ((eql (ldb (byte 4 4) byte2) 8)
                           (setq instruction (process-jcc (+ block-start offset))))
                          ((eql (ldb (byte 4 4) byte2) 4)

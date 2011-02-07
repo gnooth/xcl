@@ -89,6 +89,36 @@
         (t
          (unsupported))))
 
+(defun assemble-bt* (mnemonic operand1 operand2)
+  (cond ((and (reg32-p operand1)
+              (consp operand2)
+              (length-eql operand2 2)
+              (typep (%car operand2) '(signed-byte 8))
+              (reg32-p (%cadr operand2)))
+         (let* ((displacement (%car operand2))
+                (displacement-byte (ldb (byte 8 0) displacement))
+                (mod #b01)
+                (reg (register-number operand1))
+                (rm  (register-number (%cadr operand2)))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x0f
+                       (ecase mnemonic
+                         (:bt #xa3)
+                         (:bts #xab)
+                         (:btr #xb3))
+                       modrm-byte displacement-byte)))
+        (t
+         (unsupported))))
+
+(define-assembler :bt
+  (assemble-bt* :bt operand1 operand2))
+
+(define-assembler :bts
+  (assemble-bt* :bts operand1 operand2))
+
+(define-assembler :btr
+  (assemble-bt* :btr operand1 operand2))
+
 (define-assembler :cmp
   (cond ((and (reg32-p operand1)
               (reg32-p operand2))
@@ -332,6 +362,17 @@
         (t
          (unsupported))))
 
+(define-assembler :movzbl
+  (cond ((and (reg8-p operand1)
+              (reg32-p operand2))
+         (let* ((mod #b11)
+                (reg (register-number operand2))
+                (rm  (register-number operand1))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x0f #xb6 modrm-byte)))
+        (t
+         (unsupported))))
+
 (define-assembler :neg
   (cond ((reg32-p operand1)
          (let* ((mod #b11)
@@ -418,6 +459,14 @@
               (reg32-p operand2))
          (let ((modrm-byte (make-modrm-byte #b11 7 (register-number operand2))))
            (emit-bytes #xd3 modrm-byte)))
+        (t
+         (unsupported))))
+
+(define-assembler :setb
+  (cond ((and (reg8-p operand1)
+              (null operand2))
+         (let ((modrm-byte (make-modrm-byte #b11 0 (register-number operand1))))
+           (emit-bytes #x0f #x92 modrm-byte)))
         (t
          (unsupported))))
 
