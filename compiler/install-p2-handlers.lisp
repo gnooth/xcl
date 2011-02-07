@@ -59,7 +59,6 @@
 (install-p2-handler '%cdr                       'p2-%cdr)
 (install-p2-handler '%dpb                       'p2-%dpb)
 (install-p2-handler '%rplacd                    'p2-rplacd)
-#+x86-64
 (install-p2-handler '%set-sbit1                 'p2-set-sbit1)
 (install-p2-handler '%sbit1                     'p2-sbit1)
 (install-p2-handler '%type-error                'p2-%type-error)
@@ -152,7 +151,6 @@
 (install-p2-handler 'rplacd                     'p2-rplacd)
 (install-p2-handler 'sbit1                      'p2-sbit1)
 (install-p2-handler 'schar                      'p2-schar)
-#+x86-64
 (install-p2-handler 'set-sbit1                  'p2-set-sbit1)
 (install-p2-handler 'set-schar                  'p2-set-schar)
 (install-p2-handler 'setcar                     'p2-setcar)
