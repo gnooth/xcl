@@ -1,6 +1,6 @@
 // StructureObject.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -22,18 +22,10 @@
 
 StructureObject::StructureObject(Value types, Value values_list, INDEX numslots)
   : TypedObject(WIDETAG_STRUCTURE_OBJECT), _types(types),
-//     _numslots(length(values_list))
     _numslots(numslots)
 {
   assert(_slots != NULL);
-  if (numslots != length(values_list))
-    {
-      printf("types = %s numslots = %lu length(values_list) = %lu\n",
-             ::prin1_to_string(types)->as_c_string(),
-             numslots, length(values_list));
-      assert(0);
-    }
-//   for (INDEX i = 0; i < _numslots; i++)
+  assert(numslots == length(values_list));
   for (INDEX i = 0; i < numslots; i++)
     {
       set_slot_value(i, xcar(values_list));
@@ -45,7 +37,7 @@ StructureObject::StructureObject(StructureObject * structure)
   : TypedObject(WIDETAG_STRUCTURE_OBJECT), _types(structure->_types),
     _numslots(structure->_numslots)
 {
-  for (INDEX i = 0; i < _numslots; i++)
+  for (INDEX i = _numslots; i-- > 0;)
     set_slot_value(i, structure->slot_value(i));
 }
 

@@ -1,6 +1,6 @@
 // SimpleArray_UB8_1.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -22,20 +22,17 @@
 class SimpleArray_UB8_1 : public AbstractVector
 {
 private:
-//   unsigned char * _data;
-  unsigned char _data[0];
+  BYTE _data[0];
 
 public:
   void * operator new(size_t size, INDEX capacity)
   {
-    return GC_malloc_atomic_ignore_off_page(sizeof(SimpleArray_UB8_1) + capacity * sizeof(unsigned char));
+    return GC_malloc_atomic_ignore_off_page(sizeof(SimpleArray_UB8_1) + capacity * sizeof(BYTE));
   }
 
-//   SimpleArray_UB8_1(INDEX capacity);
   SimpleArray_UB8_1(INDEX capacity)
     : AbstractVector(WIDETAG_SIMPLE_ARRAY_UB8_1, capacity)
   {
-//     _data = (unsigned char *) GC_malloc_atomic_ignore_off_page(capacity);
     memset(_data, 0, capacity);
   }
 
@@ -121,7 +118,7 @@ inline SimpleArray_UB8_1 * check_simple_array_ub8_1(Value value)
     return the_simple_array_ub8_1(value);
   Value expected_type = list3(S_simple_array, S_unsigned_byte, list1(make_fixnum(8)));
   signal_type_error(value, expected_type);
-  // Not reached.
+  // not reached
   return NULL;
 }
 
