@@ -167,6 +167,22 @@
         (t
          (unsupported))))
 
+(define-assembler :cmpq
+  (cond ((and (typep operand1 '(unsigned-byte 32))
+              (consp operand2)
+              (length-eql operand2 2)
+              (typep (%car operand2) '(signed-byte 8))
+              (reg64-p (%cadr operand2)))
+         (let* ((mod #b01)
+                (reg 7)
+                (rm (register-number (%cadr operand2)))
+                (modrm-byte (make-modrm-byte mod reg rm))
+                (prefix-byte #x48))
+           (emit-bytes prefix-byte #x81 modrm-byte (%car operand2))
+           (emit-raw operand1)))
+        (t
+         (unsupported))))
+
 (define-assembler :int3
   (emit-byte #xcc))
 
