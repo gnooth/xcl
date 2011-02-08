@@ -255,6 +255,12 @@ Value SYS_error_not_cons(Value datum)
   return signal_lisp_error(new TypeError(datum, S_cons));
 }
 
+// ### error-not-function
+Value SYS_error_not_function(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, S_function));
+}
+
 // ### error-not-list
 Value SYS_error_not_list(Value datum)
 {
