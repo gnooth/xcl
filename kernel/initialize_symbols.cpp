@@ -210,6 +210,7 @@ void initialize_symbols()
 
   the_symbol(S_typed_object_lowtag)->initialize_constant(make_fixnum(LOWTAG_TYPED_OBJECT));
 
+  the_symbol(S_widetag_function_bit)->initialize_constant(make_unsigned_integer(WIDETAG_FUNCTION_BIT));
   the_symbol(S_widetag_stream_bit)->initialize_constant(make_unsigned_integer(WIDETAG_ANSI_STREAM_BIT));
   the_symbol(S_widetag_vector_bit)->initialize_constant(make_unsigned_integer(WIDETAG_VECTOR_BIT));
 
