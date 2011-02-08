@@ -583,6 +583,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_error_not_cons, SYS_error_not_cons, 1, 1);
   ADD_PRIMITIVE(S_error_not_list, SYS_error_not_list, 1, 1);
   ADD_PRIMITIVE(S_error_not_simple_bit_vector, SYS_error_not_simple_bit_vector, 1, 1);
+  ADD_PRIMITIVE(S_error_not_simple_string, SYS_error_not_simple_string, 1, 1);
   ADD_PRIMITIVE(S_error_not_vector, SYS_error_not_vector, 1, 1);
   ADD_PRIMITIVE(S_exit, EXT_exit, 0, 0);
   ADD_PRIMITIVE(S_fasl_read_backquote, SYS_fasl_read_backquote, 2, 2);
@@ -785,6 +786,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_require_keyword, SYS_require_keyword, 1, 1);
   ADD_PRIMITIVE(S_require_list, SYS_require_list, 1, 1);
   ADD_PRIMITIVE(S_require_number, SYS_require_number, 1, 1);
+  ADD_PRIMITIVE(S_require_simple_bit_vector, SYS_require_simple_bit_vector, 1, 1);
   ADD_PRIMITIVE(S_require_simple_string, SYS_require_simple_string, 1, 1);
   ADD_PRIMITIVE(S_require_simple_vector, SYS_require_simple_vector, 1, 1);
   ADD_PRIMITIVE(S_require_stream, SYS_require_stream, 1, 1);

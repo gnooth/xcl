@@ -215,6 +215,7 @@ void initialize_symbols()
 
   the_symbol(S_simple_string_widetag)->initialize_constant(make_unsigned_integer(WIDETAG_SIMPLE_STRING));
   the_symbol(S_simple_vector_widetag)->initialize_constant(make_unsigned_integer(WIDETAG_SIMPLE_VECTOR));
+  the_symbol(S_simple_bit_vector_widetag)->initialize_constant(make_unsigned_integer(WIDETAG_SIMPLE_BIT_VECTOR));
 
   the_symbol(S_modules)->initialize_special(NIL);
 

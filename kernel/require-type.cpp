@@ -110,6 +110,14 @@ Value SYS_require_stream(Value arg)
   return signal_type_error(arg, S_stream);
 }
 
+// ### require-simple-bit-vector arg => arg
+Value SYS_require_simple_bit_vector(Value arg)
+{
+  if (simple_bit_vector_p(arg))
+    return arg;
+  return signal_type_error(arg, S_simple_bit_vector);
+}
+
 // ### require-simple-string arg => arg
 Value SYS_require_simple_string(Value arg)
 {
