@@ -273,10 +273,16 @@ Value SYS_error_not_simple_bit_vector(Value datum)
   return signal_lisp_error(new TypeError(datum, S_simple_bit_vector));
 }
 
-// ### error-not-simple-bit-vector
+// ### error-not-simple-string
 Value SYS_error_not_simple_string(Value datum)
 {
   return signal_lisp_error(new TypeError(datum, S_simple_string));
+}
+
+// ### error-not-simple-vector
+Value SYS_error_not_simple_vector(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, S_simple_vector));
 }
 
 Value bad_index(Value index, Value expected_type)
