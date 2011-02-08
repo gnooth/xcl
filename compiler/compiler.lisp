@@ -75,7 +75,7 @@
   prolog
   epilog
   registers-to-be-saved
-  (common-labels (make-hash-table :test 'eq) :type hash-table :read-only t)
+  (common-labels (make-hash-table :test 'equal) :type hash-table :read-only t)
   )
 
 (defun compiland-child-p (compiland)
@@ -1683,6 +1683,8 @@ for special variables."
                  (setq new-form `(require-character ,arg1)))
                 ((eq type 'CONS)
                  (setq new-form `(require-cons ,arg1)))
+                ((eq type 'FUNCTION)
+                 (setq new-form `(require-function ,arg1)))
                 ((eq type 'LIST)
                  (setq new-form `(require-list ,arg1)))
                 ((eq type 'STRING)
