@@ -289,6 +289,7 @@ void initialize_symbols()
 
   the_symbol(S_common_lisp_package)->initialize_constant(make_value(PACKAGE_CL));
   the_symbol(S_keyword_package)->initialize_constant(make_value(PACKAGE_KEYWORD));
+  the_symbol(S_system_package)->initialize_constant(make_value(PACKAGE_SYS));
 
   the_symbol(S_two_arg_operators)->initialize_constant(make_value(new EqHashTable()));
 
