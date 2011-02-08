@@ -135,6 +135,8 @@
 (install-p2-handler 'require-keyword            'p2-require-keyword)
 (install-p2-handler 'require-list               'p2-require-list)
 (install-p2-handler 'require-number             'p2-require-number)
+#+x86-64
+(install-p2-handler 'require-simple-bit-vector  'p2-require-simple-bit-vector)
 (install-p2-handler 'require-simple-string      'p2-require-simple-string)
 (install-p2-handler 'require-simple-vector      'p2-require-simple-vector)
 (install-p2-handler 'require-stream             'p2-require-stream)

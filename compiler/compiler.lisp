@@ -1749,6 +1749,8 @@ for special variables."
 ;;                  (setq new-form `(require-keyword ,arg1)))
 ;;                 ((eq type 'STREAM)
 ;;                  (setq new-form `(require-stream ,arg1)))
+                ((subtypep type 'SIMPLE-BIT-VECTOR)
+                 (setq new-form `(require-simple-bit-vector ,arg1)))
                 ((subtypep type 'SIMPLE-VECTOR)
                  (setq new-form `(require-simple-vector ,arg1)))
                 ((subtypep type 'VECTOR)
