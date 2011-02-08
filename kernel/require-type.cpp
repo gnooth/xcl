@@ -54,7 +54,7 @@ Value SYS_require_fixnum(Value arg)
   return signal_type_error(arg, S_fixnum);
 }
 
-// ### require-fixnum arg => arg
+// ### require-function arg => arg
 Value SYS_require_function(Value arg)
 {
   if (functionp(arg))
