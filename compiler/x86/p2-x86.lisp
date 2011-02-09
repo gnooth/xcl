@@ -5138,34 +5138,6 @@
              (emit-call-3 "RT_fast_call_symbol_2" target))))
     t))
 
-(defun p2-require-fixnum (form target)
-  (when (check-arg-count form 1)
-    (let ((arg (%cadr form)))
-      (cond ((zerop *safety*)
-             (p2 arg target))
-            ((fixnum-type-p (derive-type arg))
-             (p2 arg target))
-            (t
-             (process-1-arg arg :eax t)
-             (let* ((common-labels (compiland-common-labels *current-compiland*))
-                    (ERROR (gethash :require-fixnum-error common-labels)))
-               (unless ERROR
-                 (setq ERROR (make-label))
-                 (let ((*current-segment* :elsewhere)
-                       (*register-contents* (copy-register-contents)))
-                   (label ERROR)
-                   (p2-symbol 'FIXNUM :stack)
-                   (inst :push :eax)
-                   (emit-call-2 '%type-error nil)
-                   (inst :exit) ; FIXME
-                   (setf (gethash :require-fixnum-error common-labels) ERROR)))
-               (inst :test +fixnum-tag-mask+ :al)
-               (emit-jmp-short :nz ERROR)
-               (move-result-to-target target)
-               (when (var-ref-p arg)
-                 (add-type-constraint (var-ref-var arg) 'FIXNUM))))))
-    t))
-
 (defun p2-check-fixnum-bounds (form target)
   (when (check-arg-count form 3)
     (let* ((args (%cdr form))
@@ -5213,20 +5185,6 @@
              (process-3-args args :default t)
              (emit-call-3 'check-fixnum-bounds target))))
     t))
-
-(defun common-label (compiland error-function register)
-  (let* ((common-labels (compiland-common-labels compiland))
-         (key (concatenate 'string (symbol-name error-function) "-" (symbol-name register)))
-         (label (gethash key common-labels)))
-    (unless label
-      (setq label (make-label))
-      (let ((*current-segment* :elsewhere))
-        (label label)
-        (inst :push register)
-        (inst :call error-function) ; don't clear register contents!
-        (inst :exit)
-        (setf (gethash key common-labels) label)))
-    label))
 
 (defun p2-%type-error (form target)
   (when (check-arg-count form 2)

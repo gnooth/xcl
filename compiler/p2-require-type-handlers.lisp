@@ -18,6 +18,26 @@
 
 (in-package "COMPILER")
 
+(defun common-label (compiland error-function register)
+  (let* ((common-labels (compiland-common-labels compiland))
+         (key (concatenate 'string (symbol-name error-function) "-" (symbol-name register)))
+         (label (gethash key common-labels)))
+    (unless label
+      (setq label (make-label))
+      (let ((*current-segment* :elsewhere))
+        (label label)
+        #+x86
+        (inst :push register)
+        #+x86-64
+        (unless (eq register :rdi)
+          (inst :mov register :rdi))
+        (inst :call error-function) ; don't clear register contents!
+        #+x86
+        (inst :add +bytes-per-word+ :esp) ; REVIEW
+        (inst :exit)
+        (setf (gethash key common-labels) label)))
+    label))
+
 (defun p2-require-cons (form target)
   (when (check-arg-count form 1)
     (let ((arg (%cadr form)))
@@ -50,7 +70,6 @@
             ((fixnum-type-p (derive-type arg))
              (p2 arg target))
             (t
-             (mumble "p2-require-fixnum~%")
              (let ((ERROR (common-label *current-compiland* 'error-not-fixnum $ax)))
                (process-1-arg arg $ax t)
                (inst :test +fixnum-tag-mask+ :al)

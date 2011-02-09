@@ -776,21 +776,6 @@
 (define-common-label-for-error error-not-simple-bit-vector)
 (define-common-label-for-error error-not-simple-string)
 
-(defun common-label (compiland error-function register)
-  (let* ((common-labels (compiland-common-labels compiland))
-         (key (concatenate 'string (symbol-name error-function) "-" (symbol-name register)))
-         (label (gethash key common-labels)))
-    (unless label
-      (setq label (make-label))
-      (let ((*current-segment* :elsewhere))
-        (label label)
-        (unless (eq register :rdi)
-          (inst :mov register :rdi))
-        (inst :call error-function) ; don't clear register contents!
-        (emit-exit)
-        (setf (gethash key common-labels) label)))
-    label))
-
 (defun p2-test-endp (test-form label-if-false)
   (when (check-arg-count test-form 1)
     (let ((arg (%cadr test-form)))
