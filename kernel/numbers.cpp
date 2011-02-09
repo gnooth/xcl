@@ -103,15 +103,6 @@ Value CL_realp(Value arg)
   return realp(arg) ? T : NIL;
 }
 
-bool numberp(Value value)
-{
-  if (fixnump(value))
-    return true;
-  if (typed_object_p(value))
-    return (the_typed_object(value)->widetag() & WIDETAG_NUMBER_BIT) != 0;
-  return false;
-}
-
 // ### numberp
 Value CL_numberp(Value arg)
 {

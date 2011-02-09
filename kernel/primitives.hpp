@@ -539,6 +539,7 @@ extern Value SYS_error_not_cons(Value datum);
 extern Value SYS_error_not_fixnum(Value datum);
 extern Value SYS_error_not_function(Value datum);
 extern Value SYS_error_not_list(Value datum);
+extern Value SYS_error_not_number(Value datum);
 extern Value SYS_error_not_simple_bit_vector(Value datum);
 extern Value SYS_error_not_simple_string(Value datum);
 extern Value SYS_error_not_simple_vector(Value datum);

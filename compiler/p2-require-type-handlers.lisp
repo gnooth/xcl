@@ -77,6 +77,36 @@
                  (add-type-constraint (var-ref-var arg) 'FIXNUM))))))
     t))
 
+(defun p2-require-number (form target)
+  (when (check-arg-count form 1)
+    (let ((arg (%cadr form)))
+      (cond ((zerop *safety*)
+             (p2 arg target))
+            ((fixnum-type-p (derive-type arg))
+             (p2 arg target))
+            (t
+             (mumble "p2-require-number~%")
+             (let ((EXIT (make-label))
+                   (ERROR (common-label *current-compiland* 'error-not-number $ax)))
+               (process-1-arg arg $ax t)
+               (inst :test +fixnum-tag-mask+ :al)
+               (emit-jmp-short :z EXIT)
+               (inst :mov :al :dl)
+               (clear-register-contents $dx)
+               (inst :and +lowtag-mask+ :dl)
+               (inst :cmp +typed-object-lowtag+ :dl)
+               (emit-jmp-short :ne ERROR)
+               (aver (typep +widetag-number-bit+ '(unsigned-byte 32)))
+               (inst #+x86 :testl #+x86-64 :testq
+                     +widetag-number-bit+
+                     `(,(- +widetag-offset+ +typed-object-lowtag+) ,$ax))
+               (emit-jmp-short :z ERROR)
+               (label EXIT)
+               (move-result-to-target target)
+               (when (var-ref-p arg)
+                 (add-type-constraint (var-ref-var arg) 'FIXNUM))))))
+    t))
+
 (defun p2-require-widetag-bit (register widetag-bit error-function)
   (aver (eq register $ax))
   (let ((ERROR (common-label *current-compiland* error-function register)))
@@ -174,9 +204,6 @@
 
 (defun p2-require-keyword (form target)
   (%p2-require-type form target 'keyword))
-
-(defun p2-require-number (form target)
-  (%p2-require-type form target 'number))
 
 (defun p2-require-stream (form target)
   (%p2-require-type form target 'stream))

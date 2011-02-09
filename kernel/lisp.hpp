@@ -782,6 +782,15 @@ inline bool integerp(Value arg)
   return (fixnump(arg) || bignump(arg));
 }
 
+inline bool numberp(Value value)
+{
+  if (fixnump(value))
+    return true;
+  if (typed_object_p(value))
+    return (the_typed_object(value)->widetag() & WIDETAG_NUMBER_BIT) != 0;
+  return false;
+}
+
 extern long constantp(Value value);
 
 extern Value name_to_char(AbstractString * s);
@@ -789,7 +798,6 @@ extern Value name_to_char(AbstractString * s);
 // numbers.cpp
 extern bool rationalp(Value value);
 extern bool realp(Value value);
-extern bool numberp(Value value);
 extern Value normalize(mpz_t z);
 extern Value normalize(mpq_t z);
 extern Value negate(Value arg);

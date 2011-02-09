@@ -273,6 +273,12 @@ Value SYS_error_not_list(Value datum)
   return signal_lisp_error(new TypeError(datum, S_list));
 }
 
+// ### error-not-number
+Value SYS_error_not_number(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, S_number));
+}
+
 // ### error-not-vector
 Value SYS_error_not_vector(Value datum)
 {
