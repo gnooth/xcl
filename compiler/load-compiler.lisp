@@ -1,6 +1,6 @@
 ;;; load-compiler.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -53,6 +53,8 @@
 (load-system-file "compiler/ir2-defs")
 
 (load-system-file "compiler/p2")
+
+(load-system-file "compiler/p2-require-type-handlers")
 
 (load-system-file "compiler/p3")
 

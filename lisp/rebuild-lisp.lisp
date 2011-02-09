@@ -127,6 +127,7 @@
                           "compiler/derive-type.lisp"
                           "compiler/ir2-defs.lisp"
                           "compiler/p2.lisp"
+                          "compiler/p2-require-type-handlers.lisp"
                           #+x86
                           "compiler/x86/p2-x86.lisp"
                           #+x86-64
