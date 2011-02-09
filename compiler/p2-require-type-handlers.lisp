@@ -18,8 +18,35 @@
 
 (in-package "COMPILER")
 
+(defun p2-require-widetag-bit (register widetag-bit error-function)
+  (aver (eq register $ax))
+  (let ((ERROR (common-label *current-compiland* error-function register)))
+    (inst :mov :al :dl)
+    (clear-register-contents $dx)
+    (inst :and +lowtag-mask+ :dl)
+    (inst :cmp +typed-object-lowtag+ :dl)
+    (emit-jmp-short :ne ERROR)
+    (aver (typep widetag-bit '(unsigned-byte 32)))
+    (inst #+x86 :testl #+x86-64 :testq
+          widetag-bit
+          `(,(- +widetag-offset+ +typed-object-lowtag+) ,$ax))
+    (emit-jmp-short :z ERROR)))
+
+(defun p2-require-widetag (register widetag error-function)
+  (aver (eq register $ax))
+  (let ((ERROR (common-label *current-compiland* error-function register)))
+    (inst :mov :al :dl)
+    (clear-register-contents $dx)
+    (inst :and +lowtag-mask+ :dl)
+    (inst :cmp +typed-object-lowtag+ :dl)
+    (emit-jmp-short :ne ERROR)
+    (aver (typep widetag '(unsigned-byte 32)))
+    (inst #+x86 :cmpl #+x86-64 :cmpq
+          widetag
+          `(,(- +widetag-offset+ +typed-object-lowtag+) ,$ax))
+    (emit-jmp-short :nz ERROR)))
+
 (defmacro define-require-type-handler (type)
-  (mumble "define-require-type-handler ~S~%" type)
   (let* ((type-string (string type))
          (name (intern (concatenate 'string "P2-REQUIRE-" type-string)))
          (widetag (intern (concatenate 'string "+" type-string "-WIDETAG+") +system-package+))

@@ -90,6 +90,8 @@
 
 (defconstant $ax :eax)
 
+(defconstant $dx :edx)
+
 (defun reg8 (reg)
   (ecase reg
     (:eax :al)
