@@ -2198,9 +2198,7 @@
              (p2-function-call form target)
              (when (var-ref-p arg1)
                (let ((var (var-ref-var arg1)))
-                 (unless (or (var-special-p var)
-                             (var-used-non-locally-p var))
-                   (add-type-constraint var 'SIMPLE-STRING)))))))
+                 (add-type-constraint var 'SIMPLE-STRING))))))
     t))
 
 (defknown p2-schar (t t) t)
@@ -3452,9 +3450,8 @@
            (set-register-contents :eax var)))
     (when var
       (remove-constraints var)
-      (unless (var-special-p var)
-        (when (and derived-type (neq derived-type :unknown))
-          (add-type-constraint var derived-type))))
+      (when (and derived-type (neq derived-type :unknown))
+        (add-type-constraint var derived-type)))
     (move-result-to-target target)))
 
 (defun p2-two-arg-numeric-comparison (form target)
