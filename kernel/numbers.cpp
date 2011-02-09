@@ -108,20 +108,7 @@ bool numberp(Value value)
   if (fixnump(value))
     return true;
   if (typed_object_p(value))
-    {
-      switch (the_typed_object(value)->widetag())
-        {
-        case WIDETAG_BIGNUM:
-        case WIDETAG_RATIO:
-        case WIDETAG_SINGLE_FLOAT:
-        case WIDETAG_DOUBLE_FLOAT:
-        case WIDETAG_COMPLEX:
-          return true;
-        default:
-          ;
-          // Fall through...
-        }
-    }
+    return (the_typed_object(value)->widetag() & WIDETAG_NUMBER_BIT) != 0;
   return false;
 }
 

@@ -158,11 +158,11 @@ const LOWTAG LOWTAG_CHARACTER                      =   6;
 const LOWTAG LOWTAG_SYMBOL                         =   7;
 
 // widetags
-const WIDETAG WIDETAG_BIGNUM                       =   8;
-const WIDETAG WIDETAG_RATIO                        =   9;
-const WIDETAG WIDETAG_SINGLE_FLOAT                 =  10;
-const WIDETAG WIDETAG_DOUBLE_FLOAT                 =  11;
-const WIDETAG WIDETAG_COMPLEX                      =  12;
+// const WIDETAG WIDETAG_BIGNUM                       =   8;
+// const WIDETAG WIDETAG_RATIO                        =   9;
+// const WIDETAG WIDETAG_SINGLE_FLOAT                 =  10;
+// const WIDETAG WIDETAG_DOUBLE_FLOAT                 =  11;
+// const WIDETAG WIDETAG_COMPLEX                      =  12;
 
 // const WIDETAG WIDETAG_FUNCTION                     =  13;
 const WIDETAG WIDETAG_PACKAGE                      =  14;
@@ -216,6 +216,13 @@ const WIDETAG WIDETAG_INSTANCE_BIT                 =  512;
 const WIDETAG WIDETAG_CLASS_BIT                    = 1024;
 const WIDETAG WIDETAG_FUNCTION_BIT                 = 2048;
 const WIDETAG WIDETAG_ANSI_STREAM_BIT              = 4096;
+const WIDETAG WIDETAG_NUMBER_BIT                   = 8192;
+
+const WIDETAG WIDETAG_BIGNUM                       = WIDETAG_NUMBER_BIT + 1;
+const WIDETAG WIDETAG_RATIO                        = WIDETAG_NUMBER_BIT + 2;
+const WIDETAG WIDETAG_SINGLE_FLOAT                 = WIDETAG_NUMBER_BIT + 3;
+const WIDETAG WIDETAG_DOUBLE_FLOAT                 = WIDETAG_NUMBER_BIT + 4;
+const WIDETAG WIDETAG_COMPLEX                      = WIDETAG_NUMBER_BIT + 5;
 
 const WIDETAG WIDETAG_VECTOR                       = WIDETAG_ARRAY_BIT + WIDETAG_VECTOR_BIT;
 
