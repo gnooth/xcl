@@ -536,6 +536,7 @@ extern Value SYS_environment_empty_p(Value arg);
 extern Value SYS_equals_2(Value arg1, Value arg2);
 extern Value SYS_error_not_bit(Value datum);
 extern Value SYS_error_not_cons(Value datum);
+extern Value SYS_error_not_fixnum(Value datum);
 extern Value SYS_error_not_function(Value datum);
 extern Value SYS_error_not_list(Value datum);
 extern Value SYS_error_not_simple_bit_vector(Value datum);
