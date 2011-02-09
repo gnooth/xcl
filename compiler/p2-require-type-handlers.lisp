@@ -32,8 +32,6 @@
         (unless (eq register :rdi)
           (inst :mov register :rdi))
         (inst :call error-function) ; don't clear register contents!
-        #+x86
-        (inst :add +bytes-per-word+ :esp) ; REVIEW
         (inst :exit)
         (setf (gethash key common-labels) label)))
     label))
