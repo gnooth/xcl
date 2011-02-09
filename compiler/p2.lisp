@@ -1784,3 +1784,38 @@
                        (return)))))
             ;;             )
           ))))))
+
+(defmacro define-require-type-handler (type)
+  (mumble "define-require-type-handler ~S~%" type)
+  (let* ((type-string (string type))
+         (name (intern (concatenate 'string "P2-REQUIRE-" type-string)))
+         (widetag (intern (concatenate 'string "+" type-string "-WIDETAG+") +system-package+))
+         (widetag-bit (intern (concatenate 'string "+WIDETAG-" type-string "-BIT+") +system-package+))
+         (error-function (intern (concatenate 'string "ERROR-NOT-" type-string) +system-package+))
+         require-widetag-function
+         widetag-arg)
+    (aver (not (and (boundp widetag) (boundp widetag-bit))))
+    (cond ((boundp widetag)
+           (setq widetag-arg widetag
+                 require-widetag-function 'p2-require-widetag))
+          ((boundp widetag-bit)
+           (setq widetag-arg widetag-bit
+                 require-widetag-function 'p2-require-widetag-bit))
+          (t
+           (error "Neither %S nor %S is bound." widetag widetag-bit)))
+    `(defun ,name (form target)
+       (when (length-eql form 2)
+         (let* ((arg (%cadr form)))
+           (cond ((zerop *safety*)
+                  (p2 arg target))
+                 ((subtypep (derive-type arg) ',type)
+                  (p2 arg target))
+                 (t
+                  (mumble "~A~%" ',name)
+                  (process-1-arg arg $ax t)
+                  (,require-widetag-function $ax ,widetag-arg ',error-function)
+                  (when target
+                    (move-result-to-target target))
+                  (when (var-ref-p arg)
+                    (add-type-constraint (var-ref-var arg) ',type)))))
+         t))))
