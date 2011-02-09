@@ -29,7 +29,7 @@
           register
           byte-register register-number register-bit-size
           +call-return-register+
-          $ax
+          $ax $cx $dx $bx $sp $bp $si $di
           reg8
           make-modrm-byte))
 
@@ -88,10 +88,6 @@
 
 (defconstant +call-return-register+ :eax)
 
-(defconstant $ax :eax)
-
-(defconstant $dx :edx)
-
 (defun reg8 (reg)
   (ecase reg
     (:eax :al)
@@ -106,5 +102,14 @@
     (setf (ldb (byte 3 3) result) reg)
     (setf (ldb (byte 2 6) result) mod)
     result))
+
+(defconstant $ax :eax)
+(defconstant $cx :ecx)
+(defconstant $dx :edx)
+(defconstant $bx :ebx)
+(defconstant $sp :esp)
+(defconstant $bp :ebp)
+(defconstant $si :esi)
+(defconstant $di :edi)
 
 (provide "X86")

@@ -31,7 +31,7 @@
           +call-argument-registers+
           +call-return-register+
           +extended-registers+
-          $ax $dx
+          $ax $cx $dx $bx $sp $bp $si $di
           reg8-p reg32-p reg64-p
           reg8 reg32 reg64
           extended-register-p
@@ -214,10 +214,6 @@
 
 (defconstant +extended-registers+ '(:r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15))
 
-(defconstant $ax :rax)
-
-(defconstant $dx :rdx)
-
 (defun reg8-p (x)
   (and (keywordp x)
        (memq x '(:al :cl :dl :bl :spl :bpl :sil :dil))))
@@ -283,5 +279,14 @@
     (setf (ldb (byte 3 3) result) reg)
     (setf (ldb (byte 2 6) result) mod)
     result))
+
+(defconstant $ax :rax)
+(defconstant $cx :rcx)
+(defconstant $dx :rdx)
+(defconstant $bx :rbx)
+(defconstant $sp :rsp)
+(defconstant $bp :rbp)
+(defconstant $si :rsi)
+(defconstant $di :rdi)
 
 (provide "X86-64")
