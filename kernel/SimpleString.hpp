@@ -1,6 +1,6 @@
 // SimpleString.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -91,7 +91,10 @@ public:
   {
     if (i < _capacity)
       return _chars[i];
-    signal_lisp_error("bad index");
+    signal_type_error(make_unsigned_integer(i),
+                      list3(S_integer,
+                            FIXNUM_ZERO,
+                            make_unsigned_integer(_capacity - 1)));
     // not reached
     return 0;
   }
