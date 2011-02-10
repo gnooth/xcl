@@ -590,6 +590,22 @@
       (aver (eql (sbit v i) (if (oddp i) 1 0))))))
 (test88)
 
+(defun-compile test89 ()
+  (let ((v (make-array 64 :element-type '(unsigned-byte 8))))
+    (dotimes (i 64)
+      (setf (aref v i) (+ i 42)))
+    (dotimes (i 64)
+      (aver (eql (aref v i) (+ i 42))))))
+(test89)
+
+(defun-compile test90 ()
+  (let ((v (make-array 64 :element-type '(unsigned-byte 32))))
+    (dotimes (i 64)
+      (setf (aref v i) (+ i 42)))
+    (dotimes (i 64)
+      (aver (eql (aref v i) (+ i 42))))))
+(test90)
+
 (defun-compile fact (n)
   (labels
     ((fact1 (n m)

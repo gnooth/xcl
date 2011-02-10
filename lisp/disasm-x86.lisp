@@ -80,6 +80,14 @@
                              :mnemonic :mov
                              :operand1 (make-register-operand (byte-register reg))
                              :operand2 (make-register-operand (byte-register rm))))
+          ((eql mod 0)
+           (make-instruction :start start
+                             :length 2
+                             :mnemonic :mov
+                             :operand1 (make-register-operand (byte-register reg))
+                             :operand2 (make-operand :kind :relative
+                                                     :register (register rm)
+                                                     :data 0)))
           (t
            (format t "~%modrm-byte = #x~x mod = ~s reg = ~s rm = ~s~%"
                    modrm-byte mod reg rm)
