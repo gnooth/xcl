@@ -2364,6 +2364,7 @@
     t))
 
 (defknown p2-vector-ref (t t) t)
+#+nil
 (defun p2-vector-ref (form target)
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))

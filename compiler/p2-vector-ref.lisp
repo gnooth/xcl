@@ -19,7 +19,6 @@
 (in-package "COMPILER")
 
 (defknown p2-vector-ref (t t) t)
-#+x86-64
 (defun p2-vector-ref (form target)
   (mumble "p2-vector-ref new version~%")
   (when (check-arg-count form 2)
@@ -56,7 +55,7 @@
 ;;                            ;; get rid of the fixnum shift
                            (unbox-fixnum $dx)
 ;;                            (inst :add :rdx :rax)
-                           (inst :add :rax :rdx)
+                           (inst :add $ax $dx)
                            (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :al)
 ;;                            (emit-bytes #x48 #x0f #xb6 #x00) ; movzbq (%rax),%rax
                            (inst :movzbl :al :eax)
@@ -73,20 +72,35 @@
                                     (setq size (derive-vector-size type1))
                                     (subtypep type2 (list 'INTEGER 0 (1- size)))))
                            (mumble "p2-vector-ref new code 2~%")
-;;                            (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
-;;                            (clear-register-contents :rax)
-;;                            (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
-                           ;; index is in rdx
-                           ;; get rid of the fixnum shift and multiply by 4 to get the offset in bytes
-                           ;; (emit-bytes #x48 #xc1 #xfa +fixnum-shift+)         ; sar $0x2,%rdx
-                           ;; (emit-bytes #x48 #xc1 #xe2 #x02)                   ; shl $0x2,%rdx
-                           ;; nothing to do!
-;;                            (inst :add :rdx :rax)
-                           (inst :add :rax :rdx)
-;;                            (emit-bytes #x8b #x00) ; mov (%rax),%eax
-                           (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :eax)
-                           (box-fixnum $ax)
-                           (move-result-to-target target))
+                           (let (#+x86 (BIGNUM (make-label))
+                                 #+x86 (EXIT (make-label)))
+                             ;;                            (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
+                             ;;                            (clear-register-contents :rax)
+                             ;;                            (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
+                             ;; index is in rdx
+                             ;; get rid of the fixnum shift and multiply by 4 to get the offset in bytes
+                             ;; (emit-bytes #x48 #xc1 #xfa +fixnum-shift+)         ; sar $0x2,%rdx
+                             ;; (emit-bytes #x48 #xc1 #xe2 #x02)                   ; shl $0x2,%rdx
+                             ;; nothing to do!
+                             ;;                            (inst :add :rdx :rax)
+                             (inst :add $ax $dx)
+                             ;;                            (emit-bytes #x8b #x00) ; mov (%rax),%eax
+                             (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :eax)
+                             #+x86
+                             (progn
+                               (inst :cmp most-positive-fixnum :eax)
+                               (emit-jmp-short :a BIGNUM))
+                             (box-fixnum $ax)
+                             #+x86
+                             (label EXIT)
+                             (move-result-to-target target)
+                             #+x86
+                             (let ((*current-segment* :elsewhere))
+                               (label BIGNUM)
+                               (inst :push :eax)
+                               (emit-call-1 "RT_make_unsigned_bignum" :eax)
+                               (emit-jmp-short t EXIT))
+                             ))
                           (t
                            (mumble "p2-vector-ref %vector-ref case 2 type1 = ~S type2 = ~S~%" type1 type2)
                            (process-2-args args :default t)
