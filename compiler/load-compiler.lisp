@@ -54,6 +54,8 @@
 
 (load-system-file "compiler/p2")
 
+(load-system-file "compiler/p2-vector-ref")
+
 (load-system-file "compiler/p2-require-type-handlers")
 
 (load-system-file "compiler/p3")

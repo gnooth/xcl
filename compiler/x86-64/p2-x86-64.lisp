@@ -2378,6 +2378,7 @@
     t))
 
 (defknown p2-vector-ref (t t) t)
+#+nil
 (defun p2-vector-ref (form target)
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
@@ -2411,6 +2412,7 @@
                     (box-fixnum :rax)
                     (move-result-to-target target))
                    (t
+                    (mumble "p2-vector-ref %vector-ref case 1 type1 = ~S type2 = ~S~%" type1 type2)
                     (process-2-args args :default t)
                     (emit-call-2 '%vector-ref target))))
             ((subtypep type1 '(simple-array (unsigned-byte 32) (*)))
@@ -2432,9 +2434,11 @@
                     (box-fixnum :rax)
                     (move-result-to-target target))
                    (t
+                    (mumble "p2-vector-ref %vector-ref case 2 type1 = ~S type2 = ~S~%" type1 type2)
                     (process-2-args args :default t)
                     (emit-call-2 '%vector-ref target))))
             ((subtypep type1 'vector)
+             (mumble "p2-vector-ref %vector-ref case 3 type1 = ~S type2 = ~S~%" type1 type2)
              (process-2-args args :default t)
              (emit-call-2 '%vector-ref target))
             (t

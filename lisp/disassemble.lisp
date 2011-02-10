@@ -143,34 +143,26 @@
 
 (defun print-operand (op)
   (declare (type operand op))
-  (case (operand-kind op)
-    (:register
-     (princ (register-string (operand-register op))))
-    (:indirect
-     (format t "(~A)" (register-string (operand-register op))))
-    (:immediate
-     (format t "$0x~X" (operand-data op)))
-    (:relative
-     (cond ((zerop (operand-data op))
-;;             (format t "0x~X(~A)" (operand-data op) (register-string (operand-register op)))
-            (format t "(~A)" (register-string (operand-register op)))
-            )
-;;            #+x86-64
-;;            ((eq (operand-register op) :rip)
-;;             ;; gdb prints the displacement in decimal if the register is %rip
-;;             (format t "~D(~A)" (operand-data op) (register-string (operand-register op))))
-           ((minusp (operand-data op))
-;;             (format t "0x~X(~A)" (ldb (byte #+x86 32 #+x86-64 64 0) (operand-data op))
-;;                     (register-string (operand-register op)))
-;;             (format t "~D(~A)" (operand-data op) (register-string (operand-register op)))
-            (format t "-0x~X(~A)" (- (operand-data op)) (register-string (operand-register op)))
-            )
-           (t
-            (format t "0x~X(~A)" (operand-data op) (register-string (operand-register op)))
-;;             (format t "~D(~A)" (operand-data op) (register-string (operand-register op)))
-            )))
-    (:absolute
-     (format t "0x~X" (operand-data op)))))
+  (let ((string (case (operand-kind op)
+                  (:register
+                   (princ-to-string (register-string (operand-register op))))
+                  (:indirect
+                   (format nil "(~A)" (register-string (operand-register op))))
+                  (:immediate
+                   (format nil "$0x~X" (operand-data op)))
+                  (:relative
+                   (cond ((zerop (operand-data op))
+                          (format nil "(~A)" (register-string (operand-register op)))
+                          )
+                         ((minusp (operand-data op))
+                          (format nil "-0x~X(~A)" (- (operand-data op)) (register-string (operand-register op)))
+                          )
+                         (t
+                          (format nil "0x~X(~A)" (operand-data op) (register-string (operand-register op)))
+                          )))
+                  (:absolute
+                   (format nil "0x~X" (operand-data op))))))
+    (format t "~A" (nstring-downcase string))))
 
 (defun fill-to-pos (pos stream)
 ;;   (when (< (charpos stream) pos)

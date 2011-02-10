@@ -132,7 +132,7 @@
                     (cond ((eql sib-byte #x24)
                            (make-instruction :start start
                                              :length 5
-                                             :mnemonic :movb
+                                             :mnemonic :mov
                                              :operand1 (make-operand :kind :relative
                                                                      :register (register-rm rm prefix-byte)
                                                                      :data displacement-byte)
@@ -140,7 +140,16 @@
                           (t
                            (unsupported)))))
                  (t
-                  (unsupported))))
+;;                   (unsupported)
+                  (let ((displacement-byte (mref-8-signed start (+ offset 2))))
+                    (make-instruction :start start
+                                      :length 3
+                                      :mnemonic :mov
+                                      :operand1 (make-operand :kind :relative
+                                                              :register (reg64 (register rm))
+                                                              :data displacement-byte)
+                                      :operand2 (make-register-operand (byte-register reg))))
+                  )))
           (t
            (unsupported)))))
 
