@@ -25,7 +25,7 @@
 
 (in-package "X86")
 
-(export '(reg8-p reg32-p
+(export '(reg8-p reg16-p reg32-p
           register
           byte-register register-number register-bit-size
           +call-return-register+
@@ -36,6 +36,10 @@
 (defun reg8-p (x)
   (and (keywordp x)
        (memq x '(:al :cl :dl :bl))))
+
+(defun reg16-p (x)
+  (and (keywordp x)
+       (memq x '(:ax :cx :dx :bx :sp :bp :si :di))))
 
 (defun reg32-p (x)
   (and (keywordp x)
@@ -73,11 +77,18 @@
            (:ebp 5)
            (:esi 6)
            (:edi 7)
+           (:ax 0)
+           (:cx 1)
+           (:dx 2)
+           (:bx 3)
+           (:sp 4)
+           (:bp 5)
+           (:si 6)
+           (:di 7)
            (:al  0)
            (:cl  1)
            (:dl  2)
-           (:bl  3)
-           ))))
+           (:bl  3)))))
 
 (defun register-bit-size (thing)
   (case thing

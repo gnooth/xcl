@@ -69,7 +69,7 @@
                        (inst :mov :rdx :rdi)
                        (inst :mov :rcx :rsi))
                      (emit-call "RT_bad_index")
-                     (emit-exit))
+                     (inst :exit))
                    ; get unboxed length in $cx
                    (inst :mov `(,(- +vector-capacity-offset+ +typed-object-lowtag+) ,$ax) $cx)
                    (clear-register-contents $cx)
