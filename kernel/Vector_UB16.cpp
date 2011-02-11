@@ -1,6 +1,6 @@
 // Vector_UB16.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -300,7 +300,7 @@ Value Vector_UB16::pop()
 Value Vector_UB16::reverse() const
 {
   INDEX len = length();
-  SimpleArray_UB16_1 * result = new SimpleArray_UB16_1(len);
+  SimpleArray_UB16_1 * result = new_simple_array_ub16_1(len);
   unsigned short * data = result->data();
   INDEX i, j;
   if (_data)
@@ -354,7 +354,7 @@ Value Vector_UB16::subseq(INDEX start, INDEX end) const
 {
   assert(end >= start);
   const INDEX len = end - start;
-  SimpleArray_UB16_1 * result = new SimpleArray_UB16_1(len);
+  SimpleArray_UB16_1 * result = new_simple_array_ub16_1(len);
   unsigned short * data = result->data();
   INDEX i = start, j = 0;
   if (_data)

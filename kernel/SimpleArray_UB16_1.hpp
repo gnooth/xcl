@@ -1,6 +1,6 @@
 // SimpleArray_UB16_1.hpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -22,10 +22,20 @@
 class SimpleArray_UB16_1 : public AbstractVector
 {
 private:
-  unsigned short * _data;
+//   unsigned short * _data;
+  unsigned short _data[0];
 
 public:
-  SimpleArray_UB16_1(INDEX capacity);
+  void * operator new(size_t size, INDEX capacity)
+  {
+    return GC_malloc_atomic_ignore_off_page(sizeof(SimpleArray_UB16_1) + capacity * sizeof(unsigned short));
+  }
+
+  SimpleArray_UB16_1(INDEX capacity)
+    : AbstractVector(WIDETAG_SIMPLE_ARRAY_UB16_1, capacity)
+  {
+    memset(_data, 0, capacity * sizeof(unsigned short));
+  }
 
   virtual bool has_fill_pointer() const
   {
@@ -85,6 +95,11 @@ public:
 
   virtual Value subseq(INDEX start, INDEX end) const;
 };
+
+inline SimpleArray_UB16_1 * new_simple_array_ub16_1(INDEX capacity)
+{
+  return new(capacity) SimpleArray_UB16_1(capacity);
+}
 
 inline bool simple_array_ub16_1_p(Value value)
 {

@@ -1,6 +1,6 @@
 // SimpleArray_UB8_1.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -106,7 +106,7 @@ Value SimpleArray_UB8_1::aref(INDEX i) const
 {
   if (i >= _capacity)
     return bad_index(i, 0, _capacity);
-  return make_fixnum(_data[i]);
+  return make_unsigned_fixnum(_data[i]);
 }
 
 Value SimpleArray_UB8_1::aset(INDEX i, Value new_value)
@@ -118,7 +118,7 @@ Value SimpleArray_UB8_1::aset(INDEX i, Value new_value)
       long n = xlong(new_value);
       if (n >= 0 && n < 256)
         {
-          _data[i] = (unsigned char) n;
+          _data[i] = (BYTE) n;
           return new_value;
         }
     }

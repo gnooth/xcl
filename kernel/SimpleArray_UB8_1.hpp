@@ -27,7 +27,7 @@ private:
 public:
   void * operator new(size_t size, INDEX capacity)
   {
-    return GC_malloc_atomic_ignore_off_page(sizeof(SimpleArray_UB8_1) + capacity * sizeof(BYTE));
+    return GC_malloc_atomic_ignore_off_page(sizeof(SimpleArray_UB8_1) + capacity);
   }
 
   SimpleArray_UB8_1(INDEX capacity)

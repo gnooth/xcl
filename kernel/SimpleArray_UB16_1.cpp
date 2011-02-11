@@ -1,6 +1,6 @@
 // SimpleArray_UB16_1.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,12 +19,12 @@
 #include "lisp.hpp"
 #include "SimpleArray_UB16_1.hpp"
 
-SimpleArray_UB16_1::SimpleArray_UB16_1(INDEX capacity)
-  : AbstractVector(WIDETAG_SIMPLE_ARRAY_UB16_1, capacity)
-{
-  _data = (unsigned short *) GC_malloc_atomic(capacity * sizeof(unsigned short));
-  memset(_data, 0, capacity * sizeof(unsigned short));
-}
+// SimpleArray_UB16_1::SimpleArray_UB16_1(INDEX capacity)
+//   : AbstractVector(WIDETAG_SIMPLE_ARRAY_UB16_1, capacity)
+// {
+//   _data = (unsigned short *) GC_malloc_atomic(capacity * sizeof(unsigned short));
+//   memset(_data, 0, capacity * sizeof(unsigned short));
+// }
 
 Value SimpleArray_UB16_1::element_type() const
 {
@@ -141,7 +141,7 @@ Value SimpleArray_UB16_1::elt(INDEX i) const
 
 Value SimpleArray_UB16_1::reverse() const
 {
-  SimpleArray_UB16_1 * result = new SimpleArray_UB16_1(_capacity);
+  SimpleArray_UB16_1 * result = new_simple_array_ub16_1(_capacity);
   INDEX i, j;
   for (i = 0, j = _capacity - 1; i < _capacity; i++, j--)
     result->_data[i] = _data[j];
@@ -170,7 +170,7 @@ Value SimpleArray_UB16_1::subseq(INDEX start, INDEX end) const
 {
   assert(end >= start);
   const INDEX len = end - start;
-  SimpleArray_UB16_1 * vector = new SimpleArray_UB16_1(len);
+  SimpleArray_UB16_1* vector = new_simple_array_ub16_1(len);
   INDEX i = start, j = 0;
   while (i < end)
     vector->_data[j++] = _data[i++];

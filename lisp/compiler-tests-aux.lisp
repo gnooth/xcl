@@ -599,12 +599,20 @@
 (test89)
 
 (defun-compile test90 ()
-  (let ((v (make-array 64 :element-type '(unsigned-byte 32))))
+  (let ((v (make-array 64 :element-type '(unsigned-byte 16))))
     (dotimes (i 64)
       (setf (aref v i) (+ i 42)))
     (dotimes (i 64)
       (aver (eql (aref v i) (+ i 42))))))
 (test90)
+
+(defun-compile test91 ()
+  (let ((v (make-array 64 :element-type '(unsigned-byte 32))))
+    (dotimes (i 64)
+      (setf (aref v i) (+ i 42)))
+    (dotimes (i 64)
+      (aver (eql (aref v i) (+ i 42))))))
+(test91)
 
 (defun-compile fact (n)
   (labels

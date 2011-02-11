@@ -20,7 +20,6 @@
 
 (defknown p2-vector-ref (t t) t)
 (defun p2-vector-ref (form target)
-  (mumble "p2-vector-ref new version~%")
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
            (arg1 (%car args))
@@ -38,84 +37,122 @@
              (p2 `(sbit1 ,arg1 ,arg2) target))
             ((subtypep type1 'simple-string)
              (p2 `(schar ,arg1 ,arg2) target))
-            ((subtypep type1 'simple-array)
+            ((subtypep type1 '(simple-array * (*)))
+             (mumble "p2-vector-ref simple-array case~%")
              (process-2-args args `(,$ax ,$dx) t) ; vector in rax, index in rdx
              (clear-register-contents $ax $dx)
-             (cond ((subtypep type1 '(simple-array (unsigned-byte 8) (*)))
-                    (cond ((or (zerop *safety*)
-                               (and (neq (setq type2 (derive-type arg2)) :unknown)
-                                    (integer-type-p type2)
-                                    (setq size (derive-vector-size type1))
-                                    (subtypep type2 (list 'INTEGER 0 (1- size)))))
-                           (mumble "p2-vector-ref new code 1~%")
-;;                            (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
-;;                            (clear-register-contents :rax :rdx)
-;;                            (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
-;;                            ;; index is in rdx
-;;                            ;; get rid of the fixnum shift
-                           (unbox-fixnum $dx)
-;;                            (inst :add :rdx :rax)
-                           (inst :add $ax $dx)
-                           (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :al)
-;;                            (emit-bytes #x48 #x0f #xb6 #x00) ; movzbq (%rax),%rax
-                           (inst :movzbl :al :eax)
-                           (box-fixnum :eax)
-                           (move-result-to-target target))
-                          (t
-                           (mumble "p2-vector-ref %vector-ref case 1 type1 = ~S type2 = ~S~%" type1 type2)
-                           (process-2-args args :default t)
-                           (emit-call-2 '%vector-ref target))))
-                   ((subtypep type1 '(simple-array (unsigned-byte 32) (*)))
-                    (cond ((or (zerop *safety*)
-                               (and (neq (setq type2 (derive-type arg2)) :unknown)
-                                    (integer-type-p type2)
-                                    (setq size (derive-vector-size type1))
-                                    (subtypep type2 (list 'INTEGER 0 (1- size)))))
-                           (mumble "p2-vector-ref new code 2~%")
-                           (let (#+x86 (BIGNUM (make-label))
-                                 #+x86 (EXIT (make-label)))
-                             ;;                            (process-2-args args '(:rax :rdx) t) ; vector in rax, index in rdx
-                             ;;                            (clear-register-contents :rax)
-                             ;;                            (inst :add (- +simple-vector-data-offset+ +typed-object-lowtag+) :rax)
-                             ;; index is in rdx
-                             ;; get rid of the fixnum shift and multiply by 4 to get the offset in bytes
-                             ;; (emit-bytes #x48 #xc1 #xfa +fixnum-shift+)         ; sar $0x2,%rdx
-                             ;; (emit-bytes #x48 #xc1 #xe2 #x02)                   ; shl $0x2,%rdx
-                             ;; nothing to do!
-                             ;;                            (inst :add :rdx :rax)
-                             (inst :add $ax $dx)
-                             ;;                            (emit-bytes #x8b #x00) ; mov (%rax),%eax
-                             (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :eax)
-                             #+x86
-                             (progn
-                               (inst :cmp most-positive-fixnum :eax)
-                               (emit-jmp-short :a BIGNUM))
-                             (box-fixnum $ax)
-                             #+x86
-                             (label EXIT)
-                             (move-result-to-target target)
-                             #+x86
-                             (let ((*current-segment* :elsewhere))
-                               (label BIGNUM)
-                               (inst :push :eax)
-                               (emit-call-1 "RT_make_unsigned_bignum" :eax)
-                               (emit-jmp-short t EXIT))
-                             ))
-                          (t
-                           (mumble "p2-vector-ref %vector-ref case 2 type1 = ~S type2 = ~S~%" type1 type2)
-                           (process-2-args args :default t)
-                           (emit-call-2 '%vector-ref target))))
-                   (t
-                    (mumble "p2-vector-ref unexpected situation type1 = ~S~%" type1)
-                    (process-2-args args :default t)
-                    (emit-call-2 (if (zerop *safety*) '%vector-ref 'vector-ref) target)
-;;                     (aver nil)
-                    )))
+
+             (setq type2 (derive-type arg2))
+             (unless (fixnum-type-p type2)
+               (let ((ERROR (common-label *current-compiland* 'error-not-fixnum $dx)))
+                 (inst :test +fixnum-tag-mask+ :dl)
+                 (emit-jmp-short :nz ERROR)))
+
+             (setq size (derive-vector-size type1))
+             (let (($dx-unboxed-p nil))
+               (unless (and size (subtypep type2 (list 'INTEGER 0 (1- size))))
+                 (mumble "p2-vector-ref checking index against length~%")
+                 ;; check index against length
+                 (unbox-fixnum $dx) ; unboxed index in $dx
+                 (setq $dx-unboxed-p t)
+                 (let ((ERROR-BAD-INDEX (make-label)))
+                   (let ((*current-segment* :elsewhere)
+                         (*register-contents* (copy-register-contents)))
+                     (label ERROR-BAD-INDEX)
+                     #+x86
+                     (progn
+                       (inst :push $cx)
+                       (inst :push $dx))
+                     #+x86-64
+                     (progn
+                       ;; we want unboxed index in rdi, unboxed length in rsi
+                       (inst :mov :rdx :rdi)
+                       (inst :mov :rcx :rsi))
+                     (emit-call "RT_bad_index")
+                     (emit-exit))
+                   ; get unboxed length in $cx
+                   (inst :mov `(,(- +vector-capacity-offset+ +typed-object-lowtag+) ,$ax) $cx)
+                   (clear-register-contents $cx)
+                   (inst :cmp $dx $cx)
+                   (emit-jmp-short :le ERROR-BAD-INDEX)))
+
+               ;; reaching here, index is OK
+               (cond ((subtypep type1 '(simple-array (unsigned-byte 8) (*)))
+                      (mumble "p2-vector-ref optimized 1~%")
+                      (unless $dx-unboxed-p
+                        (unbox-fixnum $dx))
+                      (inst :add $ax $dx)
+                      (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :al)
+                      (inst :movzbl :al :eax)
+                      (box-fixnum :eax)
+                      (move-result-to-target target))
+                     ((subtypep type1 '(simple-array (unsigned-byte 16) (*)))
+                      (mumble "p2-vector-ref optimized 2~%")
+                      (unless $dx-unboxed-p
+                        (unbox-fixnum $dx))
+                      ;; multiply by 2 to get byte offset
+                      (inst :shl $dx)
+                      (inst :add $ax $dx)
+                      (inst :xor :eax :eax)
+                      (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :ax)
+                      ;;                       (inst :movzbl :al :eax)
+                      (box-fixnum :eax)
+                      (move-result-to-target target))
+                     ((subtypep type1 '(simple-array (unsigned-byte 32) (*)))
+                      (mumble "p2-vector-ref optimized 3~%")
+                      (let (#+x86
+                            (BIGNUM (make-label))
+                            #+x86
+                            (EXIT (make-label)))
+                        ;; if we unboxed $dx above, multiply by 4 to get byte offset
+                        (when $dx-unboxed-p
+                          (inst :shl 2 $dx))
+                        (inst :add $ax $dx)
+                        (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :eax)
+                        #+x86
+                        (progn
+                          (inst :cmp most-positive-fixnum :eax)
+                          (emit-jmp-short :a BIGNUM))
+                        (box-fixnum $ax)
+                        #+x86
+                        (label EXIT)
+                        (move-result-to-target target)
+                        #+x86
+                        (let ((*current-segment* :elsewhere))
+                          (label BIGNUM)
+                          (inst :push :eax)
+                          (emit-call-1 "RT_make_unsigned_bignum" :eax)
+                          (emit-jmp-short t EXIT))))
+;;                      ((subtypep type1 '(simple-array * (*)))
+;;                       (mumble "p2-vector-ref (simple-array * (*)) case ~S~%" type1)
+;;                       (unless $dx-unboxed-p
+;;                         (unbox-fixnum $dx))
+;;                       ; multiply by +bytes-per-word+ to get byte offset
+;;                       (let ((shift #+x86 2 #+x86-64 3))
+;;                         (inst :shl shift $dx))
+;;                       (inst :add $ax $dx)
+;;                       (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) $ax)
+;;                       (move-result-to-target target))
+                     (t
+                      (mumble "p2-vector-ref unexpected simple-array type ~S~%" type1)
+                      (when $dx-unboxed-p
+                        (box-fixnum $dx))
+                      #+x86
+                      (progn
+                        (inst :push $dx)
+                        (inst :push $ax))
+                      #+x86-64
+                      (progn
+                        (inst :mov $ax $di)
+                        (inst :mov $dx $si))
+                      (emit-call-2 '%vector-ref target)))))
             ((subtypep type1 'vector)
-             (mumble "p2-vector-ref %vector-ref case 3 type1 = ~S type2 = ~S~%" type1 type2)
+             ;; vector but not simple-array
+             (mumble "p2-vector-ref vector but not simple-array ~S~%" type1)
              (process-2-args args :default t)
              (emit-call-2 '%vector-ref target))
             (t
+             (mumble "p2-vector-ref default case ~S~%" type1)
              (process-2-args args :default t)
              (emit-call-2 (if (zerop *safety*) '%vector-ref 'vector-ref) target))))
     t))

@@ -230,6 +230,7 @@
     ((:mov 9223372036854775808
            :r13)                #(#x49 #xbd #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x80))
     ((:mov (#x1e :rdx) :al)     #(#x8a #x42 #x1e))
+    ((:mov (#x1e :rdx) :ax)     #(#x66 #x8b #x42 #x1e))
     ((:mov (#x1e :rdx) :eax)    #(#x8b #x42 #x1e))
     ((:push (-12 :rbp))         #(#xff #x75 #xf4))
     ((:push (8 :rbp))           #(#xff #x75 #x08))

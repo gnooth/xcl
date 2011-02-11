@@ -158,7 +158,7 @@ Value SYS_make_array_internal(unsigned int numargs, Value args[])
           if (fill_pointer != NIL || adjustable != NIL)
             vector = new Vector_UB16(size, fill_pointer);
           else
-            vector = new SimpleArray_UB16_1(size);
+            vector = new_simple_array_ub16_1(size);
         }
       else if (equal(upgraded_type, UB32_TYPE))
         {
