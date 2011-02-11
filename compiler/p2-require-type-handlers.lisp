@@ -244,9 +244,6 @@
                   (subtypep type 'UNSIGNED-BYTE))
              (p2 arg target))
             (t
-             ;;              (process-1-arg arg :default t)
-             ;;              (emit-call-1 'require-unsigned-byte target)
-             (mumble "p2-require-unsigned-byte new code~%")
              (process-1-arg arg $ax t)
              (let ((FULL-CALL (make-label))
                    (EXIT (make-label)))
