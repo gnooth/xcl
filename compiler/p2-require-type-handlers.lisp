@@ -18,24 +18,6 @@
 
 (in-package "COMPILER")
 
-(defun common-label (compiland error-function register)
-  (let* ((common-labels (compiland-common-labels compiland))
-         (key (concatenate 'string (symbol-name error-function) "-" (symbol-name register)))
-         (label (gethash key common-labels)))
-    (unless label
-      (setq label (make-label))
-      (let ((*current-segment* :elsewhere))
-        (label label)
-        #+x86
-        (inst :push register)
-        #+x86-64
-        (unless (eq register :rdi)
-          (inst :mov register :rdi))
-        (inst :call error-function) ; don't clear register contents!
-        (inst :exit)
-        (setf (gethash key common-labels) label)))
-    label))
-
 (defun p2-require-cons (form target)
   (when (check-arg-count form 1)
     (let ((arg (%cadr form)))
