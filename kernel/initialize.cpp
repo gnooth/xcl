@@ -579,6 +579,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_environment_empty_p, SYS_environment_empty_p, 1, 1);
   ADD_PRIMITIVE(S_environment_variables, EXT_environment_variables, 1, 1);
   ADD_PRIMITIVE(S_equals_2, SYS_equals_2, 2, 2);
+  ADD_PRIMITIVE(S_error_bad_index_for_vector, SYS_error_bad_index_for_vector, 2, 2);
   ADD_PRIMITIVE(S_error_not_bit, SYS_error_not_bit, 1, 1);
   ADD_PRIMITIVE(S_error_not_cons, SYS_error_not_cons, 1, 1);
   ADD_PRIMITIVE(S_error_not_fixnum, SYS_error_not_fixnum, 1, 1);

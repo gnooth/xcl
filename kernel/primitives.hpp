@@ -534,6 +534,7 @@ extern Value SYS_environment_add_function_definition(Value env, Value name, Valu
 extern Value SYS_environment_add_macro_definition(Value env, Value name, Value value);
 extern Value SYS_environment_empty_p(Value arg);
 extern Value SYS_equals_2(Value arg1, Value arg2);
+extern Value SYS_error_bad_index_for_vector(Value vector, Value datum);
 extern Value SYS_error_not_bit(Value datum);
 extern Value SYS_error_not_cons(Value datum);
 extern Value SYS_error_not_fixnum(Value datum);
