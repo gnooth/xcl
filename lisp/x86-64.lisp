@@ -35,7 +35,8 @@
           reg8-p reg16-p reg32-p reg64-p
           reg8 reg32 reg64
           extended-register-p
-          make-modrm-byte))
+          make-modrm-byte
+          make-sib-byte))
 
 ;; "0 = default operand size   1 = 64-bit operand size"
 (defconstant rex.w 8)
@@ -285,11 +286,20 @@
 
 (defknown make-modrm-byte (t t t) t)
 (defun make-modrm-byte (mod reg rm)
-  (declare (type fixnum mod reg rm))
+  (declare (type (unsigned-byte 8) mod reg rm))
   (let ((result 0))
     (setf (ldb (byte 3 0) result) rm)
     (setf (ldb (byte 3 3) result) reg)
     (setf (ldb (byte 2 6) result) mod)
+    result))
+
+(defknown make-sib-byte (t t t) t)
+(defun make-sib-byte (scale index base)
+  (declare (type (unsigned-byte 8) scale index base))
+  (let ((result 0))
+    (setf (ldb (byte 3 0) result) base)
+    (setf (ldb (byte 3 3) result) index)
+    (setf (ldb (byte 2 6) result) scale)
     result))
 
 (defconstant $ax :rax)

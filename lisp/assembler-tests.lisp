@@ -222,13 +222,13 @@
     ((:mov 3 :edi)              #(#xbf #x03 #x00 #x00 #x00))
     ((:mov 3 :rdi)              #(#x48 #xc7 #xc7 #x03 #x00 #x00 #x00))
     ;; (sys:value-to-ub64 most-positive-fixnum)
-    ((:mov 9223372036854775804
-           :rax)                #(#x48 #xb8 #xfc #xff #xff #xff #xff #xff #xff #x7f))
-    ((:mov 9223372036854775804
-           :r13)                #(#x49 #xbd #xfc #xff #xff #xff #xff #xff #xff #x7f))
+    ((:mov 9223372036854775804 :rax)
+                                #(#x48 #xb8 #xfc #xff #xff #xff #xff #xff #xff #x7f))
+    ((:mov 9223372036854775804 :r13)
+                                #(#x49 #xbd #xfc #xff #xff #xff #xff #xff #xff #x7f))
     ;; (sys:value-to-ub64 most-positive-fixnum)
-    ((:mov 9223372036854775808
-           :rax)                #(#x48 #xb8 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x80))
+    ((:mov 9223372036854775808 :rax)
+                                #(#x48 #xb8 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x80))
     ((:mov 9223372036854775808
            :r13)                #(#x49 #xbd #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x80))
     ((:mov (#x1e :rdx) :al)     #(#x8a #x42 #x1e))
@@ -288,6 +288,8 @@
     ((:movb (#x50 :r12) :cl)    #(#x41 #x8a #x4c #x24 #x50))
     ((:movzbl :al :eax)         #(#x0f #xb6 #xc0))
     ((:movzbl :al :edx)         #(#x0f #xb6 #xd0))
+    ((:movzbl (#x1e :rax :rdx) :eax)
+                                #(#x0f #xb6 #x44 #x10 #x1e))
     ((:movq -1 (8 :rsp))        #(#x48 #xc7 #x44 #x24 #x08 #xff #xff #xff #xff))
     ((:movq -1 (8 :rax))        #(#x48 #xc7 #x40 #x08 #xff #xff #xff #xff))
     ((:movq -1 (0 :rsp))        #(#x48 #xc7 #x04 #x24 #xff #xff #xff #xff))
