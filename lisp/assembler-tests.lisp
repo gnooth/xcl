@@ -267,6 +267,8 @@
     ((:cmp 1 :bpl)              #(#x40 #x80 #xfd #x01))
     ((:cmp 1 :sil)              #(#x40 #x80 #xfe #x01))
     ((:cmp 1 :dil)              #(#x40 #x80 #xff #x01))
+    ((:cmp :rdx (#x0e :rax))    #(#x48 #x39 #x50 #x0e))
+    ((:cmp :rax (#x0e :rdx))    #(#x48 #x39 #x42 #x0e))
     ((:lea (#x58 :rax) :rax)    #(#x48 #x8d #x40 #x58))
     ((:lea (#x58 :r12) :rax)    #(#x49 #x8d #x44 #x24 #x58))
     ((:mov :rax (:r11))         #(#x49 #x89 #x03))

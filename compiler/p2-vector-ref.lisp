@@ -43,14 +43,16 @@
              (clear-register-contents $ax $dx)
 
              (setq type2 (derive-type arg2))
-             (unless (fixnum-type-p type2)
+             (unless (or (zerop *safety*)
+                         (fixnum-type-p type2))
                (let ((ERROR (common-error-label 'error-not-fixnum $dx)))
                  (inst :test +fixnum-tag-mask+ :dl)
                  (emit-jmp-short :nz ERROR)))
 
              (setq size (derive-vector-size type1))
              (let (($dx-unboxed-p nil))
-               (unless (and size (subtypep type2 (list 'INTEGER 0 (1- size))))
+               (unless (or (zerop *safety*)
+                           (and size (subtypep type2 (list 'INTEGER 0 (1- size)))))
                  (mumble "p2-vector-ref checking index against length~%")
                  ;; check index against length
                  (unbox-fixnum $dx) ; unboxed index in $dx
@@ -71,10 +73,7 @@
                        (inst :mov :rax :rdi))
                      (emit-call 'error-bad-index-for-vector)
                      (inst :exit))
-                   ; get unboxed length in $cx
-                   (inst :mov `(,(- +vector-capacity-offset+ +typed-object-lowtag+) ,$ax) $cx)
-                   (clear-register-contents $cx)
-                   (inst :cmp $dx $cx)
+                   (inst :cmp $dx `(,(- +vector-capacity-offset+ +typed-object-lowtag+) ,$ax))
                    (emit-jmp-short :le ERROR-BAD-INDEX)))
 
                ;; reaching here, index is OK
