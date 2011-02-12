@@ -26,7 +26,7 @@
             ((cons-type-p (derive-type arg))
              (p2 arg target))
             (t
-             (let ((ERROR (common-label *current-compiland* 'error-not-cons $ax)))
+             (let ((ERROR (common-error-label 'error-not-cons $ax)))
                (process-1-arg arg $ax t)
                (inst :compare-immediate nil $ax)
                (emit-jmp-short :e ERROR)
@@ -50,7 +50,7 @@
             ((fixnum-type-p (derive-type arg))
              (p2 arg target))
             (t
-             (let ((ERROR (common-label *current-compiland* 'error-not-fixnum $ax)))
+             (let ((ERROR (common-error-label 'error-not-fixnum $ax)))
                (process-1-arg arg $ax t)
                (inst :test +fixnum-tag-mask+ :al)
                (emit-jmp-short :nz ERROR)
@@ -69,7 +69,7 @@
             (t
              (mumble "p2-require-number~%")
              (let ((EXIT (make-label))
-                   (ERROR (common-label *current-compiland* 'error-not-number $ax)))
+                   (ERROR (common-error-label 'error-not-number $ax)))
                (process-1-arg arg $ax t)
                (inst :test +fixnum-tag-mask+ :al)
                (emit-jmp-short :z EXIT)
@@ -91,7 +91,7 @@
 
 (defun p2-require-widetag-bit (register widetag-bit error-function)
   (aver (eq register $ax))
-  (let ((ERROR (common-label *current-compiland* error-function register)))
+  (let ((ERROR (common-error-label error-function register)))
     (inst :mov :al :dl)
     (clear-register-contents $dx)
     (inst :and +lowtag-mask+ :dl)
@@ -105,7 +105,7 @@
 
 (defun p2-require-widetag (register widetag error-function)
   (aver (eq register $ax))
-  (let ((ERROR (common-label *current-compiland* error-function register)))
+  (let ((ERROR (common-error-label error-function register)))
     (inst :mov :al :dl)
     (clear-register-contents $dx)
     (inst :and +lowtag-mask+ :dl)

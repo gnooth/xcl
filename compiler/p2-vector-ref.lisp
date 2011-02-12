@@ -44,7 +44,7 @@
 
              (setq type2 (derive-type arg2))
              (unless (fixnum-type-p type2)
-               (let ((ERROR (common-label *current-compiland* 'error-not-fixnum $dx)))
+               (let ((ERROR (common-error-label 'error-not-fixnum $dx)))
                  (inst :test +fixnum-tag-mask+ :dl)
                  (emit-jmp-short :nz ERROR)))
 
@@ -59,16 +59,17 @@
                    (let ((*current-segment* :elsewhere)
                          (*register-contents* (copy-register-contents)))
                      (label ERROR-BAD-INDEX)
+                     (box-fixnum $dx)
                      #+x86
                      (progn
-                       (inst :push $cx)
-                       (inst :push $dx))
+                       (inst :push :edx)
+                       (inst :push :eax))
                      #+x86-64
                      (progn
-                       ;; we want unboxed index in rdi, unboxed length in rsi
-                       (inst :mov :rdx :rdi)
-                       (inst :mov :rcx :rsi))
-                     (emit-call "RT_bad_index")
+                       ;; we want vector in rdi, boxed index in rsi
+                       (inst :mov :rdx :rsi)
+                       (inst :mov :rax :rdi))
+                     (emit-call 'error-bad-index-for-vector)
                      (inst :exit))
                    ; get unboxed length in $cx
                    (inst :mov `(,(- +vector-capacity-offset+ +typed-object-lowtag+) ,$ax) $cx)

@@ -1676,9 +1676,11 @@
             ;;             )
           ))))))
 
-(defun common-label (compiland error-function register)
-  (let* ((common-labels (compiland-common-labels compiland))
-         (key (concatenate 'string (symbol-name error-function) "-" (symbol-name register)))
+(defun common-error-label (error-function register)
+  (declare (type symbol error-function))
+  (declare (type keyword register))
+  (let* ((common-labels (compiland-common-labels *current-compiland*))
+         (key (list error-function register))
          (label (gethash key common-labels)))
     (unless label
       (setq label (make-label))
