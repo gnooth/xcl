@@ -69,7 +69,9 @@
 
 (defstruct operand
   kind ; :register, :indirect, :immediate, :relative, :absolute
-  register
+  register ; base register
+  index
+  scale
   data
   )
 
@@ -160,6 +162,16 @@
                          (t
                           (format nil "0x~X(~A)" (operand-data op) (register-string (operand-register op)))
                           )))
+                  (:indexed
+                   (format nil "0x~X(~A,~A,~D)"
+                           (operand-data op)
+                           (register-string (operand-register op))
+                           (register-string (operand-index op))
+                           (ecase (operand-scale op)
+                             (0 1)
+                             (1 2)
+                             (2 4)
+                             (3 8))))
                   (:absolute
                    (format nil "0x~X" (operand-data op))))))
     (format t "~A" (nstring-downcase string))))
@@ -301,12 +313,12 @@
        (declare (ignorable mod reg rm))
        ,@body)))
 
-(defmacro with-sib (byte &body body)
+(defmacro with-sib-byte (byte &body body)
   `(let* ((sib ,byte)
-          (ss    (ldb (byte 2 6) sib))
+          (scale (ldb (byte 2 6) sib))
           (index (ldb (byte 3 3) sib))
           (base  (ldb (byte 3 0) sib)))
-     (declare (ignorable ss index base))
+     (declare (ignorable scale index base))
      ,@body))
 
 (defun process-jcc (instruction-start-address)

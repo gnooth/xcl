@@ -112,7 +112,7 @@
                 (prefix-byte #x48))
            (emit-bytes prefix-byte #x0f
                        (ecase mnemonic
-                         (:bt #xa3)
+                         (:bt  #xa3)
                          (:bts #xab)
                          (:btr #xb3))
                        modrm-byte displacement-byte)))
@@ -275,7 +275,7 @@
                 (let* ((reg1 (%car operand1))
                        (reg2 operand2)
                        (prefix-byte #x48)
-                       (modrm-byte (make-modrm-byte #xb00
+                       (modrm-byte (make-modrm-byte #b00
                                                     (register-number reg2)
                                                     (register-number reg1))))
                   (when (extended-register-p reg1)
@@ -296,7 +296,7 @@
                   (when (extended-register-p reg2)
                     (setq prefix-byte (logior prefix-byte rex.r)))
                   (cond ((zerop displacement)
-                         (let ((modrm-byte (make-modrm-byte #xb00
+                         (let ((modrm-byte (make-modrm-byte #b00
                                                             (register-number reg2)
                                                             (register-number reg1))))
                            (emit-bytes prefix-byte #x8b modrm-byte)))
@@ -397,13 +397,13 @@
                   (when (extended-register-p reg1)
                     (setq prefix-byte (logior prefix-byte rex.r)))
                   (cond ((zerop displacement)
-                         (let* ((mod #xb00)
+                         (let* ((mod #b00)
                                 (reg (register-number reg1))
                                 (rm  (register-number reg2))
                                 (modrm-byte (make-modrm-byte mod reg rm)))
                            (emit-bytes prefix-byte #x89 modrm-byte #x24)))
                         ((typep displacement '(signed-byte 8))
-                         (let* ((mod #xb01)
+                         (let* ((mod #b01)
                                 (reg (register-number reg1))
                                 (rm  (register-number reg2))
                                 (modrm-byte (make-modrm-byte mod reg rm)))
@@ -461,7 +461,7 @@
                      (reg64-p (%car operand2)))
                 (let* ((reg1 operand1)
                        (reg2 (%car operand2))
-                       (modrm-byte (make-modrm-byte #xb00
+                       (modrm-byte (make-modrm-byte #b00
                                                     (register-number reg1)
                                                     (register-number reg2)))
                        (prefix-byte #x48))
@@ -475,7 +475,7 @@
                      (reg8-p operand1))
                 (let* ((reg1 operand1)
                        (reg2 (%car operand2))
-                       (modrm-byte (make-modrm-byte #xb00
+                       (modrm-byte (make-modrm-byte #b00
                                                     (register-number reg1)
                                                     (register-number reg2))))
                   (emit-bytes #x88 modrm-byte)))
@@ -561,7 +561,7 @@
         ((and (consp operand1)
               (length-eql operand1 3)
               (fixnump (%car operand1)))
-         ;; displacement + base + index (scale = 1)
+         ;; displacement + base + index
          (let* ((displacement (%car operand1))
                 (displacement-byte (ldb (byte 8 0) displacement))
                 (base-reg (%cadr operand1))
@@ -891,7 +891,7 @@
               (consp operand2)
               (length-eql operand2 1)
               (reg64-p (%car operand2)))
-         (let ((modrm-byte (make-modrm-byte #xb00
+         (let ((modrm-byte (make-modrm-byte #x00
                                             (register-number operand1)
                                             (register-number (%car operand2)))))
            (emit-bytes #x85 modrm-byte)))
@@ -900,7 +900,7 @@
               (length-eql operand2 2)
               (typep (%car operand2) '(signed-byte 8))
               (reg64-p (%cadr operand2)))
-         (let* ((modrm-byte (make-modrm-byte #xb01
+         (let* ((modrm-byte (make-modrm-byte #x01
                                              (register-number operand1)
                                              (register-number (%cadr operand2))))
                 (displacement (%car operand2))
