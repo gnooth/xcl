@@ -306,21 +306,14 @@ Value SYS_error_not_simple_vector(Value datum)
 // ### error-bad-index-for-vector
 Value SYS_error_bad_index_for_vector(Value vector, Value datum)
 {
-  String * s = new String("The value ");
-  s->append(::prin1_to_string(datum));
-  s->append(" is not a valid index for a vector of type ");
-  s->append(::prin1_to_string(the_vector(vector)->type_of()));
-  s->append_char('.');
   Value expected_type =
     list3(S_integer,
           FIXNUM_ZERO,
           list1(make_unsigned_integer(the_vector(vector)->length())));
-  return signal_lisp_error(new TypeError(s->as_c_string(), datum, expected_type));
-}
-
-Value bad_index(Value index, Value expected_type)
-{
-  return signal_type_error(index, expected_type);
+  return signal_lisp_error(new TypeError("The value ~S is not a valid index for a vector of type ~S.",
+                                         list2(datum, CL_type_of(vector)),
+                                         datum,
+                                         expected_type));
 }
 
 Value bad_index(INDEX index, long min, long max)

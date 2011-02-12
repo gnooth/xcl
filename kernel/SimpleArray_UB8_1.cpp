@@ -105,14 +105,14 @@ void SimpleArray_UB8_1::fill(Value value)
 Value SimpleArray_UB8_1::aref(INDEX i) const
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   return make_unsigned_fixnum(_data[i]);
 }
 
 Value SimpleArray_UB8_1::aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   if (fixnump(new_value))
     {
       long n = xlong(new_value);
@@ -128,7 +128,7 @@ Value SimpleArray_UB8_1::aset(INDEX i, Value new_value)
 Value SimpleArray_UB8_1::elt(INDEX i) const
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   return make_fixnum(_data[i]);
 }
 

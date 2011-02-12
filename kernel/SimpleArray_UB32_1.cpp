@@ -1,6 +1,6 @@
 // SimpleArray_UB32_1.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -116,7 +116,7 @@ inline Value SimpleArray_UB32_1::inline_aref(INDEX i) const
 {
   if (i < _capacity)
     return make_ub32(_data[i]);
-  return bad_index(i, 0, _capacity);
+  return bad_index(i);
 }
 
 // "AREF ignores fill pointers. It is permissible to use AREF to access any
@@ -129,7 +129,7 @@ Value SimpleArray_UB32_1::aref(INDEX i) const
 Value SimpleArray_UB32_1::inline_aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   _data[i] = check_ub32(new_value);
   return new_value;
 }

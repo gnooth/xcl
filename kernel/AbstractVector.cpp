@@ -1,6 +1,6 @@
 // AbstractVector.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -17,6 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "lisp.hpp"
+#include "primitives.hpp"
 
 Value AbstractVector::class_of() const
 {
@@ -121,4 +122,9 @@ AbstractString * AbstractVector::write_to_string()
       return s;
     }
   return unreadable_string();
+}
+
+Value AbstractVector::bad_index(INDEX i) const
+{
+  return SYS_error_bad_index_for_vector(make_value(this), make_unsigned_fixnum(i));
 }

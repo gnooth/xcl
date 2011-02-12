@@ -134,7 +134,7 @@ void SimpleBitVector::fill(Value value)
 inline Value SimpleBitVector::inline_aref(INDEX i) const
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   return make_fixnum(inline_getbit(i));
 }
 
@@ -146,7 +146,7 @@ Value SimpleBitVector::aref(INDEX i) const
 inline Value SimpleBitVector::inline_aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   inline_setbit(i, check_bit(new_value));
   return new_value;
 }

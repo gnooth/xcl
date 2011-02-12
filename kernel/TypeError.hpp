@@ -1,6 +1,6 @@
 // TypeError.hpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -42,6 +42,15 @@ public:
   {
     set_format_control(make_value(new_simple_string(s)));
     set_format_arguments(NIL);
+    set_slot_value(S_datum, datum);
+    set_slot_value(S_expected_type, expected_type);
+  }
+
+  TypeError(const char * s, Value format_arguments, Value datum, Value expected_type)
+    : Condition(WIDETAG_CONDITION, get_layout_for_class())
+  {
+    set_format_control(make_value(new_simple_string(s)));
+    set_format_arguments(format_arguments);
     set_slot_value(S_datum, datum);
     set_slot_value(S_expected_type, expected_type);
   }

@@ -1,6 +1,6 @@
 // BitVector.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -228,14 +228,14 @@ void BitVector::fill(Value value)
 Value BitVector::aref(unsigned long i) const
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   return make_fixnum(get_bit(i));
 }
 
 Value BitVector::aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   set_bit(i, check_bit(new_value));
   return new_value;
 }
@@ -243,7 +243,7 @@ Value BitVector::aset(INDEX i, Value new_value)
 Value BitVector::elt(INDEX i) const
 {
   if (i >= length())
-    return bad_index(i, 0, length());
+    return bad_index(i);
   return make_fixnum(get_bit(i));
 }
 

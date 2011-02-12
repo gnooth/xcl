@@ -1,6 +1,6 @@
 // SimpleVector.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -102,7 +102,7 @@ inline Value SimpleVector::inline_aref(INDEX i) const
 {
   if (i < _capacity)
     return _data[i];
-  return bad_index(i, 0, _capacity);
+  return bad_index(i);
 }
 
 // "AREF ignores fill pointers. It is permissible to use AREF to access any
@@ -110,13 +110,7 @@ inline Value SimpleVector::inline_aref(INDEX i) const
 Value SimpleVector::aref(INDEX i) const
 {
   if (i >= _capacity)
-    {
-      Value datum = make_unsigned_integer(i);
-      Value expected_type =
-        list3(S_integer, FIXNUM_ZERO,
-              _capacity > 0 ? make_unsigned_integer(_capacity - 1) : list1(FIXNUM_ZERO));
-      return bad_index(datum, expected_type);
-    }
+    return bad_index(i);
   return _data[i];
 }
 
@@ -124,19 +118,13 @@ inline Value SimpleVector::inline_aset(INDEX i, Value new_value)
 {
   if (i < _capacity)
     return (_data[i] = new_value);
-  return bad_index(i, 0, _capacity);
+  return bad_index(i);
 }
 
 Value SimpleVector::aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
-    {
-      Value datum = make_unsigned_integer(i);
-      Value expected_type =
-        list3(S_integer, FIXNUM_ZERO,
-              _capacity > 0 ? make_unsigned_integer(_capacity - 1) : list1(FIXNUM_ZERO));
-      return bad_index(datum, expected_type);
-    }
+    return bad_index(i);
   _data[i] = new_value;
   return new_value;
 }
@@ -144,13 +132,7 @@ Value SimpleVector::aset(INDEX i, Value new_value)
 Value SimpleVector::elt(INDEX i) const
 {
   if (i >= _capacity)
-    {
-      Value datum = make_unsigned_integer(i);
-      Value expected_type =
-        list3(S_integer, FIXNUM_ZERO,
-              _capacity > 0 ? make_unsigned_integer(_capacity - 1) : list1(FIXNUM_ZERO));
-      return bad_index(datum, expected_type);
-    }
+    return bad_index(i);
   return _data[i];
 }
 

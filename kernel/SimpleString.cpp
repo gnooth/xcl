@@ -1,6 +1,6 @@
 // SimpleString.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -290,14 +290,14 @@ void SimpleString::fill(Value value)
 Value SimpleString::aref(unsigned long i) const
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   return make_character(_chars[i]);
 }
 
 Value SimpleString::aset(unsigned long i, Value new_value)
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   _chars[i] = char_value(new_value);
   return new_value;
 }
@@ -305,7 +305,7 @@ Value SimpleString::aset(unsigned long i, Value new_value)
 Value SimpleString::elt(unsigned long i) const
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   return make_character(_chars[i]);
 }
 

@@ -1,6 +1,6 @@
 // Vector_UB8.cpp
 //
-// Copyright (C) 2006-2007 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -204,7 +204,7 @@ Value Vector_UB8::displacement() const
 Value Vector_UB8::aref(INDEX i) const
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   if (_data)
     return make_fixnum(_data[i]);
   else
@@ -215,7 +215,7 @@ Value Vector_UB8::aref(INDEX i) const
 Value Vector_UB8::aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   if (_data)
     {
       if (fixnump(new_value))
@@ -237,7 +237,7 @@ Value Vector_UB8::aset(INDEX i, Value new_value)
 Value Vector_UB8::elt(INDEX i) const
 {
   if (i >= length())
-    return bad_index(i, 0, length());
+    return bad_index(i);
   if (_data)
     return make_fixnum(_data[i]);
   else

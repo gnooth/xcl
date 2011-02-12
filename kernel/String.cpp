@@ -1,6 +1,6 @@
 // String.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -422,7 +422,7 @@ BASE_CHAR String::char_at(INDEX i) const
     {
       if (i < _capacity)
         return _chars[i];
-      return bad_index(i, 0, _capacity);
+      return bad_index(i);
       // not reached
       return 0;
     }
@@ -443,7 +443,7 @@ void String::set_char_at(INDEX i, BASE_CHAR c)
         _array->aset(i + _offset, make_character(c));
     }
   else
-    bad_index(i, 0, _capacity);
+    bad_index(i);
 }
 
 // "CHAR ignores fill pointers when accessing elements."
@@ -542,7 +542,7 @@ void String::fill(Value value)
 Value String::aref(INDEX i) const
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   if (_chars)
     return make_character(_chars[i]);
   // displaced
@@ -552,7 +552,7 @@ Value String::aref(INDEX i) const
 Value String::aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   BASE_CHAR c = char_value(new_value);
   if (_chars)
     _chars[i] = c;
@@ -565,7 +565,7 @@ Value String::aset(INDEX i, Value new_value)
 Value String::elt(INDEX i) const
 {
   if (i >= length())
-    return bad_index(i, 0, length());
+    return bad_index(i);
   if (_chars)
     return make_character(_chars[i]);
   // displaced

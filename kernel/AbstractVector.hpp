@@ -1,6 +1,6 @@
 // AbstractVector.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -121,6 +121,9 @@ public:
   }
 
   virtual AbstractString * write_to_string();
+
+  // not virtual
+  Value bad_index(INDEX i) const;
 };
 
 inline bool vectorp(Value value)

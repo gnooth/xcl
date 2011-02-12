@@ -133,7 +133,6 @@ typedef unsigned long INDEX;
 
 extern Value signal_type_error(Value datum, Value expectedType);
 extern Value signal_undefined_function(Value name);
-extern Value bad_index(Value datum, Value expectedType);
 extern Value bad_index(INDEX index, long min, long max);
 
 const INDEX ARRAY_DIMENSION_LIMIT = MOST_POSITIVE_FIXNUM;

@@ -201,7 +201,7 @@ Value Vector_UB16::displacement() const
 Value Vector_UB16::aref(INDEX i) const
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   if (_data)
     return make_unsigned_fixnum(_data[i]);
   else
@@ -212,7 +212,7 @@ Value Vector_UB16::aref(INDEX i) const
 Value Vector_UB16::aset(INDEX i, Value new_value)
 {
   if (i >= _capacity)
-    return bad_index(i, 0, _capacity);
+    return bad_index(i);
   if (_data)
     {
       if (fixnump(new_value))
@@ -234,7 +234,7 @@ Value Vector_UB16::aset(INDEX i, Value new_value)
 Value Vector_UB16::elt(INDEX i) const
 {
   if (i >= length())
-    return bad_index(i, 0, length());
+    return bad_index(i);
   if (_data)
     return make_unsigned_fixnum(_data[i]);
   else
