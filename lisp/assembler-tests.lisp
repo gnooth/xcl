@@ -82,6 +82,7 @@
     ((:push -512)               #(#x68 #x00 #xfe #xff #xff))
     ((:cmp :eax :edx)           #(#x39 #xc2))
     ((:cmp :edx :eax)           #(#x39 #xd0))
+    ((:cmp :edx (6 :eax))       #(#x39 #x50 #x06))
     ((:push (-12 :ebp))         #(#xff #x75 #xf4))
     ((:push (8 :ebp))           #(#xff #x75 #x08))
     ((:push (-132 :ebp))        #(#xff #xb5 #x7c #xff #xff #xff))

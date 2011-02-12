@@ -108,6 +108,8 @@
 
 (defknown make-modrm-byte (t t t) t)
 (defun make-modrm-byte (mod reg rm)
+  (declare (type (unsigned-byte 2) mod)
+           (type (unsigned-byte 3) reg rm))
   (let ((result 0))
     (setf (ldb (byte 3 0) result) rm)
     (setf (ldb (byte 3 3) result) reg)

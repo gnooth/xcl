@@ -252,7 +252,7 @@
       (cond ((eql mod #b01)
              (cond ((eql rm #b100)
                     ;; SIB follows
-                    (with-sib (mref-8 start 2)
+                    (with-sib-byte (mref-8 start 2)
                       (cond ((eql sib #x26)
                              (setq length   4
                                    mnemonic :lea
@@ -274,7 +274,7 @@
             ((eql mod #b10)
              (cond ((eql rm #b100)
                     ;; SIB follows
-                    (with-sib (mref-8 start 2)
+                    (with-sib-byte (mref-8 start 2)
                       (cond ((eql sib #x26)
                              (setq length   7
                                    mnemonic :lea

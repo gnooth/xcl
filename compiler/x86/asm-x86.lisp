@@ -103,7 +103,7 @@
                 (modrm-byte (make-modrm-byte mod reg rm)))
            (emit-bytes #x0f
                        (ecase mnemonic
-                         (:bt #xa3)
+                         (:bt  #xa3)
                          (:bts #xab)
                          (:btr #xb3))
                        modrm-byte displacement-byte)))
@@ -145,6 +145,19 @@
               (eq operand2 :eax))
          (emit-bytes #x3d)
          (emit-raw operand1))
+        ((and (reg32-p operand1)
+              (consp operand2)
+              (length-eql operand2 2)
+              (typep (%car operand2) '(signed-byte 8))
+              (reg32-p (%cadr operand2)))
+         (let* ((reg1 operand1)
+                (reg2 (%cadr operand2))
+                (displacement-byte (ldb (byte 8 0) (%car operand2)))
+                (mod #b01)
+                (reg (register-number reg1))
+                (rm  (register-number reg2))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x39 modrm-byte displacement-byte)))
         (t
          (unsupported))))
 
@@ -217,7 +230,7 @@
               (reg32-p operand2))
          (let* ((reg1 (%car operand1))
                 (reg2 operand2)
-                (modrm-byte (make-modrm-byte #xb00
+                (modrm-byte (make-modrm-byte #b00
                                              (register-number reg2)
                                              (register-number reg1))))
            (emit-bytes #x8b modrm-byte)))
@@ -230,7 +243,7 @@
                (reg1 (second operand1))
                (reg2 operand2))
            (cond ((zerop displacement)
-                  (let ((modrm-byte (make-modrm-byte #xb00
+                  (let ((modrm-byte (make-modrm-byte #b00
                                                      (register-number reg2)
                                                      (register-number reg1))))
                     (emit-bytes #x8b modrm-byte)))
@@ -296,13 +309,13 @@
                       (displacement (first operand2))
                       (reg2 (second operand2)))
                   (cond ((zerop displacement)
-                         (let* ((mod #xb00)
+                         (let* ((mod #b00)
                                 (reg (register-number reg1))
                                 (rm  (register-number reg2))
                                 (modrm-byte (make-modrm-byte mod reg rm)))
                            (emit-bytes #x89 modrm-byte #x24)))
                         ((typep displacement '(signed-byte 8))
-                         (let* ((mod #xb01)
+                         (let* ((mod #b01)
                                 (reg (register-number reg1))
                                 (rm  (register-number reg2))
                                 (modrm-byte (make-modrm-byte mod reg rm)))
@@ -346,7 +359,7 @@
                      (reg32-p (%car operand2)))
                 (let* ((reg1 operand1)
                        (reg2 (%car operand2))
-                       (modrm-byte (make-modrm-byte #xb00
+                       (modrm-byte (make-modrm-byte #b00
                                                     (register-number reg1)
                                                     (register-number reg2))))
                   (emit-bytes #x89 modrm-byte)
@@ -357,7 +370,7 @@
                      (reg8-p operand1))
                 (let* ((reg1 operand1)
                        (reg2 (%car operand2))
-                       (modrm-byte (make-modrm-byte #xb00
+                       (modrm-byte (make-modrm-byte #b00
                                                     (register-number reg1)
                                                     (register-number reg2))))
                   (emit-bytes #x88 modrm-byte)))
@@ -424,20 +437,12 @@
 
 (define-assembler :pop
   (cond ((reg32-p operand1)
-         (emit-byte (ecase operand1
-                      (:eax #x58)
-                      (:ecx #x59)
-                      (:edx #x5a)
-                      (:ebx #x5b)
-                      (:esp #x5c)
-                      (:ebp #x5d)
-                      (:esi #x5e)
-                      (:edi #x5f))))
+         (emit-byte (+ (register-number operand1) #x58)))
         ((and (consp operand1)
               (length-eql operand1 2)
               (typep (%car operand1) '(signed-byte 8))
               (reg32-p (%cadr operand1)))
-         (let* ((mod #xb01)
+         (let* ((mod #b01)
                 (reg 0)
                 (rm (register-number (%cadr operand1)))
                 (modrm-byte (make-modrm-byte mod reg rm)))
@@ -445,7 +450,7 @@
         ((and (consp operand1)
               (length-eql operand1 1)
               (reg32-p (%car operand1)))
-         (let* ((mod #xb00)
+         (let* ((mod #b00)
                 (reg 0)
                 (rm (register-number (%car operand1)))
                 (modrm-byte (make-modrm-byte mod reg rm)))
@@ -453,17 +458,7 @@
 
 (define-assembler :push
   (cond ((reg32-p operand1)
-;;          (emit-byte (ecase operand1
-;;                       (:eax #x50)
-;;                       (:ecx #x51)
-;;                       (:edx #x52)
-;;                       (:ebx #x53)
-;;                       (:esp #x54)
-;;                       (:ebp #x55)
-;;                       (:esi #x56)
-;;                       (:edi #x57)))
-         (emit-byte (+ (register-number operand1) #x50))
-         )
+         (emit-byte (+ (register-number operand1) #x50)))
         ((typep operand1 '(signed-byte 8))
          (emit-bytes #x6a (ldb (byte 8 0) operand1)))
         ((typep operand1 '(signed-byte 32))
