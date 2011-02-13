@@ -436,6 +436,21 @@
         (t
          (unsupported))))
 
+(define-assembler :movzwl
+  (cond ((address-operand-p operand1)
+         (with-address-operand operand1
+           (cond ((and displacement (typep displacement '(unsigned-byte 8)))
+                  (let* ((displacement-byte (ldb (byte 8 0) displacement))
+                         (reg (register-number operand2))
+                         (rm #b100)
+                         (modrm-byte (make-modrm-byte #b01 reg rm))
+                         (sib-byte (make-sib-byte scale (register-number index) (register-number base))))
+                    (emit-bytes #x0f #xb7 modrm-byte sib-byte displacement-byte)))
+                 (t
+                  (unsupported)))))
+        (t
+         (unsupported))))
+
 (define-assembler :neg
   (cond ((reg32-p operand1)
          (let* ((mod #b11)

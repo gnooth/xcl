@@ -30,7 +30,7 @@
           byte-register register-number register-bit-size
           +call-return-register+
           $ax $cx $dx $bx $sp $bp $si $di
-          reg8
+          reg8 reg16
           make-modrm-byte))
 
 (defun reg8-p (x)
@@ -105,6 +105,17 @@
     (:ecx :cl)
     (:edx :dl)
     (:ebx :bl)))
+
+(defun reg16 (reg)
+  (ecase reg
+    (:eax :ax)
+    (:ecx :cx)
+    (:edx :dx)
+    (:ebx :bx)
+    (:esp :sp)
+    (:ebp :bp)
+    (:esi :si)
+    (:edi :di)))
 
 (defconstant $ax :eax)
 (defconstant $cx :ecx)

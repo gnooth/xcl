@@ -81,13 +81,6 @@
                       (mumble "p2-vector-ref optimized 1~%")
                       (unless $dx-unboxed-p
                         (unbox-fixnum $dx))
-;;                       #+x86
-;;                       (progn
-;;                         ;; FIXME
-;;                         (inst :add $ax $dx)
-;;                         (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :al)
-;;                         (inst :movzbl :al :eax))
-;;                       #+x86-64
                       (inst :movzbl `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$ax ,$dx) :eax)
                       (box-fixnum :eax)
                       (move-result-to-target target))
@@ -95,14 +88,14 @@
                       (mumble "p2-vector-ref optimized 2~%")
                       (unless $dx-unboxed-p
                         (unbox-fixnum $dx))
-                      #+x86
-                      (progn
-                        ;; multiply by 2 to get byte offset
-                        (inst :shl $dx)
-                        (inst :add $ax $dx)
-                        (inst :xor :eax :eax)
-                        (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :ax))
-                      #+x86-64
+;;                       #+x86
+;;                       (progn
+;;                         ;; multiply by 2 to get byte offset
+;;                         (inst :shl $dx)
+;;                         (inst :add $ax $dx)
+;;                         (inst :xor :eax :eax)
+;;                         (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :ax))
+;;                       #+x86-64
                       (inst :movzwl `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$ax ,$dx 2) :eax)
                       (box-fixnum :eax)
                       (move-result-to-target target))

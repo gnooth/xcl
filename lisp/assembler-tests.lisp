@@ -62,6 +62,8 @@
     ((:movzbl :al :eax)         #(#x0f #xb6 #xc0))
     ((:movzbl (10 :eax :edx) :eax)
                                 #(#x0f #xb6 #x44 #x10 #x0a))
+    ((:movzwl (10 :eax :edx 2) :eax)
+                                #(#x0f #xb7 #x44 #x50 #x0a))
     ((:neg :eax)                #(#xf7 #xd8))
     ((:neg :ecx)                #(#xf7 #xd9))
     ((:shl :edx)                #(#xd1 #xe2))

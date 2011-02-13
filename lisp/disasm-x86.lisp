@@ -494,6 +494,23 @@
                                     (t
                                      (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
                                             byte1 byte2 byte3))))))
+                         ((eql byte2 #xb7)
+                          (let ((byte3 (mref-8 block-start (+ offset 2))))
+                            (with-modrm-byte byte3
+                              (cond ((eql rm #b100)
+                                     ;; SIB byte follows
+                                     (with-sib-byte (mref-8 block-start (+ offset 3))
+                                       (setq length 5
+                                             mnemonic :movzwl
+                                             operand1 (make-operand :kind :indexed
+                                                                    :register (register base)
+                                                                    :index (register index)
+                                                                    :scale scale
+                                                                    :data (mref-8-signed block-start (+ offset 4)))
+                                             operand2 (make-register-operand (reg16 (register reg))))))
+                                    (t
+                                     (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
+                                            byte1 byte2 byte3))))))
                          ((eql byte2 #xa3)
                           (with-modrm-byte (mref-8 block-start (+ offset 2))
                             (cond ((eql mod #b01)
