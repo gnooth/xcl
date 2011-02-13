@@ -1,6 +1,6 @@
 ;;; assembler.lisp
 ;;;
-;;; Copyright (C) 2007-2008 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -97,6 +97,7 @@
 ;; (defmacro asm (&rest instructions)
 ;;   (list 'QUOTE instructions))
 
+(load-system-file "compiler/asm.lisp")
 #+x86
 (load-system-file "compiler/x86/asm-x86")
 #+x86-64

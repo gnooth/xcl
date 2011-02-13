@@ -139,6 +139,7 @@
                           #+x86-64
                           "compiler/x86-64/p3-x86-64.lisp"
                           "compiler/assembler.lisp"
+                          "compiler/asm.lisp"
                           #+x86
                           "compiler/x86/asm-x86.lisp"
                           #+x86-64

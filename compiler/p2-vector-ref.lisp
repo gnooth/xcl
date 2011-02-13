@@ -81,13 +81,13 @@
                       (mumble "p2-vector-ref optimized 1~%")
                       (unless $dx-unboxed-p
                         (unbox-fixnum $dx))
-                      #+x86
-                      (progn
-                        ;; FIXME
-                        (inst :add $ax $dx)
-                        (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :al)
-                        (inst :movzbl :al :eax))
-                      #+x86-64
+;;                       #+x86
+;;                       (progn
+;;                         ;; FIXME
+;;                         (inst :add $ax $dx)
+;;                         (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :al)
+;;                         (inst :movzbl :al :eax))
+;;                       #+x86-64
                       (inst :movzbl `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$ax ,$dx) :eax)
                       (box-fixnum :eax)
                       (move-result-to-target target))

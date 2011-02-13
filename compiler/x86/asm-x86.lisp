@@ -422,6 +422,17 @@
                 (rm  (register-number operand1))
                 (modrm-byte (make-modrm-byte mod reg rm)))
            (emit-bytes #x0f #xb6 modrm-byte)))
+        ((address-operand-p operand1)
+         (with-address-operand operand1
+           (cond ((and displacement (typep displacement '(signed-byte 8)))
+                  (let* ((displacement-byte (ldb (byte 8 0) displacement))
+                         (reg (register-number operand2))
+                         (rm #b100)
+                         (modrm-byte (make-modrm-byte #b01 reg rm))
+                         (sib-byte (make-sib-byte scale (register-number index) (register-number base))))
+                    (emit-bytes #x0f #xb6 modrm-byte sib-byte displacement-byte)))
+                 (t
+                  (unsupported)))))
         (t
          (unsupported))))
 

@@ -299,29 +299,8 @@
     (:esi :rsi)
     (:edi :rdi)))
 
-
 (defun extended-register-p (thing)
   (memq thing +extended-registers+))
-
-(defknown make-modrm-byte (t t t) t)
-(defun make-modrm-byte (mod reg rm)
-  (declare (type (unsigned-byte 2) mod)
-           (type (unsigned-byte 3) reg rm))
-  (let ((result 0))
-    (setf (ldb (byte 3 0) result) rm)
-    (setf (ldb (byte 3 3) result) reg)
-    (setf (ldb (byte 2 6) result) mod)
-    result))
-
-(defknown make-sib-byte (t t t) t)
-(defun make-sib-byte (scale index base)
-  (declare (type (unsigned-byte 2) scale)
-           (type (unsigned-byte 3) index base))
-  (let ((result 0))
-    (setf (ldb (byte 3 0) result) base)
-    (setf (ldb (byte 3 3) result) index)
-    (setf (ldb (byte 2 6) result) scale)
-    result))
 
 (defconstant $ax :rax)
 (defconstant $cx :rcx)
