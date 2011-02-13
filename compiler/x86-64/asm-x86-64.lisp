@@ -383,6 +383,24 @@
                            (emit-byte displacement-byte)))
                         (t
                          (unsupported)))))
+               ((and (length-eql operand1 4)
+                     (reg32-p operand2))
+                (let* ((displacement (%car operand1))
+                       (displacement-byte (ldb (byte 8 0) displacement))
+                       (base-reg (%cadr operand1))
+                       (index-reg (%caddr operand1))
+                       (scale (fourth operand1))
+                       (reg (register-number operand2))
+                       (rm  #b100)
+                       (modrm-byte (make-modrm-byte #b01 reg rm))
+                       (sib-byte (make-sib-byte (ecase scale
+                                                  (1 0)
+                                                  (2 1)
+                                                  (4 2)
+                                                  (8 3))
+                                                (register-number index-reg)
+                                                (register-number base-reg))))
+                  (emit-bytes #x8b modrm-byte sib-byte displacement-byte)))
                (t
                 (unsupported))))
         ((consp operand2)
@@ -571,6 +589,31 @@
                 (modrm-byte (make-modrm-byte #b01 reg rm))
                 (sib-byte (make-sib-byte #b00 (register-number index-reg) (register-number base-reg))))
            (emit-bytes #x0f #xb6 modrm-byte sib-byte displacement-byte)))
+        (t
+         (unsupported))))
+
+(define-assembler :movzwl
+  (cond ((and (consp operand1)
+              (length-eql operand1 4)
+              (fixnump (%car operand1)))
+         ;; displacement + base + index
+         (let* ((displacement (%car operand1))
+                (displacement-byte (ldb (byte 8 0) displacement))
+                (base-reg (%cadr operand1))
+                (index-reg (%caddr operand1))
+                (scale (fourth operand1))
+                (reg (register-number operand2))
+                (rm  #b100)
+                (modrm-byte (make-modrm-byte #b01 reg rm))
+                (sib-byte (make-sib-byte (ecase scale
+                                           (1 0)
+                                           (2 1)
+                                           (4 2)
+                                           (8 3))
+                                         (register-number index-reg)
+                                         (register-number base-reg)
+                                         )))
+           (emit-bytes #x0f #xb7 modrm-byte sib-byte displacement-byte)))
         (t
          (unsupported))))
 

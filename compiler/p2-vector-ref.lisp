@@ -95,12 +95,15 @@
                       (mumble "p2-vector-ref optimized 2~%")
                       (unless $dx-unboxed-p
                         (unbox-fixnum $dx))
-                      ;; multiply by 2 to get byte offset
-                      (inst :shl $dx)
-                      (inst :add $ax $dx)
-                      (inst :xor :eax :eax)
-                      (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :ax)
-                      ;;                       (inst :movzbl :al :eax)
+                      #+x86
+                      (progn
+                        ;; multiply by 2 to get byte offset
+                        (inst :shl $dx)
+                        (inst :add $ax $dx)
+                        (inst :xor :eax :eax)
+                        (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :ax))
+                      #+x86-64
+                      (inst :movzwl `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$ax ,$dx 2) :eax)
                       (box-fixnum :eax)
                       (move-result-to-target target))
                      ((subtypep type1 '(simple-array (unsigned-byte 32) (*)))
@@ -109,11 +112,20 @@
                             (BIGNUM (make-label))
                             #+x86
                             (EXIT (make-label)))
-                        ;; if we unboxed $dx above, multiply by 4 to get byte offset
-                        (when $dx-unboxed-p
-                          (inst :shl 2 $dx))
-                        (inst :add $ax $dx)
-                        (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :eax)
+
+                        #+x86
+                        (progn
+                          ;; if we unboxed $dx above, multiply by 4 to get byte offset
+                          (when $dx-unboxed-p
+                            (inst :shl 2 $dx))
+                          (inst :add $ax $dx)
+                          (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$dx) :eax))
+                        #+x86-64
+                        (progn
+                          (unless $dx-unboxed-p
+                            (unbox-fixnum $dx))
+                          (inst :mov `(,(- +simple-vector-data-offset+ +typed-object-lowtag+) ,$ax ,$dx 4) :eax))
+
                         #+x86
                         (progn
                           (inst :cmp most-positive-fixnum :eax)

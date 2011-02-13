@@ -33,7 +33,7 @@
           +extended-registers+
           $ax $cx $dx $bx $sp $bp $si $di
           reg8-p reg16-p reg32-p reg64-p
-          reg8 reg32 reg64
+          reg8 reg16 reg32 reg64
           extended-register-p
           make-modrm-byte
           make-sib-byte))
@@ -257,6 +257,25 @@
     (:ebp :bpl)
     (:esi :sil)
     (:edi :dil)))
+
+(defun reg16 (reg)
+  (ecase reg
+    (:rax :ax)
+    (:rcx :cx)
+    (:rdx :dx)
+    (:rbx :bx)
+    (:rsp :sp)
+    (:rbp :bp)
+    (:rsi :si)
+    (:rdi :di)
+    (:eax :ax)
+    (:ecx :cx)
+    (:edx :dx)
+    (:ebx :bx)
+    (:esp :sp)
+    (:ebp :bp)
+    (:esi :si)
+    (:edi :di)))
 
 (defun reg32 (reg)
   (ecase reg

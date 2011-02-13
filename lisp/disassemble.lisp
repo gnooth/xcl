@@ -105,7 +105,7 @@
   )
 
 (defun register-string (reg)
-  (case reg
+  (ecase reg
     (:al  "%al")
     (:bl  "%bl")
     (:cl  "%cl")
@@ -114,6 +114,22 @@
     (:bpl "%bpl")
     (:sil "%sil")
     (:dil "%dil")
+    (:ax  "%ax")
+    (:cx  "%cx")
+    (:dx  "%dx")
+    (:bx  "%bx")
+    (:sp  "%sp")
+    (:bp  "%bp")
+    (:si  "%si")
+    (:di  "%di")
+    (:eax "%eax")
+    (:ecx "%ecx")
+    (:edx "%edx")
+    (:ebx "%ebx")
+    (:esp "%esp")
+    (:ebp "%ebp")
+    (:esi "%esi")
+    (:edi "%edi")
     (:eax "%eax")
     (:ecx "%ecx")
     (:edx "%edx")
@@ -138,8 +154,7 @@
     (:r12 "%r12")
     (:r13 "%r13")
     (:r14 "%r14")
-    (:r15 "%r15")
-    ))
+    (:r15 "%r15")))
 
 (defparameter *runtime-addresses* nil)
 
