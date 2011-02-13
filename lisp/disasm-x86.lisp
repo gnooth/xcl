@@ -216,16 +216,29 @@
                            operand1 (make-indirect-operand (register rm))
                            operand2 (make-register-operand (register reg))))))
              ((eql mod #b01)
-              (let ((displacement (mref-8-signed start 2)))
-                (setq length 3
-                      mnemonic :mov
-                      operand1 (make-operand :kind :relative
-                                             :register (register rm)
-                                             :data displacement)
-                      operand2 (make-register-operand (register reg)))
-                (when (eq (register rm) :ebp)
-                  (let ((index (/ displacement 4)))
-                    (setq annotation (cdr (assoc index *locals*)))))))
+              (cond ((eql rm #b100)
+                     (let ((sib-byte (mref-8 start 2))
+                           (displacement (mref-8-signed start 3)))
+                       (with-sib-byte sib-byte
+                         (setq length 4
+                               mnemonic :mov
+                               operand1 (make-operand :kind :indexed
+                                                      :register (register base)
+                                                      :index (register index)
+                                                      :scale scale
+                                                      :data displacement)
+                               operand2 (make-register-operand (register reg))))))
+                    (t
+                     (let ((displacement (mref-8-signed start 2)))
+                       (setq length 3
+                             mnemonic :mov
+                             operand1 (make-operand :kind :relative
+                                                    :register (register rm)
+                                                    :data displacement)
+                             operand2 (make-register-operand (register reg)))
+                       (when (eq (register rm) :ebp)
+                         (let ((index (/ displacement 4)))
+                           (setq annotation (cdr (assoc index *locals*)))))))))
              ((eql mod #b10)
               (let ((displacement (mref-32-signed start 2)))
                 (setq length 6

@@ -58,6 +58,8 @@
     ((:mov :al :dl)             #(#x88 #xc2))
     ((:mov :dl :al)             #(#x88 #xd0))
     ((:mov (#x0a :edx) :ax)     #(#x66 #x8b #x42 #x0a))
+    ((:mov (#x0a :eax :edx 4) :eax)
+                                #(#x8b #x44 #x90 #x0a))
     ((:movb (#x50 :edx) :cl)    #(#x8a #x4a #x50))
     ((:movzbl :al :eax)         #(#x0f #xb6 #xc0))
     ((:movzbl (10 :eax :edx) :eax)
