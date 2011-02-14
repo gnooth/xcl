@@ -1676,21 +1676,25 @@
             ;;             )
           ))))))
 
-(defun common-error-label (error-function register)
+(defun common-error-label (error-function &rest registers)
   (declare (type symbol error-function))
-  (declare (type keyword register))
   (let* ((common-labels (compiland-common-labels *current-compiland*))
-         (key (list error-function register))
+         (key (list* error-function registers))
          (label (gethash key common-labels)))
     (unless label
       (setq label (make-label))
-      (let ((*current-segment* :elsewhere))
+      (let ((*current-segment* :elsewhere)
+            (*register-contents* nil))
         (label label)
         #+x86
-        (inst :push register)
+        (dolist (register (reverse registers))
+          (inst :push register))
         #+x86-64
-        (unless (eq register :rdi)
-          (inst :mov register :rdi))
+        (let ((index 0))
+          (dolist (register registers)
+            (let ((argument-register (elt +call-argument-registers+ index)))
+              (unless (eq register argument-register)
+                (inst :mov register argument-register)))))
         (inst :call error-function) ; don't clear register contents!
         (inst :exit)
         (setf (gethash key common-labels) label)))
