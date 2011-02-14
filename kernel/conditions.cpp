@@ -243,6 +243,12 @@ Value SYS_type_error_internal(Value datum, Value expected_type)
   return signal_lisp_error(new TypeError(datum, expected_type));
 }
 
+// ### error-integer-bounds
+Value SYS_error_integer_bounds(Value datum, Value min, Value max)
+{
+  return signal_lisp_error(new TypeError(datum, list3(S_integer, min, max)));
+}
+
 // ### error-not-bit
 Value SYS_error_not_bit(Value datum)
 {
