@@ -127,6 +127,7 @@
                           "compiler/derive-type.lisp"
                           "compiler/ir2-defs.lisp"
                           "compiler/p2.lisp"
+                          "compiler/p2-check-fixnum-bounds.lisp"
                           "compiler/p2-require-type-handlers.lisp"
                           "compiler/p2-vector-ref.lisp"
                           #+x86
