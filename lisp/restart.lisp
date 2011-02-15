@@ -1,6 +1,6 @@
 ;;; restart.lisp
 ;;;
-;;; Copyright (C) 2003-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2003-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -264,7 +264,7 @@
                      (style-warning 'style-warning)
                      (warning 'warning))))
       (fresh-line *error-output*)
-      (format *error-output* "~S: ~A~%" badness condition)))
+      (format *error-output* "~&~S: ~A~%" badness condition)))
   nil)
 
 (defun style-warn (format-control &rest format-arguments)
