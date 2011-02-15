@@ -226,6 +226,8 @@
 (when (probe-file (merge-pathnames "lisp/grovel.xcl" *xcl-home*))
   (make-thread #'sys:grovel-cpp-definitions))
 
+(setq sys:*warn-on-redefinition* t)
+
 (format t "Startup completed in ~,2F seconds.~%" (sys:uptime))
 
 ;; REVIEW
