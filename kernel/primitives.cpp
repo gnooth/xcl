@@ -605,22 +605,6 @@ Value SYS_set_fdefinition(Value name, Value value)
   return value;
 }
 
-// ### record-source-information
-Value SYS_record_source_information(Value name, Value source_position)
-{
-  if (symbolp(name)) // FIXME support setf functions too
-    {
-      Thread * const thread = current_thread();
-      Value source = thread->symbol_value(S_source_file);
-      if (source != NIL)
-        {
-          if (source_position != NIL)
-            the_symbol(name)->put(S_source_internal, make_cons(source, source_position));
-        }
-    }
-  return T;
-}
-
 // ### untraced-function
 // redefined in trace.lisp
 Value SYS_untraced_function(Value name)
