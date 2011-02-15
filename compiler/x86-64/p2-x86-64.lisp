@@ -469,29 +469,23 @@
           (t
            (p2-progn-body (block-body block) :rax)))
     (label BLOCK-EXIT)
-    (when (block-non-local-return-p block)
-      (inst :push :rax) ; save result
-      (inst :mov thread-register :rdi) ; thread
-      (emit-move-var-to-register block-var :rsi) ; block
-      (inst :sub +bytes-per-word+ :rsp) ; align stack
-      (emit-call "RT_leave_block")
-      (inst :add +bytes-per-word+ :rsp)
-      (inst :pop :rax)) ; restore result
-    (when last-special-binding-var
-      ;; save rax
+    (when (or last-special-binding-var (block-non-local-return-p block))
+      ;; save result
       (inst :push :rax)
-      ;; fix stack alignment
-      (inst :sub +bytes-per-word+ :rsp)
-      ;; restore last special binding
-      (cond (thread-register
-             (p2-var-ref (make-var-ref last-special-binding-var) :rsi)
-             (inst :mov thread-register :rdi)
-             (emit-call "RT_thread_set_last_special_binding"))
-            (t
-             (p2-var-ref (make-var-ref last-special-binding-var) :rdi)
-             (emit-call "RT_current_thread_set_last_special_binding")))
-      ;; restore rax
-      (inst :add +bytes-per-word+ :rsp)
+      (when (block-non-local-return-p block)
+        (inst :mov thread-register :rdi) ; thread
+        (emit-move-var-to-register block-var :rsi) ; block
+        (emit-call "RT_leave_block"))
+      (when last-special-binding-var
+        ;; restore last special binding
+        (cond (thread-register
+               (p2-var-ref (make-var-ref last-special-binding-var) :rsi)
+               (inst :mov thread-register :rdi)
+               (emit-call "RT_thread_set_last_special_binding"))
+              (t
+               (p2-var-ref (make-var-ref last-special-binding-var) :rdi)
+               (emit-call "RT_current_thread_set_last_special_binding"))))
+      ;; restore result
       (inst :pop :rax))
     (move-result-to-target target)))
 
@@ -599,9 +593,7 @@
       (inst :push :rax) ; save result
       (inst :mov thread-register :rdi) ; thread
       (emit-move-var-to-register block-var :rsi) ; catch-frame
-      (inst :sub +bytes-per-word+ :rsp) ; align stack
       (emit-call "RT_leave_catch")
-      (inst :add +bytes-per-word+ :rsp)
       (inst :pop :rax) ; restore result
       (emit-jmp-short t EXIT)
       (label LABEL1)
@@ -1493,8 +1485,6 @@
       (process-optimization-declarations (cddr (block-form block)))
       (cond ((block-last-special-binding-var block)
              (p2-progn-body body :stack)
-             ;; fix stack alignment
-             (inst :sub +bytes-per-word+ :rsp)
              ;; restore last special binding`
              (cond (thread-register
                     (inst :mov thread-register :rdi)
@@ -1504,7 +1494,6 @@
                     (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :rdi)
                     (note "P2-LET/LET*: emitting call to RT_current_thread_set_last_special_binding~%")
                     (emit-call "RT_current_thread_set_last_special_binding")))
-             (inst :add +bytes-per-word+ :rsp)
              (inst :pop :rax)
              (move-result-to-target target))
             (t
@@ -1668,10 +1657,7 @@
     (p2-progn-body body :stack)
     (inst :mov (block-last-special-binding-var block) :rsi)
     (inst :mov :r12 :rdi)
-    ;; fix stack alignment
-    (inst :sub +bytes-per-word+ :rsp)
     (emit-call "RT_thread_set_last_special_binding")
-    (inst :add +bytes-per-word+ :rsp)
     (inst :pop :rax) ; result
     (move-result-to-target target)))
 
@@ -2527,9 +2513,7 @@
            (p2 arg2 reg2))
           (t
            (p2 arg1 :stack)
-;;            (inst :sub +bytes-per-word+ :rsp) ; align stack
            (p2 arg2 reg2)
-;;            (inst :add +bytes-per-word+ :rsp) ; align stack
            (when clear-values-p
              (unless (and (single-valued-p arg1)
                           (single-valued-p arg2))
@@ -2552,13 +2536,8 @@
            (p2 arg2 reg2)
            (p2 arg3 reg3))
           (t
-           (p2 arg1 :stack) ; stack is misaligned after this
-           (cond ((constant-or-local-var-ref-p arg2)
-                  (p2 arg2 :stack))
-                 (t
-                  (inst :sub +bytes-per-word+ :rsp) ; realign stack before call
-                  (p2 arg2 :rax)
-                  (inst :mov :rax '(:rsp))))
+           (p2 arg1 :stack)
+           (p2 arg2 :stack)
            (p2 arg3 reg3)
            (when clear-values-p
              (unless (and (single-valued-p arg1)
@@ -5944,8 +5923,6 @@
               ))
 
       (incf stack-used (allocate-locals compiland index))
-      (when (oddp stack-used)
-        (inst :sub +bytes-per-word+ :rsp))
 
       (when (compiland-thread-register compiland)
         (emit-call "RT_current_thread")
