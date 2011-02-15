@@ -882,6 +882,9 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_std_instance_layout, SYS_std_instance_layout, 1, 1);
   ADD_PRIMITIVE(S_std_instance_slot_value, SYS_std_instance_slot_value, 2, 2);
   ADD_PRIMITIVE(S_sample_count, PROF_sample_count, 0, 0);
+  ADD_PRIMITIVE(S_source, SYS_source, 1, 1);
+  ADD_PRIMITIVE(S_source_file_position, SYS_source_file_position, 1, 1);
+  ADD_PRIMITIVE(S_source_pathname, SYS_source_pathname, 1, 1);
   ADD_PRIMITIVE(S_stop_profiler, PROF_stop_profiler, 0, 0);
   ADD_PRIMITIVE(S_stream_charpos_internal, SYS_stream_charpos_internal, 1, 1);
   ADD_PRIMITIVE(S_stream_fresh_line_internal, SYS_stream_fresh_line_internal, 1, 1);
