@@ -769,6 +769,25 @@ Value CL_defun(Value args, Environment * env, Thread * thread)
 // ### %defun name lambda-expression => name
 Value SYS_defun_internal(Value name, Value function)
 {
+  if (current_thread()->symbol_value(S_warn_on_redefinition) != NIL)
+    {
+      if (symbolp(name))
+        {
+          TypedObject * old_function = the_non_nil_symbol(name)->function();
+          if (old_function != NULL && old_function->widetag() != WIDETAG_AUTOLOAD)
+            {
+              if (the_non_nil_symbol(S_warn)->function() != NULL)
+                {
+                  Value format_control = make_value(new_simple_string("redefining ~S"));
+                  Value initargs = list4(K_format_control, format_control, K_format_arguments, list1(name));
+                  Value args[2];
+                  args[0] = S_warn;
+                  args[1] = SYS_make_condition_internal(S_style_warning, initargs);
+                  CL_funcall(2, args);
+                }
+            }
+        }
+    }
   SYS_set_fdefinition(name, function);
   return name;
 }
