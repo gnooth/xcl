@@ -224,8 +224,6 @@
 (export 'clean)
 (autoload '(clean rebuild-lisp) "lisp/rebuild-lisp")
 
-(autoload '(source source-pathname source-file-position) "lisp/source")
-
 (autoload 'ed)
 
 (autoload 'make-load-form-saving-slots)
