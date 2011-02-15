@@ -107,7 +107,8 @@
          (*speed* *speed*)
          (*space* *space*)
          (*safety* *safety*)
-         (*debug* *debug*))
+         (*debug* *debug*)
+         (arity nil))
     (multiple-value-bind (body declarations doc)
         (parse-body (cdddr form))
       (declare (ignore doc)) ; FIXME
@@ -118,7 +119,9 @@
           (cond (code
                  (setq form
                        `(c::load-defun ',name ',code ',constants ,minargs ,maxargs
-                                       ',l-v-info ,*source-position*)))
+                                       ',l-v-info ,*source-position*))
+                 (when (eql minargs maxargs)
+                   (setq arity minargs)))
                 (t
                  ;; FIXME this should be a warning or error of some sort
                  (format t "~&~%; Unable to compile function ~A~%" name)
@@ -136,7 +139,9 @@
                                                          body))
         (dump-form `(set-inline-expansion ',name ',(inline-expansion name)) stream)
         (%stream-terpri stream)))
-    (push name *functions-defined-in-current-file*)
+;;     (push name *functions-defined-in-current-file*)
+      (when arity
+        (setf (gethash name *functions-defined-in-current-file*) arity))
     (note-name-defined name))
   (dump-top-level-form form stream)
   t)
@@ -398,7 +403,7 @@
          (warnings-p t)
          (failure-p t))
     (with-open-file (in input-file :direction :input)
-      (let* ((c:*output-mode* :compile-file)
+      (let* ((*output-mode* :compile-file)
              (*compile-file-pathname* (pathname in))
              (*compile-file-truename* (truename in))
              (*source-file* *compile-file-truename*)
@@ -416,7 +421,9 @@
                   (*safety* *safety*)
                   (*debug* *debug*)
                   (*compile-file-output-stream* out)
-                  (*functions-defined-in-current-file* nil))
+;;                   (*functions-defined-in-current-file* nil)
+                  (*functions-defined-in-current-file* (make-hash-table :test 'eq)) ; REVIEW setf functions
+                  )
               (write "; -*- Mode: Lisp -*-" :escape nil :stream out)
               (%stream-terpri out)
               (let ((*standard-output* out))

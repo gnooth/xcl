@@ -2655,6 +2655,12 @@
                         (t
                          (inst :move-immediate `(:function ,op) :rdi)
                          (emit-call "RT_fast_call_function_0"))))
+                 ((and (not (fboundp op)) ; not a redefinition
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 0))
+                  (mumble "emitting direct call to ~S (0) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (emit-call op))
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 0))
                   (emit-recurse))
@@ -2724,7 +2730,14 @@
                   (emit-call "RT_current_thread_call_function_1"))))
            ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and (eq op (compiland-name compiland))
+           (cond ((and (not (fboundp op)) ; not a redefinition
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 1))
+                  (mumble "emitting direct call to ~S (1) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (process-1-arg arg :rdi t)
+                  (emit-call op))
+                 ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 1))
                   (process-1-arg arg :rdi t)
                   (emit-recurse))
@@ -2827,7 +2840,14 @@
                   (emit-call "RT_current_thread_call_function_2"))))
           ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and (eq op (compiland-name compiland))
+           (cond ((and (not (fboundp op)) ; not a redefinition
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 2))
+                  (mumble "emitting direct call to ~S (2) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (process-2-args args '(:rdi :rsi) t)
+                  (emit-call op))
+                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 1))
                   (process-2-args args '(:rdi :rsi) t)
                   (emit-recurse))
@@ -2887,7 +2907,14 @@
                   (emit-call "RT_current_thread_call_function_3"))))
           ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and (eq op (compiland-name compiland))
+           (cond ((and (not (fboundp op)) ; not a redefinition
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 3))
+                  (mumble "emitting direct call to ~S (3) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (process-3-args args '(:rdi :rsi :rdx) t)
+                  (emit-call op))
+                 ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 3))
                   (process-3-args args '(:rdi :rsi :rdx) t)
                   (emit-recurse))
@@ -4464,7 +4491,8 @@
              (let* ((name (%cadr operator-form))
                     (kernel-function-p (kernel-function-p name)))
                (cond ((or kernel-function-p
-                          (memq name *functions-defined-in-current-file*))
+                          ;(memq name *functions-defined-in-current-file*)
+                          )
                       (case numargs
                         (1
                          (cond ((and use-fast-call-p

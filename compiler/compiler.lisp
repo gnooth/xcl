@@ -2700,7 +2700,8 @@ for special variables."
   (aver (eq (car lambda-expression) 'LAMBDA))
   (aver (not (null *compile-file-pathname*)))
   (aver (eq *output-mode* :compile-file))
-  (let* ((*compiling* t)
+  (let* ((*functions-defined-in-current-file* nil) ; REVIEW
+         (*compiling* t)
          (compiland
           (make-compiland :lambda-expression (precompile-form lambda-expression)))
          (*current-compiland* compiland)

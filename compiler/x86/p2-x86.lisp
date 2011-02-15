@@ -4896,7 +4896,8 @@
              (let* ((name (%cadr operator-form))
                     (kernel-function-p (kernel-function-p name)))
                (cond ((or kernel-function-p
-                          (memq name *functions-defined-in-current-file*))
+                          ;(memq name *functions-defined-in-current-file*)
+                          )
                       (case numargs
                         (1
                          (cond ((and use-fast-call-p

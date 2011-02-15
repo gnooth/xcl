@@ -437,8 +437,13 @@
                                                      minargs
                                                      maxargs
                                                      final-constants)))
+      (when *warn-on-redefinition*
+        (when (and (symbolp name) (fboundp name) (not (autoloadp name)))
+          (let ((source-pathname (source-pathname name)))
+            (unless (equal source-pathname *source-file*)
+              (sys::style-warn "redefining ~S~@[ (previously defined in ~S)~]" name source-pathname)))))
       (set-fdefinition name compiled-function)
-      (sys:set-local-variable-information compiled-function l-v-info)))
+      (set-local-variable-information compiled-function l-v-info)))
   (record-source-information name source-position))
 
 (defun load-compiled-lambda-form (name code constants minargs maxargs l-v-info source-position)
