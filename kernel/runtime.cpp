@@ -41,7 +41,7 @@ void * RT_malloc(size_t size_in_bytes)
 
 Value RT_current_thread_call_symbol_0(Value symbol)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return current_thread()->execute(function);
@@ -49,7 +49,7 @@ Value RT_current_thread_call_symbol_0(Value symbol)
 
 Value RT_current_thread_call_symbol_1(Value symbol, Value arg)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg);
@@ -57,7 +57,7 @@ Value RT_current_thread_call_symbol_1(Value symbol, Value arg)
 
 Value RT_current_thread_call_symbol_2(Value symbol, Value arg1, Value arg2)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2);
@@ -65,7 +65,7 @@ Value RT_current_thread_call_symbol_2(Value symbol, Value arg1, Value arg2)
 
 Value RT_current_thread_call_symbol_3(Value symbol, Value arg1, Value arg2, Value arg3)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2, arg3);
@@ -73,7 +73,7 @@ Value RT_current_thread_call_symbol_3(Value symbol, Value arg1, Value arg2, Valu
 
 Value RT_current_thread_call_symbol_4(Value symbol, Value arg1, Value arg2, Value arg3, Value arg4)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2, arg3, arg4);
@@ -81,7 +81,7 @@ Value RT_current_thread_call_symbol_4(Value symbol, Value arg1, Value arg2, Valu
 
 Value RT_current_thread_call_symbol_5(Value symbol, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2, arg3, arg4, arg5);
@@ -89,7 +89,7 @@ Value RT_current_thread_call_symbol_5(Value symbol, Value arg1, Value arg2, Valu
 
 Value RT_current_thread_call_symbol_6(Value symbol, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5, Value arg6)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return current_thread()->execute(function, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -97,7 +97,7 @@ Value RT_current_thread_call_symbol_6(Value symbol, Value arg1, Value arg2, Valu
 
 Value RT_current_thread_call_symbol(Value symbol, unsigned int numargs, Value args[])
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return current_thread()->execute(function, numargs, args);
@@ -105,7 +105,7 @@ Value RT_current_thread_call_symbol(Value symbol, unsigned int numargs, Value ar
 
 inline Value thread_call_symbol_0(Thread * thread, Value symbol)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return thread->execute(function);
@@ -118,7 +118,7 @@ Value RT_thread_call_symbol_0(Thread * thread, Value symbol)
 
 inline Value thread_call_symbol_1(Thread * thread, Value symbol, Value arg)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return thread->execute(function, arg);
@@ -131,7 +131,7 @@ Value RT_thread_call_symbol_1(Thread * thread, Value symbol, Value arg)
 
 inline Value thread_call_symbol_2(Thread * thread, Value symbol, Value arg1, Value arg2)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2);
@@ -144,7 +144,7 @@ Value RT_thread_call_symbol_2(Thread * thread, Value symbol, Value arg1, Value a
 
 inline Value thread_call_symbol_3(Thread * thread, Value symbol, Value arg1, Value arg2, Value arg3)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2, arg3);
@@ -157,7 +157,7 @@ Value RT_thread_call_symbol_3(Thread * thread, Value symbol, Value arg1, Value a
 
 inline Value thread_call_symbol_4(Thread * thread, Value symbol, Value arg1, Value arg2, Value arg3, Value arg4)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2, arg3, arg4);
@@ -170,7 +170,7 @@ Value RT_thread_call_symbol_4(Thread * thread, Value symbol, Value arg1, Value a
 
 Value RT_thread_call_symbol_5(Thread * thread, Value symbol, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2, arg3, arg4, arg5);
@@ -178,7 +178,7 @@ Value RT_thread_call_symbol_5(Thread * thread, Value symbol, Value arg1, Value a
 
 Value RT_thread_call_symbol_6(Thread * thread, Value symbol, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5, Value arg6)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return thread->execute(function, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -186,7 +186,7 @@ Value RT_thread_call_symbol_6(Thread * thread, Value symbol, Value arg1, Value a
 
 Value RT_thread_call_symbol(Thread * thread, Value symbol, unsigned int numargs, Value args[])
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return thread->execute(function, numargs, args);
@@ -194,7 +194,7 @@ Value RT_thread_call_symbol(Thread * thread, Value symbol, unsigned int numargs,
 
 inline Value fast_call_symbol_0(Value symbol)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return function->execute();
@@ -207,7 +207,7 @@ Value RT_fast_call_symbol_0(Value symbol)
 
 inline Value fast_call_symbol_1(Value symbol, Value arg)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return function->execute(arg);
@@ -220,7 +220,7 @@ Value RT_fast_call_symbol_1(Value symbol, Value arg)
 
 inline Value fast_call_symbol_2(Value symbol, Value arg1, Value arg2)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return function->execute(arg1, arg2);
@@ -233,7 +233,7 @@ Value RT_fast_call_symbol_2(Value symbol, Value arg1, Value arg2)
 
 inline Value fast_call_symbol_3(Value symbol, Value arg1, Value arg2, Value arg3)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return function->execute(arg1, arg2, arg3);
@@ -246,7 +246,7 @@ Value RT_fast_call_symbol_3(Value symbol, Value arg1, Value arg2, Value arg3)
 
 inline Value fast_call_symbol_4(Value symbol, Value arg1, Value arg2, Value arg3, Value arg4)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return function->execute(arg1, arg2, arg3, arg4);
@@ -259,7 +259,7 @@ Value RT_fast_call_symbol_4(Value symbol, Value arg1, Value arg2, Value arg3, Va
 
 Value RT_fast_call_symbol_5(Value symbol, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return function->execute(arg1, arg2, arg3, arg4, arg5);
@@ -267,7 +267,7 @@ Value RT_fast_call_symbol_5(Value symbol, Value arg1, Value arg2, Value arg3, Va
 
 Value RT_fast_call_symbol_6(Value symbol, Value arg1, Value arg2, Value arg3, Value arg4, Value arg5, Value arg6)
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return function->execute(arg1, arg2, arg3, arg4, arg5, arg6);
@@ -275,7 +275,7 @@ Value RT_fast_call_symbol_6(Value symbol, Value arg1, Value arg2, Value arg3, Va
 
 Value RT_fast_call_symbol(Value symbol, unsigned int numargs, Value args[])
 {
-  Function * function = reinterpret_cast<Function *>(the_symbol(symbol)->function());
+  Function * function = reinterpret_cast<Function *>(the_non_nil_symbol(symbol)->function());
   if (!function)
     return signal_undefined_function(symbol);
   return function->execute(numargs, args);
@@ -659,7 +659,7 @@ Value RT_symbol_function(Value symbol)
 
 Value RT_symbol_setf_function(Value symbol)
 {
-  Value value = the_symbol(symbol)->get(S_setf_function);
+  Value value = the_non_nil_symbol(symbol)->get(S_setf_function);
   if (value != NIL)
     return value;
   else

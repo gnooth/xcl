@@ -246,6 +246,12 @@ inline Symbol * the_symbol(Value value)
   return (Symbol *) (value - LOWTAG_SYMBOL);
 }
 
+inline Symbol * the_non_nil_symbol(Value value)
+{
+  assert(lowtag_of(value) == LOWTAG_SYMBOL);
+  return (Symbol *) (value - LOWTAG_SYMBOL);
+}
+
 inline Value make_value(Symbol * symbol)
 {
   if (symbol == (Symbol *) (S_nil - LOWTAG_SYMBOL))
