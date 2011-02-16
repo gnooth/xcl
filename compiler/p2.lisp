@@ -990,11 +990,9 @@
            (type (derive-type arg))
            (fixnum-type-p (fixnum-type-p type)))
       (cond ((integer-constant-value type)
-             (mumble "p2-lognot integer-constant-value case~%")
              (p2 arg nil)
              (p2-constant (lognot (integer-constant-value type)) target))
             (t
-             (mumble "p2-lognot default case type = ~S~%" type)
              (let ((FULL-CALL (make-label))
                    (EXIT (make-label)))
                (process-1-arg arg $ax t)
