@@ -1,6 +1,6 @@
 // Symbol.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,25 +30,25 @@
 
 Symbol::Symbol(const char * name)
   : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(NIL),
-    _value(NULL_VALUE), _plist(NULL_VALUE), _binding_index(0)
+    _value(NULL_VALUE), _plist(NIL), _binding_index(0)
 {
 }
 
 Symbol::Symbol(AbstractString * name)
   : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(NIL),
-    _value(NULL_VALUE), _plist(NULL_VALUE), _binding_index(0)
+    _value(NULL_VALUE), _plist(NIL), _binding_index(0)
 {
 }
 
 Symbol::Symbol(const char * name, Package * package)
   : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(make_value(package)),
-    _value(NULL_VALUE), _plist(NULL_VALUE), _binding_index(0)
+    _value(NULL_VALUE), _plist(NIL), _binding_index(0)
 {
 }
 
 Symbol::Symbol(AbstractString * name, Package * package)
   : _hash((unsigned long)-1), _name(new_simple_string(name)), _package(make_value(package)),
-    _value(NULL_VALUE), _plist(NULL_VALUE), _binding_index(0)
+    _value(NULL_VALUE), _plist(NIL), _binding_index(0)
 {
 }
 
@@ -96,23 +96,18 @@ INDEX Symbol::assign_binding_index()
 
 Value Symbol::get(Value indicator) const
 {
-  if (_plist != NULL_VALUE)
+  Value list = _plist;
+  while (list != NIL)
     {
-      Value list = _plist;
-      while (list != NIL)
-        {
-          if (car(list) == indicator)
-            return car(xcdr(list));
-          list = cdr(xcdr(list));
-        }
+      if (car(list) == indicator)
+        return car(xcdr(list));
+      list = cdr(xcdr(list));
     }
   return NIL;
 }
 
 void Symbol::put(Value indicator, Value value)
 {
-  if (_plist == NULL_VALUE)
-    _plist = NIL;
   Value list = _plist;
   while (list != NIL)
     {
@@ -130,8 +125,6 @@ void Symbol::put(Value indicator, Value value)
 
 Value Symbol::remprop(Value indicator)
 {
-  if (_plist == NULL_VALUE)
-    return NIL;
   Value list = _plist;
   Value prev = NULL_VALUE;
   while (list != NIL)
@@ -609,6 +602,14 @@ Value CL_get(unsigned int numargs, Value args[])
     default:
       return signal_lisp_error(new WrongNumberOfArgumentsError(S_get, numargs, 2, 3));
     }
+}
+
+// ### put3
+// put3 symbol indicator new-value => new-value
+Value SYS_put3(Value symbol, Value indicator, Value new_value)
+{
+  check_symbol(symbol)->put(indicator, new_value);
+  return new_value;
 }
 
 // ### put

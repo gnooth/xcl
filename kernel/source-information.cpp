@@ -22,15 +22,12 @@
 // ### record-source-information
 Value SYS_record_source_information(Value name, Value source_position)
 {
-  if (symbolp(name)) // FIXME support setf functions too
+  if (non_nil_symbol_p(name)) // FIXME support setf functions too
     {
-      Thread * const thread = current_thread();
+      Thread * thread = current_thread();
       Value source = thread->symbol_value(S_source_file);
-      if (source != NIL)
-        {
-          if (source_position != NIL)
-            the_symbol(name)->put(S_source_internal, make_cons(source, source_position));
-        }
+      the_non_nil_symbol(name)->put(S_source_internal,
+                                    source != NIL ? make_cons(source, source_position) : NIL);
     }
   return T;
 }
@@ -41,11 +38,11 @@ Value SYS_source(Value arg)
   return SYS_get3(arg, S_source_internal, NIL);
 }
 
-// ### source-file-position
-Value SYS_source_file_position(Value arg)
+// ### set-source
+Value SYS_set_source(Value arg1, Value arg2)
 {
-  Value source = SYS_get3(arg, S_source_internal, NIL);
-  return consp(source) ? xcdr(source) : NIL;
+  check_symbol(arg1)->put(S_source_internal, arg2);
+  return arg2;
 }
 
 // ### source-pathname
@@ -53,4 +50,11 @@ Value SYS_source_pathname(Value arg)
 {
   Value source = SYS_get3(arg, S_source_internal, NIL);
   return consp(source) ? xcar(source) : source;
+}
+
+// ### source-file-position
+Value SYS_source_file_position(Value arg)
+{
+  Value source = SYS_get3(arg, S_source_internal, NIL);
+  return consp(source) ? xcdr(source) : NIL;
 }

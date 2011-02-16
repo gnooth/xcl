@@ -359,6 +359,8 @@
                 package-internal-symbols
                 package-symbols
                 pathname-as-file
+                put
+                put3
                 putf
                 puthash
                 puthash3

@@ -1,6 +1,6 @@
 ;;; setf.lisp
 ;;;
-;;; Copyright (C) 2003-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2003-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -162,6 +162,7 @@
 (assign-setf-inverse 'sbit 'set-sbit)
 (assign-setf-inverse 'sbit1 'set-sbit1)
 (assign-setf-inverse 'schar 'set-schar)
+(assign-setf-inverse 'source 'set-source)
 (assign-setf-inverse 'subseq 'set-subseq)
 (assign-setf-inverse 'subseq2 'set-subseq)
 (assign-setf-inverse 'subseq3 'set-subseq)

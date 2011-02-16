@@ -209,12 +209,13 @@ public:
 
   Value plist()
   {
-    if (_plist == NULL_VALUE)
-      _plist = NIL;
     return _plist;
   }
 
-  void set_plist(Value plist) { _plist = plist; }
+  void set_plist(Value plist)
+  {
+    _plist = plist;
+  }
 
   INDEX binding_index() const
   {
@@ -263,6 +264,11 @@ inline bool symbolp(Value value)
 {
   if (value == NIL)
     return true;
+  return (value & LOWTAG_MASK) == LOWTAG_SYMBOL;
+}
+
+inline bool non_nil_symbol_p(Value value)
+{
   return (value & LOWTAG_MASK) == LOWTAG_SYMBOL;
 }
 

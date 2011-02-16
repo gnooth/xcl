@@ -2807,12 +2807,12 @@ for special variables."
                (precompile name lambda-expression))
               (name
                ;; preserve existing source information (if any)
-               (let ((source (and (symbolp name) (get name '%source))))
+               (let ((old-source (and (symbolp name) (source name))))
                  (if macro-p
                      (setf (macro-function name) compiled-function)
                      (setf (fdefinition name) compiled-function))
-                 (when source
-                   (put name '%source source)))
+                 (when old-source
+                   (setf (source name) old-source)))
                (values name nil nil))
               (t
                ;; "If the name is nil, the resulting compiled function is returned

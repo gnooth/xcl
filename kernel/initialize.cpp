@@ -750,6 +750,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_parse_namestring_internal, SYS_parse_namestring_internal, 3, 3);
   ADD_PRIMITIVE(S_position_eql, SYS_position_eql, 2, 2);
   ADD_PRIMITIVE(S_primitive_format, SYS_primitive_format, 2, MANY);
+  ADD_PRIMITIVE(S_put3, SYS_put3, 3, 3);
   ADD_PRIMITIVE(S_write_to_string_internal, SYS_write_to_string_internal, 1, 1);
   ADD_PRIMITIVE(S_probe_directory, EXT_probe_directory, 1, 1);
   ADD_PRIMITIVE(S_proclaim_special, SYS_proclaim_special, 1, 1);
@@ -829,6 +830,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_set_slot_index, SYS_set_slot_index, 2, 2);
   ADD_PRIMITIVE(S_set_slot_initform, SYS_set_slot_initform, 2, 2);
   ADD_PRIMITIVE(S_set_slot_reader, SYS_set_slot_reader, 2, 2);
+  ADD_PRIMITIVE(S_set_source, SYS_set_source, 2, 2);
   ADD_PRIMITIVE(S_set_std_instance_layout, SYS_set_std_instance_layout, 2, 2);
   ADD_PRIMITIVE(S_set_std_instance_slot_value, SYS_set_std_instance_slot_value, 3, 3);
   ADD_PRIMITIVE(S_set_symbol_function, SYS_set_symbol_function, 2, 2);

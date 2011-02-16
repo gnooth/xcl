@@ -835,6 +835,10 @@
   (let ((args (cdr form)))
     (list* (if (length-eql args 2) 'GET2 'GET3) (mapcar #'precompile1 args))))
 
+(defun precompile-put (form)
+  (let ((args (cdr form)))
+    (list* (if (length-eql args 3) 'PUT3 'PUT) (mapcar #'precompile1 args))))
+
 (defun precompile-gethash (form)
   (let ((args (cdr form)))
     (list* (if (length-eql args 2) 'GETHASH2 'GETHASH3) (mapcar #'precompile1 args))))
@@ -1018,10 +1022,13 @@
     (when name
       (when result
         ;; Preserve existing source information (if any).
-        (let ((source (and (symbolp name) (get name '%source))))
+;;         (let ((source (and (symbolp name) (get name '%source))))
+        (let ((old-source (and (symbolp name) (source name))))
           (set-fdefinition name result)
-          (when source
-            (put name '%source source)))))
+          (when old-source
+;;             (put name '%source source)
+            (setf (source name) old-source)
+            ))))
     (values (or name result) nil nil)))
 
 (defun install-p0-handler (symbol handler)
@@ -1075,6 +1082,7 @@
                   (PROGV                precompile-default)
                   (PSETF                precompile-psetf)
                   (PSETQ                precompile-psetq)
+                  (PUT                  precompile-put)
                   (PUTHASH              precompile-puthash)
                   (QUOTE                precompile-quote)
                   (RETURN               precompile-return)
