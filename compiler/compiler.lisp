@@ -2829,13 +2829,14 @@ for special variables."
         (%compile name definition)
         (precompile name definition))))
 
-;; replaces do-nothing stub defined in kernel
-(defun autocompile (function)
-  (when *enable-autocompile*
-    (let* ((*compiler-busy-p* t)
-           (verbose *autocompile-verbose*) ; false by default
-           (*compile-verbose* verbose)
-           (*mumble* verbose))
-      (values (compile nil function)))))
+(let ((*warn-on-redefinition* nil))
+  ;; replaces do-nothing stub defined in kernel
+  (defun autocompile (function)
+    (when *enable-autocompile*
+      (let* ((*compiler-busy-p* t)
+             (verbose *autocompile-verbose*) ; false by default
+             (*compile-verbose* verbose)
+             (*mumble* verbose))
+        (values (compile nil function))))))
 
 (setq *enable-autocompile* t)
