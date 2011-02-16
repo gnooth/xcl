@@ -1000,5 +1000,12 @@
                                             (register-number operand1)
                                             (register-number operand2))))
            (emit-bytes #x31 modrm-byte)))
+        ((and (typep operand1 '(signed-byte 8))
+              (reg64-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11
+                                            6
+                                            (register-number operand2)))
+               (prefix-byte (if (extended-register-p operand2) #x49 #x48)))
+           (emit-bytes prefix-byte #x83 modrm-byte (ldb (byte 8 0) operand1))))
         (t
          (unsupported))))

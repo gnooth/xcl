@@ -350,6 +350,8 @@
     ((:xor :rdx :rdx)           #(#x48 #x31 #xd2))
     ((:xor :rax :rdx)           #(#x48 #x31 #xc2))
     ((:xor :rdx :rax)           #(#x48 #x31 #xd0))
+    ((:xor -4 :rax)             #(#x48 #x83 #xf0 #xfc))
+    ((:xor -4 :r11)             #(#x49 #x83 #xf3 #xfc))
     ((:setne :al)               #(#x0f #x95 #xc0))
     ((:setb :al)                #(#x0f #x92 #xc0))
     ((:bt :rax (#x1e :rdi))     #(#x48 #x0f #xa3 #x47 #x1e))

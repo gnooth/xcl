@@ -788,40 +788,46 @@
                           ))))
                 (#x83
                  (with-modrm-byte (mref-8 block-start (1+ offset))
-                   (cond ((and (= mod #b01)
-                               (= reg #b111))
+                   (cond ((and (eql mod #b01)
+                               (eql reg #b111))
                           (setq length 4
                                 mnemonic :cmpq
                                 operand1 (make-immediate-operand (mref-8 block-start (+ offset 3)))
                                 operand2 (make-operand :kind :relative
                                                        :register (register rm)
                                                        :data (mref-8 block-start (+ offset 2)))))
-                         ((and (= mod #b11)
-                               (= reg 0))
+                         ((and (eql mod #b11)
+                               (eql reg 0))
                           (setq length 3
                                 mnemonic :add
                                 operand1 (make-immediate-operand (mref-8 block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm prefix-byte))))
-                         ((and (= mod #b11)
-                               (= reg #b101))
+                         ((and (eql mod #b11)
+                               (eql reg #b101))
                           (setq length 3
                                 mnemonic :sub
                                 operand1 (make-immediate-operand (mref-8 block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm prefix-byte))))
-                         ((and (= mod #b11)
-                               (= reg #b100))
+                         ((and (eql mod #b11)
+                               (eql reg #b100))
                           (setq length 3
                                 mnemonic :and
                                 operand1 (make-immediate-operand (mref-8 block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm prefix-byte))))
-                         ((and (= mod #b11)
-                               (= reg #b111))
+                         ((and (eql mod #b11)
+                               (eql reg #b110))
+                          (setq length 3
+                                mnemonic :xor
+                                operand1 (make-immediate-operand (ldb (byte 64 0) (mref-8-signed block-start (+ offset 2))))
+                                operand2 (make-register-operand (register rm))))
+                         ((and (eql mod #b11)
+                               (eql reg #b111))
                           (setq length 3
                                 mnemonic :cmp
                                 operand1 (make-immediate-operand (mref-8 block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm prefix-byte))))
-                         ((and (= mod #b11)
-                               (= reg 1))
+                         ((and (eql mod #b11)
+                               (eql reg 1))
                           (setq length 3
                                 mnemonic :or
                                 operand1 (make-immediate-operand (mref-8-signed block-start (+ offset 2)))
