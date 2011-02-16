@@ -476,6 +476,16 @@
         (t
          (unsupported))))
 
+(define-assembler :not
+  (cond ((reg32-p operand1)
+         (let* ((mod #b11)
+                (reg 2)
+                (rm  (register-number operand1))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #xf7 modrm-byte)))
+        (t
+         (unsupported))))
+
 (define-assembler :pop
   (cond ((reg32-p operand1)
          (emit-byte (+ (register-number operand1) #x58)))
@@ -637,5 +647,11 @@
                                             (register-number operand1)
                                             (register-number operand2))))
            (emit-bytes #x31 modrm-byte)))
+        ((and (typep operand1 '(signed-byte 8))
+              (reg32-p operand2))
+         (let ((modrm-byte (make-modrm-byte #b11
+                                            6
+                                            (register-number operand2))))
+           (emit-bytes #x83 modrm-byte (ldb (byte 8 0) operand1))))
         (t
          (unsupported))))

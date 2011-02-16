@@ -860,6 +860,12 @@
                                 operand1 (make-immediate-operand (mref-8 block-start (+ offset 2)))
                                 operand2 (make-register-operand (register rm))))
                          ((and (eql mod #b11)
+                               (eql reg #b110))
+                          (setq length 3
+                                mnemonic :xor
+                                operand1 (make-immediate-operand (ldb (byte 32 0) (mref-8-signed block-start (+ offset 2))))
+                                operand2 (make-register-operand (register rm))))
+                         ((and (eql mod #b11)
                                (eql reg #b111))
                           (setq length 3
                                 mnemonic :cmp
