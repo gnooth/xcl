@@ -482,11 +482,10 @@
     (let* ((arg (%cadr form))
            (type (derive-type arg)))
       (cond ((subtypep type 'hash-table)
-             (mumble "p2-clrhash new case type = ~S~%" type)
              (process-1-arg arg :default t)
-             (emit-call-1 'clrhash target))
+             (emit-call-1 'clrhash target)
+             t)
             (t
-             (mumble "p2-clrhash full call type = ~S~%" type)
              nil)))))
 
 (defun p2-coerce (form target)
