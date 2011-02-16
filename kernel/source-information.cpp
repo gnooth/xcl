@@ -45,9 +45,6 @@ Value SYS_source(Value arg)
 Value SYS_source_file_position(Value arg)
 {
   Value source = SYS_get3(arg, S_source_internal, NIL);
-//   if (consp(source))
-//     return xcdr(source);
-//   return NIL;
   return consp(source) ? xcdr(source) : NIL;
 }
 
