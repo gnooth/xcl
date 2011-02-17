@@ -58,7 +58,7 @@
               `(progn
                  (defknown ,name (t t) t)
                  (defun ,name (address target)
-                   #+x86 (emit-call-n address target 0)
+                   #+x86 (emit-call-n address target ,i)
                    #+x86-64
                    (progn
                      (emit-call address)
