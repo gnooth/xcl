@@ -2655,7 +2655,7 @@
                         (t
                          (inst :move-immediate `(:function ,op) :rdi)
                          (emit-call "RT_fast_call_function_0"))))
-                 ((and (not (fboundp op)) ; not a redefinition
+                 ((and ;(not (fboundp op)) ; not a redefinition
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 0))
                   (mumble "emitting direct call to ~S (0) defined in current file ~A~%"
@@ -2730,7 +2730,7 @@
                   (emit-call "RT_current_thread_call_function_1"))))
            ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and (not (fboundp op)) ; not a redefinition
+           (cond ((and ;(not (fboundp op)) ; not a redefinition
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 1))
                   (mumble "emitting direct call to ~S (1) defined in current file ~A~%"
@@ -2840,7 +2840,7 @@
                   (emit-call "RT_current_thread_call_function_2"))))
           ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and (not (fboundp op)) ; not a redefinition
+           (cond ((and ;(not (fboundp op)) ; not a redefinition
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 2))
                   (mumble "emitting direct call to ~S (2) defined in current file ~A~%"
@@ -2907,7 +2907,7 @@
                   (emit-call "RT_current_thread_call_function_3"))))
           ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and (not (fboundp op)) ; not a redefinition
+           (cond ((and ;(not (fboundp op)) ; not a redefinition
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 3))
                   (mumble "emitting direct call to ~S (3) defined in current file ~A~%"
