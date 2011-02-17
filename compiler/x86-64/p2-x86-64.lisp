@@ -2820,57 +2820,6 @@
            (emit-call "RT_current_thread_call_symbol_3"))))
   (move-result-to-target target))
 
-(defknown p2-function-call-4 (t t t) t)
-(defun p2-function-call-4 (op args target)
-  (let ((compiland *current-compiland*)
-        (kernel-function-p (kernel-function-p op))
-        thread-register)
-    (declare (type compiland compiland))
-    (cond ((use-fast-call-p)
-           (cond ((and kernel-function-p
-                       (eql (function-arity op) 4)
-                       (function-code-address (symbol-function op)))
-                  (process-4-args args '(:rdi :rsi :rdx :rcx) t)
-                  (emit-call op))
-                 (kernel-function-p
-                  (cond ((and (eql (function-arity op) -1)
-                              (verify-call op 4))
-                         (call-with-vectorized-args op args))
-                        (t
-                         (process-4-args args '(:rsi :rdx :rcx :r8) t)
-                         (inst :move-immediate `(:function ,op) :rdi)
-                         (emit-call "RT_fast_call_function_4"))))
-                 ((and (eq op (compiland-name compiland))
-                       (eql (compiland-arity compiland) 4))
-                  (process-4-args args '(:rdi :rsi :rdx :rcx) t)
-                  (emit-recurse))
-                 (t
-                  (process-4-args args '(:rsi :rdx :rcx :r8) t)
-                  (p2-symbol op :rdi)
-                  (emit-call "RT_fast_call_symbol_4"))))
-          ;; not use-fast-call-p
-          ((setq thread-register (compiland-thread-register compiland))
-           ;; RT_thread_call_symbol_4() calls thread->clear_values()
-           (process-4-args args '(:rdx :rcx :r8 :r9) nil)
-           (cond (kernel-function-p
-                  (inst :move-immediate `(:function ,op) :rsi)
-                  (inst :mov thread-register :rdi)
-                  (emit-call "RT_thread_call_function_4"))
-                 (t
-                  (p2-symbol op :rsi)
-                  (inst :mov thread-register :rdi)
-                  (emit-call "RT_thread_call_symbol_4"))))
-          (t
-           ;; RT_current_thread_call_symbol_4() calls thread->clear_values()
-           (process-4-args args '(:rsi :rdx :rcx :r8) nil)
-           (cond (kernel-function-p
-                  (inst :move-immediate `(:function ,op) :rdi)
-                  (emit-call "RT_current_thread_call_function_4"))
-                 (t
-                  (p2-symbol op :rdi)
-                  (emit-call "RT_current_thread_call_symbol_4"))))))
-  (move-result-to-target target))
-
 (defknown p2-function-call-5 (t t t) t)
 (defun p2-function-call-5 (op args target)
   (let ((compiland *current-compiland*)

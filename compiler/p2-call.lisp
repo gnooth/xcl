@@ -148,3 +148,166 @@
                  (t
                   (p2-symbol op :rdi)
                   (emit-call "RT_current_thread_call_symbol_0")))))))
+
+(defknown p2-function-call-4 (t t t) t)
+#+x86
+(defun p2-function-call-4 (op args target)
+  (let ((compiland *current-compiland*)
+        (kernel-function-p (kernel-function-p op))
+        (use-fast-call-p (use-fast-call-p))
+        thread-var)
+    (declare (type compiland compiland))
+    (cond (use-fast-call-p
+           (cond ((and kernel-function-p
+                       (eql (function-arity op) 4)
+                       (function-code-address (symbol-function op)))
+                  (process-4-args args :stack t)
+                  (emit-call-4 op target))
+                 (kernel-function-p
+                  (cond ((and (eql (function-arity op) -1)
+                              (verify-call op 4))
+                         (call-with-vectorized-args op args)
+                         (move-result-to-target target))
+                        (t
+                         (process-4-args args :stack use-fast-call-p)
+                         (emit-move-function-to-register op :eax)
+                         (inst :push :eax)
+                         (emit-call-5 "RT_fast_call_function_4" target))))
+                 ((and (use-direct-call-p)
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 4))
+                  (mumble "emitting direct call to ~S (4) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (process-4-args args :stack t)
+                  (emit-call-4 op target))
+                 ((and (eq op (compiland-name compiland))
+                       (eql (compiland-arity compiland) 4))
+                  (process-4-args args :stack t)
+                  (emit-recurse)
+                  (emit-adjust-stack-after-call 4)
+                  (move-result-to-target target))
+                 (t
+                  (process-4-args args :stack t)
+                  (p2-symbol op :stack)
+                  (emit-call-5 "RT_fast_call_symbol_4" target))))
+          ;; not use-fast-call-p
+          ((setq thread-var (compiland-thread-var compiland))
+           (process-4-args args :stack use-fast-call-p)
+           (cond (kernel-function-p
+                  (emit-move-function-to-register op :eax)
+                  (inst :push :eax)
+                  (inst :push thread-var)
+                  (emit-call-6 "RT_thread_call_function_4" target))
+                 (t
+                  (p2-symbol op :stack)
+                  (inst :push thread-var)
+                  (emit-call-6 "RT_thread_call_symbol_4" target))))
+          (t
+           (process-4-args args :stack use-fast-call-p)
+           (p2-symbol op :stack)
+           (emit-call-5 "RT_current_thread_call_symbol_4" target)))))
+
+#+x86-64
+(defun p2-function-call-4 (op args target)
+  (let ((compiland *current-compiland*)
+        (kernel-function-p (kernel-function-p op))
+        (use-fast-call-p (use-fast-call-p))
+        #+x86    thread-var
+        #+x86-64 thread-register
+        )
+    (declare (type compiland compiland))
+    (cond (use-fast-call-p
+           (cond ((and kernel-function-p
+                       (eql (function-arity op) 4)
+                       (function-code-address (symbol-function op)))
+                  (process-4-args args :default t)
+                  (emit-call-4 op target))
+                 (kernel-function-p
+                  (cond ((and (eql (function-arity op) -1)
+                              (verify-call op 4))
+                         (call-with-vectorized-args op args)
+                         (move-result-to-target target))
+                        (t
+                         #+x86
+                         (progn
+                           (process-4-args args :stack use-fast-call-p)
+;;                            (emit-move-function-to-register op :eax)
+                           (inst :move-immediate `(:function ,op) :eax)
+                           (inst :push :eax))
+                         #+x86-64
+                         (progn
+                           (process-4-args args '(:rsi :rdx :rcx :r8) t)
+                           (inst :move-immediate `(:function ,op) :rdi))
+                         (emit-call-5 "RT_fast_call_function_4" target))))
+                 ((and (use-direct-call-p)
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 4))
+                  (mumble "emitting direct call to ~S (4) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (process-4-args args :default t)
+                  (emit-call-4 op target))
+                 ((and (eq op (compiland-name compiland))
+                       (eql (compiland-arity compiland) 4))
+                  (process-4-args args :default t)
+                  (emit-recurse)
+                  #+x86 (emit-adjust-stack-after-call 4)
+                  (move-result-to-target target))
+                 (t
+                  #+x86
+                  (progn
+                    (process-4-args args :stack t)
+                    (p2-symbol op :stack))
+                  #+x86-64
+                  (progn
+                    (process-4-args args '(:rsi :rdx :rcx :r8) t)
+                    (p2-symbol op :rdi))
+                  (emit-call-5 "RT_fast_call_symbol_4" target))))
+          ;; not use-fast-call-p
+          #+x86
+          ((setq thread-var (compiland-thread-var compiland))
+           (process-4-args args :stack nil)
+           (cond (kernel-function-p
+;;                   (emit-move-function-to-register op :eax)
+                  (inst :move-immediate `(:function ,op) :eax)
+                  (inst :push :eax)
+                  (inst :push thread-var)
+                  (emit-call-6 "RT_thread_call_function_4" target))
+                 (t
+                  (p2-symbol op :stack)
+                  (inst :push thread-var)
+                  (emit-call-6 "RT_thread_call_symbol_4" target))))
+          #+x86-64
+          ((setq thread-register (compiland-thread-register compiland))
+           ;; RT_thread_call_symbol_4() calls thread->clear_values()
+           (process-4-args args '(:rdx :rcx :r8 :r9) nil)
+           (cond (kernel-function-p
+                  (inst :move-immediate `(:function ,op) :rsi)
+                  (inst :mov thread-register :rdi)
+                  (emit-call-6 "RT_thread_call_function_4" target))
+                 (t
+                  (p2-symbol op :rsi)
+                  (inst :mov thread-register :rdi)
+                  (emit-call-6 "RT_thread_call_symbol_4" target))))
+          #+x86
+          (t
+           (process-4-args args :stack use-fast-call-p)
+           (cond (kernel-function-p
+                  (inst :move-immediate `(:function ,op) :eax)
+                  (inst :push :eax)
+                  (emit-call-5 "RT_current_thread_call_function_4" target))
+                 (t
+                  (p2-symbol op :stack)
+                  (emit-call-5 "RT_current_thread_call_symbol_4" target))))
+          #+x86-64
+          (t
+           ;; RT_current_thread_call_symbol_4() calls thread->clear_values()
+           (process-4-args args '(:rsi :rdx :rcx :r8) nil)
+           (cond (kernel-function-p
+                  (inst :move-immediate `(:function ,op) :rdi)
+                  (emit-call-5 "RT_current_thread_call_function_4" target))
+                 (t
+                  (p2-symbol op :rdi)
+                  (emit-call-5 "RT_current_thread_call_symbol_4" target))))))
+;;   (move-result-to-target target)
+  )
+

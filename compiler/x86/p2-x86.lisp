@@ -2539,6 +2539,8 @@
 
 (defknown process-4-args (t t t) t)
 (defun process-4-args (args targets clear-values-p)
+  (when (eq targets :default)
+    (setq targets :stack))
   (let* ((arg1 (%car args))
          (arg2 (%cadr args))
          (arg3 (%caddr args))
@@ -2879,63 +2881,6 @@
            (process-3-args args :stack nil)
            (p2-symbol op :stack)
            (emit-call-4 "RT_current_thread_call_symbol_3" target)))))
-
-(defknown p2-function-call-4 (t t t) t)
-(defun p2-function-call-4 (op args target)
-  (let ((compiland *current-compiland*)
-        (kernel-function-p (kernel-function-p op))
-        (use-fast-call-p (use-fast-call-p))
-        thread-var)
-    (declare (type compiland compiland))
-    (cond (use-fast-call-p
-           (cond ((and kernel-function-p
-                       (eql (function-arity op) 4)
-                       (function-code-address (symbol-function op)))
-                  (process-4-args args :stack t)
-                  (emit-call-4 op target))
-                 (kernel-function-p
-                  (cond ((and (eql (function-arity op) -1)
-                              (verify-call op 4))
-                         (call-with-vectorized-args op args)
-                         (move-result-to-target target))
-                        (t
-                         (process-4-args args :stack use-fast-call-p)
-                         (emit-move-function-to-register op :eax)
-                         (inst :push :eax)
-                         (emit-call-5 "RT_fast_call_function_4" target))))
-                 ((and (use-direct-call-p)
-                       *functions-defined-in-current-file*
-                       (eql (gethash op *functions-defined-in-current-file*) 4))
-                  (mumble "emitting direct call to ~S (4) defined in current file ~A~%"
-                          op *compile-file-truename*)
-                  (process-4-args args :stack t)
-                  (emit-call-4 op target))
-                 ((and (eq op (compiland-name compiland))
-                       (eql (compiland-arity compiland) 4))
-                  (process-4-args args :stack t)
-                  (emit-recurse)
-                  (emit-adjust-stack-after-call 4)
-                  (move-result-to-target target))
-                 (t
-                  (process-4-args args :stack t)
-                  (p2-symbol op :stack)
-                  (emit-call-5 "RT_fast_call_symbol_4" target))))
-          ;; not use-fast-call-p
-          ((setq thread-var (compiland-thread-var compiland))
-           (process-4-args args :stack use-fast-call-p)
-           (cond (kernel-function-p
-                  (emit-move-function-to-register op :eax)
-                  (inst :push :eax)
-                  (inst :push thread-var)
-                  (emit-call-6 "RT_thread_call_function_4" target))
-                 (t
-                  (p2-symbol op :stack)
-                  (inst :push thread-var)
-                  (emit-call-6 "RT_thread_call_symbol_4" target))))
-          (t
-           (process-4-args args :stack use-fast-call-p)
-           (p2-symbol op :stack)
-           (emit-call-5 "RT_current_thread_call_symbol_4" target)))))
 
 (defknown p2-function-call-5 (t t t) t)
 (defun p2-function-call-5 (op args target)
