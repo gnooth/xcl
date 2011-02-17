@@ -26,4 +26,4 @@
 
 (defknown use-direct-call-p () t)
 (defun use-direct-call-p ()
-  (< *safety* 2))
+  (and (< *safety* 2) (use-fast-call-p)))

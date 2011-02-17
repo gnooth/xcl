@@ -20,7 +20,8 @@
 
 (defknown p2-function-call-0 (t t) t)
 
-#+x86
+;; #+x86
+#+nil
 (defun p2-function-call-0 (op target)
   (let ((compiland *current-compiland*)
         (kernel-function-p (kernel-function-p op))
@@ -70,7 +71,8 @@
            (p2-symbol op :stack)
            (emit-call-1 "RT_current_thread_call_symbol_0" target)))))
 
-#+x86-64
+;; #+x86-64
+#+nil
 (defun p2-function-call-0 (op target)
   (let ((compiland *current-compiland*)
         (kernel-function-p (kernel-function-p op))
@@ -121,3 +123,85 @@
                   (emit-call "RT_current_thread_call_symbol_0"))))))
   (move-result-to-target target))
 
+(defun p2-function-call-0 (op target)
+  (let* ((compiland *current-compiland*)
+         (kernel-function-p (kernel-function-p op))
+         (use-fast-call-p (use-fast-call-p))
+         #+x86    (thread-var      (compiland-thread-var compiland))
+         #+x86-64 (thread-register (compiland-thread-register compiland))
+         )
+    (declare (type compiland compiland))
+    (cond (use-fast-call-p
+           (cond ((and kernel-function-p
+                       (eql (function-arity op) 0)
+                       (function-code-address (symbol-function op)))
+                  (emit-call-0 op target))
+                 (kernel-function-p
+                  (cond ((and (eql (function-arity op) -1)
+                              (verify-call op 0))
+                         #+x86
+                         (progn
+                           (inst :push :esp)
+                           (inst :push 0))
+                         #+x86-64
+                         (progn
+                           (inst :mov :rsp :rsi)
+                           (inst :xor :rdi :rdi))
+                         (emit-call-2 op target))
+                        (t
+                         #+x86
+                         (progn
+                           (inst :move-immediate `(:function ,op) :eax)
+                           (inst :push :eax))
+                         #+x86-64
+                         (inst :move-immediate `(:function ,op) :rdi)
+                         (emit-call-1 "RT_fast_call_function_0" target))))
+                 ((and (use-direct-call-p)
+                   *functions-defined-in-current-file*
+                   (eql (gethash op *functions-defined-in-current-file*) 0))
+                  (mumble "emitting direct call to ~S (0) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (emit-call-0 op target))
+                 ((and (eq op (compiland-name compiland))
+                       (eql (compiland-arity compiland) 0))
+                  (emit-recurse)
+                  (move-result-to-target target))
+                 (t
+                  #+x86    (p2-symbol op :stack)
+                  #+x86-64 (p2-symbol op :rdi)
+                  (emit-call-1 "RT_fast_call_symbol_0" target))))
+          ;; not use-fast-call-p
+          #+x86
+          ((setq thread-var (compiland-thread-var compiland))
+           (cond (kernel-function-p
+                  (inst :move-immediate `(:function ,op) :eax)
+                  (inst :push :eax)
+                  (inst :push thread-var)
+                  (emit-call-2 "RT_thread_call_function_0" target))
+                 (t
+                  (p2-symbol op :stack)
+                  (inst :push thread-var)
+                  (emit-call-2 "RT_thread_call_symbol_0" target))))
+          #+x86-64
+          ((setq thread-register (compiland-thread-register compiland))
+           (cond (kernel-function-p
+                  (inst :move-immediate `(:function ,op) :rsi)
+                  (inst :mov thread-register :rdi)
+                  (emit-call "RT_thread_call_function_0"))
+                 (t
+                  (p2-symbol op :rsi)
+                  (inst :mov thread-register :rdi)
+                  (emit-call "RT_thread_call_symbol_0")))
+           (move-result-to-target target))
+          (t
+           #+x86
+           (progn
+             (p2-symbol op :stack)
+             (emit-call-1 "RT_current_thread_call_symbol_0" target))
+           #+x86-64
+           (cond (kernel-function-p
+                  (inst :move-immediate `(:function ,op) :rdi)
+                  (emit-call "RT_current_thread_call_function_0"))
+                 (t
+                  (p2-symbol op :rdi)
+                  (emit-call "RT_current_thread_call_symbol_0")))))))

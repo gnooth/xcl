@@ -357,7 +357,6 @@
 
 (defknown emit-move-function-to-register (t t) t)
 (defun emit-move-function-to-register (symbol register)
-  (declare (type symbol form))
   (inst :move-immediate `(:function ,symbol) register))
 
 (defknown p2-constant (t t) t)
