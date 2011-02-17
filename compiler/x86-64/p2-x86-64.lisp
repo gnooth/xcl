@@ -41,52 +41,6 @@
 (defun emit-exit()
   (inst :exit))
 
-(defknown emit-call-n (t t t) t)
-(defun emit-call-n (address target n)
-  (declare (ignore n))
-  (emit-call address)
-  (move-result-to-target target))
-
-(defknown emit-call-0 (t t) t)
-(defun emit-call-0 (address target)
-  (emit-call address)
-  (move-result-to-target target))
-
-(defknown emit-call-1 (t t) t)
-(defun emit-call-1 (address target)
-  (emit-call address)
-  (move-result-to-target target))
-
-(defknown emit-call-2 (t t) t)
-(defun emit-call-2 (address target)
-  (emit-call address)
-  (move-result-to-target target))
-
-(defknown emit-call-3 (t t) t)
-(defun emit-call-3 (address target)
-  (emit-call address)
-  (move-result-to-target target))
-
-(defknown emit-call-4 (t t) t)
-(defun emit-call-4 (address target)
-  (emit-call address)
-  (move-result-to-target target))
-
-(defknown emit-call-5 (t t) t)
-(defun emit-call-5 (address target)
-  (emit-call address)
-  (move-result-to-target target))
-
-(defknown emit-call-6 (t t) t)
-(defun emit-call-6 (address target)
-  (emit-call address)
-  (move-result-to-target target))
-
-(defknown emit-call-7 (t t) t)
-(defun emit-call-7 (address target)
-  (emit-call address)
-  (move-result-to-target target))
-
 ;; index-displacement index => displacement
 ;; 0 => -8
 ;; 1 => -16
@@ -337,23 +291,6 @@
   (emit-move-immediate arg :rax)
   (inst :push :rax)
   (clear-register-contents :rax))
-
-(defknown move-result-to-target (t) t)
-(defun move-result-to-target (target)
-  (case target
-    ((:rax nil)
-     ;; nothing to do
-     )
-    ((:rcx :rdx :rbx :rsp :rbp :rsi :rdi :r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15)
-     (inst :mov :rax target)
-     (clear-register-contents target))
-    (:stack
-     (inst :push :rax))
-    (:return
-     (emit-exit))
-    (t
-     (break)
-     (compiler-unsupported "MOVE-RESULT-TO-TARGET target = ~S" target))))
 
 (defknown emit-move-function-to-register (t t) t)
 (defun emit-move-function-to-register (symbol register)

@@ -18,50 +18,6 @@
 
 (in-package "COMPILER")
 
-(defknown emit-call-n (t t t) t)
-(defun emit-call-n (address target n)
-  (emit-call address)
-  (unless (and (eq target :return)
-               (not (compiland-omit-frame-pointer *current-compiland*)))
-    (emit-adjust-stack-after-call n))
-  (move-result-to-target target))
-
-(defknown emit-call-0 (t t) t)
-(defun emit-call-0 (address target)
-  (emit-call-n address target 0))
-
-(defknown emit-call-1 (t t) t)
-(defun emit-call-1 (address target)
-  (emit-call-n address target 1))
-
-(defknown emit-call-2 (t t) t)
-(defun emit-call-2 (address target)
-  (emit-call-n address target 2))
-
-(defknown emit-call-3 (t t) t)
-(defun emit-call-3 (address target)
-  (emit-call-n address target 3))
-
-(defknown emit-call-4 (t t) t)
-(defun emit-call-4 (address target)
-  (emit-call-n address target 4))
-
-(defknown emit-call-5 (t t) t)
-(defun emit-call-5 (address target)
-  (emit-call-n address target 5))
-
-(defknown emit-call-6 (t t) t)
-(defun emit-call-6 (address target)
-  (emit-call-n address target 6))
-
-(defknown emit-call-7 (t t) t)
-(defun emit-call-7 (address target)
-  (emit-call-n address target 7))
-
-(defknown emit-call-8 (t t) t)
-(defun emit-call-8 (address target)
-  (emit-call-n address target 8))
-
 (defknown emit-clear-values (*) t)
 (defun emit-clear-values (&key preserve)
   (setq preserve (if (eq preserve :stack)
@@ -556,22 +512,6 @@
         (return-from emit-push-immediate))))
   (emit-byte #x68)
   (emit-dword arg))
-
-(defknown move-result-to-target (t) t)
-(defun move-result-to-target (target)
-  (case target
-    ((:eax nil)
-     ;; nothing to do
-     )
-    ((:ecx :edx :ebx :esp :ebp :esi :edi)
-     (inst :mov :eax target)
-     (clear-register-contents target))
-    (:stack
-     (inst :push :eax))
-    (:return
-     (inst :exit))
-    (t
-     (compiler-unsupported "MOVE-RESULT-TO-TARGET target = ~S" target))))
 
 (defknown emit-adjust-stack-after-call (t) t)
 (defun emit-adjust-stack-after-call (n)
