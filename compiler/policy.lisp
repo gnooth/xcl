@@ -23,3 +23,7 @@
   (if *force-full-calls*
       nil
       (>= *speed* *debug*)))
+
+(defknown use-direct-call-p () t)
+(defun use-direct-call-p ()
+  (< *safety* 2))

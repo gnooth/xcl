@@ -52,6 +52,8 @@
 
 (load-system-file "compiler/ir2-defs")
 
+(load-system-file "compiler/policy")
+
 (load-system-file "compiler/p2")
 
 (load-system-file "compiler/p2-call")
@@ -75,8 +77,6 @@
 (load-system-file "compiler/install-p2-handlers")
 
 (load-system-file "compiler/source-transforms")
-
-(load-system-file "compiler/policy")
 
 (load-system-file "compiler/compiler")
 

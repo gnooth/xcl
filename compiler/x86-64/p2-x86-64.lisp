@@ -2678,7 +2678,7 @@
                   (emit-call "RT_current_thread_call_function_1"))))
            ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and ;(not (fboundp op)) ; not a redefinition
+           (cond ((and (use-direct-call-p)
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 1))
                   (mumble "emitting direct call to ~S (1) defined in current file ~A~%"
@@ -2788,7 +2788,7 @@
                   (emit-call "RT_current_thread_call_function_2"))))
           ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and ;(not (fboundp op)) ; not a redefinition
+           (cond ((and (use-direct-call-p)
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 2))
                   (mumble "emitting direct call to ~S (2) defined in current file ~A~%"
@@ -2855,7 +2855,7 @@
                   (emit-call "RT_current_thread_call_function_3"))))
           ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and ;(not (fboundp op)) ; not a redefinition
+           (cond ((and (use-direct-call-p)
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 3))
                   (mumble "emitting direct call to ~S (3) defined in current file ~A~%"

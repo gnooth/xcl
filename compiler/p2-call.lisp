@@ -42,7 +42,7 @@
                          (emit-move-function-to-register op :eax)
                          (inst :push :eax)
                          (emit-call-1 "RT_fast_call_function_0" target))))
-                 ((and ;(not (fboundp op)) ; not a redefinition
+                 ((and (use-direct-call-p)
                    *functions-defined-in-current-file*
                    (eql (gethash op *functions-defined-in-current-file*) 0))
                   (mumble "emitting direct call to ~S (0) defined in current file ~A~%"
@@ -90,7 +90,7 @@
                         (t
                          (inst :move-immediate `(:function ,op) :rdi)
                          (emit-call "RT_fast_call_function_0"))))
-                 ((and ;(not (fboundp op)) ; not a redefinition
+                 ((and (use-direct-call-p)
                    *functions-defined-in-current-file*
                    (eql (gethash op *functions-defined-in-current-file*) 0))
                   (mumble "emitting direct call to ~S (0) defined in current file ~A~%"

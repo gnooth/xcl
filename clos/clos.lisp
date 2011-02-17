@@ -38,8 +38,10 @@
 
 (in-package "SYSTEM")
 
+;; REVIEW
+;; don't allow direct calls of functions defined in this file
 (eval-when (:compile-toplevel)
-  (declaim (optimize (debug 2)))) ; REVIEW
+  (declaim (optimize (safety 2))))
 
 (defparameter *mop-working-p* nil)
 

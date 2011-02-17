@@ -2746,7 +2746,7 @@
                   (emit-call-2 "RT_current_thread_call_function_1" target))))
           ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and ;(not (fboundp op)) ; not a redefinition
+           (cond ((and (use-direct-call-p)
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 1))
                   (mumble "emitting direct call to ~S (1) defined in current file ~A~%"
@@ -2842,7 +2842,7 @@
           ;; not kernel-function-p
           (use-fast-call-p
            (process-2-args args :stack t)
-           (cond ((and ;(not (fboundp op)) ; not a redefinition
+           (cond ((and (use-direct-call-p)
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 2))
                   (mumble "emitting direct call to ~S (2) defined in current file ~A~%"
@@ -2915,7 +2915,7 @@
           ;; not kernel-function-p
           (use-fast-call-p
            (process-3-args args :stack t)
-           (cond ((and ;(not (fboundp op)) ; not a redefinition
+           (cond ((and (use-direct-call-p)
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 3))
                   (mumble "emitting direct call to ~S (3) defined in current file ~A~%"
@@ -2963,7 +2963,7 @@
                          (emit-move-function-to-register op :eax)
                          (inst :push :eax)
                          (emit-call-5 "RT_fast_call_function_4" target))))
-                 ((and ;(not (fboundp op)) ; not a redefinition
+                 ((and (use-direct-call-p)
                        *functions-defined-in-current-file*
                        (eql (gethash op *functions-defined-in-current-file*) 4))
                   (mumble "emitting direct call to ~S (4) defined in current file ~A~%"
