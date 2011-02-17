@@ -2723,6 +2723,12 @@
                          (emit-move-function-to-register op :eax)
                          (inst :push :eax)
                          (emit-call-1 "RT_fast_call_function_0" target))))
+                 ((and ;(not (fboundp op)) ; not a redefinition
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 0))
+                  (mumble "emitting direct call to ~S (0) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (emit-call-0 op target))
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 0))
                   (emit-recurse)
@@ -2790,7 +2796,14 @@
                   (emit-call-2 "RT_current_thread_call_function_1" target))))
           ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and (eq op (compiland-name compiland))
+           (cond ((and ;(not (fboundp op)) ; not a redefinition
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 1))
+                  (mumble "emitting direct call to ~S (1) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (process-1-arg arg :stack t)
+                  (emit-call-1 op target))
+                 ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 1))
                   (process-1-arg arg :stack t)
                   (emit-recurse)
@@ -2878,14 +2891,19 @@
                   (emit-call-3 "RT_current_thread_call_function_2" target))))
           ;; not kernel-function-p
           (use-fast-call-p
-           (cond ((and (eq op (compiland-name compiland))
+           (process-2-args args :stack t)
+           (cond ((and ;(not (fboundp op)) ; not a redefinition
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 2))
+                  (mumble "emitting direct call to ~S (2) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (emit-call-2 op target))
+                 ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 1))
-                  (process-2-args args :stack t)
                   (emit-recurse)
                   (emit-adjust-stack-after-call 2)
                   (move-result-to-target target))
                  (t
-                  (process-2-args args :stack t)
                   (p2-symbol op :eax)
                   (inst :push :eax)
                   (emit-call-3 "RT_fast_call_symbol_2" target))))
@@ -2947,7 +2965,13 @@
           ;; not kernel-function-p
           (use-fast-call-p
            (process-3-args args :stack t)
-           (cond ((and (eq op (compiland-name compiland))
+           (cond ((and ;(not (fboundp op)) ; not a redefinition
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 3))
+                  (mumble "emitting direct call to ~S (3) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (emit-call-3 op target))
+                 ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 3))
                   (emit-recurse)
                   (emit-adjust-stack-after-call 3)
@@ -2977,7 +3001,7 @@
            (cond ((and kernel-function-p
                        (eql (function-arity op) 4)
                        (function-code-address (symbol-function op)))
-                  (process-4-args args :stack use-fast-call-p)
+                  (process-4-args args :stack t)
                   (emit-call-4 op target))
                  (kernel-function-p
                   (cond ((and (eql (function-arity op) -1)
@@ -2989,14 +3013,21 @@
                          (emit-move-function-to-register op :eax)
                          (inst :push :eax)
                          (emit-call-5 "RT_fast_call_function_4" target))))
+                 ((and ;(not (fboundp op)) ; not a redefinition
+                       *functions-defined-in-current-file*
+                       (eql (gethash op *functions-defined-in-current-file*) 4))
+                  (mumble "emitting direct call to ~S (4) defined in current file ~A~%"
+                          op *compile-file-truename*)
+                  (process-4-args args :stack t)
+                  (emit-call-4 op target))
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 4))
-                  (process-4-args args :stack use-fast-call-p)
+                  (process-4-args args :stack t)
                   (emit-recurse)
                   (emit-adjust-stack-after-call 4)
                   (move-result-to-target target))
                  (t
-                  (process-4-args args :stack use-fast-call-p)
+                  (process-4-args args :stack t)
                   (p2-symbol op :stack)
                   (emit-call-5 "RT_fast_call_symbol_4" target))))
           ;; not use-fast-call-p

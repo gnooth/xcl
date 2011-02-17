@@ -1,6 +1,6 @@
 ;;; clos.lisp
 ;;;
-;;; Copyright (C) 2006-2011 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -37,6 +37,9 @@
 ;;; MIT Press, 1991.
 
 (in-package "SYSTEM")
+
+(eval-when (:compile-toplevel)
+  (declaim (optimize (debug 2)))) ; REVIEW
 
 (defparameter *mop-working-p* nil)
 
