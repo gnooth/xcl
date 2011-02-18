@@ -74,9 +74,7 @@
     (cond ((use-fast-call-p)
            (cond (kernel-function-p
                   (setq arity (function-arity op))
-                  (cond ((and (eql arity 0)
-                              ;(function-code-address (symbol-function op))
-                              )
+                  (cond ((eql arity 0)
                          (emit-call-0 op target))
                         ((and (eql arity -1)
                               (verify-call op 0))
@@ -107,11 +105,11 @@
                        (memq arity '(0 -1)))
                   (case arity
                     (0
-                     (mumble "emitting direct call to ~S (0) defined in current file ~A~%"
-                             op *compile-file-truename*)
+;;                      (mumble "emitting direct call to ~S (0) defined in current file ~A~%"
+;;                              op *compile-file-truename*)
                      (emit-call-0 op target))
                     (-1
-                     (mumble "p2-function-call-0 emitting direct call to ~S (-1) defined in current file~%" op)
+;;                      (mumble "p2-function-call-0 emitting direct call to ~S (-1) defined in current file~%" op)
                      #+x86
                      (progn
                        (inst :push :esp)
@@ -153,8 +151,6 @@
                     (emit-call-2 "RT_thread_call_symbol_0" target))))))))
 
 (defknown p2-function-call-1 (t t t) t)
-
-#+x86-64
 (defun p2-function-call-1 (op args target)
   (let ((compiland *current-compiland*)
         (kernel-function-p (kernel-function-p op))
@@ -164,9 +160,7 @@
     (cond ((use-fast-call-p)
            (cond (kernel-function-p
                   (setq arity (function-arity op))
-                  (cond ((and (eql arity 1)
-                              ;(function-code-address (symbol-function op))
-                              )
+                  (cond ((eql arity 1)
                          (process-1-arg arg :default t)
                          (emit-call-1 op target))
                         ((and (eql arity -1)
@@ -181,9 +175,9 @@
                            (inst :push :eax))
                          #+x86-64
                          (progn
-                           (process-1-arg arg :rsi) t)
-                         (inst :move-immediate `(:function ,op) :rdi))
-                        (emit-call-2 "RT_fast_call_function_1" target)))
+                           (process-1-arg arg :rsi t)
+                           (inst :move-immediate `(:function ,op) :rdi))
+                         (emit-call-2 "RT_fast_call_function_1" target))))
                  ;; not kernel-function-p
                  ((and (eq op (compiland-name compiland))
                        (eql (compiland-arity compiland) 1))
@@ -197,11 +191,11 @@
                        (memq arity '(1 -1)))
                   (case arity
                     (1
-                     (mumble "emitting direct call to ~S (1) defined in current file~%" op)
+;;                      (mumble "emitting direct call to ~S (1) defined in current file~%" op)
                      (process-1-arg arg :default t)
                      (emit-call-1 op target))
                     (-1
-                     (mumble "p2-function-call-1 emitting direct call to ~S (-1) defined in current file~%" op)
+;;                      (mumble "p2-function-call-1 emitting direct call to ~S (-1) defined in current file~%" op)
                      (call-with-vectorized-args op args)
                      (move-result-to-target target))))
                  (t
@@ -245,156 +239,6 @@
                     (inst :mov thread-register :rdi)
                     (emit-call-3 "RT_thread_call_symbol_1" target))))))))
 
-;; #+x86-64
-#+nil
-(defun p2-function-call-1 (op args target)
-  (let ((arg (%car args))
-        (compiland *current-compiland*)
-        (kernel-function-p (kernel-function-p op))
-        (use-fast-call-p (use-fast-call-p))
-        thread-register)
-    (declare (type compiland compiland))
-    (cond (kernel-function-p
-           (cond ((and (eql (function-arity op) 1)
-                       (function-code-address (symbol-function op))
-                       (or use-fast-call-p
-                           (memq :safe (function-attributes op))))
-                  (process-1-arg arg :rdi t)
-                  (emit-call op))
-                 (use-fast-call-p
-                  (cond ((and (eql (function-arity op) -1)
-                              (verify-call op 1))
-                         (process-1-arg arg :rax t)
-                         (inst :push :rax)
-                         (inst :mov :rsp :rsi)
-                         (inst :mov 1 :rdi)
-                         (emit-call op)
-                         (inst :add +bytes-per-word+ :rsp))
-                        (t
-                         (process-1-arg arg :rsi t)
-                         (inst :move-immediate `(:function ,op) :rdi)
-                         (emit-call "RT_fast_call_function_1"))))
-                 ;; not use-fast-call-p
-                 ((setq thread-register (compiland-thread-register compiland))
-                  (process-1-arg arg :rdx nil)
-                  ;; RT_thread_call_function_1() calls thread->clear_values()
-                  (inst :move-immediate `(:function ,op) :rsi)
-                  (inst :mov thread-register :rdi)
-                  (emit-call "RT_thread_call_function_1"))
-                 ;; no thread register
-                 (t
-                  (process-1-arg arg :rsi nil)
-                  ;; RT_current_thread_call_function_1() calls thread->clear_values()
-                  (inst :move-immediate `(:function ,op) :rdi)
-                  (emit-call "RT_current_thread_call_function_1"))))
-          ;; not kernel-function-p
-          (use-fast-call-p
-           (cond ((and (use-direct-call-p)
-                       *functions-defined-in-current-file*
-                       (eql (gethash op *functions-defined-in-current-file*) 1))
-                  (mumble "emitting direct call to ~S (1) defined in current file ~A~%"
-                          op *compile-file-truename*)
-                  (process-1-arg arg :rdi t)
-                  (emit-call op))
-                 ((and (eq op (compiland-name compiland))
-                       (eql (compiland-arity compiland) 1))
-                  (process-1-arg arg :rdi t)
-                  (emit-recurse))
-                 (t
-                  (process-1-arg arg :rsi t)
-                  (p2-symbol op :rdi)
-                  (emit-call "RT_fast_call_symbol_1"))))
-          ;; not use-fast-call-p
-          ((setq thread-register (compiland-thread-register compiland))
-           (process-1-arg arg :rdx nil)
-           ;; RT_thread_call_symbol_1() calls thread->clear_values()
-           (p2-symbol op :rsi)
-           (inst :mov thread-register :rdi)
-           (emit-call "RT_thread_call_symbol_1"))
-          ;; no thread register
-          (t
-           (process-1-arg arg :rsi nil)
-           ;; RT_current_thread_call_symbol_1() calls thread->clear_values()
-           (p2-symbol op :rdi)
-           (emit-call "RT_current_thread_call_symbol_1"))))
-  (move-result-to-target target))
-
-#+x86
-(defun p2-function-call-1 (op args target)
-  (let ((arg (%car args))
-        (compiland *current-compiland*)
-        (kernel-function-p (kernel-function-p op))
-        (use-fast-call-p (use-fast-call-p))
-        thread-var)
-    (declare (type compiland compiland))
-    (cond (kernel-function-p
-           (cond ((and (eql (function-arity op) 1)
-                       (function-code-address (symbol-function op))
-                       (or use-fast-call-p
-                           (memq :safe (function-attributes op))))
-                  (process-1-arg arg :stack t)
-                  (emit-call-1 op target))
-                 (use-fast-call-p
-                  (process-1-arg arg :stack t)
-                  (cond ((and (eql (function-arity op) -1)
-                              (verify-call op 1))
-                         (inst :push :esp)
-                         (inst :push 1)
-                         (emit-call op)
-                         (inst :add (* +bytes-per-word+ 3) :esp)
-                         (move-result-to-target target))
-                        (t
-                         (emit-move-function-to-register op :eax)
-                         (inst :push :eax)
-                         (emit-call-2 "RT_fast_call_function_1" target))))
-                 ;; not use-fast-call-p
-                 ((setq thread-var (compiland-thread-var compiland))
-                  ;; RT_thread_call_function_1() calls thread->clear_values()
-                  (process-1-arg arg :stack nil)
-                  (emit-move-function-to-register op :eax)
-                  (inst :push :eax)
-                  (inst :push thread-var)
-                  (emit-call-3 "RT_thread_call_function_1" target))
-                 (t
-                  ;; no thread register
-                  ;; RT_current_thread_call_function_1() calls thread->clear_values()
-                  (process-1-arg arg :stack nil)
-                  (emit-move-function-to-register op :eax)
-                  (inst :push :eax)
-                  (emit-call-2 "RT_current_thread_call_function_1" target))))
-          ;; not kernel-function-p
-          (use-fast-call-p
-           (cond ((and (use-direct-call-p)
-                       *functions-defined-in-current-file*
-                       (eql (gethash op *functions-defined-in-current-file*) 1))
-                  (mumble "emitting direct call to ~S (1) defined in current file ~A~%"
-                          op *compile-file-truename*)
-                  (process-1-arg arg :stack t)
-                  (emit-call-1 op target))
-                 ((and (eq op (compiland-name compiland))
-                       (eql (compiland-arity compiland) 1))
-                  (process-1-arg arg :stack t)
-                  (emit-recurse)
-                  (emit-adjust-stack-after-call 1)
-                  (move-result-to-target target))
-                 (t
-                  (process-1-arg arg :stack t)
-                  (p2-symbol op :stack)
-                  (emit-call-2 "RT_fast_call_symbol_1" target))))
-          ;; not use-fast-call-p
-          ((setq thread-var (compiland-thread-var compiland))
-           ;; RT_thread_call_symbol_1() calls thread->clear_values()
-           (process-1-arg arg :stack nil)
-           (p2-symbol op :stack)
-           (inst :push thread-var)
-           (emit-call-3 "RT_thread_call_symbol_1" target))
-          ;; no thread register
-          (t
-           ;; RT_current_thread_call_symbol_1() calls thread->clear_values()
-           (process-1-arg arg :stack nil)
-           (p2-symbol op :stack)
-           (emit-call-2 "RT_current_thread_call_symbol_1" target)))))
-
 (defknown p2-function-call-4 (t t t) t)
 (defun p2-function-call-4 (op args target)
   (let ((compiland *current-compiland*)
@@ -404,9 +248,7 @@
     (cond ((use-fast-call-p)
            (cond (kernel-function-p
                   (setq arity (function-arity op))
-                  (cond ((and (eql arity 4)
-                              ;(function-code-address (symbol-function op))
-                              )
+                  (cond ((eql arity 4)
                          (process-4-args args :default t)
                          (emit-call-4 op target))
                         ((and (eql arity -1)
@@ -437,12 +279,12 @@
                        (memq arity '(4 -1)))
                   (case arity
                     (4
-                     (mumble "emitting direct call to ~S (4) defined in current file ~A~%"
-                             op *compile-file-truename*)
+;;                      (mumble "emitting direct call to ~S (4) defined in current file ~A~%"
+;;                              op *compile-file-truename*)
                      (process-4-args args :default t)
                      (emit-call-4 op target))
                     (-1
-                     (mumble "p2-function-call-4 emitting direct call to ~S (-1) defined in current file~%" op)
+;;                      (mumble "p2-function-call-4 emitting direct call to ~S (-1) defined in current file~%" op)
                      (call-with-vectorized-args op args)
                      (move-result-to-target target))))
                  (t
