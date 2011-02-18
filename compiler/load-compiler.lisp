@@ -48,6 +48,8 @@
                            #+x86    "X86"
                            #+x86-64 "X86-64"))))
 
+(load-system-file "compiler/defs")
+
 (load-system-file "compiler/derive-type")
 
 (load-system-file "compiler/ir2-defs")

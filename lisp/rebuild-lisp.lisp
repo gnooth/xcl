@@ -125,6 +125,7 @@
                             "lisp/x86.lisp"
                             #+x86-64
                             "lisp/x86-64.lisp"
+                            "compiler/defs.lisp"
                             "compiler/derive-type.lisp"
                             "compiler/ir2-defs.lisp"
                             "compiler/p2.lisp"

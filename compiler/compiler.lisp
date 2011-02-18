@@ -43,8 +43,6 @@
 
 ;; (defvar *compile-file-environment* nil)
 
-(defvar *functions-defined-in-current-file* nil)
-
 (defstruct compiland
   name
   lambda-expression
