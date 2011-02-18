@@ -73,6 +73,7 @@
          #+x86    (thread-var      (compiland-thread-var compiland))
          #+x86-64 (thread-register (compiland-thread-register compiland)))
     (declare (type compiland compiland))
+    #+x86-64 (aver thread-register)
     (cond (use-fast-call-p
            (cond ((and kernel-function-p
                        (eql (function-arity op) 0)
@@ -125,7 +126,8 @@
                   (inst :push thread-var)
                   (emit-call-2 "RT_thread_call_symbol_0" target))))
           #+x86-64
-          ((setq thread-register (compiland-thread-register compiland))
+          (;(setq thread-register (compiland-thread-register compiland))
+           thread-register
            (cond (kernel-function-p
                   (inst :move-immediate `(:function ,op) :rsi)
                   (inst :mov thread-register :rdi)
@@ -136,6 +138,7 @@
                   (emit-call "RT_thread_call_symbol_0")))
            (move-result-to-target target))
           (t
+           (break) ; shouldn't happen
            #+x86
            (progn
              (p2-symbol op :stack)
@@ -150,11 +153,11 @@
 
 (defknown p2-function-call-4 (t t t) t)
 (defun p2-function-call-4 (op args target)
-  (let ((compiland *current-compiland*)
-        (kernel-function-p (kernel-function-p op))
-        (use-fast-call-p (use-fast-call-p))
-        #+x86    thread-var
-        #+x86-64 thread-register)
+  (let* ((compiland *current-compiland*)
+         (kernel-function-p (kernel-function-p op))
+         (use-fast-call-p (use-fast-call-p))
+         #+x86    (thread-var (compiland-thread-var compiland))
+         #+x86-64 (thread-register (compiland-thread-register compiland)))
     (declare (type compiland compiland))
     (cond (use-fast-call-p
            (cond ((and kernel-function-p
@@ -203,7 +206,8 @@
                   (emit-call-5 "RT_fast_call_symbol_4" target))))
           ;; not use-fast-call-p
           #+x86
-          ((setq thread-var (compiland-thread-var compiland))
+          (;(setq thread-var (compiland-thread-var compiland))
+           thread-var
            (process-4-args args :stack nil)
            (cond (kernel-function-p
                   (inst :move-immediate `(:function ,op) :eax)
@@ -215,7 +219,8 @@
                   (inst :push thread-var)
                   (emit-call-6 "RT_thread_call_symbol_4" target))))
           #+x86-64
-          ((setq thread-register (compiland-thread-register compiland))
+          (;(setq thread-register (compiland-thread-register compiland))
+           thread-register
            ;; RT_thread_call_symbol_4() calls thread->clear_values()
            (process-4-args args '(:rdx :rcx :r8 :r9) nil)
            (cond (kernel-function-p
@@ -228,6 +233,7 @@
                   (emit-call-6 "RT_thread_call_symbol_4" target))))
           #+x86
           (t
+           (break) ; shouldn't happen
            (process-4-args args :stack use-fast-call-p)
            (cond (kernel-function-p
                   (inst :move-immediate `(:function ,op) :eax)
@@ -238,6 +244,7 @@
                   (emit-call-5 "RT_current_thread_call_symbol_4" target))))
           #+x86-64
           (t
+           (break) ; shouldn't happen
            ;; RT_current_thread_call_symbol_4() calls thread->clear_values()
            (process-4-args args '(:rsi :rdx :rcx :r8) nil)
            (cond (kernel-function-p

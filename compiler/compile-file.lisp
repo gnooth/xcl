@@ -120,8 +120,9 @@
                  (setq form
                        `(c::load-defun ',name ',code ',constants ,minargs ,maxargs
                                        ',l-v-info ,*source-position*))
-                 (when (eql minargs maxargs)
-                   (setq arity minargs)))
+;;                  (when (eql minargs maxargs)
+;;                    (setq arity minargs))
+                 (setq arity (if (eql minargs maxargs) minargs -1)))
                 (t
                  ;; FIXME this should be a warning or error of some sort
                  (format t "~&~%; Unable to compile function ~A~%" name)
