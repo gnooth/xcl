@@ -32,7 +32,7 @@
           +call-return-register+
           +extended-registers+
           $ax $cx $dx $bx $sp $bp $si $di
-          reg8-p reg16-p reg32-p reg64-p
+          reg8-p reg16-p reg32-p reg64-p register-p
           reg8 reg16 reg32 reg64
           extended-register-p
           make-modrm-byte
@@ -236,6 +236,10 @@
        (memq x '(:eax :ecx :edx :ebx :esp :ebp :esi :edi))))
 
 (defun reg64-p (x)
+  (and (keywordp x)
+       (memq x '(:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi :r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15))))
+
+(defun register-p (x)
   (and (keywordp x)
        (memq x '(:rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi :r8 :r9 :r10 :r11 :r12 :r13 :r14 :r15))))
 
