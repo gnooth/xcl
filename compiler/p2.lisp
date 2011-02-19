@@ -1265,7 +1265,7 @@
 (define-runtime-predicate 'numberp   "RT_numberp")
 ;; (define-runtime-predicate 'plusp     "RT_plusp")
 (define-runtime-predicate 'stringp   "RT_stringp")
-(define-runtime-predicate 'vectorp   "RT_vectorp")
+;; (define-runtime-predicate 'vectorp   "RT_vectorp")
 
 (install-p2-test-handler 'atom                  'p2-test-atom)
 (install-p2-test-handler 'char=                 'p2-test-char=)
@@ -1287,6 +1287,7 @@
 (install-p2-test-handler 'two-arg->             'p2-test-numeric-comparison)
 (install-p2-test-handler 'two-arg->=            'p2-test-numeric-comparison)
 (install-p2-test-handler 'two-arg-char=         'p2-test-char=)
+(install-p2-test-handler 'vectorp               'p2-test-vectorp)
 (install-p2-test-handler 'zerop                 'p2-test-zerop)
 
 #+x86-64
@@ -1559,19 +1560,6 @@
 ;;              (let ((*print-structure* nil)
 ;;                    (*print-array* nil))
 ;;                (mumble "p2-typep full call arg2 = ~S~%" arg2))
-             nil)))))
-
-(defknown p2-vectorp (t t) t)
-(defun p2-vectorp (form target)
-  (when (check-arg-count form 1)
-    (let* ((arg (%cadr form))
-           (type (derive-type arg)))
-      (cond ((and (neq type :unknown)
-                  (subtypep type 'VECTOR))
-             (p2 arg nil) ; for effect
-             (p2 t target)
-             t)
-            (t
              nil)))))
 
 (defknown p2-vector2 (t t) t)
