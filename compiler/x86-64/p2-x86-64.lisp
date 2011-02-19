@@ -2407,15 +2407,8 @@
 
 (defknown process-1-arg (t t t) t)
 (defun process-1-arg (arg reg clear-values-p)
-  (case reg
-    (:default
-     (setq reg :rdi))
-    (:register
-     (when (var-ref-p arg)
-       (setq reg (find-register-containing-var (var-ref-var arg)))
-       (when reg
-         (return-from process-1-arg reg)))
-     (setq reg :rax)))
+  (when (eq reg :default)
+    (setq reg :rdi))
   (p2 arg reg)
   (when clear-values-p
     (unless (single-valued-p arg)
