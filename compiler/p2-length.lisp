@@ -19,7 +19,6 @@
 (in-package "COMPILER")
 
 (defun p2-length (form target)
-  (mumble "p2-length~%")
   (when (check-arg-count form 1)
     (let* ((arg (%cadr form))
            (type (derive-type arg)))
