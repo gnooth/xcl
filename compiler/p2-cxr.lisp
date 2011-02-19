@@ -26,74 +26,27 @@
                      (find-register-containing-var (var-ref-var arg)))))
       (cond ((register-p target)
              (cond (reg
-                    (mumble "p2-%car case 1a~%")
                     (inst :mov `(-1 ,reg) target))
                    (t
-                    (mumble "p2-%car case 1b~%")
                     (process-1-arg arg target t)
                     (inst :mov `(-1 ,target) target)))
              (clear-register-contents target))
             ((eql target :stack)
              (cond (reg
-                    (mumble "p2-%car case 2a~%")
                     (inst :push `(-1 ,reg)))
                    (t
-                    (mumble "p2-%car case 2b~%")
                     (process-1-arg arg $ax t)
                     (inst :push `(-1 ,$ax)))))
-            ((null target)
-             (mumble "p2-%car null target case~%")
-             )
+            ((null target))
             (t
-             (mumble "p2-%car default case target = ~S~%" target)
              (cond (reg
-                    (mumble "p2-%car case 3a~%")
                     (inst :mov `(-1 ,reg) $ax))
                    (t
-                    (mumble "p2-%car case 3b~%")
                     (process-1-arg arg $ax t)
                     (inst :mov `(-1 ,$ax) $ax)))
              (clear-register-contents $ax)
              (move-result-to-target target))))
     t))
-
-;; #+x86
-#+nil
-(defun p2-%car (form target)
-  (when (check-arg-count form 1)
-    (process-1-arg (%cadr form) :eax t)
-    (cond ((reg32-p target)
-           (inst :mov '(-1 :eax) target)
-           (clear-register-contents target))
-          (t
-           (inst :mov '(-1 :eax) :eax)
-           (clear-register-contents :eax)
-           (move-result-to-target target)))
-    t))
-;; #+x86-64
-#+nil
-(defun p2-%car (form target)
-  (when (check-arg-count form 1)
-    (let* ((arg (%cadr form))
-           (reg (and (var-ref-p arg)
-                     (find-register-containing-var (var-ref-var arg)))))
-      (cond ((reg64-p target)
-             (cond (reg
-                    (inst :mov `(-1 ,reg) target))
-                   (t
-                    (process-1-arg arg target t)
-                    (inst :mov `(-1 ,target) target)))
-             (clear-register-contents target))
-            (reg
-             (inst :mov `(-1 ,reg) :rax)
-             (clear-register-contents :rax)
-             (move-result-to-target target))
-            (t
-             (process-1-arg arg :rax t)
-             (inst :mov '(-1 :rax) :rax)
-             (clear-register-contents :rax)
-             (move-result-to-target target)))
-      t)))
 
 (defknown p2-car (t t) t)
 #+x86
