@@ -321,7 +321,6 @@
                     (emit-call-4 "RT_thread_call_symbol_2" target))))))))
 
 (defknown p2-function-call-3 (t t t) t)
-#+x86-64
 (defun p2-function-call-3 (op args target)
   (let ((compiland *current-compiland*)
         (kernel-function-p (kernel-function-p op))
@@ -361,11 +360,9 @@
                        (memq arity '(3 -1)))
                   (case arity
                     (3
-                     (mumble "p2-function-call-3 emitting direct call to ~S defined in current file~%" op)
                      (process-3-args args :default t)
                      (emit-call-3 op target))
                     (-1
-                     (mumble "p2-function-call-3 (-1) emitting direct call to ~S defined in current file~%" op)
                      (call-with-vectorized-args op args)
                      (move-result-to-target target))))
                  (t
