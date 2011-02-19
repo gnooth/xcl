@@ -63,6 +63,7 @@
 (load-system-file "compiler/p2-check-fixnum-bounds")
 (load-system-file "compiler/p2-length")
 (load-system-file "compiler/p2-require-type-handlers")
+(load-system-file "compiler/p2-type-predicates")
 (load-system-file "compiler/p2-vector-ref")
 
 (load-system-file "compiler/p3")
