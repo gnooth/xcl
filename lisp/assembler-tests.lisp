@@ -243,6 +243,7 @@
     ((:mov (#x1e :rdx) :al)     #(#x8a #x42 #x1e))
     ((:mov (#x1e :rdx) :ax)     #(#x66 #x8b #x42 #x1e))
     ((:mov (#x1e :rdx) :eax)    #(#x8b #x42 #x1e))
+    ((:push (-1 :rax))          #(#xff #x70 #xff))
     ((:push (-12 :rbp))         #(#xff #x75 #xf4))
     ((:push (8 :rbp))           #(#xff #x75 #x08))
     ((:push (132 :rbp))         #(#xff #xb5 #x84 #x00 #x00 #x00))

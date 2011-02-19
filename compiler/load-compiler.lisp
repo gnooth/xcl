@@ -61,6 +61,7 @@
 (load-system-file "compiler/p2-call")
 
 (load-system-file "compiler/p2-check-fixnum-bounds")
+(load-system-file "compiler/p2-cxr")
 (load-system-file "compiler/p2-length")
 (load-system-file "compiler/p2-require-type-handlers")
 (load-system-file "compiler/p2-type-predicates")
