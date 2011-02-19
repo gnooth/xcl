@@ -131,6 +131,7 @@
                             "compiler/p2.lisp"
                             "compiler/p2-call.lisp"
                             "compiler/p2-check-fixnum-bounds.lisp"
+                            "compiler/p2-length.lisp"
                             "compiler/p2-require-type-handlers.lisp"
                             "compiler/p2-vector-ref.lisp"
                             #+x86
