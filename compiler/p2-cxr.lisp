@@ -18,32 +18,43 @@
 
 (in-package "COMPILER")
 
-(defknown p2-%car (t t) t)
-(defun p2-%car (form target)
+;; REVIEW move these to kernel?
+(defconstant +car-offset+ 0)
+(defconstant +cdr-offset+ +bytes-per-word+)
+
+(defknown p2-%cxr (t t) t)
+(defun p2-%cxr (form target)
   (when (check-arg-count form 1)
-    (let* ((arg (%cadr form))
+    (let* ((op (%car form))
+           (arg (%cadr form))
            (reg (and (var-ref-p arg)
-                     (find-register-containing-var (var-ref-var arg)))))
+                     (find-register-containing-var (var-ref-var arg))))
+           (offset (ecase op
+                     ((%car car first) +car-offset+)
+                     ((%cdr cdr rest)  +cdr-offset+)))
+           (displacement (- offset +list-lowtag+)))
       (cond ((register-p target)
              (cond (reg
-                    (inst :mov `(-1 ,reg) target))
+                    (inst :mov `(,displacement ,reg) target))
                    (t
                     (process-1-arg arg target t)
-                    (inst :mov `(-1 ,target) target)))
+                    (inst :mov `(,displacement ,target) target)))
              (clear-register-contents target))
             ((eql target :stack)
              (cond (reg
-                    (inst :push `(-1 ,reg)))
+                    (inst :push `(,displacement ,reg)))
                    (t
                     (process-1-arg arg $ax t)
-                    (inst :push `(-1 ,$ax)))))
-            ((null target))
+                    (inst :push `(,displacement ,$ax)))))
+            ((null target)
+             (unless (flushable arg)
+               (p2 arg nil)))
             (t
              (cond (reg
-                    (inst :mov `(-1 ,reg) $ax))
+                    (inst :mov `(,displacement ,reg) $ax))
                    (t
                     (process-1-arg arg $ax t)
-                    (inst :mov `(-1 ,$ax) $ax)))
+                    (inst :mov `(,displacement ,$ax) $ax)))
              (clear-register-contents $ax)
              (move-result-to-target target))))
     t))
@@ -52,14 +63,14 @@
 #+x86
 (defun p2-car (form target)
   (when (zerop *safety*)
-    (return-from p2-car (p2-%car form target)))
+    (return-from p2-car (p2-%cxr form target)))
   (when (check-arg-count form 1)
     (let* ((arg (%cadr form))
            (type (derive-type arg)))
       (cond ((eq type 'LIST)
-             (p2-%car form target))
+             (p2-%cxr form target))
             ((cons-type-p type)
-             (p2-%car form target))
+             (p2-%cxr form target))
             (t
              (process-1-arg arg :edx t)
              (let* (;(common-labels (compiland-common-labels *current-compiland*))
@@ -92,14 +103,14 @@
 #+x86-64
 (defun p2-car (form target)
   (when (zerop *safety*)
-    (return-from p2-car (p2-%car form target)))
+    (return-from p2-car (p2-%cxr form target)))
   (when (check-arg-count form 1)
     (let* ((arg (%cadr form))
            (type (derive-type arg)))
       (cond ((eq type 'LIST)
-             (p2-%car form target))
+             (p2-%cxr form target))
             ((cons-type-p type)
-             (p2-%car form target))
+             (p2-%cxr form target))
             (t
              (process-1-arg arg :rdi t)
              (let ((ERROR-NOT-LIST (common-label-error-not-list *current-compiland* :rdi)))

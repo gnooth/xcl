@@ -3681,41 +3681,17 @@
             (t
              nil)))))
 
-(defknown p2-%cdr (t t) t)
-(defun p2-%cdr (form target)
-  (when (check-arg-count form 1)
-    (let* ((arg (%cadr form))
-           (reg (and (var-ref-p arg)
-                     (find-register-containing-var (var-ref-var arg)))))
-      (cond ((reg64-p target)
-             (cond (reg
-                    (inst :mov `(7 ,reg) target))
-                   (t
-                    (process-1-arg arg target t)
-                    (inst :mov `(7 ,target) target)))
-             (clear-register-contents target))
-            (reg
-             (inst :mov `(7 ,reg) :rax)
-             (clear-register-contents :rax)
-             (move-result-to-target target))
-            (t
-             (process-1-arg arg :rax t)
-             (inst :mov '(7 :rax) :rax)
-             (clear-register-contents :rax)
-             (move-result-to-target target))))
-    t))
-
 (defknown p2-cdr (t t) t)
 (defun p2-cdr (form target)
   (when (zerop *safety*)
-    (return-from p2-cdr (p2-%cdr form target)))
+    (return-from p2-cdr (p2-%cxr form target)))
   (when (check-arg-count form 1)
     (let* ((arg (%cadr form))
            (type (derive-type arg)))
       (cond ((eq type 'LIST)
-             (p2-%cdr form target))
+             (p2-%cxr form target))
             ((cons-type-p type)
-             (p2-%cdr form target))
+             (p2-%cxr form target))
             (t
              (process-1-arg arg :rdi t)
              (let ((ERROR-NOT-LIST (common-label-error-not-list *current-compiland* :rdi)))

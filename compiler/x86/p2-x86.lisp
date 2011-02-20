@@ -3957,30 +3957,17 @@
             (t
              nil)))))
 
-(defknown p2-%cdr (t t) t)
-(defun p2-%cdr (form target)
-  (when (check-arg-count form 1)
-    (process-1-arg (%cadr form) :eax t)
-    (cond ((reg32-p target)
-           (inst :mov '(3 :eax) target)
-           (clear-register-contents target))
-          (t
-           (inst :mov '(3 :eax) :eax)
-           (clear-register-contents :eax)
-           (move-result-to-target target)))
-    t))
-
 (defknown p2-cdr (t t) t)
 (defun p2-cdr (form target)
   (when (zerop *safety*)
-    (return-from p2-cdr (p2-%cdr form target)))
+    (return-from p2-cdr (p2-%cxr form target)))
   (when (check-arg-count form 1)
     (let* ((arg (%cadr form))
            (type (derive-type arg)))
       (cond ((eq type 'LIST)
-             (p2-%cdr form target))
+             (p2-%cxr form target))
             ((cons-type-p type)
-             (p2-%cdr form target))
+             (p2-%cxr form target))
             (t
              (process-1-arg arg :edx t)
              (let* (;(EXIT (make-label))
