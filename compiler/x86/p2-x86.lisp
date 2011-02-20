@@ -4148,20 +4148,6 @@
                  (move-result-to-target target))))))
     t))
 
-(defknown p2-%cadr (t t) t)
-(defun p2-%cadr (form target)
-  (when (check-arg-count form 1)
-    (process-1-arg (%cadr form) :eax t)
-    (inst :mov '(3 :eax) :eax)
-    (cond ((reg32-p target)
-           (inst :mov '(-1 :eax) target)
-           (clear-register-contents target))
-          (t
-           (inst :mov '(-1 :eax) :eax)
-           (clear-register-contents :eax)
-           (move-result-to-target target)))
-    t))
-
 (defknown p2-%cddr (t t) t)
 (defun p2-%cddr (form target)
   (when (check-arg-count form 1)

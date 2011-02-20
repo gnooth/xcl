@@ -3872,17 +3872,6 @@
                  (move-result-to-target target))))))
     t))
 
-(defknown p2-%cadr (t t) t)
-(defun p2-%cadr (form target)
-  (when (check-arg-count form 1)
-    (process-1-arg (%cadr form) :rax t)
-    (inst :mov '(7 :rax) :rax)
-    ;; FIXME if target is a register, do the move in one step
-    (inst :mov '(-1 :rax) :rax)
-    (clear-register-contents :rax)
-    (move-result-to-target target)
-    t))
-
 (defknown p2-%cddr (t t) t)
 (defun p2-%cddr (form target)
   (when (check-arg-count form 1)

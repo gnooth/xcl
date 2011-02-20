@@ -90,3 +90,32 @@
                (when var
                  (add-type-constraint var 'LIST))))))
     t))
+
+(defun p2-%cadr (form target)
+  (when (check-arg-count form 1)
+    (let ((arg (%cadr form)))
+      (cond ((null target)
+             (unless (flushable arg)
+               (p2 arg nil)))
+            (t
+             (let* ((reg (and (var-ref-p arg)
+                              (find-register-containing-var (var-ref-var arg))))
+                    (car-displacement (- +car-offset+ +list-lowtag+))
+                    (cdr-displacement (- +cdr-offset+ +list-lowtag+)))
+               (unless reg
+                 (process-1-arg arg $ax t)
+                 (setq reg $ax))
+               (cond ((register-p target)
+                      (inst :mov `(,cdr-displacement ,reg) target)
+                      (clear-register-contents target)
+                      (inst :mov `(,car-displacement ,target) target))
+                     ((eql target :stack)
+                      (inst :mov `(,cdr-displacement ,reg) reg)
+                      (clear-register-contents reg)
+                      (inst :push `(,car-displacement ,reg)))
+                     (t
+                      (inst :mov `(,cdr-displacement ,reg) $ax)
+                      (clear-register-contents $ax)
+                      (inst :mov `(,car-displacement ,$ax) $ax)
+                      (move-result-to-target target)))))))
+    t))
