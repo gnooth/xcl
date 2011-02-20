@@ -25,41 +25,71 @@
 (defknown p2-%cxr (t t) t)
 (defun p2-%cxr (form target)
   (when (check-arg-count form 1)
-    (let* ((op (%car form))
-           (arg (%cadr form))
-           (reg (and (var-ref-p arg)
-                     (find-register-containing-var (var-ref-var arg))))
-           (offset (ecase op
-                     ((%car car first) +car-offset+)
-                     ((%cdr cdr rest)  +cdr-offset+)))
-           (displacement (- offset +list-lowtag+)))
-      (cond ((register-p target)
-             (cond (reg
-                    (inst :mov `(,displacement ,reg) target))
-                   (t
-                    (process-1-arg arg target t)
-                    (inst :mov `(,displacement ,target) target)))
-             (clear-register-contents target))
-            ((eql target :stack)
-             (cond (reg
-                    (inst :push `(,displacement ,reg)))
-                   (t
-                    (process-1-arg arg $ax t)
-                    (inst :push `(,displacement ,$ax)))))
-            ((null target)
+    (let ((arg (%cadr form)))
+      (cond ((null target)
              (unless (flushable arg)
                (p2 arg nil)))
             (t
-             (cond (reg
-                    (inst :mov `(,displacement ,reg) $ax))
-                   (t
-                    (process-1-arg arg $ax t)
-                    (inst :mov `(,displacement ,$ax) $ax)))
-             (clear-register-contents $ax)
-             (move-result-to-target target))))
+             (let* ((reg (and (var-ref-p arg)
+                              (find-register-containing-var (var-ref-var arg))))
+                    (op (%car form))
+                    (offset (ecase op
+                              ((%car car first) +car-offset+)
+                              ((%cdr cdr rest)  +cdr-offset+)))
+                    (displacement (- offset +list-lowtag+)))
+               (unless reg
+                 (process-1-arg arg $ax t)
+                 (setq reg $ax))
+               (cond ((register-p target)
+                      (inst :mov `(,displacement ,reg) target)
+                      (clear-register-contents target))
+                     ((eql target :stack)
+                      (inst :push `(,displacement ,reg)))
+                     (t
+                      (inst :mov `(,displacement ,reg) $ax)
+                      (clear-register-contents $ax)
+                      (move-result-to-target target)))))))
     t))
 
 (defknown p2-car (t t) t)
+#+x86-64
+(defun p2-car (form target)
+  (when (check-arg-count form 1)
+    (let* ((arg (%cadr form)))
+      (cond ((or (zerop *safety*)
+                 (subtypep (derive-type arg) 'LIST))
+             (p2-%cxr form target))
+            (t
+             (let* ((ERROR-NOT-LIST (common-error-label 'error-not-list $ax))
+                    (var (and (var-ref-p arg) (var-ref-var arg)))
+                    (reg (and var (find-register-containing-var var)))
+                    (op (%car form))
+                    (offset (ecase op
+                              ((%car car first) +car-offset+)
+                              ((%cdr cdr rest)  +cdr-offset+)))
+                    (displacement (- offset +list-lowtag+)))
+               (unless reg
+                 (process-1-arg arg $ax t)
+                 (setq reg $ax))
+               (inst :mov (reg8 reg) :dl)
+               (clear-register-contents $dx)
+               (inst :and +lowtag-mask+ :dl)
+               (inst :cmp +list-lowtag+ :dl)
+               (emit-jmp-short :ne ERROR-NOT-LIST)
+               (cond ((null target))
+                     ((register-p target)
+                      (inst :mov `(,displacement ,reg) target)
+                      (clear-register-contents target))
+                     ((eql target :stack)
+                      (inst :push `(,displacement ,reg)))
+                     (t
+                      (inst :mov `(,displacement ,reg) $ax)
+                      (clear-register-contents $ax)
+                      (move-result-to-target target)))
+               (when var
+                 (add-type-constraint var 'LIST))))))
+    t))
+
 #+x86
 (defun p2-car (form target)
   (when (zerop *safety*)
@@ -100,7 +130,8 @@
                (when (var-ref-p arg)
                  (add-type-constraint (var-ref-var arg) 'LIST))))))
     t))
-#+x86-64
+;#+x86-64
+#+nil
 (defun p2-car (form target)
   (when (zerop *safety*)
     (return-from p2-car (p2-%cxr form target)))
