@@ -99,3 +99,28 @@
     t))
 
 (define-type-predicate-handler p2-numberp p2-test-numberp)
+
+(defknown %p2-test-fixnump (t t t) t)
+(defun %p2-test-fixnump (form label-if-true label-if-false)
+  (when (check-arg-count form 1)
+    (let* ((arg (%cadr form))
+           (type (derive-type arg)))
+      (cond ((fixnum-type-p type)
+             (when label-if-true
+               (emit-jmp-short t label-if-true)))
+            (t
+             (let* ((var (and (var-ref-p arg) (var-ref-var arg)))
+                    (reg (and var (find-register-containing-var var))))
+               (unless reg
+                 (process-1-arg arg $ax t)
+                 (setq reg $ax))
+               (inst :test +fixnum-tag-mask+ (reg8 reg))
+               (when label-if-true
+                 (emit-jmp-short :e label-if-true))
+               (when label-if-false
+                 (emit-jmp-short :ne label-if-false))))))
+    t))
+
+(defknown p2-test-fixnump (t t) t)
+(defun p2-test-fixnump (test-form label)
+  (%p2-test-fixnump test-form nil label))

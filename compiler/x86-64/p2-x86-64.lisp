@@ -974,22 +974,6 @@
       (label EXIT))
     t))
 
-(defknown %p2-test-fixnump (t t t) t)
-(defun %p2-test-fixnump (form label-if-true label-if-false)
-  (when (check-arg-count form 1)
-    (let ((arg (%cadr form)))
-      (process-1-arg arg :rax t)
-      (inst :test +fixnum-tag-mask+ :al)
-      (when label-if-true
-        (emit-jmp-short :e label-if-true))
-      (when label-if-false
-        (emit-jmp-short :ne label-if-false)))
-    t))
-
-(defknown p2-test-fixnump (t t) t)
-(defun p2-test-fixnump (test-form label)
-  (%p2-test-fixnump test-form nil label))
-
 (defun %p2-test-plusp (form label-if-true label-if-false)
   (when (check-arg-count form 1)
     (let* ((arg (cadr form))
