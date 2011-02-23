@@ -368,6 +368,7 @@
                 read-8-bits
                 require-type
                 row-major-aset
+                rdtsc
                 set-cadr
                 set-local-variable-information
                 setcar

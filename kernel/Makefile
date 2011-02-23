@@ -38,7 +38,7 @@ else
 endif
 
 LIBOBJS = lisp.o xcl_home.o \
-	source-information.o \
+	rdtsc.o source-information.o \
 	copy-vector.o copy-seq.o reader.o streams.o run-shell-command.o \
 	FaslReadtable.o Readtable.o Stream.o \
 	debug.o stack.o \

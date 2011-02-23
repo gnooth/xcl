@@ -763,6 +763,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_quit, EXT_quit, 0, 0);
   ADD_PRIMITIVE(S_quoted_form_p, SYS_quoted_form_p, 1, 1);
   ADD_PRIMITIVE(S_ratiop, SYS_ratiop, 1, 1);
+  ADD_PRIMITIVE(S_rdtsc, SYS_rdtsc, 0, 0);
   ADD_PRIMITIVE(S_read_8_bits, SYS_read_8_bits, 3, 3);
   ADD_PRIMITIVE(S_read_backquote, SYS_read_backquote, 2, 2);
   ADD_PRIMITIVE(S_read_comma, SYS_read_comma, 2, 2);

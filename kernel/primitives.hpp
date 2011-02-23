@@ -700,6 +700,7 @@ extern Value SYS_puthash3(Value arg1, Value arg2, Value arg3);
 extern Value SYS_puthash4(Value arg1, Value arg2, Value arg3, Value arg4);
 extern Value SYS_quoted_form_p(Value form);
 extern Value SYS_ratiop(Value arg);
+extern Value SYS_rdtsc();
 extern Value SYS_read_8_bits(Value arg1, Value arg2, Value arg3);
 extern Value SYS_read_backquote(Value stream, Value ignored);
 extern Value SYS_read_comma(Value stream, Value ignored);
