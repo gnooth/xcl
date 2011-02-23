@@ -126,6 +126,7 @@
 (install-p2-handler 'position-eql               'p2-position-eql)
 (install-p2-handler 'puthash3                   'p2-puthash)
 (install-p2-handler 'puthash4                   'p2-puthash)
+(install-p2-handler 'rdtsc                      'p2-rdtsc)
 (install-p2-handler 'rem                        'p2-rem)
 (install-p2-handler 'require-boolean            'p2-require-boolean)
 (install-p2-handler 'require-character          'p2-require-character)
