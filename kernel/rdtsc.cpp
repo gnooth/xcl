@@ -20,22 +20,25 @@
 #include "lisp.hpp"
 #include "primitives.hpp"
 
-extern "C" {
-  __inline__ uint64_t rdtsc()
-  {
-    uint32_t lo, hi;
-    __asm__ __volatile__ ("xorl %%eax,%%eax\n\t"
-                          "cpuid"
-                          ::: "%rax", "%rbx", "%rcx", "%rdx" // clobber list
-                          );
-    __asm__ __volatile__ ("rdtsc"
-                          : "=a"(lo), "=d"(hi));
-    return (uint64_t)hi << 32 | lo;
-  }
-}
-
 // ### rdtsc
 Value SYS_rdtsc()
 {
-  return make_unsigned_integer(rdtsc());
+  uint32_t lo, hi;
+  __asm__ __volatile__ ("xorl %%eax,%%eax\n\t"
+                        "cpuid"
+                        ::: "%rax", "%rbx", "%rcx", "%rdx" // clobber list
+                        );
+  __asm__ __volatile__ ("rdtsc"
+                        : "=a"(lo), "=d"(hi));
+#ifdef __x86_64__
+  return make_unsigned_integer((uint64_t)hi << 32 | lo);
+#else
+  if (hi == 0)
+    return make_unsigned_integer(lo);
+  mpz_t result;
+  mpz_init_set_ui(result, hi);
+  mpz_mul_2exp(result, result, 32);
+  mpz_add_ui(result, result, lo);
+  return make_value(new Bignum(result));
+#endif
 }
