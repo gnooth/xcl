@@ -1703,3 +1703,18 @@
         (inst :exit)
         (setf (gethash key common-labels) label)))
     label))
+
+(defun p2-rdtsc (form target)
+  #+x86
+  (emit-call 'rdtsc)
+  #+x86-64
+  (progn
+    (clear-register-contents)
+    (inst :xor :eax :eax)
+    (inst :cpuid)
+    (inst :rdtsc)
+    (inst :shl 32 :rdx)
+    (inst :add :rdx :rax)
+    (box-fixnum :rax))
+  (move-result-to-target target)
+  t)
