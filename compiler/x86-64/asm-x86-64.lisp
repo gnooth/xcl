@@ -205,6 +205,9 @@
         (t
          (unsupported))))
 
+(define-assembler :cpuid
+  (emit-bytes #x0f #xa2))
+
 (define-assembler :int3
   (emit-byte #xcc))
 
@@ -761,6 +764,9 @@
            (emit-raw (car operand1))))
         (t
          (unsupported))))
+
+(define-assembler :rdtsc
+  (emit-bytes #x0f #x31))
 
 (define-assembler :ret
   (emit-byte #xc3))

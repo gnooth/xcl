@@ -176,6 +176,9 @@
         (t
          (unsupported))))
 
+(define-assembler :cpuid
+  (emit-bytes #x0f #xa2))
+
 (define-assembler :leave
   (emit-byte #xc9))
 
@@ -534,6 +537,9 @@
            (emit-raw (car operand1))))
         (t
          (unsupported))))
+
+(define-assembler :rdtsc
+  (emit-bytes #x0f #x31))
 
 (define-assembler :sar
   (cond ((and (typep operand1 '(unsigned-byte 8))

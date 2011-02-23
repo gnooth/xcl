@@ -440,7 +440,10 @@
                       (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
                 (#x0f
                  (let ((byte2 (mref-8 block-start (1+ offset))))
-                   (cond ((eql byte2 #x92)
+                   (cond ((eql byte2 #x31)
+                          (setq length 2
+                                mnemonic :rdtsc))
+                         ((eql byte2 #x92)
                           (with-modrm-byte (mref-8 block-start (+ offset 2))
                             (cond ((and (eql mod #b11)
                                         (eql reg 0))
@@ -450,6 +453,9 @@
                                   (t
                                    (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
                                           byte1 byte2 modrm-byte)))))
+                         ((eql byte2 #xa2)
+                          (setq length 2
+                                mnemonic :cpuid))
                          ((eql byte2 #xab)
                           (with-modrm-byte (mref-8 block-start (+ offset 2))
                             (cond ((eql mod #b01)

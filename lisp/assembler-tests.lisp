@@ -108,6 +108,8 @@
     ((:setb :al)                #(#x0f #x92 #xc0))
     ((:bt :eax (#x1e :edx))     #(#x0f #xa3 #x42 #x1e))
     ((:bt :edx (#x1e :eax))     #(#x0f #xa3 #x50 #x1e))
+    ((:cpuid)                   #(#x0f #xa2))
+    ((:rdtsc)                   #(#x0f #x31))
     ((:ret)                     #(#xc3))
     ))
 
@@ -359,6 +361,8 @@
     ((:bt :rsi (#x1e :rdi))     #(#x48 #x0f #xa3 #x77 #x1e))
     ((:bts :rsi (#x1e :rdi))    #(#x48 #x0f #xab #x77 #x1e))
     ((:btr :rsi (#x1e :rdi))    #(#x48 #x0f #xb3 #x77 #x1e))
+    ((:cpuid)                   #(#x0f #xa2))
+    ((:rdtsc)                   #(#x0f #x31))
     ((:ret)                     #(#xc3))
     ))
 
