@@ -1704,14 +1704,27 @@
         (setf (gethash key common-labels) label)))
     label))
 
+(defun p2-%cpuid (form target)
+  (declare (ignore form target))
+  (mumble "p2-%cpuid~%")
+  (inst :push $bx)
+  (inst :cpuid)
+  (inst :pop $bx)
+  (clear-register-contents)
+  t)
+
 (defun p2-rdtsc (form target)
+  (declare (ignore form))
+  (mumble "p2-rdtsc~%")
   #+x86
   (emit-call 'rdtsc)
   #+x86-64
   (progn
     (clear-register-contents)
-    (inst :xor :eax :eax)
-    (inst :cpuid)
+;;     (inst :xor :eax :eax)
+;;     (inst :push :rbx)
+;;     (inst :cpuid)
+;;     (inst :pop :rbx)
     (inst :rdtsc)
     (inst :shl 32 :rdx)
     (inst :add :rdx :rax)

@@ -57,6 +57,7 @@
 (install-p2-handler '%car                       'p2-%cxr)
 (install-p2-handler '%cddr                      'p2-%cddr)
 (install-p2-handler '%cdr                       'p2-%cxr)
+(install-p2-handler '%cpuid                     'p2-%cpuid)
 (install-p2-handler '%dpb                       'p2-%dpb)
 (install-p2-handler '%rplacd                    'p2-rplacd)
 (install-p2-handler '%set-sbit1                 'p2-set-sbit1)
