@@ -908,6 +908,7 @@ extern Value SYS_xcar(Value arg);
 extern Value SYS_xcddr(Value arg);
 extern Value SYS_xcdr(Value arg);
 extern Value SYS_xclass_precedence_list(Value arg);
+extern Value SYS_xcpuid();
 extern Value SYS_xgethash2_1(Value arg1, Value arg2);
 extern Value SYS_xinspected_parts(Value arg);
 extern Value SYS_xlist_length(Value arg);

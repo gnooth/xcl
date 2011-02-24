@@ -19,19 +19,46 @@
 #include <stdint.h>
 #include "lisp.hpp"
 #include "primitives.hpp"
+#include "runtime.h"
+
+// ### %cpuid
+Value SYS_xcpuid()
+{
+#ifdef __x86_64__
+  __asm__ __volatile__("cpuid"
+                       ::: "%rax", "%rbx", "%rcx", "%rdx" // clobber list
+                       );
+#else
+  __asm__ __volatile__("cpuid"
+                       ::: "%eax", "%ebx", "%ecx", "%edx" // clobber list
+                       );
+#endif
+  return NIL;
+}
 
 // ### rdtsc
 Value SYS_rdtsc()
 {
   uint32_t lo, hi;
-  __asm__ __volatile__ ("xorl %%eax,%%eax\n\t"
-                        "cpuid"
-                        ::: "%rax", "%rbx", "%rcx", "%rdx" // clobber list
-                        );
-  __asm__ __volatile__ ("rdtsc"
-                        : "=a"(lo), "=d"(hi));
+
+// #ifdef __x86_64__
+//   __asm__ __volatile__ (//"xorl %%eax,%%eax\n\t"
+//                         "cpuid"
+//                         ::: "%rax", "%rbx", "%rcx", "%rdx" // clobber list
+//                         );
+// #else
+//   __asm__ __volatile__ (//"xorl %%eax,%%eax\n\t"
+//                         "cpuid"
+//                         ::: "%eax", "%ebx", "%ecx", "%edx" // clobber list
+//                         );
+// #endif
+
+  __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+
 #ifdef __x86_64__
-  return make_unsigned_integer((uint64_t)hi << 32 | lo);
+//   return make_unsigned_integer((uint64_t)hi << 32 | lo);
+  uint64_t t = ((uint64_t) hi) << 32 | lo;
+  return t << FIXNUM_SHIFT;
 #else
   if (hi == 0)
     return make_unsigned_integer(lo);

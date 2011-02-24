@@ -970,6 +970,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_xcddr, SYS_xcddr, 1, 1);
   ADD_PRIMITIVE(S_xcdr, SYS_xcdr, 1, 1);
   ADD_PRIMITIVE(S_xclass_precedence_list, SYS_xclass_precedence_list, 1, 1);
+  ADD_PRIMITIVE(S_xcpuid, SYS_xcpuid, 0, 0);
   ADD_PRIMITIVE(S_xgethash2_1, SYS_xgethash2_1, 2, 2);
   ADD_PRIMITIVE(S_xinspected_parts, SYS_xinspected_parts, 1, 1);
   ADD_PRIMITIVE(S_xlist_length, SYS_xlist_length, 1, 1);
