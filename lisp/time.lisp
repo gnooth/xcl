@@ -24,6 +24,7 @@
   `(%time (lambda () ,form)))
 
 (defun %time (fun)
+  (declare (type function fun))
   (let (old-run-utime
         new-run-utime
         old-run-stime
@@ -119,8 +120,8 @@
                 (max (/ (- new-run-stime old-run-stime run-stime-overhead)
                         (float internal-time-units-per-second))
                      0.0))
-        (format out "  ~D processor cycles~%" (- new-cycle-count old-cycle-count))
+        (format out "  ~:D processor cycles~%" (- new-cycle-count old-cycle-count))
         (format out "  ~:D bytes allocated~%"
                 (max (- new-gc-total-bytes old-gc-total-bytes gc-total-bytes-overhead) 0))
         (let ((cons-cells (max (- new-total-cons-cells old-total-cons-cells total-cons-cells-overhead) 0)))
-          (format out "  ~:D cons cell~A~%" cons-cells (if (eql cons-cells 1) "" "s")))))))
+          (format out "  ~:D cons cell~:P~%" cons-cells))))))
