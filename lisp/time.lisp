@@ -1,6 +1,6 @@
 ;;; time.lisp
 ;;;
-;;; Copyright (C) 2007-2008 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2007-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -33,20 +33,22 @@
         real-time-overhead
         run-utime-overhead
         run-stime-overhead
+        old-cycle-count
+        new-cycle-count
         old-gc-total-bytes
         new-gc-total-bytes
         gc-total-bytes-overhead
         old-total-cons-cells
         new-total-cons-cells
         total-cons-cells-overhead)
-    ;; Warm up...
+    ;; warm up
     (multiple-value-setq
       (old-run-utime old-run-stime)
       (get-process-times))
     (setq old-real-time (get-internal-real-time))
     (setq old-gc-total-bytes (gc-total-bytes))
     (setq old-total-cons-cells (gc-total-cons-cells))
-    ;; Calculate the overhead...
+    ;; calculate overhead
     (let ((dummy (lambda () nil)))
       (multiple-value-setq
         (old-run-utime old-run-stime)
@@ -77,15 +79,21 @@
     #+x86
     (incf gc-total-bytes-overhead 16)
 
-    ;; Now get the initial times.
+    ;; now get the initial times
     (multiple-value-setq
       (old-run-utime old-run-stime)
       (get-process-times))
     (setq old-real-time (get-internal-real-time))
     (setq old-gc-total-bytes (gc-total-bytes))
+    (%cpuid)
+    (%cpuid)
+    (%cpuid)
+    (setq old-cycle-count (rdtsc))
     (multiple-value-prog1
-      ;; Execute the form and return its values.
+      ;; execute the form and return its values
       (funcall fun)
+      (%cpuid)
+      (setq new-cycle-count (rdtsc))
       (setq new-gc-total-bytes (gc-total-bytes))
       (setq new-total-cons-cells (gc-total-cons-cells))
       (multiple-value-setq
@@ -111,6 +119,7 @@
                 (max (/ (- new-run-stime old-run-stime run-stime-overhead)
                         (float internal-time-units-per-second))
                      0.0))
+        (format out "  ~D processor cycles~%" (- new-cycle-count old-cycle-count))
         (format out "  ~:D bytes allocated~%"
                 (max (- new-gc-total-bytes old-gc-total-bytes gc-total-bytes-overhead) 0))
         (let ((cons-cells (max (- new-total-cons-cells old-total-cons-cells total-cons-cells-overhead) 0)))
