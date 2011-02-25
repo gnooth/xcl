@@ -1003,6 +1003,16 @@ Value RT_make_unsigned_bignum(unsigned long n)
   return make_value(new Bignum(n));
 }
 
+Value RT_fix_overflow(signed long n)
+{
+#ifdef __x86_64__
+  n ^= 0xc000000000000000;
+#else
+  n ^= 0xc0000000;
+#endif
+  return make_value(new Bignum(n));
+}
+
 void RT_progv_bind_vars(Thread * thread, Value symbols, Value values)
 {
   for (Value list = symbols; list != NIL; list = xcdr(list))
@@ -1426,6 +1436,9 @@ void initialize_runtime()
 
   ht_names->put(make_simple_string("RT_make_unsigned_bignum"),
                 make_integer((unsigned long)RT_make_unsigned_bignum));
+
+  ht_names->put(make_simple_string("RT_fix_overflow"),
+                make_integer((unsigned long)RT_fix_overflow));
 
   ht_names->put(make_simple_string("RT_progv_bind_vars"),
                 make_integer((unsigned long)RT_progv_bind_vars));
