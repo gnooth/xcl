@@ -130,6 +130,7 @@
                             "compiler/ir2-defs.lisp"
                             "compiler/p2.lisp"
                             "compiler/p2-call.lisp"
+                            "compiler/p2-arith.lisp"
                             "compiler/p2-check-fixnum-bounds.lisp"
                             "compiler/p2-cxr.lisp"
                             "compiler/p2-length.lisp"
