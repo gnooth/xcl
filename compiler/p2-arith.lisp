@@ -20,7 +20,7 @@
 
 (defknown p2-two-arg-+ (t t) t)
 
-#+x86-64
+;; #+x86-64
 (defun p2-two-arg-+ (form target)
   (mumble "p2-two-arg-+ new version~%")
   (when (check-arg-count form 2)
@@ -137,11 +137,11 @@
                  (let ((*current-segment* :elsewhere))
                    (label FULL-CALL)
                    #+x86    (progn
-                              (push $dx)
-                              (push $ax))
+                              (inst :push :edx)
+                              (inst :push :eax))
                    #+x86-64 (progn
-                              (inst :mov $dx $si)
-                              (inst :mov $ax $di))
+                              (inst :mov :rdx :rsi)
+                              (inst :mov :rax :rdi))
                    (emit-call 'two-arg-+)
                    #+x86    (inst :add (* +bytes-per-word+ 2) :esp)
                    (emit-jmp-short t EXIT)))
@@ -153,7 +153,7 @@
                    #+x86    (inst :push :eax)
                    #+x86-64 (inst :mov :rax :rdi)
                    (emit-call "RT_fix_overflow")
-                   #+x86    (inst :sub +bytes-per-word+ :esp)
+                   #+x86    (inst :add +bytes-per-word+ :esp)
                    (emit-jmp-short t EXIT)))
                ))))
     t))
@@ -268,7 +268,8 @@
                (move-result-to-target target)))))
     t))
 
-#+x86
+;; #+x86
+#+nil
 (defun p2-two-arg-+ (form target)
   (let ((args (cdr form)))
     (when (eql (length args) 2)
