@@ -109,15 +109,27 @@
                    (emit-jmp-short t EXIT))
                  )))
 
-            #+nil
-            ((and (fixnum-type-p type1) (fixnum-type-p type2) (fixnum-type-p type3))
-             )
+            ((and (fixnum-type-p type1) (fixnum-type-p type2) (fixnum-type-p result-type))
+             (let (reg1 reg2)
+               (cond ((register-p target)
+                      (mumble "p2-two-arg-+ case 2a target = ~S~%" target)
+                      (setq reg2 target))
+                     (t
+                      (mumble "p2-two-arg-+ case 2b target = ~S~%" target)
+                      (setq reg2 $ax)))
+               (setq reg1 (if (eql reg2 $ax) $dx $ax))
+               (process-2-args args `(,reg1 ,reg2) t)
+               (inst :add reg1 reg2)
+               (clear-register-contents reg2)
+               (unless (eq reg2 target)
+                 (aver (eq reg2 $ax))
+                 (move-result-to-target target))))
 
             (t
              (let ((FULL-CALL (make-label))
                    (FIX-OVERFLOW (make-label))
                    (EXIT (make-label)))
-               (mumble "p2-two-arg-+ case 2~%")
+               (mumble "p2-two-arg-+ case 3~%")
                (process-2-args args `(,$ax ,$dx) t)
                (unless (fixnum-type-p type1)
                  (inst :test +fixnum-tag-mask+ :al)
