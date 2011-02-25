@@ -64,6 +64,7 @@
                  (numeric-but-not-fixnum-type-p type2))
              (process-2-args args :default t)
              (emit-call-2 'two-arg-+ target))
+            #+x86-64
             ((and (fixnump arg2)
                   (typep (fixnumize arg2) '(signed-byte 32)))
              (let* ((FULL-CALL (make-label))
