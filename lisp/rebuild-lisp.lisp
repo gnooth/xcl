@@ -396,6 +396,7 @@
                             "with-package-iterator"
                             "with-slots"
                             "with-standard-io-syntax"
+                            "with-time-stamp-counter"
                             "without-gcing"
                             "write"
                             "write-byte"

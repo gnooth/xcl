@@ -270,6 +270,9 @@
 
 (autoload-macro 'without-gcing)
 
+(export 'with-time-stamp-counter)
+(autoload-macro 'with-time-stamp-counter)
+
 (in-package "EXTENSIONS")
 
 (autoload 'make-mutex)
