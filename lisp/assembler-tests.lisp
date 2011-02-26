@@ -326,6 +326,8 @@
     ((:movq -1 (:rax))          #(#x48 #xc7 #x00 #xff #xff #xff #xff))
     ((:neg :rax)                #(#x48 #xf7 #xd8))
     ((:neg :rcx)                #(#x48 #xf7 #xd9))
+    ((:neg :r8)                 #(#x49 #xf7 #xd8))
+    ((:neg :r9)                 #(#x49 #xf7 #xd9))
     ((:not :rax)                #(#x48 #xf7 #xd0))
     ((:sar :rax)                #(#x48 #xd1 #xf8))
     ((:sar 1 :rax)              #(#x48 #xd1 #xf8))
