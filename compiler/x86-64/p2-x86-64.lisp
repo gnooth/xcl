@@ -3236,6 +3236,7 @@
            nil))))
 
 (defknown p2-two-arg-- (t t) t)
+#+nil
 (defun p2-two-arg-- (form target)
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
