@@ -800,7 +800,6 @@
                          operand1 (make-absolute-operand absolute-address))))
                 (#x81
                  (with-modrm-byte (mref-8 block-start (1+ offset))
-                   (mumble "#x81 mod = ~S reg = ~S~%" mod reg)
                    (cond ((and (eql mod #b11)
                                (eql reg 0))
                           (setq length 6
