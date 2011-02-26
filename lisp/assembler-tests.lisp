@@ -169,6 +169,7 @@
     ((:sub -2147483648 :r10)    #(#x49 #x81 #xea #x00 #x00 #x00 #x80))
     ((:sub 2147483647 :r10)     #(#x49 #x81 #xea #xff #xff #xff #x7f))
     ((:sub :rdx :rax)           #(#x48 #x29 #xd0))
+    ((:sub :rax :r8)            #(#x49 #x29 #xc0))
     ((:sub 6 :al)               #(#x2c #x06))
     ((:test 3 :al)              #(#xa8 #x03))
     ((:test 3 :dl)              #(#xf6 #xc2 #x03))

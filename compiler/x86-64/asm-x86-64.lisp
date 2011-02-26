@@ -916,8 +916,11 @@
          (let* ((mod #b11)
                 (reg (register-number operand1))
                 (rm  (register-number operand2))
-                (modrm-byte (make-modrm-byte mod reg rm)))
-           (emit-bytes #x48 #x29 modrm-byte)))
+                (modrm-byte (make-modrm-byte mod reg rm))
+                (prefix-byte #x48))
+           (when (extended-register-p operand2)
+             (setq prefix-byte (logior prefix-byte rex.b)))
+           (emit-bytes prefix-byte #x29 modrm-byte)))
         (t
          (unsupported))))
 

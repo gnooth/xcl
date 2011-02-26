@@ -555,8 +555,8 @@
                      (#b11
                       (setq length 2
                             mnemonic :sub
-                            operand1 (make-register-operand (register reg prefix-byte))
-                            operand2 (make-register-operand (register rm prefix-byte))))
+                            operand1 (make-register-operand (register-reg reg prefix-byte))
+                            operand2 (make-register-operand (register-rm rm prefix-byte))))
                      (t
                       (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)
                       ))))
