@@ -64,7 +64,6 @@
                  (numeric-but-not-fixnum-type-p type2))
              (process-2-args args :default t)
              (emit-call-2 'two-arg-+ target))
-            #+x86-64
             ((and (fixnump arg2)
                   (typep (fixnumize arg2) '(signed-byte 32)))
              (let* ((FULL-CALL (make-label))
@@ -87,7 +86,7 @@
                  (let ((*current-segment* :elsewhere))
                    (label FULL-CALL)
                    (clear-register-contents)
-                   #+86     (progn
+                   #+x86    (progn
                               (inst :push (fixnumize arg2))
                               (inst :push reg))
                    #+x86-64 (progn
@@ -100,9 +99,10 @@
                  (clear-register-contents)
                  (let ((*current-segment* :elsewhere))
                    (label FIX-OVERFLOW)
-                   (unbox-fixnum $ax)
-                   #+x86    (inst :push :eax)
-                   #+x86-64 (inst :mov :rax :rdi)
+                   (unbox-fixnum reg)
+                   #+x86    (inst :push reg)
+                   #+x86-64 (unless (eq reg :rdi)
+                              (inst :mov reg :rdi))
                    (emit-call "RT_fix_overflow")
                    #+x86    (inst :add +bytes-per-word+ :esp)
                    (emit-jmp-short t EXIT)))))
