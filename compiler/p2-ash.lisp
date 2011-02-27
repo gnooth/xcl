@@ -18,20 +18,14 @@
 
 (in-package "COMPILER")
 
-;; REVIEW move to kernel?
-(defconstant +bits-per-word+
-  #+x86    32
-  #+x86-64 64)
-
 (defun p2-ash (form target)
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
            (arg1 (%car args))
            (arg2 (%cadr args)))
-      ;; REVIEW what about arguments of the wrong type in safe code?
       (when (null target)
-        (p2 arg1 nil)
-        (p2 arg2 nil)
+        (p2 `(require-integer ,arg1) nil)
+        (p2 `(require-integer ,arg2) nil)
         (maybe-emit-clear-values arg1 arg2)
         (return-from p2-ash t))
       (let* ((type1 (derive-type arg1))
@@ -49,8 +43,7 @@
         (when (and (integerp arg1) (integerp arg2))
           (p2-constant (ash arg1 arg2) target)
           (return-from p2-ash t))
-        (cond ((and (integer-constant-value type1)
-                    shift)
+        (cond ((and shift (integer-constant-value type1))
                ;; both args evaluate to constants
                (let ((must-clear-values nil))
                  (unless (flushable arg1)
