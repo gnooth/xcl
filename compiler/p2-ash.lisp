@@ -23,7 +23,7 @@
   #+x86    32
   #+x86-64 64)
 
-#+x86-64
+;; #+x86-64
 (defun p2-ash (form target)
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
@@ -100,11 +100,12 @@
                (unless (flushable arg2)
                  (p2 arg2 nil))
                (p2-constant 0 target))
+;;               #+x86-64
               ((and (fixnum-type-p type1)
                     (fixnum-type-p type2)
                     (fixnum-type-p result-type))
                ;; args and result are all fixnum-type-p
-               (cond ((and shift (< (abs shift) 64))
+               (cond ((and shift (< (abs shift) +bits-per-word+))
                       (cond ((< shift 0)
                              (cond ((flushable arg2)
                                     (mumble "p2-ash all fixnum-type-p case 3a target = ~S~%" target)
@@ -141,6 +142,7 @@
                                     (inst :shl :cl $ax)
                                     (clear-register-contents $ax $cx)
                                     (move-result-to-target target))))))
+                     #+x86-64
                      ((subtypep type2 '(INTEGER -63 0))
                       (mumble "p2-ash all fixnum-type-p case 3e type2 = ~S~%" type2)
                       (process-2-args args `(,$ax ,$cx) t)
@@ -150,6 +152,7 @@
                       (inst :and #xfc :al) ; clear tag bits
                       (clear-register-contents $ax $cx)
                       (move-result-to-target target))
+                     #+x86-64
                      ((subtypep type2 '(INTEGER 0 63))
                       (mumble "p2-ash all fixnum-type-p case 3f type2 = ~S~%" type2)
                       (process-2-args args `(,$ax ,$cx) t)
@@ -163,6 +166,7 @@
                               type1 type2 result-type)
                       (process-2-args args :default t)
                       (emit-call-2 'ash target))))
+              #+x86-64
               ((and shift (< shift 0) (> shift -64))
                ;; negative shift, arg1 and/or result not known to be fixnum-type-p
                (mumble "p2-ash case 4~%")
@@ -203,6 +207,7 @@
                             (emit-jmp-short t EXIT))
                           (label EXIT))))
                  (move-result-to-target target)))
+              #+x86-64
               ((and shift (> shift 0) (< shift +bits-per-word+)
                     (fixnum-type-p type1)
                     (subtypep result-type `(unsigned-byte ,+bits-per-word+)))
@@ -214,6 +219,7 @@
                (inst :mov :rax :rdi)
                (emit-call "RT_make_unsigned_integer")
                (move-result-to-target target))
+              #+x86-64
               ((and (subtypep type1 'unsigned-byte)
 ;;                     (subtypep type2 '(integer -31 31)) ; REVIEW
                     (subtypep type2 `(integer ,(- (1- +bits-per-word+)) ,(1- +bits-per-word+)))
@@ -498,7 +504,8 @@
              (move-result-to-target target)
              t)))))
 
-#+x86
+;; #+x86
+#+nil
 (defun p2-ash (form target)
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
