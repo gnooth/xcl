@@ -59,6 +59,36 @@
                  (add-type-constraint (var-ref-var arg) 'FIXNUM))))))
     t))
 
+(defun p2-require-integer (form target)
+  (when (check-arg-count form 1)
+    (let ((arg (%cadr form)))
+      (cond ((zerop *safety*)
+             (p2 arg target))
+            ((fixnum-type-p (derive-type arg))
+             (p2 arg target))
+            (t
+             (mumble "p2-require-integer~%")
+             (let ((EXIT (make-label))
+                   (ERROR (common-error-label 'error-not-integer $ax)))
+               (process-1-arg arg $ax t)
+               (inst :test +fixnum-tag-mask+ :al)
+               (emit-jmp-short :z EXIT)
+               (inst :mov :al :dl)
+               (clear-register-contents $dx)
+               (inst :and +lowtag-mask+ :dl)
+               (inst :cmp +typed-object-lowtag+ :dl)
+               (emit-jmp-short :ne ERROR)
+               (aver (typep +bignum-widetag+ '(unsigned-byte 32)))
+               (inst #+x86 :cmpl #+x86-64 :cmpq
+                     +bignum-widetag+
+                     `(,(- +widetag-offset+ +typed-object-lowtag+) ,$ax))
+               (emit-jmp-short :ne ERROR)
+               (label EXIT)
+               (move-result-to-target target)
+               (when (var-ref-p arg)
+                 (add-type-constraint (var-ref-var arg) 'FIXNUM))))))
+    t))
+
 (defun p2-require-number (form target)
   (when (check-arg-count form 1)
     (let ((arg (%cadr form)))
@@ -67,7 +97,6 @@
             ((fixnum-type-p (derive-type arg))
              (p2 arg target))
             (t
-             (mumble "p2-require-number~%")
              (let ((EXIT (make-label))
                    (ERROR (common-error-label 'error-not-number $ax)))
                (process-1-arg arg $ax t)
@@ -115,7 +144,7 @@
     (inst #+x86 :cmpl #+x86-64 :cmpq
           widetag
           `(,(- +widetag-offset+ +typed-object-lowtag+) ,$ax))
-    (emit-jmp-short :nz ERROR)))
+    (emit-jmp-short :ne ERROR)))
 
 (defmacro define-require-type-handler (type)
   (let* ((type-string (string type))
@@ -180,9 +209,6 @@
 
 (defun p2-require-hash-table (form target)
   (%p2-require-type form target 'hash-table))
-
-(defun p2-require-integer (form target)
-  (%p2-require-type form target 'integer))
 
 (defun p2-require-keyword (form target)
   (%p2-require-type form target 'keyword))
