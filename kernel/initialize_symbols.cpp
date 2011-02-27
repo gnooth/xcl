@@ -216,6 +216,7 @@ void initialize_symbols()
   the_symbol(S_widetag_stream_bit)->initialize_constant(make_unsigned_integer(WIDETAG_ANSI_STREAM_BIT));
   the_symbol(S_widetag_vector_bit)->initialize_constant(make_unsigned_integer(WIDETAG_VECTOR_BIT));
 
+  the_symbol(S_bignum_widetag)->initialize_constant(make_unsigned_integer(WIDETAG_BIGNUM));
   the_symbol(S_simple_string_widetag)->initialize_constant(make_unsigned_integer(WIDETAG_SIMPLE_STRING));
   the_symbol(S_simple_vector_widetag)->initialize_constant(make_unsigned_integer(WIDETAG_SIMPLE_VECTOR));
   the_symbol(S_simple_bit_vector_widetag)->initialize_constant(make_unsigned_integer(WIDETAG_SIMPLE_BIT_VECTOR));

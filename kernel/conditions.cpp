@@ -273,6 +273,12 @@ Value SYS_error_not_function(Value datum)
   return signal_lisp_error(new TypeError(datum, S_function));
 }
 
+// ### error-not-integer
+Value SYS_error_not_integer(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, S_integer));
+}
+
 // ### error-not-list
 Value SYS_error_not_list(Value datum)
 {

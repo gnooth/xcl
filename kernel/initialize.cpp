@@ -585,6 +585,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_error_not_cons, SYS_error_not_cons, 1, 1);
   ADD_PRIMITIVE(S_error_not_fixnum, SYS_error_not_fixnum, 1, 1);
   ADD_PRIMITIVE(S_error_not_function, SYS_error_not_function, 1, 1);
+  ADD_PRIMITIVE(S_error_not_integer, SYS_error_not_integer, 1, 1);
   ADD_PRIMITIVE(S_error_not_list, SYS_error_not_list, 1, 1);
   ADD_PRIMITIVE(S_error_not_number, SYS_error_not_number, 1, 1);
   ADD_PRIMITIVE(S_error_not_simple_bit_vector, SYS_error_not_simple_bit_vector, 1, 1);
