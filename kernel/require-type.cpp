@@ -67,7 +67,7 @@ Value SYS_require_hash_table(Value arg)
 {
   if (hash_table_p(arg))
     return arg;
-  return signal_type_error(arg, S_hash_table);
+  return SYS_error_not_hash_table(arg);
 }
 
 // ### require-integer arg => arg

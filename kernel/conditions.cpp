@@ -273,6 +273,12 @@ Value SYS_error_not_function(Value datum)
   return signal_lisp_error(new TypeError(datum, S_function));
 }
 
+// ### error-not-hash-table
+Value SYS_error_not_hash_table(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, S_hash_table));
+}
+
 // ### error-not-integer
 Value SYS_error_not_integer(Value datum)
 {

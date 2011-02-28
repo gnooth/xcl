@@ -4407,6 +4407,7 @@
                   (subtypep type1 (%cadr arg2)))
              (p2 arg1 target))
             (t
+             (mumble "p2-require-type full call~%")
              (process-2-args args '(:rsi :rdx) t)
              (p2-symbol 'require-type :rdi)
              (emit-call-3 "RT_fast_call_symbol_2" target))))

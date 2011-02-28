@@ -540,6 +540,7 @@ extern Value SYS_error_not_bit(Value datum);
 extern Value SYS_error_not_cons(Value datum);
 extern Value SYS_error_not_fixnum(Value datum);
 extern Value SYS_error_not_function(Value datum);
+extern Value SYS_error_not_hash_table(Value datum);
 extern Value SYS_error_not_integer(Value datum);
 extern Value SYS_error_not_list(Value datum);
 extern Value SYS_error_not_number(Value datum);

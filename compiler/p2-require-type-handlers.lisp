@@ -204,6 +204,7 @@
          t))))
 
 (define-require-type-handler function)
+(define-require-type-handler hash-table)
 (define-require-type-handler vector)
 (define-require-type-handler simple-bit-vector)
 (define-require-type-handler string)
@@ -230,9 +231,6 @@
              (when (var-ref-p arg)
                (set-register-contents $ax (var-ref-var arg))))))
     t))
-
-(defun p2-require-hash-table (form target)
-  (%p2-require-type form target 'hash-table))
 
 (defun p2-require-keyword (form target)
   (%p2-require-type form target 'keyword))

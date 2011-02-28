@@ -1755,6 +1755,7 @@ for special variables."
                  (setq new-form `(require-simple-vector ,arg1)))
                 ((subtypep type 'VECTOR)
                  ;; FIXME
+                 (mumble "p1-require-type vector case type = ~S~%" type)
                  (setq new-form `(require-vector ,arg1)))
                 ((subtypep type 'STRUCTURE-OBJECT)
                  (cond ((and (symbolp type)
