@@ -86,7 +86,7 @@
                (label EXIT)
                (move-result-to-target target)
                (when (var-ref-p arg)
-                 (add-type-constraint (var-ref-var arg) 'FIXNUM))))))
+                 (add-type-constraint (var-ref-var arg) 'INTEGER))))))
     t))
 
 (defun p2-require-number (form target)
