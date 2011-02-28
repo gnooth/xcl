@@ -1,6 +1,6 @@
 // AbstractString.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -70,17 +70,12 @@ public:
   virtual AbstractString * upcase() const = 0;
 };
 
-inline bool stringp(Value value)
+inline bool stringp(Value arg)
 {
-  if (typed_object_p(value))
+  if (typed_object_p(arg))
     {
-      switch (the_typed_object(value)->widetag())
-        {
-        case WIDETAG_STRING:
-        case WIDETAG_SIMPLE_STRING:
-        case WIDETAG_NIL_VECTOR:
-          return true;
-        }
+      if (the_typed_object(arg)->widetag() & WIDETAG_STRING_BIT)
+        return true;
     }
   return false;
 }

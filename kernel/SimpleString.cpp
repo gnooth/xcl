@@ -518,13 +518,8 @@ Value CL_simple_string_p(Value arg)
 {
   if (typed_object_p(arg))
     {
-      switch (the_typed_object(arg)->widetag())
-        {
-        case WIDETAG_SIMPLE_STRING:
-          return T;
-        case WIDETAG_NIL_VECTOR:
-          return the_vector(arg)->has_fill_pointer() ? NIL : T;
-        }
+      if (the_typed_object(arg)->widetag() & WIDETAG_SIMPLE_STRING_BIT)
+        return true;
     }
   return NIL;
 }

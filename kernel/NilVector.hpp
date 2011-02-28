@@ -1,6 +1,6 @@
 // NilVector.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -112,10 +112,18 @@ public:
   virtual AbstractString * write_to_string();
 };
 
-inline bool nil_vector_p(Value value)
+inline bool nil_vector_p(Value arg)
 {
-  return (typed_object_p(value)
-          && the_typed_object(value)->widetag() == WIDETAG_NIL_VECTOR);
+  if (typed_object_p(arg))
+    {
+      switch (the_typed_object(arg)->widetag())
+        {
+        case WIDETAG_NIL_VECTOR:
+        case WIDETAG_SIMPLE_NIL_VECTOR:
+          return true;
+        }
+    }
+  return false;
 }
 
 inline NilVector * the_nil_vector(Value value)

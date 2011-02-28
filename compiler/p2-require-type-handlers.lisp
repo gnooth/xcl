@@ -183,6 +183,7 @@
 (define-require-type-handler function)
 (define-require-type-handler vector)
 (define-require-type-handler simple-bit-vector)
+(define-require-type-handler string)
 (define-require-type-handler simple-string)
 (define-require-type-handler simple-vector)
 
@@ -215,9 +216,6 @@
 
 (defun p2-require-stream (form target)
   (%p2-require-type form target 'stream))
-
-(defun p2-require-string (form target)
-  (%p2-require-type form target 'string))
 
 (defun p2-require-structure-type (form target)
   (when (check-arg-count form 2)

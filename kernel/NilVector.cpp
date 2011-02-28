@@ -1,6 +1,6 @@
 // NilVector.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <peter@armedbear.org>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,7 +20,8 @@
 #include "NilVector.hpp"
 
 NilVector::NilVector(unsigned long capacity, Value fill_pointer)
-  : AbstractString(WIDETAG_NIL_VECTOR, capacity)
+  : AbstractString(fill_pointer == NIL ? WIDETAG_SIMPLE_NIL_VECTOR : WIDETAG_NIL_VECTOR,
+                   capacity)
 {
   if (fill_pointer == NIL)
     {

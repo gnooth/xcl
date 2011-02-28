@@ -204,8 +204,12 @@ inline SimpleString * new_simple_string(INDEX capacity, BASE_CHAR * chars)
 
 inline bool simple_string_p(Value value)
 {
-  return (typed_object_p(value)
-          && the_typed_object(value)->widetag() == WIDETAG_SIMPLE_STRING);
+  if (typed_object_p(value))
+    {
+      if (the_typed_object(value)->widetag() & WIDETAG_SIMPLE_STRING_BIT)
+        return T;
+    }
+  return NIL;
 }
 
 inline SimpleString * the_simple_string(Value value)
