@@ -33,7 +33,7 @@
                (setq typespec `(typep ,keyvar ',typespec))))
         (push `(,typespec ,@(or consequents '(nil))) cond-body)))
     (unless t-seen-p
-      (push `(t (%type-error ,keyvar '(or ,@(mapcar #'car clauses))))
+      (push `(t (error-not-type ,keyvar '(or ,@(mapcar #'car clauses))))
             cond-body))
     `(let ((,keyvar ,keyform))
        (cond ,@(nreverse cond-body)))))

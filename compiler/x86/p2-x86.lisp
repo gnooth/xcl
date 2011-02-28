@@ -872,7 +872,7 @@
             (p2-symbol 'LIST :stack)
             ;; arg is in eax
             (inst :push :eax)
-            (emit-call '%type-error)
+            (emit-call 'error-not-type)
             (inst :exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
         (inst :compare-immediate nil :eax)
@@ -2264,7 +2264,7 @@
                      (label SVREF-ERROR-NOT-FIXNUM)
                      (p2-symbol 'FIXNUM :stack)
                      (inst :push :edx)
-                     (emit-call-2 '%type-error nil)
+                     (emit-call-2 'error-not-type nil)
                      (inst :exit) ; FIXME
                      (setf (gethash :svref-error-not-fixnum common-labels) SVREF-ERROR-NOT-FIXNUM)))
                  (inst :test +fixnum-tag-mask+ :dl)
@@ -3691,7 +3691,7 @@
                    (label ERROR)
                    (p2-symbol 'BOOLEAN :stack)
                    (inst :push :eax)
-                   (emit-call '%type-error)
+                   (emit-call 'error-not-type)
                    (inst :exit) ; FIXME
                    (setf (gethash :error-not-boolean common-labels) ERROR)))
                (inst :compare-immediate nil :eax)
@@ -3722,7 +3722,7 @@
                    ;; arg is in eax
                    (p2-symbol 'CHARACTER :stack)
                    (inst :push :eax)
-                   (emit-call-2 '%type-error nil)
+                   (emit-call-2 'error-not-type nil)
                    (inst :exit) ; FIXME
                    (setf (gethash :error-not-character common-labels) ERROR)))
                (inst :mov :al :dl)
@@ -3755,7 +3755,7 @@
                    (label ERROR)
                    (p2-symbol 'LIST :stack)
                    (inst :push :eax)
-                   (emit-call-2 '%type-error nil)
+                   (emit-call-2 'error-not-type nil)
                    (inst :exit) ; FIXME
                    (setf (gethash :error-not-list common-labels) ERROR)))
                (inst :compare-immediate nil :eax)
@@ -3971,7 +3971,7 @@
             (p2-symbol 'LIST :stack)
             ;; arg is in eax
             (inst :push :eax)
-            (emit-call-2 '%type-error nil)
+            (emit-call-2 'error-not-type nil)
             (inst :exit) ; FIXME
             (setf (gethash :error-not-list common-labels) ERROR)))
         (inst :compare-immediate nil :eax)
@@ -4212,12 +4212,6 @@
              (process-2-args args :stack t)
              (p2-symbol 'require-type :stack)
              (emit-call-3 "RT_fast_call_symbol_2" target))))
-    t))
-
-(defun p2-%type-error (form target)
-  (when (check-arg-count form 2)
-    (process-2-args (%cdr form) :stack t)
-    (emit-call-2 '%type-error target)
     t))
 
 (defun p2-structure-ref (form target)

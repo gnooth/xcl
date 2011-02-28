@@ -21,4 +21,4 @@
 (defun require-type (datum expected-type)
   (if (typep datum expected-type)
       datum
-      (%type-error datum expected-type)))
+      (error-not-type datum expected-type)))

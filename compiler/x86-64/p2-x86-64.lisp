@@ -2221,7 +2221,7 @@
                    (let ((*current-segment* :elsewhere))
                      (label SVREF-ERROR-NOT-SIMPLE-VECTOR)
                      (p2-symbol 'SIMPLE-VECTOR :rsi)
-                     (emit-call '%type-error)
+                     (emit-call 'error-not-type)
                      ;; FIXME
                      (emit-exit))
                    (setf (gethash :svref-error-not-simple-vector common-labels) SVREF-ERROR-NOT-SIMPLE-VECTOR))
@@ -2246,7 +2246,7 @@
                      (label SVREF-ERROR-NOT-FIXNUM)
                      (inst :mov :rdx :rdi)
                      (p2-symbol 'FIXNUM :rsi)
-                     (emit-call '%type-error)
+                     (emit-call 'error-not-type)
                      ;; FIXME
                      (emit-exit))
                    (setf (gethash :svref-error-not-fixnum common-labels) SVREF-ERROR-NOT-FIXNUM))
@@ -3514,7 +3514,7 @@
                    ;; arg is in rax
                    (inst :mov :rax :rdi)
                    (p2-symbol 'BOOLEAN :rsi)
-                   (emit-call '%type-error)
+                   (emit-call 'error-not-type)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-boolean common-labels) ERROR)))
                (inst :compare-immediate nil :rax)
@@ -3544,7 +3544,7 @@
                    ;; arg is in rax
                    (inst :mov :rax :rdi)
                    (p2-symbol 'CHARACTER :rsi)
-                   (emit-call '%type-error)
+                   (emit-call 'error-not-type)
                    (emit-exit) ; FIXME
                    (setf (gethash :error-not-character common-labels) ERROR)))
                (inst :mov :al :dl)
@@ -4410,13 +4410,6 @@
              (process-2-args args '(:rsi :rdx) t)
              (p2-symbol 'require-type :rdi)
              (emit-call-3 "RT_fast_call_symbol_2" target))))
-    t))
-
-(defun p2-%type-error (form target)
-  (when (check-arg-count form 2)
-    (process-2-args (%cdr form) '(:rdi :rsi) t)
-    (emit-call '%type-error)
-    (move-result-to-target target)
     t))
 
 (defun p2-structure-ref (form target)

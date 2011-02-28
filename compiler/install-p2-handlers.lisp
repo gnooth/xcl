@@ -62,7 +62,7 @@
 (install-p2-handler '%rplacd                    'p2-rplacd)
 (install-p2-handler '%set-sbit1                 'p2-set-sbit1)
 (install-p2-handler '%sbit1                     'p2-sbit1)
-(install-p2-handler '%type-error                'p2-%type-error)
+(install-p2-handler 'error-not-type             'p2-error-not-type)
 (install-p2-handler '%typep                     'p2-typep)
 (install-p2-handler '-                          'p2--)
 (install-p2-handler 'apply                      'p2-apply)

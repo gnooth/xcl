@@ -1766,7 +1766,7 @@ for special variables."
                                 `(truly-the ,type
                                             (let ((,sym ,arg1))
                                               (unless (structure-object-p ,sym)
-                                                (%type-error ,sym ',type))
+                                                (error-not-type ,sym ',type))
                                               ,sym)))))))
                 ((eq type 'WARNING)
                  ;; pass through (warn.18)

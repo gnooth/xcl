@@ -322,7 +322,7 @@
                 %rplaca
                 %rplacd
                 %stream-terpri
-                %type-error
+                error-not-type
                 ansi-stream-p
                 aset
                 assert-error

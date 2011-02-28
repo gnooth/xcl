@@ -1680,6 +1680,12 @@
             ;;             )
           ))))))
 
+(defun p2-error-not-type (form target)
+  (when (check-arg-count form 2)
+    (process-2-args (%cdr form) :default t)
+    (emit-call-2 'error-not-type target)
+    t))
+
 (defun common-error-label (error-function &rest registers)
   (declare (type symbol error-function))
   (let* ((common-labels (compiland-common-labels *current-compiland*))
@@ -1721,10 +1727,6 @@
   #+x86-64
   (progn
     (clear-register-contents)
-;;     (inst :xor :eax :eax)
-;;     (inst :push :rbx)
-;;     (inst :cpuid)
-;;     (inst :pop :rbx)
     (inst :rdtsc)
     (inst :shl 32 :rdx)
     (inst :add :rdx :rax)

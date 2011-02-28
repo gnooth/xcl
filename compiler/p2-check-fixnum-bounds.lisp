@@ -58,7 +58,7 @@
                  (inst :pop :edx)
                  (inst :push :eax)
                  (inst :push :edx)
-                 (emit-call-2 '%type-error nil)
+                 (emit-call-2 'error-not-type nil)
                  (inst :exit) ; FIXME
                  )))
             (t
@@ -96,7 +96,7 @@
 ;;                  (p2-symbol 'INTEGER :rdi)
 ;;                  (emit-call-3 'LIST3 :rsi)
 ;;                  (inst :pop :rdi)
-;;                  (emit-call '%type-error)
+;;                  (emit-call 'error-not-type)
                  (inst :mov :rax :rdi)
                  (inst :xor :esi :esi)
                  ;; arg3 is already in rdx
@@ -138,7 +138,7 @@
                  (label ERROR)
                  (p2 `'(INTEGER ,arg2 ,arg3) :rsi)
                  (inst :mov :rax :rdi)
-                 (emit-call '%type-error)
+                 (emit-call 'error-not-type)
                  (emit-exit)) ; FIXME
                (process-1-arg arg1 :rax t)
                (unless (fixnum-type-p type1)
