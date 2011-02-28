@@ -3603,39 +3603,6 @@
                  (move-result-to-target target))))))
     t))
 
-(defun p2-require-symbol (form target)
-  (when (check-arg-count form 1)
-    (let ((arg (%cadr form)))
-      (cond ((or (zerop *safety*)
-                 (eq (derive-type arg) 'SYMBOL))
-             (p2 arg target))
-            (t
-             (process-1-arg arg :rax t)
-             (let* ((EXIT (make-label))
-                    (common-labels (compiland-common-labels *current-compiland*))
-                    (ERROR (gethash :error-not-symbol common-labels)))
-               (unless ERROR
-                 (setq ERROR (make-label))
-                 (let ((*current-segment* :elsewhere))
-                   (label ERROR)
-                   ;; arg is in rax
-                   (inst :mov :rax :rdi)
-                   (p2-symbol 'SYMBOL :rsi)
-                   (emit-call '%type-error)
-                   (emit-exit) ; FIXME
-                   (setf (gethash :error-not-symbol common-labels) ERROR)))
-               (inst :compare-immediate nil :rax)
-               (emit-jmp-short :e EXIT)
-               (inst :mov :al :dl)
-               (clear-register-contents :rdx)
-               (inst :and +lowtag-mask+ :dl)
-               (inst :cmp +symbol-lowtag+ :dl)
-               (emit-jmp-short :ne ERROR)
-               (label EXIT)
-               (when target
-                 (move-result-to-target target))))))
-    t))
-
 (defknown p2-%cddr (t t) t)
 (defun p2-%cddr (form target)
   (when (check-arg-count form 1)

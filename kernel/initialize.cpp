@@ -592,6 +592,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_error_not_simple_string, SYS_error_not_simple_string, 1, 1);
   ADD_PRIMITIVE(S_error_not_simple_vector, SYS_error_not_simple_vector, 1, 1);
   ADD_PRIMITIVE(S_error_not_string, SYS_error_not_string, 1, 1);
+  ADD_PRIMITIVE(S_error_not_symbol, SYS_error_not_symbol, 1, 1);
   ADD_PRIMITIVE(S_error_not_vector, SYS_error_not_vector, 1, 1);
   ADD_PRIMITIVE(S_exit, EXT_exit, 0, 0);
   ADD_PRIMITIVE(S_fasl_read_backquote, SYS_fasl_read_backquote, 2, 2);

@@ -285,12 +285,6 @@ Value SYS_error_not_list(Value datum)
   return signal_lisp_error(new TypeError(datum, S_list));
 }
 
-// ### error-not-string
-Value SYS_error_not_string(Value datum)
-{
-  return signal_lisp_error(new TypeError(datum, S_string));
-}
-
 // ### error-not-number
 Value SYS_error_not_number(Value datum)
 {
@@ -319,6 +313,18 @@ Value SYS_error_not_simple_string(Value datum)
 Value SYS_error_not_simple_vector(Value datum)
 {
   return signal_lisp_error(new TypeError(datum, S_simple_vector));
+}
+
+// ### error-not-string
+Value SYS_error_not_string(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, S_string));
+}
+
+// ### error-not-symbol
+Value SYS_error_not_symbol(Value datum)
+{
+  return signal_lisp_error(new TypeError(datum, S_symbol));
 }
 
 // ### error-bad-index-for-vector

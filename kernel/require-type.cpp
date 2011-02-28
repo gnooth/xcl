@@ -35,7 +35,7 @@ Value SYS_require_cons(Value arg)
 {
   if (consp(arg))
     return arg;
-  return signal_type_error(arg, S_cons);
+  return SYS_error_not_cons(arg);
 }
 
 // ### require-character arg => arg
@@ -51,7 +51,7 @@ Value SYS_require_fixnum(Value arg)
 {
   if (fixnump(arg))
     return arg;
-  return signal_type_error(arg, S_fixnum);
+  return SYS_error_not_fixnum(arg);
 }
 
 // ### require-function arg => arg
@@ -59,7 +59,7 @@ Value SYS_require_function(Value arg)
 {
   if (functionp(arg))
     return arg;
-  return signal_type_error(arg, S_function);
+  return SYS_error_not_function(arg);
 }
 
 // ### require-hash-table arg => arg
@@ -75,7 +75,7 @@ Value SYS_require_integer(Value arg)
 {
   if (integerp(arg))
     return arg;
-  return signal_type_error(arg, S_integer);
+  return SYS_error_not_integer(arg);
 }
 
 // ### require-keyword arg => arg
@@ -91,7 +91,7 @@ Value SYS_require_list(Value arg)
 {
   if (listp(arg))
     return arg;
-  return signal_type_error(arg, S_list);
+  return SYS_error_not_list(arg);
 }
 
 // ### require-number arg => arg
@@ -99,7 +99,7 @@ Value SYS_require_number(Value arg)
 {
   if (numberp(arg))
     return arg;
-  return signal_type_error(arg, S_number);
+  return SYS_error_not_number(arg);
 }
 
 // ### require-stream arg => arg
@@ -115,7 +115,7 @@ Value SYS_require_simple_bit_vector(Value arg)
 {
   if (simple_bit_vector_p(arg))
     return arg;
-  return signal_type_error(arg, S_simple_bit_vector);
+  return SYS_error_not_simple_bit_vector(arg);
 }
 
 // ### require-simple-string arg => arg
@@ -123,7 +123,7 @@ Value SYS_require_simple_string(Value arg)
 {
   if (simple_string_p(arg))
     return arg;
-  return signal_type_error(arg, S_simple_string);
+  return SYS_error_not_simple_string(arg);
 }
 
 // ### require-string arg => arg
@@ -131,7 +131,7 @@ Value SYS_require_string(Value arg)
 {
   if (stringp(arg))
     return arg;
-  return signal_type_error(arg, S_string);
+  return SYS_error_not_string(arg);
 }
 
 // ### require-symbol arg => arg
@@ -139,7 +139,7 @@ Value SYS_require_symbol(Value arg)
 {
   if (symbolp(arg))
     return arg;
-  return signal_type_error(arg, S_symbol);
+  return SYS_error_not_symbol(arg);
 }
 
 // ### require-simple-vector arg => arg
@@ -147,7 +147,7 @@ Value SYS_require_simple_vector(Value arg)
 {
   if (simple_vector_p(arg))
     return arg;
-  return signal_type_error(arg, S_simple_vector);
+  return SYS_error_not_simple_vector(arg);
 }
 
 // ### require-vector arg => arg
@@ -155,7 +155,7 @@ Value SYS_require_vector(Value arg)
 {
   if (vectorp(arg))
     return arg;
-  return signal_type_error(arg, S_vector);
+  return SYS_error_not_vector(arg);
 }
 
 // ### require-unsigned-byte arg => arg
