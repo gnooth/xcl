@@ -37,6 +37,15 @@
        (dolist (byte ',bytes)
          (install-disassembler byte ',name)))))
 
+(define-disassembler #x0c
+  ;; OR immediate byte to AL
+  (let ((data (mref-8 start 1)))
+    (make-instruction :start start
+                      :length 2
+                      :mnemonic :or
+                      :operand1 (make-immediate-operand data)
+                      :operand2 (make-register-operand :al))))
+
 (define-disassembler #x25
   (make-instruction :start start
                     :length 5
