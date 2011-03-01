@@ -616,6 +616,10 @@
             (t
              (error-unhandled-byte-sequence byte1 modrm-byte))))))
 
+(define-disassembler #xc3
+  (setq length   1
+        mnemonic :retq))
+
 (define-disassembler #xc6
   ;; C6       MOV r/m8,imm8     2/2           Move immediate byte to r/m byte
   (with-modrm-byte (mref-8 start 1)
@@ -698,6 +702,25 @@
       (t
        (error-unhandled-byte-sequence byte1 modrm-byte)))))
 
+(define-disassembler #xe9
+ (let* ((displacement (mref-32-signed start 1))
+        (absolute-address (ldb (byte 32 0) (+ start 5 displacement))))
+   (setq length     5
+         mnemonic   :jmpq
+         operand1   (make-absolute-operand absolute-address)
+         annotation absolute-address)
+   (push (make-disassembly-block :start-address absolute-address) *blocks*)
+   (push absolute-address *labels*)))
+
+(define-disassembler #xeb
+  (let* ((displacement (mref-8-signed start 1))
+         (absolute-address (+ start 2 displacement)))
+    (setq length 2
+          mnemonic :jmp
+          operand1 (make-absolute-operand absolute-address))
+    (push absolute-address *labels*)
+    (push (make-disassembly-block :start-address absolute-address) *blocks*)))
+
 (define-disassembler #xe8
   ;; call near, displacement relative to next instruction
   (let* ((displacement (mref-32 start 1))
@@ -767,7 +790,8 @@
 
 (defun process-block (block)
   (let ((block-start (block-start-address block))
-        (offset 0))
+        (offset 0)
+        done)
     (loop
       (let (start
             length
@@ -778,6 +802,9 @@
             annotation
             (byte1 (mref-8 block-start offset))
             instruction)
+        (when (memq byte1 '(#xc3 #xe9 #xeb))
+          ;; last time through the loop for this block
+          (setq done t))
         ;; instruction start
         (setq start (+ block-start offset))
         ;; prefix byte?
@@ -1077,15 +1104,6 @@
                          (setq length 2
                                mnemonic :jle
                                operand1 (make-absolute-operand absolute-address))))
-;;                       (#x7f
-;;                        ;; jump short if greater (ZF=0 and SF=OF), 1-byte displacement relative to next instruction
-;;                        (let* ((displacement (mref-8 block-start (1+ offset)))
-;;                               (absolute-address (+ block-start offset 2 displacement)))
-;;                          (push (make-disassembly-block :start-address absolute-address) *blocks*)
-;;                          (push absolute-address *labels*)
-;;                          (setq length 2
-;;                                mnemonic :jg
-;;                                operand1 (make-absolute-operand absolute-address))))
                       (#x85
                        ;; /r AND dword register with r/m dword
                        (with-modrm-byte (mref-8 block-start (1+ offset))
@@ -1119,10 +1137,6 @@
                       (#xad
                        (setq length 1
                              mnemonic :lods)) ; FIXME lods %ds:(%rsi),%rax
-                      (#xc3
-                       (setq length 1
-                             mnemonic :retq)
-                       (setf (block-end-address block) (+ block-start offset 1)))
                       (#xcc
                        (setq length 1
                              mnemonic :int3))
@@ -1142,25 +1156,6 @@
                                       operand2 (make-register-operand (register rm prefix-byte))))
                                (t
                                 (unsupported)))))
-                      (#xe9
-                       (let* ((displacement (mref-32-signed block-start (+ offset 1)))
-                              (absolute-address (ldb (byte 32 0) (+ block-start offset 5 displacement))))
-                         (setq length 5
-                               mnemonic :jmpq
-                               operand1 (make-absolute-operand absolute-address)
-                               annotation absolute-address)
-                         (setf (block-end-address block) (+ block-start offset 5))
-                         (push (make-disassembly-block :start-address absolute-address) *blocks*)
-                         (push absolute-address *labels*)))
-                      (#xeb
-                       (let* ((displacement (mref-8-signed block-start (+ offset 1)))
-                              (absolute-address (+ block-start offset 2 displacement)))
-                         (setq length 2
-                               mnemonic :jmp
-                               operand1 (make-absolute-operand absolute-address))
-                         (setf (block-end-address block) (+ block-start offset 2))
-                         (push absolute-address *labels*)
-                         (push (make-disassembly-block :start-address absolute-address) *blocks*)))
                       (#xf3
                        (setq length 1
                              mnemonic :repz))
@@ -1211,14 +1206,10 @@
                                   :operand1 operand1
                                   :operand2 operand2
                                   :annotation annotation)))
-        (cond (instruction
 ;;                (print-instruction instruction)
-               (push instruction *instructions*)
-               (setq offset
-                     (- (+ (instruction-start instruction) (instruction-length instruction))
-                        block-start)))
-              (t
-               (error "shouldn't happen")))
-        (when (memq byte1 '(#xc3 #xe9 #xeb))
-          (return)))))
+        (push instruction *instructions*)
+        (when done
+          (setf (block-end-address block) (+ (instruction-start instruction) (instruction-length instruction)))
+          (return))
+        (setq offset (- (+ (instruction-start instruction) (instruction-length instruction)) block-start)))))
   nil)
