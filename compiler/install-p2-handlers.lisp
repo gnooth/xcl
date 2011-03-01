@@ -78,7 +78,6 @@
 (install-p2-handler 'clrhash                    'p2-clrhash)
 (install-p2-handler 'code-char                  'p2-code-char)
 (install-p2-handler 'coerce                     'p2-coerce)
-#+x86-64
 (install-p2-handler 'cons                       'p2-cons)
 (install-p2-handler 'consp                      'p2-consp)
 (install-p2-handler 'copy-seq                   'p2-copy-seq)

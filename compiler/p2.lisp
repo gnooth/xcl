@@ -1734,7 +1734,6 @@
   (move-result-to-target target)
   t)
 
-#+x86-64
 (defun p2-cons (form target)
   (when (check-arg-count form 2)
     (let* ((args (%cdr form))
@@ -1745,10 +1744,12 @@
       (process-1-arg arg2 :stack nil)
       (unless (and (single-valued-p arg1) (single-valued-p arg2))
         (emit-clear-values))
-      (inst :mov (* +bytes-per-word+ 2) :rdi)
+      #+x86    (inst :push (* +bytes-per-word+ 2))
+      #+x86-64 (inst :mov (* +bytes-per-word+ 2) :rdi)
       (emit-call "GC_malloc")
-      (inst :pop `(,+bytes-per-word+ :rax))
-      (inst :pop '(:rax))
+      #+x86    (inst :add +bytes-per-word+ :esp)
+      (inst :pop `(,+bytes-per-word+ ,$ax))
+      (inst :pop `(,$ax))
       (inst :or 1 :al)
       (move-result-to-target target))
   t))
