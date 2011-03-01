@@ -102,6 +102,13 @@
         (t
          (unsupported))))
 
+(define-assembler :or
+  (cond ((and (typep operand1 '(unsigned-byte 8))
+              (eq operand2 :al))
+         (emit-bytes #x0c operand1))
+        (t
+         (unsupported))))
+
 (defun assemble-bt* (mnemonic operand1 operand2)
   (cond ((and (reg64-p operand1)
               (consp operand2)
@@ -723,6 +730,23 @@
                       (:rbp #x5d)
                       (:rsi #x5e)
                       (:rdi #x5f))))
+        ((and (consp operand1)
+              (length-eql operand1 1)
+              (reg64-p (%car operand1)))
+         (let* ((mod #b00)
+                (reg 0)
+                (rm (register-number (%car operand1)))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x8f modrm-byte)))
+        ((and (consp operand1)
+              (length-eql operand1 2)
+              (typep (%car operand1) '(signed-byte 8))
+              (reg64-p (%cadr operand1)))
+         (let* ((mod #b01)
+                (reg 0)
+                (rm (register-number (%cadr operand1)))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (emit-bytes #x8f modrm-byte (ldb (byte 8 0) (%car operand1)))))
         (t
          (unsupported))))
 

@@ -37,6 +37,15 @@
        (dolist (byte ',bytes)
          (setf (gethash byte *handlers*) ',name)))))
 
+(define-handler #x0c
+  ;; OR immediate byte to AL
+  (let ((data (mref-8 start (1+ offset))))
+    (make-instruction :start start
+                      :length 2
+                      :mnemonic :or
+                      :operand1 (make-immediate-operand data)
+                      :operand2 (make-register-operand :al))))
+
 (define-handler #x3c
   ;; compare immediate byte to AL
   (let ((data (mref-8 start (1+ offset))))
@@ -75,6 +84,24 @@
                            :operand2 (make-register-operand (byte-register rm))))
         (t
          (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
+
+(define-handler #x8f
+  (with-modrm-byte (mref-8 start (1+ offset))
+    (cond ((eql mod #b00)
+           (make-instruction :start start
+                             :length 2
+                             :mnemonic :pop
+                             :operand1 (make-indirect-operand (register rm #x48)))) ; force 64-bit reg
+          ((eql mod #b01)
+           (let ((displacement-byte (mref-8 start (+ offset 2))))
+             (make-instruction :start start
+                               :length 3
+                               :mnemonic :pop
+                               :operand1 (make-operand :kind :relative
+                                                       :register (register rm #x48) ; force 64-bit reg
+                                                       :data displacement-byte))))
+          (t
+           (error "unhandled byte sequence #x~2,'0x #x~2,'0x" byte1 modrm-byte)))))
 
 (define-handler #xd1
   (with-modrm-byte (mref-8 start (1+ offset))
