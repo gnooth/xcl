@@ -1455,5 +1455,8 @@ void initialize_runtime()
   ht_names->put(make_simple_string("RT_thread_uwp_in_cleanup_p"),
                 make_integer((unsigned long)RT_thread_uwp_in_cleanup_p));
 
+  ht_names->put(make_simple_string("GC_malloc"),
+                make_integer((unsigned long)GC_malloc));
+
   the_symbol(S_runtime_names)->initialize_constant(make_value(ht_names));
 }
