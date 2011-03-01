@@ -32,7 +32,7 @@
 ;; deprecated
 (defmacro define-handler (byte-or-bytes &body body)
   (let* ((bytes (designator-list byte-or-bytes))
-         (name (intern (format nil "DIS~{-~X~}" bytes)))
+         (name (intern (format nil "DIS~{-~2,'0X~}" bytes)))
          (args '(byte1 start offset prefix-byte)))
     `(progn
        (defun ,name ,args

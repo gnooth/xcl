@@ -67,7 +67,6 @@
             ((fixnum-type-p (derive-type arg))
              (p2 arg target))
             (t
-             (mumble "p2-require-integer~%")
              (let ((EXIT (make-label))
                    (ERROR (common-error-label 'error-not-integer $ax)))
                (process-1-arg arg $ax t)
