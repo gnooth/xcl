@@ -18,11 +18,6 @@
 
 (in-package "DISASSEMBLER")
 
-(defun error-unhandled-byte-sequence (&rest bytes)
-  (if (length-eql bytes 1)
-      (error "unhandled opcode #x~2,'0x" (%car bytes))
-      (error "unhandled byte sequence~{ #x~2,'0x~}" bytes)))
-
 (defparameter *disassemblers* (make-hash-table))
 
 (defun install-disassembler (byte disassembler)
@@ -61,7 +56,7 @@
              operand1 (make-register-operand (register reg prefix-byte))
              operand2 (make-register-operand (register rm prefix-byte))))
       (t
-       (error-unhandled-byte-sequence byte1 modrm-byte)))))
+       (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x04
   (setq length   2
@@ -85,7 +80,7 @@
              operand1 (make-register-operand (register reg prefix-byte))
              operand2 (make-register-operand (register rm prefix-byte))))
       (t
-       (error-unhandled-byte-sequence byte1 modrm-byte)))))
+       (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x0c
   ;; OR immediate byte to AL
@@ -109,7 +104,7 @@
                           mnemonic :setb
                           operand1 (make-register-operand (reg8 (register rm)))))
                    (t
-                    (error-unhandled-byte-sequence byte1 byte2 modrm-byte)))))
+                    (error-unsupported-byte-sequence byte1 byte2 modrm-byte)))))
           ((eql byte2 #x95)
            (with-modrm-byte (mref-8 start 2)
              (cond ((and (eql mod #b11)
@@ -119,7 +114,7 @@
                           mnemonic :setne
                           operand1 (make-register-operand (reg8 (register rm)))))
                    (t
-                    (error-unhandled-byte-sequence byte1 byte2 modrm-byte)))))
+                    (error-unsupported-byte-sequence byte1 byte2 modrm-byte)))))
           ((eql byte2 #xa2)
            (setq length 2
                  mnemonic :cpuid))
@@ -198,7 +193,7 @@
                                                      :data (mref-8-signed start 4))
                               operand2 (make-register-operand (reg64 (register reg))))))
                      (t
-                      (error-unhandled-byte-sequence byte1 byte2 byte3))))))
+                      (error-unsupported-byte-sequence byte1 byte2 byte3))))))
           ((eql byte2 #xb7)
            (let ((byte3 (mref-8 start 2)))
              (with-modrm-byte byte3
@@ -214,7 +209,7 @@
                                                      :data (mref-8-signed start 4))
                               operand2 (make-register-operand (reg16 (register reg))))))
                      (t
-                      (error-unhandled-byte-sequence byte1 byte2 byte3))))))
+                      (error-unsupported-byte-sequence byte1 byte2 byte3))))))
 ;;           ((eql (ldb (byte 4 4) byte2) 8) ; #x80...#x8f
           ((memq byte2 '(#x80 #x81 #x82 #x83 #x84 #x85 #x86 #x87
                          #x88 #x89 #x8a #x8b #x8c #x8d #x8e #x8f))
@@ -271,9 +266,9 @@
                                                  :data (mref-32 start 3))
                           operand2 (make-register-operand (register reg prefix-byte))))
                    (t
-                    (error-unhandled-byte-sequence byte1 byte2)))))
+                    (error-unsupported-byte-sequence byte1 byte2)))))
           (t
-           (error-unhandled-byte-sequence byte1 byte2)))))
+           (error-unsupported-byte-sequence byte1 byte2)))))
 
 (define-disassembler #x21
   (with-modrm-byte (mref-8 start 1)
@@ -284,7 +279,7 @@
              operand1 (make-register-operand (register reg prefix-byte))
              operand2 (make-register-operand (register rm prefix-byte))))
       (t
-       (error-unhandled-byte-sequence byte1 modrm-byte)))))
+       (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x24
  (setq length   2
@@ -308,7 +303,7 @@
              operand1 (make-register-operand (register-reg reg prefix-byte))
              operand2 (make-register-operand (register-rm rm prefix-byte))))
       (t
-       (error-unhandled-byte-sequence byte1 modrm-byte)))))
+       (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x2c
   (setq length 2
@@ -332,7 +327,7 @@
              operand1 (make-register-operand (register reg prefix-byte))
              operand2 (make-register-operand (register rm prefix-byte))))
       (t
-       (error-unhandled-byte-sequence byte1 modrm-byte)))))
+       (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x39
   ;; /r compare dword register to r/m dword
@@ -350,7 +345,7 @@
              operand1 (make-register-operand (register reg prefix-byte))
              operand2 (make-register-operand (register rm prefix-byte))))
       (t
-       (error-unhandled-byte-sequence byte1 modrm-byte)))))
+       (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x3b
   ;; /r compare r/m dword to dword register
@@ -447,7 +442,7 @@
                    operand1 (make-immediate-operand byte3)
                    operand2 (make-register-operand :rax))))
           (t
-           (error-unhandled-byte-sequence byte1 byte2)))))
+           (error-unsupported-byte-sequence byte1 byte2)))))
 
 (define-disassembler (#x70 #x71 #x72 #x73 #x74 #x75 #x76 #x77
                       #x78 #x79 #x7a #x7b #x7c #x7d #x7e #x7f)
@@ -488,7 +483,7 @@
                  operand1 (make-immediate-operand (mref-8 start 2))
                  operand2 (make-register-operand (byte-register rm))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x81
   (with-modrm-byte (mref-8 start 1)
@@ -515,7 +510,7 @@
                                         :register (register rm prefix-byte)
                                         :data (mref-8 start 2))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x83
   (with-modrm-byte (mref-8 start 1)
@@ -557,7 +552,7 @@
                  operand1 (make-immediate-operand (mref-8-signed start 2))
                  operand2 (make-register-operand (register rm prefix-byte))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x84
   ;; /r AND byte register with r/m byte
@@ -568,7 +563,7 @@
                  operand1 (make-register-operand (byte-register reg))
                  operand2 (make-register-operand (byte-register rm))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x85
   ;; /r AND dword register with r/m dword
@@ -589,7 +584,7 @@
                  operand1 (make-register-operand (register reg prefix-byte))
                  operand2 (make-register-operand (register rm prefix-byte))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x88
   ;; /r MOV r/m8,r8
@@ -606,7 +601,7 @@
                  operand1 (make-register-operand (byte-register reg))
                  operand2 (make-register-operand (byte-register rm))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x89
   ;; /r move dword register to r/m dword
@@ -655,7 +650,7 @@
                  operand1 (make-register-operand (register-reg reg prefix-byte))
                  operand2 (make-indirect-operand (register-rm rm prefix-byte))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x8a
   ;; /r move r/m byte to byte register
@@ -673,7 +668,7 @@
                                                         :data displacement-byte)
                                  operand2 (make-register-operand (byte-register reg))))
                           (t
-                           (error-unhandled-byte-sequence byte1 modrm-byte sib-byte)))))
+                           (error-unsupported-byte-sequence byte1 modrm-byte sib-byte)))))
                  (t
                   (let ((displacement-byte (mref-8-signed start 2)))
                     (setq length 3
@@ -683,7 +678,7 @@
                                                  :data displacement-byte)
                           operand2 (make-register-operand (byte-register reg)))))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x8b
   ;; /r move r/m dword to dword register
@@ -754,7 +749,7 @@
                (let ((index (/ (+ displacement 8) -8)))
                  (setq annotation (cdr (assoc index *locals*)))))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x8d
   (setq mnemonic :lea)
@@ -775,7 +770,7 @@
                                                    :data displacement)
                             operand2 (make-register-operand (register-reg reg prefix-byte))))))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x8f
   (with-modrm-byte (mref-8 start 1)
@@ -791,7 +786,7 @@
                                           :register (register rm #x48) ; force 64-bit reg
                                           :data displacement-byte))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #x90
   (setq length   1
@@ -860,7 +855,7 @@
                    operand1 (make-immediate-operand byte3)
                    operand2 (make-register-operand (register rm prefix-byte))))
             (t
-             (error-unhandled-byte-sequence byte1 modrm-byte))))))
+             (error-unsupported-byte-sequence byte1 modrm-byte))))))
 
 (define-disassembler #xc3
   (setq length   1
@@ -886,7 +881,7 @@
                                         :register (register-rm rm prefix-byte)
                                         :data (mref-8 start 2))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #xc7
   (with-modrm-byte (mref-8 start 1)
@@ -946,7 +941,7 @@
              mnemonic (if (eql reg 4) :shl :shr)
              operand1 (make-register-operand (register rm prefix-byte))))
       (t
-       (error-unhandled-byte-sequence byte1 modrm-byte)))))
+       (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #xd3
   (with-modrm-byte (mref-8 start 1)
@@ -963,7 +958,7 @@
                  operand1 (make-register-operand :cl)
                  operand2 (make-register-operand (register rm prefix-byte))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #xe9
  (let* ((displacement (mref-32-signed start 1))
@@ -1013,7 +1008,7 @@
                  operand1 (make-immediate-operand (mref-8 start 2))
                  operand2 (make-register-operand (byte-register rm))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #xf7
   (with-modrm-byte (mref-8 start 1)
@@ -1042,7 +1037,7 @@
                                         :register (register rm prefix-byte)
                                         :data (mref-8 start 2))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (define-disassembler #xf8
   (setq length   1
@@ -1084,9 +1079,9 @@
                                            :register (register rm)
                                            :data (mref-32-signed start 2))))
              (t
-              (error-unhandled-byte-sequence byte1 modrm-byte))))
+              (error-unsupported-byte-sequence byte1 modrm-byte))))
           (t
-           (error-unhandled-byte-sequence byte1 modrm-byte)))))
+           (error-unsupported-byte-sequence byte1 modrm-byte)))))
 
 (defun process-block (block)
   (let ((block-start (block-start-address block))
