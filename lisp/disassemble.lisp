@@ -27,14 +27,6 @@
 #+x86-64
 (require "X86-64")
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (unless (find-package "DISASSEMBLER")
-    (make-package "DISASSEMBLER"
-                  :nicknames '("DIS")
-                  :use '("COMMON-LISP" "EXTENSIONS" "SYSTEM"
-                         #+x86    "X86"
-                         #+x86-64 "X86-64"))))
-
 (in-package "DISASSEMBLER")
 
 (defvar *lambda-name* nil)
@@ -487,6 +479,68 @@
   (if (length-eql bytes 1)
       (error "unsupported opcode #x~2,'0x" (%car bytes))
       (error "unsupported byte sequence~{ #x~2,'0x~}" bytes)))
+
+(defparameter *disassemblers* (make-array 256 :initial-element nil))
+
+(declaim (type (simple-array t (256)) *disassemblers*))
+
+(defun install-disassembler (byte disassembler)
+  (declare (type (integer 0 255) byte))
+  (declare (type symbol disassembler))
+  (setf (svref *disassemblers* byte) disassembler))
+
+(defun find-disassembler (byte)
+  (declare (type (integer 0 255) byte))
+  (svref *disassemblers* byte))
+
+(defmacro define-disassembler (byte-or-bytes &body body)
+  (let* ((bytes (designator-list byte-or-bytes))
+         (name (intern (format nil "DIS~{-~X~}" bytes)))
+         (args '(byte1 start prefix-byte)))
+    `(progn
+       (defun ,name ,args
+         (declare (ignorable ,@args))
+         (let (mnemonic length operand1 operand2 annotation)
+           ,@body
+           (when prefix-byte
+             (decf start)
+             (incf length))
+           (make-instruction :start start
+                             :length length
+                             :mnemonic mnemonic
+                             :operand1 operand1
+                             :operand2 operand2
+                             :annotation annotation)))
+       (dolist (byte ',bytes)
+         (install-disassembler byte ',name)))))
+
+(defun process-block (block)
+  (let ((block-start (block-start-address block))
+        (offset 0)
+        done)
+    (loop
+      (let (start
+            prefix-byte
+            (byte1 (mref-8 block-start offset))
+            instruction)
+        (when (memq byte1 '(#xc3 #xe9 #xeb))
+          ;; last time through the loop for this block
+          (setq done t))
+        (setq start (+ block-start offset)) ; start of instruction
+        #+x86-64 (when (<= #x40 byte1 #x4f)
+                   (setq prefix-byte byte1)
+                   (setq byte1 (mref-8 block-start (incf offset))))
+        (let ((disassembler (find-disassembler byte1)))
+          (if disassembler
+              (setq instruction (funcall disassembler byte1 (if prefix-byte (1+ start) start) prefix-byte))
+              (error "No disassembler for opcode #x~2,'0x at #x~X" byte1 start)))
+;;         (print-instruction instruction)
+        (push instruction *instructions*)
+        (when done
+          (setf (block-end-address block) (+ (instruction-start instruction) (instruction-length instruction)))
+          (return))
+        (setq offset (- (+ (instruction-start instruction) (instruction-length instruction)) block-start)))))
+  nil)
 
 #+x86
 (load-system-file "lisp/disasm-x86")

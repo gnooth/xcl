@@ -16,13 +16,6 @@
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-(in-package "SYSTEM")
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (unless (find-package "X86-64")
-    (make-package "X86-64"
-                  :use '("COMMON-LISP" "EXTENSIONS" "SYSTEM"))))
-
 (in-package "X86-64")
 
 (export '(rex.w rex.r rex.x rex.b

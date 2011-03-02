@@ -1,6 +1,6 @@
 // Package.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,7 +31,15 @@ Package * PACKAGE_MOP;
 Package * PACKAGE_EXT;
 Package * PACKAGE_TPL;
 Package * PACKAGE_COMPILER;
+Package * PACKAGE_ASSEMBLER;
+Package * PACKAGE_DISASSEMBLER;
 Package * PACKAGE_PROFILER;
+
+#ifdef __x86_64__
+Package * PACKAGE_X86_64;
+#else
+Package * PACKAGE_X86;
+#endif
 
 static EqualHashTable * package_map;
 static Value all_packages;
@@ -1269,29 +1277,35 @@ void initialize_packages_1()
   package_map = new EqualHashTable();
   all_packages = NIL;
 
-  PACKAGE_CL       = new Package("COMMON-LISP");
-  PACKAGE_CL_USER  = new Package("COMMON-LISP-USER");
-  PACKAGE_KEYWORD  = new Package("KEYWORD");
-  PACKAGE_SYS      = new Package("SYSTEM");
-  PACKAGE_MOP      = new Package("MOP");
-  PACKAGE_EXT      = new Package("EXTENSIONS");
-  PACKAGE_TPL      = new Package("TOP-LEVEL");
-  PACKAGE_COMPILER = new Package("COMPILER");
-  PACKAGE_PROFILER = new Package("PROFILER");
+  PACKAGE_CL           = new Package("COMMON-LISP");
+  PACKAGE_CL_USER      = new Package("COMMON-LISP-USER");
+  PACKAGE_KEYWORD      = new Package("KEYWORD");
+  PACKAGE_SYS          = new Package("SYSTEM");
+  PACKAGE_MOP          = new Package("MOP");
+  PACKAGE_EXT          = new Package("EXTENSIONS");
+  PACKAGE_TPL          = new Package("TOP-LEVEL");
+  PACKAGE_COMPILER     = new Package("COMPILER");
+  PACKAGE_ASSEMBLER    = new Package("ASSEMBLER");
+  PACKAGE_DISASSEMBLER = new Package("DISASSEMBLER");
+  PACKAGE_PROFILER     = new Package("PROFILER");
+
+#ifdef __x86_64__
+  PACKAGE_X86_64       = new Package("X86-64");
+#else
+  PACKAGE_X86          = new Package("X86");
+#endif
 }
 
 void initialize_packages_2()
 {
   PACKAGE_CL->add_nickname("CL");
-  PACKAGE_CL_USER->add_nickname("CL-USER");
-  PACKAGE_SYS->add_nickname("SYS");
-  PACKAGE_EXT->add_nickname("EXT");
-  PACKAGE_TPL->add_nickname("TPL");
 
+  PACKAGE_CL_USER->add_nickname("CL-USER");
   PACKAGE_CL_USER->use_package(PACKAGE_CL);
   PACKAGE_CL_USER->use_package(PACKAGE_MOP);
   PACKAGE_CL_USER->use_package(PACKAGE_EXT);
 
+  PACKAGE_SYS->add_nickname("SYS");
   PACKAGE_SYS->use_package(PACKAGE_CL);
   PACKAGE_SYS->use_package(PACKAGE_MOP); // REVIEW
   PACKAGE_SYS->use_package(PACKAGE_EXT);
@@ -1300,8 +1314,10 @@ void initialize_packages_2()
   PACKAGE_MOP->use_package(PACKAGE_SYS);
   PACKAGE_MOP->use_package(PACKAGE_EXT);
 
+  PACKAGE_EXT->add_nickname("EXT");
   PACKAGE_EXT->use_package(PACKAGE_CL);
 
+  PACKAGE_TPL->add_nickname("TPL");
   PACKAGE_TPL->use_package(PACKAGE_CL);
   PACKAGE_TPL->use_package(PACKAGE_SYS);
   PACKAGE_TPL->use_package(PACKAGE_EXT);
@@ -1310,10 +1326,45 @@ void initialize_packages_2()
   PACKAGE_COMPILER->use_package(PACKAGE_CL);
   PACKAGE_COMPILER->use_package(PACKAGE_SYS);
   PACKAGE_COMPILER->use_package(PACKAGE_EXT);
+#ifdef __x86_64
+  PACKAGE_COMPILER->use_package(PACKAGE_X86_64);
+#else
+  PACKAGE_COMPILER->use_package(PACKAGE_X86);
+#endif
+
+  PACKAGE_ASSEMBLER->add_nickname("ASM");
+  PACKAGE_ASSEMBLER->use_package(PACKAGE_CL);
+  PACKAGE_ASSEMBLER->use_package(PACKAGE_SYS);
+  PACKAGE_ASSEMBLER->use_package(PACKAGE_EXT);
+#ifdef __x86_64
+  PACKAGE_ASSEMBLER->use_package(PACKAGE_X86_64);
+#else
+  PACKAGE_ASSEMBLER->use_package(PACKAGE_X86);
+#endif
+
+  PACKAGE_DISASSEMBLER->add_nickname("DIS");
+  PACKAGE_DISASSEMBLER->use_package(PACKAGE_CL);
+  PACKAGE_DISASSEMBLER->use_package(PACKAGE_SYS);
+  PACKAGE_DISASSEMBLER->use_package(PACKAGE_EXT);
+#ifdef __x86_64
+  PACKAGE_DISASSEMBLER->use_package(PACKAGE_X86_64);
+#else
+  PACKAGE_DISASSEMBLER->use_package(PACKAGE_X86);
+#endif
 
   PACKAGE_PROFILER->add_nickname("PROF");
   PACKAGE_PROFILER->use_package(PACKAGE_CL);
   PACKAGE_PROFILER->use_package(PACKAGE_SYS);
   PACKAGE_PROFILER->use_package(PACKAGE_MOP);
   PACKAGE_PROFILER->use_package(PACKAGE_EXT);
+
+#ifdef __x86_64__
+  PACKAGE_X86_64->use_package(PACKAGE_CL);
+  PACKAGE_X86_64->use_package(PACKAGE_SYS);
+  PACKAGE_X86_64->use_package(PACKAGE_EXT);
+#else
+  PACKAGE_X86->use_package(PACKAGE_CL);
+  PACKAGE_X86->use_package(PACKAGE_SYS);
+  PACKAGE_X86->use_package(PACKAGE_EXT);
+#endif
 }

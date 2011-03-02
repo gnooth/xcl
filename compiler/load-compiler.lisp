@@ -37,17 +37,6 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "ASSEMBLER"))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (if (find-package "COMPILER")
-      (use-package #+x86    "X86"
-                   #+x86-64 "X86-64"
-                   "COMPILER")
-      (make-package "COMPILER"
-                    :nicknames '("C")
-                    :use '("COMMON-LISP" "EXTENSIONS" "SYSTEM"
-                           #+x86    "X86"
-                           #+x86-64 "X86-64"))))
-
 (load-system-file "compiler/defs")
 
 (load-system-file "compiler/derive-type")

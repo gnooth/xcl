@@ -1,6 +1,6 @@
 // Package.hpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -166,6 +166,14 @@ extern Package * PACKAGE_MOP;
 extern Package * PACKAGE_EXT;
 extern Package * PACKAGE_TPL;
 extern Package * PACKAGE_COMPILER;
+extern Package * PACKAGE_ASSEMBLER;
+extern Package * PACKAGE_DISASSEMBLER;
 extern Package * PACKAGE_PROFILER;
+
+#ifdef __x86_64__
+extern Package * PACKAGE_X86_64;
+#else
+extern Package * PACKAGE_X86;
+#endif
 
 #endif // Package.hpp

@@ -23,14 +23,6 @@
 #+x86-64
 (require "X86-64")
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (unless (find-package "ASSEMBLER")
-    (make-package "ASSEMBLER"
-                  :nicknames '("ASM")
-                  :use '("COMMON-LISP" "EXTENSIONS" "SYSTEM"
-                         #+x86    "X86"
-                         #+x86-64 "X86-64"))))
-
 (in-package "EXTENSIONS")
 
 (export '(assemble))
