@@ -192,64 +192,31 @@
           (t
            (error-unhandled-byte-sequence #x6b byte2)))))
 
-(define-disassembler #x70
- ;; jump short if overflow (OF=1), 1-byte displacement relative to next instruction
- (let* ((displacement (mref-8-signed start 1))
-        (absolute-address (+ start 2 displacement)))
-   (push (make-disassembly-block :start-address absolute-address) *blocks*)
-   (push absolute-address *labels*)
-   (setq length 2
-         mnemonic :jo
-         operand1 (make-absolute-operand absolute-address))))
-
-(define-disassembler #x71
-  ;; jump short if not overflow (OF=0), 1-byte displacement relative to next instruction
+(define-disassembler (#x70 #x71 #x72 #x73 #x74 #x75 #x76 #x77
+                      #x78 #x79 #x7a #x7b #x7c #x7d #x7e #x7f)
+  (mumble "short jmp disassembler byte1 = #x~2,'0x~%" byte1)
   (let* ((displacement (mref-8-signed start 1))
          (absolute-address (+ start 2 displacement)))
     (push (make-disassembly-block :start-address absolute-address) *blocks*)
     (push absolute-address *labels*)
     (setq length 2
-          mnemonic :jno
-          operand1 (make-absolute-operand absolute-address))))
-
-(define-disassembler #x74
-  ;; jump short if ZF=1, 1-byte displacement relative to next instruction
-  (let* ((displacement (mref-8-signed start 1))
-         (absolute-address (+ start 2 displacement)))
-    (push (make-disassembly-block :start-address absolute-address) *blocks*)
-    (push absolute-address *labels*)
-    (setq length 2
-          mnemonic :je
-          operand1 (make-absolute-operand absolute-address))))
-
-(define-disassembler #x75
-  ;; jump short if ZF=0, 1-byte displacement relative to next instruction
-  (let* ((displacement (mref-8-signed start 1))
-         (absolute-address (+ start 2 displacement)))
-    (push (make-disassembly-block :start-address absolute-address) *blocks*)
-    (push absolute-address *labels*)
-    (setq length 2
-          mnemonic :jne
-          operand1 (make-absolute-operand absolute-address))))
-
-(define-disassembler #x77
-  ;; jump short if above (CF=0 and ZF=0)
- (let* ((displacement (mref-8-signed start 1))
-        (absolute-address (+ start 2 displacement)))
-   (push (make-disassembly-block :start-address absolute-address) *blocks*)
-   (push absolute-address *labels*)
-   (setq length 2
-         mnemonic :ja
-         operand1 (make-absolute-operand absolute-address))))
-
-(define-disassembler #x7f
-  ;; jump short if greater (ZF=0 and SF=OF), 1-byte displacement relative to next instruction
-  (let* ((displacement (mref-8 start 1))
-         (absolute-address (+ start 2 displacement)))
-    (push (make-disassembly-block :start-address absolute-address) *blocks*)
-    (push absolute-address *labels*)
-    (setq length 2
-          mnemonic :jg
+          mnemonic (ecase byte1
+                     (#x70 :jo)
+                     (#x71 :jno)
+                     (#x72 :jb)
+                     (#x73 :jnb)
+                     (#x74 :je)
+                     (#x75 :jne)
+                     (#x76 :jbe)
+                     (#x77 :ja)
+                     (#x78 :js)
+                     (#x79 :jns)
+                     (#x7a :jp)
+                     (#x7b :jnp)
+                     (#x7c :jl)
+                     (#x7d :jnl)
+                     (#x7e :jle)
+                     (#x7f :jg))
           operand1 (make-absolute-operand absolute-address))))
 
 (define-disassembler #x80
@@ -961,8 +928,31 @@
                                           (t
                                            (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
                                                   byte1 byte2 byte3))))))
-                               ((eql (ldb (byte 4 4) byte2) 8)
-                                (setq instruction (process-jcc (+ block-start offset))))
+                               ((eql (ldb (byte 4 4) byte2) 8) ; #x80...#x8f
+;;                                 (setq instruction (process-jcc (+ block-start offset)))
+                                (let* ((displacement (mref-32 block-start (+ offset 2)))
+                                       (absolute-address (ldb (byte 32 0) (+ block-start offset 6 displacement))))
+                                  (setq length 6
+                                        mnemonic (case byte2
+                                                   (#x80 :jo)
+                                                   (#x81 :jno)
+                                                   (#x82 :jb)
+                                                   (#x83 :jae)
+                                                   (#x84 :je)
+                                                   (#x85 :jne)
+                                                   (#x86 :jbe)
+                                                   (#x87 :ja)
+                                                   (#x88 :js)
+                                                   (#x89 :jns)
+                                                   (#x8a :jpe)
+                                                   (#x8b :jpo)
+                                                   (#x8c :jl)
+                                                   (#x8d :jge)
+                                                   (#x8e :jle)
+                                                   (#x8f :jg))
+                                        operand1 (make-absolute-operand absolute-address))
+                                  (push (make-disassembly-block :start-address absolute-address) *blocks*)
+                                  (push absolute-address *labels*)))
                                ((eql (ldb (byte 4 4) byte2) 4)
                                 ;; cmov
                                 (setq mnemonic (case (ldb (byte 4 0) byte2)
@@ -1068,42 +1058,6 @@
                          (setq length 2
                                mnemonic :push
                                operand1 (make-immediate-operand immediate-value))))
-                      (#x78
-                       ;; jump short if SF=1, 1-byte displacement relative to next instruction
-                       (let* ((displacement (mref-8-signed block-start (1+ offset)))
-                              (absolute-address (+ block-start offset 2 displacement)))
-                         (push (make-disassembly-block :start-address absolute-address) *blocks*)
-                         (push absolute-address *labels*)
-                         (setq length 2
-                               mnemonic :js
-                               operand1 (make-absolute-operand absolute-address))))
-                      (#x7c
-                       ;; jump short if less (SF<>OF), 1-byte displacement relative to next instruction
-                       (let* ((displacement (mref-8-signed block-start (1+ offset)))
-                              (absolute-address (+ block-start offset 2 displacement)))
-                         (push (make-disassembly-block :start-address absolute-address) *blocks*)
-                         (push absolute-address *labels*)
-                         (setq length 2
-                               mnemonic :jl
-                               operand1 (make-absolute-operand absolute-address))))
-                      (#x7d
-                       ;; jump short if not less (SF=OF), 1-byte displacement relative to next instruction
-                       (let* ((displacement (mref-8 block-start (1+ offset)))
-                              (absolute-address (+ block-start offset 2 displacement)))
-                         (push (make-disassembly-block :start-address absolute-address) *blocks*)
-                         (push absolute-address *labels*)
-                         (setq length 2
-                               mnemonic :jnl
-                               operand1 (make-absolute-operand absolute-address))))
-                      (#x7e
-                       ;; jump short if not greater (ZF=1 or SF<>OF), 1-byte displacement relative to next instruction
-                       (let* ((displacement (mref-8 block-start (1+ offset)))
-                              (absolute-address (+ block-start offset 2 displacement)))
-                         (push (make-disassembly-block :start-address absolute-address) *blocks*)
-                         (push absolute-address *labels*)
-                         (setq length 2
-                               mnemonic :jle
-                               operand1 (make-absolute-operand absolute-address))))
                       (#x85
                        ;; /r AND dword register with r/m dword
                        (with-modrm-byte (mref-8 block-start (1+ offset))
