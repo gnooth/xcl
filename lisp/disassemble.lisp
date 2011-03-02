@@ -483,7 +483,7 @@
 (defun p/x (n)
   (let ((*print-base* 16)) (format t "#x~X" n)))
 
-(defun error-unsupported-byte-sequence (&rest bytes)
+(defun unsupported-byte-sequence (&rest bytes)
   (if (length-eql bytes 1)
       (error "unsupported opcode #x~2,'0x" (%car bytes))
       (error "unsupported byte sequence~{ #x~2,'0x~}" bytes)))
