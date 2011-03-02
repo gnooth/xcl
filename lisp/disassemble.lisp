@@ -336,35 +336,6 @@
      (declare (ignorable scale index base))
      ,@body))
 
-(defun process-jcc (instruction-start-address)
-  (aver (eql (mref-8 instruction-start-address 0) #x0f))
-  (let* ((byte2 (mref-8 instruction-start-address 1))
-         (mnemonic (case (ldb (byte 4 0) byte2)
-                     (#x0 :jo)
-                     (#x1 :jno)
-                     (#x2 :jb)
-                     (#x3 :jae)
-                     (#x4 :je)
-                     (#x5 :jne)
-                     (#x6 :jbe)
-                     (#x7 :ja)
-                     (#x8 :js)
-                     (#x9 :jns)
-                     (#xa :jpe)
-                     (#xb :jpo)
-                     (#xc :jl)
-                     (#xd :jge)
-                     (#xe :jle)
-                     (#xf :jg)))
-         (displacement (mref-32 instruction-start-address 2))
-         (absolute-address (ldb (byte 32 0) (+ instruction-start-address 6 displacement))))
-    (push (make-disassembly-block :start-address absolute-address) *blocks*)
-    (push absolute-address *labels*)
-    (make-instruction :start instruction-start-address
-                      :length 6
-                      :mnemonic mnemonic
-                      :operand1 (make-absolute-operand absolute-address))))
-
 (defun process-blocks ()
   (loop
     (when (null *blocks*)
