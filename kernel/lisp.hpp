@@ -536,18 +536,22 @@ inline bool listp(Value value)
   return (value & LOWTAG_MASK) == LOWTAG_LIST;
 }
 
-inline Cons * the_list(Value obj)
+inline Cons * the_list(Value arg)
 {
-  assert(listp(obj));
+  assert(listp(arg));
   // internally, NIL is implemented as a cons
-  return reinterpret_cast<Cons *>(obj - LOWTAG_LIST);
+  return reinterpret_cast<Cons *>(arg - LOWTAG_LIST);
 }
 
-inline Value check_list(Value obj)
+extern Value SYS_error_not_list(Value datum);
+
+inline Value check_list(Value arg)
 {
-  if (listp(obj))
-    return obj;
-  return signal_type_error(obj, S_list);
+  if (listp(arg))
+    return arg;
+  SYS_error_not_list(arg);
+  // not reached
+  return 0;
 }
 
 inline void setcar(Value obj, Value car)
@@ -581,7 +585,7 @@ inline Value car(Value arg)
 {
   if (listp(arg))
     return xcar(arg);
-  signal_type_error(arg, S_list);
+  SYS_error_not_list(arg);
   // not reached
   return 0;
 }
@@ -590,7 +594,7 @@ inline Value cdr(Value arg)
 {
   if (listp(arg))
     return xcdr(arg);
-  signal_type_error(arg, S_list);
+  SYS_error_not_list(arg);
   // not reached
   return 0;
 }
