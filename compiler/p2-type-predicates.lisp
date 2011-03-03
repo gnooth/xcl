@@ -124,3 +124,26 @@
 (defknown p2-test-fixnump (t t) t)
 (defun p2-test-fixnump (test-form label)
   (%p2-test-fixnump test-form nil label))
+
+(defun p2-test-integerp (form label-if-false)
+  (when (check-arg-count form 1)
+    (let ((arg (%cadr form))
+          (EXIT (make-label)))
+      (process-1-arg arg $ax t)
+      (inst :test +fixnum-tag-mask+ :al)
+      (emit-jmp-short :e EXIT)
+      (p2-test-widetag $ax +bignum-widetag+ label-if-false)
+      (label EXIT))
+    t))
+
+(define-type-predicate-handler p2-integerp p2-test-integerp)
+
+(defknown p2-test-stringp (t t) t)
+(defun p2-test-stringp (form label-if-false)
+  (when (check-arg-count form 1)
+    (let ((arg (%cadr form)))
+      (process-1-arg arg $ax t)
+      (p2-test-widetag-bit $ax +widetag-string-bit+ label-if-false))
+    t))
+
+(define-type-predicate-handler p2-stringp p2-test-stringp)

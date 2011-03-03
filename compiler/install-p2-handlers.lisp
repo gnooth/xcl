@@ -162,6 +162,7 @@
 (install-p2-handler 'setcar                     'p2-setcar)
 (install-p2-handler 'setcdr                     'p2-setcdr)
 (install-p2-handler 'simple-vector-p            'p2-simple-vector-p)
+(install-p2-handler 'stringp                    'p2-stringp)
 (install-p2-handler 'string-find                'p2-string-find)
 (install-p2-handler 'structure-ref              'p2-structure-ref)
 (install-p2-handler 'structure-set              'p2-structure-set)
