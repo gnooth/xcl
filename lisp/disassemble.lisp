@@ -189,36 +189,37 @@
     (when op2
       (write-char #\,)
       (print-operand op2))
-    (let ((annotation-pos #+x86-64 80 #-x86-64 72))
-      (cond ((eql annotation *start-address*)
-             (fill-to-pos annotation-pos *standard-output*)
-             (if *lambda-name*
-                 (format t "; ~S" *lambda-name*)
-                 (format t "; recursive call")))
-            ((integerp annotation)
-             (multiple-value-bind (value present-p)
-                 (gethash annotation *runtime-addresses*)
-               (when present-p
-                 (fill-to-pos annotation-pos *standard-output*)
-                 (cond ((consp value)
-                        (format t "; '~A" value))
-                       ((memq value '(t nil))
-                        (format t "; ~S" value))
-                       ((keywordp value)
-                        (format t "; ~S" value))
-                       ((symbolp value)
-                        (cond ((memq mnemonic '(:jmpq :callq :call))
-                               (format t "; ~S" value))
-                              (t
-                               (format t "; '~S" value))))
-                       (t
-                        (format t "; ~A" value))))))
-            ((and annotation (symbolp annotation))
-             (fill-to-pos (if (< (charpos *standard-output*) annotation-pos)
-                              annotation-pos
-                              (+ annotation-pos 8))
-                          *standard-output*)
-             (format t "; ~S" annotation))))))
+    (when annotation
+      (let ((annotation-pos #+x86-64 80 #-x86-64 72))
+        (cond ((eql annotation *start-address*)
+               (fill-to-pos annotation-pos *standard-output*)
+               (if *lambda-name*
+                   (format t "; ~S" *lambda-name*)
+                   (format t "; recursive call")))
+              ((integerp annotation)
+               (multiple-value-bind (value present-p)
+                   (gethash annotation *runtime-addresses*)
+                 (when present-p
+                   (fill-to-pos annotation-pos *standard-output*)
+                   (cond ((consp value)
+                          (format t "; '~A" value))
+                         ((memq value '(t nil))
+                          (format t "; ~S" value))
+                         ((keywordp value)
+                          (format t "; ~S" value))
+                         ((symbolp value)
+                          (cond ((memq mnemonic '(:jmpq :callq :call))
+                                 (format t "; ~S" value))
+                                (t
+                                 (format t "; '~S" value))))
+                         (t
+                          (format t "; ~A" value))))))
+              ((and annotation (symbolp annotation))
+               (fill-to-pos (if (< (charpos *standard-output*) annotation-pos)
+                                annotation-pos
+                                (+ annotation-pos 8))
+                            *standard-output*)
+               (format t "; ~S" annotation)))))))
 
 (defun process-block (block)
   (let ((start (block-start-address block)))

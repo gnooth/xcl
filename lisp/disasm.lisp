@@ -148,3 +148,34 @@
            (base  (ldb (byte 3 0) sib-byte)))
        (declare (ignorable scale index base))
        ,@body)))
+
+(declaim (type simple-vector +cmovcc-mnemonics+))
+(defconstant +cmovcc-mnemonics+
+  ;;   0      1       2      3       4      5       6       7
+  #(:cmovo :cmovno :cmovb :cmovae :cmove :cmovne :cmovbe :cmova
+    ;; 8      9       A       B       C      D       E       F
+    :cmovs :cmovns :cmovpe :cmovpo :cmovl :cmovge :cmovle :cmovg))
+
+(declaim (type simple-vector +jcc-mnemonics+))
+(defconstant +jcc-mnemonics+
+  ;; 0   1    2   3    4   5    6    7   8   9    A    B    C   D    E    F
+  #(:jo :jno :jb :jnb :je :jne :jbe :ja :js :jns :jpe :jpo :jl :jge :jle :jg))
+
+(define-two-byte-disassembler #x0f
+  (#x80 #x81 #x82 #x83 #x84 #x85 #x86 #x87 #x88 #x89 #x8a #x8b #x8c #x8d #x8e #x8f)
+  (let* ((displacement (mref-32 start 2))
+         (absolute-address (ldb (byte 32 0) (+ start 6 displacement))))
+    (setq length 6
+          mnemonic (aref +jcc-mnemonics+ (- byte2 #x80))
+          operand1 (make-absolute-operand absolute-address))
+    (push (make-disassembly-block :start-address absolute-address) *blocks*)
+    (push absolute-address *labels*)))
+
+(define-disassembler (#x70 #x71 #x72 #x73 #x74 #x75 #x76 #x77 #x78 #x79 #x7a #x7b #x7c #x7d #x7e #x7f)
+  (let* ((displacement (mref-8-signed start 1))
+         (absolute-address (+ start 2 displacement)))
+    (push (make-disassembly-block :start-address absolute-address) *blocks*)
+    (push absolute-address *labels*)
+    (setq length 2
+          mnemonic (aref +jcc-mnemonics+ (- byte1 #x70))
+          operand1 (make-absolute-operand absolute-address))))

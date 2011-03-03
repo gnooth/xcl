@@ -103,24 +103,8 @@
 
 (define-two-byte-disassembler #x0f
   (#x40 #x41 #x42 #x43 #x44 #x45 #x46 #x47 #x48 #x49 #x4a #x4b #x4c #x4d #x4e #x4f)
-  ;; cmov
-  (setq mnemonic (case byte2
-                   (#x40 :cmovo)
-                   (#x41 :cmovno)
-                   (#x42 :cmovb)
-                   (#x43 :cmovae)
-                   (#x44 :cmove)
-                   (#x45 :cmovne)
-                   (#x46 :cmovbe)
-                   (#x47 :cmova)
-                   (#x48 :cmovs)
-                   (#x49 :cmovns)
-                   (#x4a :cmovpe)
-                   (#x4b :cmovpo)
-                   (#x4c :cmovl)
-                   (#x4d :cmovge)
-                   (#x4e :cmovle)
-                   (#x4f :cmovg)))
+  ;; cmovcc
+  (setq mnemonic (svref +cmovcc-mnemonics+ (- byte2 #x40)))
   (with-modrm-byte (mref-8 start 2)
     (cond ((eql modrm-byte #x05)
            (setq length 7
@@ -130,32 +114,6 @@
                  operand2 (make-register-operand (register reg prefix-byte))))
           (t
            (unsupported-byte-sequence byte1 byte2)))))
-
-(define-two-byte-disassembler #x0f
-  (#x80 #x81 #x82 #x83 #x84 #x85 #x86 #x87 #x88 #x89 #x8a #x8b #x8c #x8d #x8e #x8f)
-  (let* ((displacement (mref-32 start 2))
-         (absolute-address (ldb (byte 32 0) (+ start 6 displacement))))
-    (setq length 6
-          mnemonic (case byte2
-                     (#x80 :jo)
-                     (#x81 :jno)
-                     (#x82 :jb)
-                     (#x83 :jae)
-                     (#x84 :je)
-                     (#x85 :jne)
-                     (#x86 :jbe)
-                     (#x87 :ja)
-                     (#x88 :js)
-                     (#x89 :jns)
-                     (#x8a :jpe)
-                     (#x8b :jpo)
-                     (#x8c :jl)
-                     (#x8d :jge)
-                     (#x8e :jle)
-                     (#x8f :jg))
-          operand1 (make-absolute-operand absolute-address))
-    (push (make-disassembly-block :start-address absolute-address) *blocks*)
-    (push absolute-address *labels*)))
 
 (define-two-byte-disassembler #x0f #xab
   (with-modrm-byte (mref-8 start 2)
@@ -416,32 +374,6 @@
                    operand2 (make-register-operand :rax))))
           (t
            (unsupported-byte-sequence byte1 byte2)))))
-
-(define-disassembler (#x70 #x71 #x72 #x73 #x74 #x75 #x76 #x77
-                      #x78 #x79 #x7a #x7b #x7c #x7d #x7e #x7f)
-  (let* ((displacement (mref-8-signed start 1))
-         (absolute-address (+ start 2 displacement)))
-    (push (make-disassembly-block :start-address absolute-address) *blocks*)
-    (push absolute-address *labels*)
-    (setq length 2
-          mnemonic (ecase byte1
-                     (#x70 :jo)
-                     (#x71 :jno)
-                     (#x72 :jb)
-                     (#x73 :jnb)
-                     (#x74 :je)
-                     (#x75 :jne)
-                     (#x76 :jbe)
-                     (#x77 :ja)
-                     (#x78 :js)
-                     (#x79 :jns)
-                     (#x7a :jp)
-                     (#x7b :jnp)
-                     (#x7c :jl)
-                     (#x7d :jnl)
-                     (#x7e :jle)
-                     (#x7f :jg))
-          operand1 (make-absolute-operand absolute-address))))
 
 (define-disassembler #x80
   (with-modrm-byte (mref-8 start 1)
