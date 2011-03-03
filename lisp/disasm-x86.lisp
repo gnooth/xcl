@@ -62,163 +62,172 @@
           operand1 (make-immediate-operand data)
           operand2 (make-register-operand :al))))
 
-(define-disassembler #x0f
-  (let ((byte2 (mref-8 start 1)))
-    (cond ((eql byte2 #x31)
-           (setq length 2
-                 mnemonic :rdtsc))
-          ((eql byte2 #x92)
-           (with-modrm-byte (mref-8 start 2)
-             (cond ((and (eql mod #b11)
-                         (eql reg 0))
-                    (setq length 3
-                          mnemonic :setb
-                          operand1 (make-register-operand (reg8 (register rm)))))
-                   (t
-                    (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
-                           byte1 byte2 modrm-byte)))))
-          ((eql byte2 #xa2)
-           (setq length 2
-                 mnemonic :cpuid))
-          ((eql byte2 #xab)
-           (with-modrm-byte (mref-8 start 2)
-             (cond ((eql mod #b01)
-                    (setq length 4
-                          mnemonic :bts
-                          operand1 (make-register-operand (register reg))
-                          operand2 (make-operand :kind :relative
-                                                 :register (register rm)
-                                                 :data (mref-8-signed start 3))))
-                   (t
-                    (unsupported)))))
-          ((eql byte2 #xaf)
-           (with-modrm-byte (mref-8 start 2)
-             (setq length 3
-                   mnemonic :imul
-                   operand1 (make-register-operand (register rm))
-                   operand2 (make-register-operand (register reg)))))
-          ((eql byte2 #xb3)
-           (with-modrm-byte (mref-8 start 2)
-             (cond ((eql mod #b01)
-                    (setq length 4
-                          mnemonic :btr
-                          operand1 (make-register-operand (register reg))
-                          operand2 (make-operand :kind :relative
-                                                 :register (register rm)
-                                                 :data (mref-8-signed start 3))))
-                   (t
-                    (unsupported)))))
-          ((eql byte2 #xb6)
-           (let ((byte3 (mref-8 start 2)))
-             (with-modrm-byte byte3
-               (cond ((eql byte3 #x02)
-                      (setq length 3
-                            mnemonic :movzbl
-                            operand1 (make-operand :kind :relative
-                                                   :register :edx
-                                                   :data 0)
-                            operand2 (make-register-operand :eax)))
-                     ((eql byte3 #xc0)
-                      (setq length 3
-                            mnemonic :movzbl
-                            operand1 (make-register-operand :al)
-                            operand2 (make-register-operand :eax)))
-                     ((eql rm #b100)
-                      ;; SIB byte follows
-                      (with-sib-byte (mref-8 start 3)
-                        (setq length 5
-                              mnemonic :movzbl
-                              operand1 (make-operand :kind :indexed
-                                                     :register (register base)
-                                                     :index (register index)
-                                                     :scale scale
-                                                     :data (mref-8-signed start 4))
-                              operand2 (make-register-operand (register reg)))))
-                     (t
-                      (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
-                             byte1 byte2 byte3))))))
-          ((eql byte2 #xb7)
-           (let ((byte3 (mref-8 start 2)))
-             (with-modrm-byte byte3
-               (cond ((eql rm #b100)
-                      ;; SIB byte follows
-                      (with-sib-byte (mref-8 start 3)
-                        (setq length 5
-                              mnemonic :movzwl
-                              operand1 (make-operand :kind :indexed
-                                                     :register (register base)
-                                                     :index (register index)
-                                                     :scale scale
-                                                     :data (mref-8-signed start 4))
-                              operand2 (make-register-operand (reg16 (register reg))))))
-                     (t
-                      (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x"
-                             byte1 byte2 byte3))))))
-          ((eql byte2 #xa3)
-           (with-modrm-byte (mref-8 start 2)
-             (cond ((eql mod #b01)
-                    (setq length 4
-                          mnemonic :bt
-                          operand1 (make-register-operand (register reg))
-                          operand2 (make-operand :kind :relative
-                                                 :register (register rm)
-                                                 :data (mref-8-signed start 3))))
-                   (t
-                    (unsupported)))))
-          ((memq byte2 '(#x80 #x81 #x82 #x83 #x84 #x85 #x86 #x87
-                         #x88 #x89 #x8a #x8b #x8c #x8d #x8e #x8f))
-           (let* ((displacement (mref-32 start 2))
-                  (absolute-address (ldb (byte 32 0) (+ start 6 displacement))))
-             (setq length 6
-                   mnemonic (case byte2
-                              (#x80 :jo)
-                              (#x81 :jno)
-                              (#x82 :jb)
-                              (#x83 :jae)
-                              (#x84 :je)
-                              (#x85 :jne)
-                              (#x86 :jbe)
-                              (#x87 :ja)
-                              (#x88 :js)
-                              (#x89 :jns)
-                              (#x8a :jpe)
-                              (#x8b :jpo)
-                              (#x8c :jl)
-                              (#x8d :jge)
-                              (#x8e :jle)
-                              (#x8f :jg))
-                   operand1 (make-absolute-operand absolute-address))
-             (push (make-disassembly-block :start-address absolute-address) *blocks*)
-             (push absolute-address *labels*)))
-;;           ((eql (ldb (byte 4 4) byte2) 4)
-          ((memq byte2 '(#x40 #x41 #x42 #x43 #x44 #x45 #x46 #x47
-                         #x48 #x49 #x4a #x4b #x4c #x4d #x4e #x4f))
-           ;; cmov
-           (setq mnemonic (case (ldb (byte 4 0) byte2)
-                            (#x0 :cmovo)
-                            (#x1 :cmovno)
-                            (#x2 :cmovb)
-                            (#x3 :cmovae)
-                            (#x4 :cmove)
-                            (#x5 :cmovne)
-                            (#x6 :cmovbe)
-                            (#x7 :cmova)
-                            (#x8 :cmovs)
-                            (#x9 :cmovns)
-                            (#xa :cmovpe)
-                            (#xb :cmovpo)
-                            (#xc :cmovl)
-                            (#xd :cmovge)
-                            (#xe :cmovle)
-                            (#xf :cmovg)))
-           (with-modrm-byte (mref-8 start 2)
-             (cond ((= modrm-byte #x05)
-                    (setq length 7
-                          operand1 (make-operand :kind :absolute
-                                                 :data (mref-32 start 3))
-                          operand2 (make-register-operand (register reg))))
-                   (t
-                    (unsupported-byte-sequence byte1 modrm-byte))))))))
+(define-two-byte-disassembler #x0f #x31
+  (setq length 2
+        mnemonic :rdtsc))
+
+(define-two-byte-disassembler #x0f
+  (#x40 #x41 #x42 #x43 #x44 #x45 #x46 #x47 #x48 #x49 #x4a #x4b #x4c #x4d #x4e #x4f)
+  ;; cmov
+  (setq mnemonic (case (ldb (byte 4 0) byte2)
+                   (#x0 :cmovo)
+                   (#x1 :cmovno)
+                   (#x2 :cmovb)
+                   (#x3 :cmovae)
+                   (#x4 :cmove)
+                   (#x5 :cmovne)
+                   (#x6 :cmovbe)
+                   (#x7 :cmova)
+                   (#x8 :cmovs)
+                   (#x9 :cmovns)
+                   (#xa :cmovpe)
+                   (#xb :cmovpo)
+                   (#xc :cmovl)
+                   (#xd :cmovge)
+                   (#xe :cmovle)
+                   (#xf :cmovg)))
+  (with-modrm-byte (mref-8 start 2)
+    (cond ((eql mod #b11)
+           (setq length 3
+                 operand1 (make-register-operand (register rm))
+                 operand2 (make-register-operand (register reg))))
+          ((eql modrm-byte #x05)
+           (setq length 7
+                 operand1 (make-operand :kind :absolute
+                                        :data (mref-32 start 3))
+                 operand2 (make-register-operand (register reg))))
+          (t
+           (unsupported-byte-sequence byte1 byte2 modrm-byte)))))
+
+(define-two-byte-disassembler #x0f
+  (#x80 #x81 #x82 #x83 #x84 #x85 #x86 #x87 #x88 #x89 #x8a #x8b #x8c #x8d #x8e #x8f)
+  (let* ((displacement (mref-32 start 2))
+         (absolute-address (ldb (byte 32 0) (+ start 6 displacement))))
+    (setq length 6
+          mnemonic (case byte2
+                     (#x80 :jo)
+                     (#x81 :jno)
+                     (#x82 :jb)
+                     (#x83 :jae)
+                     (#x84 :je)
+                     (#x85 :jne)
+                     (#x86 :jbe)
+                     (#x87 :ja)
+                     (#x88 :js)
+                     (#x89 :jns)
+                     (#x8a :jpe)
+                     (#x8b :jpo)
+                     (#x8c :jl)
+                     (#x8d :jge)
+                     (#x8e :jle)
+                     (#x8f :jg))
+          operand1 (make-absolute-operand absolute-address))
+    (push (make-disassembly-block :start-address absolute-address) *blocks*)
+    (push absolute-address *labels*)))
+
+(define-two-byte-disassembler #x0f #x92
+  (with-modrm-byte (mref-8 start 2)
+    (cond ((and (eql mod #b11)
+                (eql reg 0))
+           (setq length   3
+                 mnemonic :setb
+                 operand1 (make-register-operand (reg8 (register rm)))))
+          (t
+           (unsupported-byte-sequence byte1 byte2 modrm-byte)))))
+
+(define-two-byte-disassembler #x0f #xa2
+  (setq length 2
+        mnemonic :cpuid))
+
+(define-two-byte-disassembler #x0f #xa3
+  (with-modrm-byte (mref-8 start 2)
+    (cond ((eql mod #b01)
+           (setq length 4
+                 mnemonic :bt
+                 operand1 (make-register-operand (register reg))
+                 operand2 (make-operand :kind :relative
+                                        :register (register rm)
+                                        :data (mref-8-signed start 3))))
+          (t
+           (unsupported)))))
+
+(define-two-byte-disassembler #x0f #xab
+  (with-modrm-byte (mref-8 start 2)
+    (cond ((eql mod #b01)
+           (setq length   4
+                 mnemonic :bts
+                 operand1 (make-register-operand (register reg))
+                 operand2 (make-operand :kind :relative
+                                        :register (register rm)
+                                        :data (mref-8-signed start 3))))
+          (t
+           (unsupported)))))
+
+(define-two-byte-disassembler #x0f #xaf
+  (with-modrm-byte (mref-8 start 2)
+    (setq length   3
+          mnemonic :imul
+          operand1 (make-register-operand (register rm))
+          operand2 (make-register-operand (register reg)))))
+
+(define-two-byte-disassembler #x0f #xb3
+  (with-modrm-byte (mref-8 start 2)
+    (cond ((eql mod #b01)
+           (setq length 4
+                 mnemonic :btr
+                 operand1 (make-register-operand (register reg))
+                 operand2 (make-operand :kind :relative
+                                        :register (register rm)
+                                        :data (mref-8-signed start 3))))
+          (t
+           (unsupported)))))
+
+(define-two-byte-disassembler #x0f #xb6
+  (let ((byte3 (mref-8 start 2)))
+    (with-modrm-byte byte3
+      (cond ((eql byte3 #x02)
+             (setq length   3
+                   mnemonic :movzbl
+                   operand1 (make-operand :kind :relative
+                                          :register :edx
+                                          :data 0)
+                   operand2 (make-register-operand :eax)))
+            ((eql byte3 #xc0)
+             (setq length   3
+                   mnemonic :movzbl
+                   operand1 (make-register-operand :al)
+                   operand2 (make-register-operand :eax)))
+            ((eql rm #b100)
+             ;; SIB byte follows
+             (with-sib-byte (mref-8 start 3)
+               (setq length   5
+                     mnemonic :movzbl
+                     operand1 (make-operand :kind :indexed
+                                            :register (register base)
+                                            :index (register index)
+                                            :scale scale
+                                            :data (mref-8-signed start 4))
+                     operand2 (make-register-operand (register reg)))))
+            (t
+             (unsupported-byte-sequence byte1 byte2 byte3))))))
+
+(define-two-byte-disassembler #x0f #xb7
+  (let ((byte3 (mref-8 start 2)))
+    (with-modrm-byte byte3
+      (cond ((eql rm #b100)
+             ;; SIB byte follows
+             (with-sib-byte (mref-8 start 3)
+               (setq length   5
+                     mnemonic :movzwl
+                     operand1 (make-operand :kind :indexed
+                                            :register (register base)
+                                            :index (register index)
+                                            :scale scale
+                                            :data (mref-8-signed start 4))
+                     operand2 (make-register-operand (reg16 (register reg))))))
+            (t
+             (unsupported-byte-sequence byte1 byte2 byte3))))))
+
 
 (define-disassembler #x21
   ;; /r and dword register to r/m dword
@@ -704,7 +713,7 @@
            (cond ((eql rm #b100)
                   ;; SIB follows
                   (with-sib-byte (mref-8 start 2)
-                    (cond ((eql sib #x26)
+                    (cond ((eql sib-byte #x26)
                            (setq length   4
                                  mnemonic :lea
                                  operand1 (make-operand :kind :relative
@@ -712,7 +721,7 @@
                                                         :data (mref-8-signed start 3))
                                  operand2 (make-register-operand (register reg))))
                           (t
-                           (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x" byte1 modrm-byte sib)))))
+                           (unsupported-byte-sequence byte1 modrm-byte sib-byte)))))
                  (t
                   (setq length   3
                         mnemonic :lea
@@ -724,7 +733,7 @@
            (cond ((eql rm #b100)
                   ;; SIB follows
                   (with-sib-byte (mref-8 start 2)
-                    (cond ((eql sib #x26)
+                    (cond ((eql sib-byte #x26)
                            (setq length   7
                                  mnemonic :lea
                                  operand1 (make-operand :kind :relative
@@ -732,7 +741,7 @@
                                                         :data (mref-32 start 3))
                                  operand2 (make-register-operand (register reg))))
                           (t
-                           (error "unhandled byte sequence #x~2,'0x #x~2,'0x #x~2,'0x" byte1 modrm-byte sib)))))
+                           (unsupported-byte-sequence byte1 modrm-byte sib-byte)))))
                  (t
                   (unsupported-byte-sequence byte1 modrm-byte))))
           (t

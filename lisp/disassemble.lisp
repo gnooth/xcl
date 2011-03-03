@@ -230,16 +230,17 @@
           (setq prefix-byte byte1)
           (setq byte1 (mref-8 (incf start) 0)))
         (let (disassembler instruction)
-          (when (eq byte1 #x0f)
-            (let ((byte2 (mref-8 start 1)))
-              (setq disassembler (find-two-byte-disassembler byte1 byte2))
-              (when disassembler
-                (setq instruction (funcall disassembler byte1 byte2 start prefix-byte)))))
-          (unless instruction
-            (setq disassembler (find-disassembler byte1))
-            (unless disassembler
-              (error "No disassembler for opcode #x~2,'0x at #x~X" byte1 start))
-            (setq instruction (funcall disassembler byte1 start prefix-byte)))
+          (cond ((eq byte1 #x0f)
+                 (let ((byte2 (mref-8 start 1)))
+                   (setq disassembler (find-two-byte-disassembler byte1 byte2))
+                   (unless disassembler
+                     (error "No disassembler for two-byte opcode #x~2,'0x #x~2,'0x at #x~X" byte1 byte2 start))
+                   (setq instruction (funcall disassembler byte1 byte2 start prefix-byte))))
+                (t
+                 (setq disassembler (find-disassembler byte1))
+                 (unless disassembler
+                   (error "No disassembler for opcode #x~2,'0x at #x~X" byte1 start))
+                 (setq instruction (funcall disassembler byte1 start prefix-byte))))
           #+nil
           (print-instruction instruction)
           (push instruction *instructions*)
