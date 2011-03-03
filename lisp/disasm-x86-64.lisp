@@ -18,35 +18,6 @@
 
 (in-package "DISASSEMBLER")
 
-(defparameter *disassemblers* (make-hash-table))
-
-;; (defun install-disassembler (byte disassembler)
-;;   (setf (gethash byte *disassemblers*) disassembler))
-
-;; (defun find-disassembler (byte)
-;;   (gethash2-1 byte *disassemblers*))
-
-;; (defmacro define-disassembler (byte-or-bytes &body body)
-;;   (let* ((bytes (designator-list byte-or-bytes))
-;;          (name (intern (format nil "DIS~{-~X~}" bytes)))
-;;          (args '(byte1 start prefix-byte)))
-;;     `(progn
-;;        (defun ,name ,args
-;;          (declare (ignorable ,@args))
-;;          (let (mnemonic length operand1 operand2 annotation)
-;;            ,@body
-;;            (when prefix-byte
-;;              (decf start)
-;;              (incf length))
-;;            (make-instruction :start start
-;;                              :length length
-;;                              :mnemonic mnemonic
-;;                              :operand1 operand1
-;;                              :operand2 operand2
-;;                              :annotation annotation)))
-;;        (dolist (byte ',bytes)
-;;          (install-disassembler byte ',name)))))
-
 (define-disassembler #x01
   (with-modrm-byte (mref-8 start 1)
     (case mod
@@ -210,7 +181,6 @@
                               operand2 (make-register-operand (reg16 (register reg))))))
                      (t
                       (unsupported-byte-sequence byte1 byte2 byte3))))))
-;;           ((eql (ldb (byte 4 4) byte2) 8) ; #x80...#x8f
           ((memq byte2 '(#x80 #x81 #x82 #x83 #x84 #x85 #x86 #x87
                          #x88 #x89 #x8a #x8b #x8c #x8d #x8e #x8f))
            (let* ((displacement (mref-32 start 2))
@@ -236,11 +206,9 @@
                    operand1 (make-absolute-operand absolute-address))
              (push (make-disassembly-block :start-address absolute-address) *blocks*)
              (push absolute-address *labels*)))
-;;           ((eql (ldb (byte 4 4) byte2) 4) ; #x40...#x4f
           ((memq byte2 '(#x40 #x41 #x42 #x43 #x44 #x45 #x46 #x47
                          #x48 #x49 #x4a #x4b #x4c #x4d #x4e #x4f))
            ;; cmov
-;;            (setq mnemonic (case (ldb (byte 4 0) byte2)
            (setq mnemonic (case byte2
                             (#x40 :cmovo)
                             (#x41 :cmovno)
@@ -1082,51 +1050,3 @@
               (unsupported-byte-sequence byte1 modrm-byte))))
           (t
            (unsupported-byte-sequence byte1 modrm-byte)))))
-
-;; (defun process-block (block)
-;;   (let ((block-start (block-start-address block))
-;;         (offset 0)
-;;         done)
-;;     (loop
-;;       (let (start
-;; ;;             length
-;;             prefix-byte
-;; ;;             mnemonic
-;; ;;             operand1
-;; ;;             operand2
-;; ;;             annotation
-;;             (byte1 (mref-8 block-start offset))
-;;             instruction)
-;;         (when (memq byte1 '(#xc3 #xe9 #xeb))
-;;           ;; last time through the loop for this block
-;;           (setq done t))
-;;         ;; instruction start
-;;         (setq start (+ block-start offset))
-;;         ;; prefix byte?
-;;         (when (<= #x40 byte1 #x4f)
-;;           (setq prefix-byte byte1)
-;;           (setq byte1 (mref-8 block-start (incf offset))))
-;;         (let ((disassembler (find-disassembler byte1)))
-;;           (if disassembler
-;;               (setq instruction (funcall disassembler byte1 (if prefix-byte (1+ start) start) prefix-byte))
-;;               (error "No disassembler for opcode #x~2,'0x at #x~X" byte1 start)))
-;; ;;         (aver (not (null instruction)))
-;; ;;         (when (null instruction)
-;; ;;           (when prefix-byte
-;; ;;             (incf length))
-;; ;;           (setq instruction
-;; ;;                 (make-instruction :start start
-;; ;;                                   :length length
-;; ;;                                   :mnemonic mnemonic
-;; ;;                                   :operand1 operand1
-;; ;;                                   :operand2 operand2
-;; ;;                                   :annotation annotation)))
-
-;; ;;                (print-instruction instruction)
-
-;;         (push instruction *instructions*)
-;;         (when done
-;;           (setf (block-end-address block) (+ (instruction-start instruction) (instruction-length instruction)))
-;;           (return))
-;;         (setq offset (- (+ (instruction-start instruction) (instruction-length instruction)) block-start)))))
-;;   nil)
