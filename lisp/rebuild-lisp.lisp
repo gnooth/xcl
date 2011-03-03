@@ -409,9 +409,9 @@
 
                             ;; order matters!
                             "disassemble"
-                            #+x86 "disasm-x86"
-                            #+x86-64 "disasm-x86-64"
-                            ))
+                            "disasm"
+                            #+x86    "disasm-x86"
+                            #+x86-64 "disasm-x86-64"))
           (compile-file-if-needed filespec :force-compile full)))
       (let ((*default-pathname-defaults* (merge-pathnames "compiler/" *xcl-home*)))
         (compile-file-if-needed "install-p2-handlers" :force-compile full))

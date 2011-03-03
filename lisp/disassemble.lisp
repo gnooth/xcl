@@ -16,18 +16,9 @@
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-(in-package "EXTENSIONS")
-
-(export '(d x p/x))
-
-(in-package "SYSTEM")
-
-#+x86
-(require "X86")
-#+x86-64
-(require "X86-64")
-
 (in-package "DISASSEMBLER")
+
+(require #+x86 "X86" #+x86-64 "X86-64")
 
 (defvar *lambda-name* nil)
 
@@ -45,56 +36,7 @@
 
 (defvar *end-address* nil)
 
-(defun unsupported ()
-  (error "unsupported"))
-
-;; #+x86
-;; (load-system-file "disasm-x86.lisp")
-;; #+x86-64
-;; (load-system-file "disasm-x86-64.lisp")
-
-(defstruct (disassembly-block (:conc-name "BLOCK-"))
-  start-address
-  end-address
-  instructions
-  )
-
-(defstruct operand
-  kind ; :register, :indirect, :immediate, :relative, :absolute
-  register ; base register
-  index
-  scale
-  data
-  )
-
-(defknown make-register-operand (t) operand)
-(defun make-register-operand (reg)
-  (make-operand :kind :register
-                :register reg))
-
-(defknown make-indirect-operand (t) operand)
-(defun make-indirect-operand (reg)
-  (make-operand :kind :indirect
-                :register reg))
-
-(defknown make-immediate-operand (t) operand)
-(defun make-immediate-operand (data)
-  (make-operand :kind :immediate
-                :data data))
-
-(defknown make-absolute-operand (t) operand)
-(defun make-absolute-operand (data)
-  (make-operand :kind :absolute
-                :data data))
-
-(defstruct instruction
-  start
-  length
-  mnemonic
-  operand1
-  operand2
-  annotation
-  )
+(load-system-file "lisp/disasm")
 
 (defun register-string (reg)
   (ecase reg
@@ -150,6 +92,38 @@
 
 (defparameter *runtime-addresses* nil)
 
+(defun get-runtime-addresses (function)
+  (let ((ht (make-hash-table)))
+    (maphash #'(lambda (key value) (setf (gethash (ldb (byte 32 0) value) ht) key))
+             *runtime-names*)
+    (flet ((process (thing)
+             #+x86
+             (setf (gethash (value-to-ub32 thing) ht) thing)
+             #+x86-64
+             (setf (gethash (value-to-ub64 thing) ht) thing)
+             (when (and (symbolp thing)
+                        (fboundp thing)
+                        (not (autoloadp thing)))
+               (let* ((function (symbol-function thing))
+                      (code-address (function-code-address function)))
+                 #+x86
+                 (setf (gethash (value-to-ub32 function) ht) function)
+                 #+x86-64
+                 (setf (gethash (value-to-ub64 function) ht) function)
+                 (when code-address
+                   (setf (gethash code-address ht) thing))))))
+      (dolist (package (list-all-packages))
+        (dolist (symbol (package-external-symbols package))
+          (process symbol))
+        (dolist (symbol (package-internal-symbols package))
+          (process symbol)))
+      (when (compiled-function-p function)
+        (let ((constants (compiled-function-constants function)))
+          (dolist (constant constants)
+            (when (or (symbolp constant) (functionp constant) (listp constant))
+              (process constant))))))
+    ht))
+
 (defun print-operand (op)
   (declare (type operand op))
   (let ((string (case (operand-kind op)
@@ -161,14 +135,11 @@
                    (format nil "$0x~X" (operand-data op)))
                   (:relative
                    (cond ((zerop (operand-data op))
-                          (format nil "(~A)" (register-string (operand-register op)))
-                          )
+                          (format nil "(~A)" (register-string (operand-register op))))
                          ((minusp (operand-data op))
-                          (format nil "-0x~X(~A)" (- (operand-data op)) (register-string (operand-register op)))
-                          )
+                          (format nil "-0x~X(~A)" (- (operand-data op)) (register-string (operand-register op))))
                          (t
-                          (format nil "0x~X(~A)" (operand-data op) (register-string (operand-register op)))
-                          )))
+                          (format nil "0x~X(~A)" (operand-data op) (register-string (operand-register op))))))
                   (:indexed
                    (format nil "0x~X(~A,~A,~D)"
                            (operand-data op)
@@ -184,9 +155,6 @@
     (format t "~A" (nstring-downcase string))))
 
 (defun fill-to-pos (pos stream)
-;;   (when (< (charpos stream) pos)
-;;     (dotimes (i (- pos (charpos stream)))
-;;       (write-char #\space stream))))
   (loop
     (write-char #\space stream)
     (when (>= (charpos stream) pos)
@@ -200,18 +168,12 @@
         (format t "~A:~%" label)))
     (format t "  ~X: " start)
     (dotimes (i (instruction-length instruction))
-      (format t "~2,'0X " (mref-8 start i)))
-;;     (let ((label (and *labels-hash-table* (gethash start *labels-hash-table*))))
-;;       (when label
-;;         (fill-to-pos 32 *standard-output*)
-;;         (format t "~A:" label)))
-    )
+      (format t "~2,'0X " (mref-8 start i))))
   (fill-to-pos 40 *standard-output*)
   (let ((mnemonic (instruction-mnemonic instruction))
         (op1 (instruction-operand1 instruction))
         (op2 (instruction-operand2 instruction))
         (annotation (instruction-annotation instruction)))
-;;     (mumble "annotation = ~S~%" annotation)
     (let* ((s (string mnemonic)))
       (princ (string-downcase s)))
     (when op1
@@ -220,10 +182,7 @@
           (let* ((address (operand-data op1))
                  (label (and *labels-hash-table* (gethash address *labels-hash-table*))))
             (cond (label
-                   (format t "~A" label)
-;;                    (fill-to-pos 72 *standard-output*)
-;;                    (format t "; 0x~X" address)
-                   )
+                   (format t "~A" label))
                   (t
                    (print-operand op1))))
           (print-operand op1)))
@@ -261,72 +220,27 @@
                           *standard-output*)
              (format t "; ~S" annotation))))))
 
-(defun print-inst (inst)
-  (let* ((s (princ-to-string inst))
-         (len (length s)))
-    (princ s)
-    (when (< len 7)
-      (dotimes (i (- 7 len))
-        (write-char #\space)))))
-
-(defun print-arg (arg)
-  (cond ((numberp arg)
-         (format t "$~X" arg))
-        ((stringp arg)
-         (princ arg))
-        ((keywordp arg)
-         (princ (ecase arg
-                  (:eax "%eax")
-                  (:ecx "%ecs")
-                  (:edx "%edx")
-                  (:ebx "%ebx")
-                  (:esp "%esp")
-                  (:ebp "%ebp")
-                  (:esi "%esi")
-                  (:edi "%edi"))))))
-
-;; EAX is 0, ECX is 1, EDX is 2, EBX is 3, ESP is 4, EBP is 5, ESI is 6, and EDI is 7
-
-(defun print-args (args)
-  (cond ((null args))
-        ((atom args)
-         (print-arg args))
-        (t
-         (print-arg (car args))
-         (write-char #\,)
-         (print-arg (cadr args)))))
-
-(defun print-line-header (code start-index nbytes)
-  (fresh-line)
-  (format t "~8X: " (+ code start-index))
-  (dotimes (i nbytes)
-    (format t "~2,'0X " (mref-8 code (+ start-index i))))
-  (let ((pos (charpos *standard-output*)))
-    (when (< pos 32)
-      (dotimes (i (- 32 pos)) (write-char #\space)))))
-
-(defun print-line (code start-index nbytes inst args)
-  (print-line-header code start-index nbytes)
-  (print-inst inst)
-  (print-args args)
-  (terpri))
-
-(defmacro with-modrm-byte (byte &body body)
-  `(let ((modrm-byte ,byte))
-     (declare (type (unsigned-byte 8) modrm-byte))
-     (let ((mod (ldb (byte 2 6) modrm-byte))
-           (reg (ldb (byte 3 3) modrm-byte))
-           (rm  (ldb (byte 3 0) modrm-byte)))
-       (declare (ignorable mod reg rm))
-       ,@body)))
-
-(defmacro with-sib-byte (byte &body body)
-  `(let* ((sib ,byte)
-          (scale (ldb (byte 2 6) sib))
-          (index (ldb (byte 3 3) sib))
-          (base  (ldb (byte 3 0) sib)))
-     (declare (ignorable scale index base))
-     ,@body))
+(defun process-block (block)
+  (let ((start (block-start-address block)))
+    (loop
+      (let ((byte1 (mref-8 start 0))
+            prefix-byte)
+        #+x86-64
+        (when (<= #x40 byte1 #x4f)
+          (setq prefix-byte byte1)
+          (setq byte1 (mref-8 (incf start) 0)))
+        (let ((disassembler (find-disassembler byte1)))
+          (unless disassembler
+            (error "No disassembler for opcode #x~2,'0x at #x~X" byte1 start))
+          (let ((instruction (funcall disassembler byte1 start prefix-byte)))
+            #+nil
+            (print-instruction instruction)
+            (push instruction *instructions*)
+            (when (memq byte1 '(#xc3 #xe9 #xeb))
+              (setf (block-end-address block)
+                    (+ (instruction-start instruction) (instruction-length instruction)))
+              (return))
+            (setq start (+ (instruction-start instruction) (instruction-length instruction)))))))))
 
 (defun process-blocks ()
   (loop
@@ -337,13 +251,10 @@
       ;; REVIEW
       (cond ((eql (block-start-address block) *end-address*)
              (process-block block)
-             (setq *end-address* (max *end-address* (block-end-address block)))
-             )
+             (setq *end-address* (max *end-address* (block-end-address block))))
             ((> (block-start-address block) *end-address*)
              (push block *blocks*)
-             (push (make-disassembly-block :start-address *end-address*) *blocks*)
-             )
-            ))))
+             (push (make-disassembly-block :start-address *end-address*) *blocks*))))))
 
 (defun collect-labels ()
   (setq *labels* (sort *labels* #'<))
@@ -357,8 +268,7 @@
           (incf i))))))
 
 (defun disassemble-function (function)
-  (let* (;(*locals* (getf (function-plist function) 'sys::locals))
-         (*locals* (local-variable-information function))
+  (let* ((*locals* (local-variable-information function))
          (*start-address* (function-code-address function))
          (*end-address* *start-address*)
          (block (make-disassembly-block :start-address *start-address*))
@@ -377,7 +287,6 @@
       (print-instruction instruction))
     (fresh-line)
     (format t "; ~D bytes~%" (- *end-address* *start-address*)))
-
   (when (compiled-function-p function)
     (let ((constants (compiled-function-constants function)))
       (dolist (constant constants)
@@ -412,137 +321,8 @@
       (setq function (funcallable-instance-function function)))
     (unless (compiled-function-p function)
       (setq function (compile nil function)))
-    (let ((*runtime-addresses* (make-hash-table)))
-      (maphash #'(lambda (key value) (setf (gethash (ldb (byte 32 0) value) *runtime-addresses*) key))
-               *runtime-names*)
-      (flet ((process (thing)
-                      #+x86
-                      (setf (gethash (value-to-ub32 thing) *runtime-addresses*) thing)
-                      #+x86-64
-                      (setf (gethash (value-to-ub64 thing) *runtime-addresses*) thing)
-                      (when (and (symbolp thing)
-                                 (fboundp thing)
-                                 (not (autoloadp thing)))
-                        (let* ((function (symbol-function thing))
-                               (code-address (function-code-address function)))
-                          #+x86
-                          (setf (gethash (value-to-ub32 function) *runtime-addresses*) function)
-                          #+x86-64
-                          (setf (gethash (value-to-ub64 function) *runtime-addresses*) function)
-                          (when code-address
-                            (setf (gethash code-address *runtime-addresses*) thing))))))
-        (dolist (package (list-all-packages))
-          (dolist (symbol (package-external-symbols package))
-            (process symbol))
-          (dolist (symbol (package-internal-symbols package))
-            (process symbol)))
-        (when (compiled-function-p function)
-          (let ((constants (compiled-function-constants function)))
-            (dolist (constant constants)
-              (when (or (symbolp constant) (functionp constant) (listp constant))
-                (process constant))))))
+    (let ((*runtime-addresses* (get-runtime-addresses function)))
       (disassemble-function function)))
   nil)
 
-(defun d (addr)
-  (let* ((*locals* nil)
-         (*start-address* addr)
-         (*end-address* *start-address*)
-         (block (make-disassembly-block :start-address *start-address*))
-         (*blocks* (list block))
-         (*labels* nil)
-         (*instructions* nil))
-    (process-blocks)
-    (collect-labels)
-    (dolist (instruction (nreverse *instructions*))
-      (print-instruction instruction))))
-
-(defun x (addr &optional (nbytes 16))
-  (let ((offset 0))
-    (when (< offset nbytes)
-      (loop
-        (fresh-line)
-        (format t "~X: " (+ addr offset))
-        (dotimes (i 16)
-          (let ((byte (mref-8 addr offset)))
-            (format t "~2,'0x " byte))
-          (incf offset)
-          (when (eql offset nbytes)
-            (terpri)
-            (return-from x)))
-        (terpri)))))
-
-(defun p/x (n)
-  (let ((*print-base* 16)) (format t "#x~X" n)))
-
-(defun unsupported-byte-sequence (&rest bytes)
-  (if (length-eql bytes 1)
-      (error "unsupported opcode #x~2,'0x" (%car bytes))
-      (error "unsupported byte sequence~{ #x~2,'0x~}" bytes)))
-
-(defparameter *disassemblers* (make-array 256 :initial-element nil))
-
-(declaim (type (simple-array t (256)) *disassemblers*))
-
-(defun install-disassembler (byte disassembler)
-  (declare (type (integer 0 255) byte))
-  (declare (type symbol disassembler))
-  (setf (svref *disassemblers* byte) disassembler))
-
-(defun find-disassembler (byte)
-  (declare (type (integer 0 255) byte))
-  (svref *disassemblers* byte))
-
-(defmacro define-disassembler (byte-or-bytes &body body)
-  (let* ((bytes (designator-list byte-or-bytes))
-         (name (intern (format nil "DIS~{-~X~}" bytes)))
-         (args '(byte1 start prefix-byte)))
-    `(progn
-       (defun ,name ,args
-         (declare (ignorable ,@args))
-         (let (mnemonic length operand1 operand2 annotation)
-           ,@body
-           (when prefix-byte
-             (decf start)
-             (incf length))
-           (make-instruction :start start
-                             :length length
-                             :mnemonic mnemonic
-                             :operand1 operand1
-                             :operand2 operand2
-                             :annotation annotation)))
-       (dolist (byte ',bytes)
-         (install-disassembler byte ',name)))))
-
-(defun process-block (block)
-  (let ((block-start (block-start-address block))
-        (offset 0)
-        done)
-    (loop
-      (let (start
-            prefix-byte
-            (byte1 (mref-8 block-start offset))
-            instruction)
-        (when (memq byte1 '(#xc3 #xe9 #xeb))
-          ;; last time through the loop for this block
-          (setq done t))
-        (setq start (+ block-start offset)) ; start of instruction
-        #+x86-64 (when (<= #x40 byte1 #x4f)
-                   (setq prefix-byte byte1)
-                   (setq byte1 (mref-8 block-start (incf offset))))
-        (let ((disassembler (find-disassembler byte1)))
-          (if disassembler
-              (setq instruction (funcall disassembler byte1 (if prefix-byte (1+ start) start) prefix-byte))
-              (error "No disassembler for opcode #x~2,'0x at #x~X" byte1 start)))
-;;         (print-instruction instruction)
-        (push instruction *instructions*)
-        (when done
-          (setf (block-end-address block) (+ (instruction-start instruction) (instruction-length instruction)))
-          (return))
-        (setq offset (- (+ (instruction-start instruction) (instruction-length instruction)) block-start)))))
-  nil)
-
-#+x86
-(load-system-file "lisp/disasm-x86")
-#+x86-64
-(load-system-file "lisp/disasm-x86-64")
+(load-system-file #+x86 "lisp/disasm-x86" #+x86-64 "lisp/disasm-x86-64")
