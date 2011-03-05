@@ -1425,7 +1425,7 @@
           (*inline-declarations* *inline-declarations*))
       (process-optimization-declarations (cddr (block-form block)))
       (cond ((block-last-special-binding-var block)
-             (p2-progn-body body :stack)
+             (p2-progn-body body (if target :stack nil))
              ;; restore last special binding
              ;; can't inline this easily since RT_thread_set_last_special_binding calls Thread::unbind_to(INDEX)
              (let ((thread-var (compiland-thread-var compiland)))
@@ -1437,9 +1437,10 @@
                       (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :stack)
                       (mumble "P2-LET/LET*: emitting call to RT_current_thread_set_last_special_binding~%")
                       (emit-call-1 "RT_current_thread_set_last_special_binding" nil))))
-             (unless (eq target :stack)
-               (inst :pop :eax)
-               (move-result-to-target target)))
+             (when target
+               (unless (eq target :stack)
+                 (inst :pop :eax)
+                 (move-result-to-target target))))
             (t
              (p2-progn-body body target))))))
 
