@@ -222,77 +222,6 @@
 
 (defvar *bp* nil)
 
-#+nil
-(defun analyze-saved-stack ()
-  (load-lisp-names)
-  (let ((vector (make-array (length *saved-stack*)))
-        (i 0))
-    (dolist (entry (reverse *saved-stack*))
-      (let* ((address (car entry))
-             (contents (cdr entry))
-             (name (name-from-code-address contents)))
-        (setf (aref vector i) (make-stack-entry :address address :contents contents :name name))
-        (incf i)))
-    (dotimes (j (length vector))
-      (let ((entry (aref vector j)))
-        (when (address-is-in-saved-stack (stack-entry-contents entry))
-          (setf (stack-entry-flag entry) "*"))))
-    (setq *stack-entry-vector* vector))
-
-;;   (let ((first-entry (aref *stack-entry-vector* 0))
-;;         (last-entry (aref *stack-entry-vector* (1- (length *stack-entry-vector*)))))
-;;     (format t "first = 0x~X last = 0x~X~%"
-;;             (stack-entry-address first-entry)
-;;             (stack-entry-address last-entry)))
-
-  (let* ((first-entry (aref *stack-entry-vector* 0))
-         (first-address (stack-entry-address first-entry)))
-    (dolist (entry *saved-backtrace*)
-      (let ((address (car entry))
-            (name (car (cdr entry))))
-        (when (address-is-in-saved-stack address)
-          (let* ((i (/ (- address first-address) +bytes-per-word+)))
-            (let ((e (aref *stack-entry-vector* i)))
-;;               (mumble "entry-address = #x~X stack-entry-address = #x~X~%"
-;;                       (car entry) (stack-entry-address e))
-              (let ((c-f-p nil))
-                (when (fboundp name)
-                  (setq c-f-p (ignore-errors (compiled-function-p (coerce name 'function)))))
-                (setf (stack-entry-annotation e) (list (cdr entry) c-f-p))))
-            (loop
-              (when (<= i 0)
-                (return))
-              (let ((e (aref *stack-entry-vector* i)))
-                (when (eq name (stack-entry-name e))
-                  (setf (stack-entry-args e) (cdr (cdr entry)))
-                  (return)))
-              (decf i)))))))
-
-;;   #+x86-64
-;;   (dotimes (i (length *stack-entry-vector*))
-;;     (let* ((entry (aref *stack-entry-vector* i))
-;;            (contents (stack-entry-contents entry)))
-;;       (when (address-is-in-saved-stack contents)
-;;         (setf (stack-entry-flag entry) "**")
-;; ;;         (d (stack-entry-contents entry))
-;;         (setf *bp* contents)
-;;         (return))))
-
-  #+x86
-  (dotimes (i (length *stack-entry-vector*))
-    (let* ((entry (aref *stack-entry-vector* i))
-           (contents (stack-entry-contents entry)))
-      (when (address-is-in-saved-stack contents)
-        (let ((next-entry (if (< i (1- (length *stack-entry-vector*)))
-                              (aref *stack-entry-vector* (1+ i)))))
-          (when (eq (stack-entry-name next-entry) 'INVOKE-DEBUGGER)
-            (setf (stack-entry-flag entry) "**")
-            (setq *bp* contents)
-            (return))))))
-  #+x86-64
-  (setq *bp* *saved-bp*)
-  )
-
 (defun print-saved-stack (&optional (limit most-positive-fixnum))
   (analyze-saved-stack)
   (let ((count 0))
@@ -539,7 +468,6 @@
 
 (defun simplify-backtrace (backtrace)
   (declare (type list backtrace))
-  (mumble "simplify-backtrace called~%")
   (let ((result nil))
     (dolist (frame backtrace)
       (let ((annotation (stack-entry-annotation frame)))
