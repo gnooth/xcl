@@ -352,3 +352,9 @@ Value bad_index(INDEX index, long min, long max)
                            list3(S_integer, make_integer(min),
                                  list1(make_integer(max))));
 }
+
+// ### error-wrong-number-of-arguments
+Value SYS_error_wrong_number_of_arguments(Value op, Value numargs, Value min, Value max)
+{
+  return wrong_number_of_arguments(op, fixnum_value(numargs), fixnum_value(min), fixnum_value(max));
+}

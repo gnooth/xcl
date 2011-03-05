@@ -551,6 +551,7 @@ extern Value SYS_error_not_string(Value datum);
 extern Value SYS_error_not_symbol(Value datum);
 extern Value SYS_error_not_type(Value datum, Value expected_type);
 extern Value SYS_error_not_vector(Value datum);
+extern Value SYS_error_wrong_number_of_arguments(Value op, Value numargs, Value min, Value max);
 extern Value SYS_fasl_read_backquote(Value streamarg, Value ignored);
 extern Value SYS_fasl_read_comma(Value streamarg, Value ignored);
 extern Value SYS_fasl_read_comment(Value streamarg, Value character);
