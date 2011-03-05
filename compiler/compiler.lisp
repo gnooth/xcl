@@ -2559,6 +2559,19 @@ for special variables."
          (<= arity 6)
          (null *closure-vars*))))
 
+(defun optional-p (compiland)
+  (when (null *closure-vars*)
+    (let ((lambda-list (cadr (compiland-lambda-expression compiland))))
+      (when (equal (intersection lambda-list lambda-list-keywords) (list '&optional))
+        (multiple-value-bind (required optional)
+            (parse-lambda-list lambda-list)
+          (mumble "required = ~S~%" required)
+          (mumble "optional = ~S~%" optional)
+          (and (length-eql required 1)
+               (length-eql optional 1)
+               (symbolp (first required))
+               (symbolp (first optional))))))))
+
 #+nil
 (defun repeat-p2 (compiland)
   (setq *code* nil
@@ -2607,8 +2620,11 @@ for special variables."
 ;;              (dolist (var (compiland-arg-vars compiland))
 ;;                (when (eq (var-kind var) :required)
 ;;                  (setf (var-index var) (+ (var-index var) delta)))))
-           (p2-trivial-function-prolog compiland)
-           )
+           (p2-trivial-function-prolog compiland))
+          #+x86-64
+          ((optional-p compiland)
+           (mumble "optional-p compiland~%")
+           (p2-function-prolog-&optional-only compiland))
           (t
            (p2-function-prolog compiland)))
     (p2-check-argument-types compiland)
