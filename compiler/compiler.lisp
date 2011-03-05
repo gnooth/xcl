@@ -2444,9 +2444,12 @@ for special variables."
                    (push var vars))
                  (incf index)))))
       (let* ((minargs (length required))
-             (maxargs (if (or optional restp keyp)
-                          (1- call-arguments-limit)
-                          minargs)))
+             (maxargs (cond ((or restp keyp)
+                             (1- call-arguments-limit))
+                            (optional
+                             (+ minargs (length optional)))
+                            (t
+                             minargs))))
         (setf (compiland-minargs compiland) minargs)
         (setf (compiland-maxargs compiland) maxargs)
         (when (eql minargs maxargs)
@@ -2565,12 +2568,11 @@ for special variables."
       (when (equal (intersection lambda-list lambda-list-keywords) (list '&optional))
         (multiple-value-bind (required optional)
             (parse-lambda-list lambda-list)
-          (mumble "required = ~S~%" required)
-          (mumble "optional = ~S~%" optional)
-          (and (length-eql required 1)
+          (and (<= (length required) 2)
                (length-eql optional 1)
-               (symbolp (first required))
-               (symbolp (first optional))))))))
+               (every #'symbolp required)
+               ;; no initforms or supplied-p vars
+               (every #'symbolp optional)))))))
 
 #+nil
 (defun repeat-p2 (compiland)
