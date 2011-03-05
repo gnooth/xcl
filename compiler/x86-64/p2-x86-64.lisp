@@ -4620,15 +4620,10 @@
     (inst :cmp maxargs :rdi)
     (emit-jmp-short :a ERROR)
     (dotimes (index numreq)
-;;       (inst :mov `(,(* index +bytes-per-word+) :rsi) :rax)
-;;       (inst :push :rax)
       (inst :push `(,(* index +bytes-per-word+) :rsi))
       (setf (var-index (find-var (elt lambda-list index) (compiland-arg-vars compiland))) index))
-;;     (inst :cmp maxargs :rdi)
-    ;; flags remain set from :cmp maxargs :rdi
+    ;; flags remain set from :cmp maxargs :rdi above
     (emit-jmp-short :nz NOT-SUPPLIED)
-;;     (inst :mov `(,(* numreq +bytes-per-word+) :rsi) :rax)
-;;     (inst :push :rax)
     (inst :push `(,(* numreq +bytes-per-word+) :rsi))
     (emit-jmp-short t EXIT)
     (label NOT-SUPPLIED)
