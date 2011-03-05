@@ -111,7 +111,8 @@
     (load-system-file "compiler/load-compiler.lisp")
     (with-compilation-unit ()
       (let ((*default-pathname-defaults* *xcl-home*))
-        (dolist (filespec '("lisp/precompiler.lisp"
+        (dolist (filespec '("lisp/stack.lisp"
+                            "lisp/precompiler.lisp"
                             "compiler/dump-form.lisp"
                             "lisp/instruction.lisp"
                             "lisp/local-variable-information.lisp"
@@ -359,7 +360,6 @@
                             "some"
                             "sort"
                             "stable-sort"
-                            "stack"
                             "step"
                             "string-capitalize"
                             "string-downcase"
