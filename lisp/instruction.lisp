@@ -147,7 +147,7 @@
     (:a        #x77)
     (:na       #x76)
     (:ae       #x73)
-    (:nae      #x72)
+    ((:b :nae) #x72)
     (t
      (error "unsupported test ~S" test))))
 
