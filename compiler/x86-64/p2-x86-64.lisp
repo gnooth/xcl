@@ -1404,7 +1404,7 @@
           )
       (process-optimization-declarations (cddr (block-form block)))
       (cond ((block-last-special-binding-var block)
-             (p2-progn-body body :stack)
+             (p2-progn-body body (if target :stack nil))
              ;; restore last special binding`
              (cond (thread-register
                     (inst :mov thread-register :rdi)
@@ -1414,8 +1414,9 @@
                     (p2-var-ref (make-var-ref (block-last-special-binding-var block)) :rdi)
                     (note "P2-LET/LET*: emitting call to RT_current_thread_set_last_special_binding~%")
                     (emit-call "RT_current_thread_set_last_special_binding")))
-             (inst :pop :rax)
-             (move-result-to-target target))
+             (when target
+               (inst :pop :rax)
+               (move-result-to-target target)))
             (t
              (p2-progn-body body target))))))
 
