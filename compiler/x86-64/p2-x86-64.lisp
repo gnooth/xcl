@@ -1415,8 +1415,9 @@
                     (note "P2-LET/LET*: emitting call to RT_current_thread_set_last_special_binding~%")
                     (emit-call "RT_current_thread_set_last_special_binding")))
              (when target
-               (inst :pop :rax)
-               (move-result-to-target target)))
+               (unless (eq target :stack)
+                 (inst :pop :rax)
+                 (move-result-to-target target))))
             (t
              (p2-progn-body body target))))))
 
