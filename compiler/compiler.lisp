@@ -2568,7 +2568,7 @@ for special variables."
       (when (equal (intersection lambda-list lambda-list-keywords) (list '&optional))
         (multiple-value-bind (required optional)
             (parse-lambda-list lambda-list)
-          (and (<= (length required) 2)
+          (and ;(<= (length required) 2)
                (length-eql optional 1)
                (every #'symbolp required)
                ;; no initforms or supplied-p vars
