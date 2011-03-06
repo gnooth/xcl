@@ -92,22 +92,6 @@
             (aver (null (var-closure-index var)))
             (inst :allocate-local var)))))))
 
-(defknown p2-trivial-function-prolog (compiland) t)
-(defun p2-trivial-function-prolog (compiland)
-  (declare (type compiland compiland))
-  (clear-register-contents)
-  (inst :save-registers)
-  (inst :enter-frame)
-
-;;   (trivial-allocate-locals compiland)
-  (inst :allocate-thread-var)
-  (inst :allocate-locals)
-
-  (inst :align-stack)
-  (inst :initialize-thread-var)
-  (clear-register-contents)
-  t)
-
 (defun p2-function-prolog-n-args (compiland)
   (declare (type compiland compiland))
   (let ((arity (compiland-arity compiland)))

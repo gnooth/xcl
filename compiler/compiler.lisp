@@ -2623,7 +2623,7 @@ for special variables."
 ;;                (when (eq (var-kind var) :required)
 ;;                  (setf (var-index var) (+ (var-index var) delta)))))
            (p2-trivial-function-prolog compiland))
-          #+x86-64
+;;           #+x86-64
           ((optional-p compiland)
            (mumble "optional-p compiland~%")
            (p2-function-prolog-&optional-only compiland))

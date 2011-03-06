@@ -135,6 +135,7 @@
                             "compiler/p2-ash.lisp"
                             "compiler/p2-check-fixnum-bounds.lisp"
                             "compiler/p2-cxr.lisp"
+                            "compiler/p2-function-prolog.lisp"
                             "compiler/p2-length.lisp"
                             "compiler/p2-require-type-handlers.lisp"
                             "compiler/p2-type-predicates.lisp"

@@ -4577,26 +4577,7 @@
 ;;   (clear-register-contents)
 ;;   t)
 
-(defknown p2-trivial-function-prolog (t) t)
-(defun p2-trivial-function-prolog (compiland)
-  (declare (type compiland compiland))
-  (clear-register-contents)
-  (inst :save-thread-register)
-  (inst :save-registers)
-  (inst :enter-frame)
-  (dolist (var (compiland-arg-vars compiland))
-    (inst :initialize-arg-var var))
-  (trivial-allocate-locals compiland)
-  (inst :align-stack)
-  (inst :initialize-thread-register)
-;;   (clear-register-contents)
-  (cond ((compiland-needs-thread-var-p compiland)
-         (clear-register-contents))
-        (t
-         (dolist (var (compiland-arg-vars compiland))
-           (set-register-contents (var-arg-register var) var))))
-  t)
-
+#+nil
 (defun p2-function-prolog-&optional-only (compiland)
   (declare (type compiland compiland))
   (inst :save-thread-register)
