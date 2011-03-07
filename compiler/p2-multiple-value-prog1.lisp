@@ -18,23 +18,19 @@
 
 (in-package "COMPILER")
 
-#+x86-64
+;; #+x86-64
 (defun p2-multiple-value-prog1 (form target)
-  (mumble "p2-multiple-value-prog1~%")
   (let* ((block (cadr form))
          (subforms (cdr (block-form block)))
          #+x86    (thread-var      (compiland-thread-var      *current-compiland*))
-         #+x86-64 (thread-register (compiland-thread-register *current-compiland*))
-         )
+         #+x86-64 (thread-register (compiland-thread-register *current-compiland*)))
     (when (null subforms)
       (compiler-error
        "Wrong number of arguments for ~A (expected at least 1, but received 0)."
        'MULTIPLE-VALUE-PROG1))
-;;     (emit-clear-values)
     (let ((first-form (first subforms))
           (rest-forms (rest subforms)))
       (cond ((single-valued-p first-form)
-             (mumble "p2-multiple-value-prog1 new code target = ~S~%" target)
              (cond (target
                     (p2 first-form $ax)
                     (inst :mov $ax (block-values-var block)))
@@ -53,6 +49,7 @@
                     (clear-register-contents $ax)
                     (inst :push $ax))
                    ((eq target :return)
+                    (inst :mov (block-values-var block) $ax)
                     (inst :exit))
                    (t
                     (compiler-unsupported "p2-multiple-value-prog1 unsupported situation"))))
@@ -61,9 +58,9 @@
                         (p2 first-form :stack)
                         (inst :push thread-var))
              #+x86-64 (progn
-                        (p2 first-form :rsi) ; primary value
+                        (p2 first-form :rsi)
                         (inst :mov thread-register :rdi))
-             (emit-call-2 "RT_thread_copy_values" $ax) ; values
+             (emit-call-2 "RT_thread_copy_values" $ax)
              (inst :mov $ax (block-values-var block))
              (dolist (subform (rest subforms))
                (p2 subform nil))
@@ -75,25 +72,3 @@
                         (inst :mov (block-values-var block) :rsi)
                         (inst :mov thread-register :rdi))
              (emit-call-2 "RT_thread_set_values" target))))))
-
-#+x86
-(defun p2-multiple-value-prog1 (form target)
-  (let* ((block (cadr form))
-         (subforms (cdr (block-form block)))
-         (thread-var (compiland-thread-var *current-compiland*)))
-    (when (null subforms)
-      (compiler-error
-       "Wrong number of arguments for ~A (expected at least 1, but received 0)."
-       'MULTIPLE-VALUE-PROG1))
-    (emit-clear-values)
-    (p2 (car subforms) :stack) ; primary value
-    (inst :push thread-var)
-    (emit-call-2 "RT_thread_copy_values" :eax) ; values
-    (inst :mov :eax (block-values-var block))
-    (dolist (subform (cdr subforms))
-      (p2 subform nil))
-    (inst :mov (block-values-var block) :eax)
-    (inst :push :eax)
-    (inst :push thread-var)
-    (emit-call-2 "RT_thread_set_values" target)))
-
