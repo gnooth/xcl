@@ -232,12 +232,11 @@
                   (incf i)))
                ((:jmp :jmp-short)
                 (let* ((short (eq (instruction-kind instruction) :jmp-short))
-                       (here (+ (vector-data code-vector) i))
                        (args (instruction-data instruction))
                        (test (car args))
                        (label (cadr args))
                        (size (instruction-size instruction))
-                       (displacement (- (+ (vector-data code-vector) (symbol-global-value label)) (+ here size))))
+                       (displacement (- (symbol-global-value label) (+ i size))))
 ;;                   (aver (eql (length args) 2))
 ;;                   (aver (or (keywordp test) (eq test t)))
                   (when short
@@ -245,6 +244,7 @@
                       ;; displacement is out of range for short jump
                       (set-instruction-kind instruction :jmp)
                       (set-instruction-size instruction (if (eq test t) 5 6))
+                      (format t "generate-code-vector starting over at byte ~D~%" i)
                       (go top))) ; start over
                   (cond ((or (eq test t) ; unconditional jump
                              (eq test :jump-table))

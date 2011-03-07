@@ -51,4 +51,5 @@
   (finalize-ir2)
   (assemble-ir2)
   (when (compile-file-p)
-    (convert-binary-data)))
+    (convert-binary-data))
+  (fix-jumps))
