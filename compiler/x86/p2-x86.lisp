@@ -4295,7 +4295,6 @@
 (defun p2-current-bp (form target)
   (when (length-eql form 1)
     (when target
-      (mumble "p2-current-bp")
       (inst :push :ebp)
       (emit-call-1 "RT_make_unsigned_integer" target)
       t)))
