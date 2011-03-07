@@ -1,6 +1,6 @@
 ;;; p3-common.lisp
 ;;;
-;;; Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -46,6 +46,51 @@
           (setf (aref code i)
                 (coerce (the list (instruction-data instruction))
                         '(simple-array (unsigned-byte 8) 1))))))))
+
+(defun fix-jumps ()
+  (finish-output)
+  (let* ((code *code*))
+    (declare (type simple-vector code))
+    (loop
+      (let ((length 0))
+        (dotimes (i (length code))
+          (let ((instruction (aref code i)))
+            (if (instruction-p instruction)
+                (let ((instruction-kind (instruction-kind instruction)))
+                  (cond ((eq instruction-kind :label)
+                         (let ((symbol (instruction-data instruction)))
+                           (setf (symbol-global-value symbol) length)))
+                        ((eq instruction-kind :dead))
+                        (t
+                         (incf length (instruction-size instruction)))))
+                (progn
+                  ;; binary data
+                  (incf length (length instruction)))))))
+      (let ((changed nil)
+            (here 0))
+        (dotimes (i (length code))
+          (let ((instruction (aref code i)))
+            (cond ((instruction-p instruction)
+                   (cond ((eq (instruction-kind instruction) :jmp-short)
+                          (let* ((args (instruction-data instruction))
+                                 (test (first args))
+                                 (label (second args))
+                                 (size (instruction-size instruction))
+                                 (displacement (- (symbol-global-value label) (+ here size))))
+                            (when (or (< displacement -128) (> displacement 127))
+                              (set-instruction-kind instruction :jmp)
+                              (set-instruction-size instruction (if (eq test t) 5 6))
+                              (setq changed t)))
+                          (incf here (instruction-size instruction)))
+                         ((memq (instruction-kind instruction) '(:label :dead))
+                          )
+                         (t
+                          (incf here (instruction-size instruction)))))
+                  (t
+                   ;; binary data
+                   (incf here (length instruction))))))
+        (unless changed
+          (return))))))
 
 (defun p3 ()
   (finalize-ir2)

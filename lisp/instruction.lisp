@@ -400,6 +400,7 @@
                       ;; displacement is out of range for short jump
                       (set-instruction-kind instruction :jmp)
                       (set-instruction-size instruction (if (eq test t) 5 6))
+                      (format t "generate-code-vector starting over at byte ~D~%" i)
                       (go top))) ; start over
                   (cond ((or (eq test t) ; unconditional jump
                              (eq test :jump-table))
