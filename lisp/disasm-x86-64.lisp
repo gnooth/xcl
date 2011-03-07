@@ -106,7 +106,11 @@
   ;; cmovcc
   (setq mnemonic (svref +cmovcc-mnemonics+ (- byte2 #x40)))
   (with-modrm-byte (mref-8 start 2)
-    (cond ((eql modrm-byte #x05)
+    (cond ((eql mod #b11)
+           (setq length 3
+                 operand1 (make-register-operand (register rm prefix-byte))
+                 operand2 (make-register-operand (register reg prefix-byte))))
+          ((eql modrm-byte #x05)
            (setq length 7
                  operand1 (make-operand :kind :relative
                                         :register :rip
@@ -566,7 +570,7 @@
                   (let ((sib-byte (mref-8 start 2))
                         (displacement-byte (mref-8-signed start 3)))
                     (cond ((eql sib-byte #x24)
-                           (setq length 5
+                           (setq length 4
                                  mnemonic :mov
                                  operand1 (make-operand :kind :relative
                                                         :register (register-rm rm prefix-byte)

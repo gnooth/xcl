@@ -119,7 +119,8 @@
 
 #+x86-64
 (defparameter *tests*
-  '(
+  '(((:cmovg :rdx :rax)         #(#x48 #x0f #x4f #xc2))
+    ((:cmovl :rdx :rax)         #(#x48 #x0f #x4c #xc2))
     ((:pop :r8)                 #(#x41 #x58))
     ((:pop :r9)                 #(#x41 #x59))
     ((:pop :r10)                #(#x41 #x5a))

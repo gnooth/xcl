@@ -256,6 +256,38 @@
         (t
          (unsupported))))
 
+(define-assembler :cmovg
+  (cond ((and (reg64-p operand1)
+              (reg64-p operand2))
+         (let* ((prefix-byte #x48)
+                (mod #b11)
+                (reg (register-number operand2))
+                (rm  (register-number operand1))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (when (extended-register-p operand1)
+             (setq prefix-byte (logior prefix-byte rex.r)))
+           (when (extended-register-p operand2)
+             (setq prefix-byte (logior prefix-byte rex.b)))
+           (emit-bytes prefix-byte #x0f #x4f modrm-byte)))
+        (t
+         (unsupported))))
+
+(define-assembler :cmovl
+  (cond ((and (reg64-p operand1)
+              (reg64-p operand2))
+         (let* ((prefix-byte #x48)
+                (mod #b11)
+                (reg (register-number operand2))
+                (rm  (register-number operand1))
+                (modrm-byte (make-modrm-byte mod reg rm)))
+           (when (extended-register-p operand1)
+             (setq prefix-byte (logior prefix-byte rex.r)))
+           (when (extended-register-p operand2)
+             (setq prefix-byte (logior prefix-byte rex.b)))
+           (emit-bytes prefix-byte #x0f #x4c modrm-byte)))
+        (t
+         (unsupported))))
+
 (define-assembler :mov
   (cond ((and (reg64-p operand1)
               (reg64-p operand2))
