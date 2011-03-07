@@ -1918,26 +1918,6 @@
       (declare (ignore declarations)) ; REVIEW
       (p2-progn-body body target))))
 
-(defun p2-multiple-value-prog1 (form target)
-  (let* ((block (cadr form))
-         (subforms (cdr (block-form block)))
-         (thread-var (compiland-thread-var *current-compiland*)))
-    (when (null subforms)
-      (compiler-error
-       "Wrong number of arguments for ~A (expected at least 1, but received 0)."
-       'MULTIPLE-VALUE-PROG1))
-    (emit-clear-values)
-    (p2 (car subforms) :stack) ; primary value
-    (inst :push thread-var)
-    (emit-call-2 "RT_thread_copy_values" :eax) ; values
-    (inst :mov :eax (block-values-var block))
-    (dolist (subform (cdr subforms))
-      (p2 subform nil))
-    (inst :mov (block-values-var block) :eax)
-    (inst :push :eax)
-    (inst :push thread-var)
-    (emit-call-2 "RT_thread_set_values" target)))
-
 (defknown p2-closure (t t) t)
 (defun p2-closure (compiland target)
   (aver (compiland-child-p compiland))

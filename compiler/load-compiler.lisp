@@ -55,6 +55,7 @@
 (load-system-file "compiler/p2-cxr")
 (load-system-file "compiler/p2-function-prolog")
 (load-system-file "compiler/p2-length")
+(load-system-file "compiler/p2-multiple-value-prog1")
 (load-system-file "compiler/p2-require-type-handlers")
 (load-system-file "compiler/p2-type-predicates")
 (load-system-file "compiler/p2-vector-ref")

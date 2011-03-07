@@ -1579,6 +1579,8 @@ for special variables."
            (list 'UNWIND-PROTECT block)))))
 
 (defun p1-multiple-value-prog1 (form)
+  (when (length-eql (cdr form) 1)
+    (return-from p1-multiple-value-prog1 (p1 `(progn ,(%cadr form)))))
   (let* ((block (make-block :name '(MULTIPLE-VALUE-PROG1)))
          (*visible-blocks* (cons block *visible-blocks*)))
     (setf (block-form block) (p1-default form))

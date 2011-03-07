@@ -137,6 +137,7 @@
                             "compiler/p2-cxr.lisp"
                             "compiler/p2-function-prolog.lisp"
                             "compiler/p2-length.lisp"
+                            "compiler/p2-multiple-value-prog1.lisp"
                             "compiler/p2-require-type-handlers.lisp"
                             "compiler/p2-type-predicates.lisp"
                             "compiler/p2-vector-ref.lisp"
