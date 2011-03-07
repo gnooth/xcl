@@ -1064,7 +1064,7 @@ SUPPLIED-P and SUPPLIED-P-P assuming ARG is a compound argument."
         (process-optimization-declarations decls)
         (let ((p1-body (p1-body body)))
           (dolist (local-function local-functions)
-            (mumble "local function ~S: ~D call(s), needs-function-object-p = ~S~%"
+            (mumble "local function ~S: ~D call~:P, needs-function-object-p = ~S~%"
                     (local-function-name local-function)
                     (local-function-call-count local-function)
                     (local-function-needs-function-object-p local-function))
