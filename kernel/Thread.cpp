@@ -1,6 +1,6 @@
 // Thread.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -73,7 +73,6 @@ Thread::Thread(Function * function, Value name)
   unsigned long size = INITIAL_BINDING_STACK_SIZE * sizeof(Value);
   _binding_stack_base = (Value *) GC_malloc(size);
   memset(_binding_stack_base, 0, size);
-  _binding_stack_end = (Value *)(((char *)_binding_stack_base) + size);
 
   _binding_stack_index = 0;
   _binding_stack_capacity = INITIAL_BINDING_STACK_SIZE;
@@ -113,7 +112,6 @@ void Thread::slow_bind_special(Value name, Value value)
       memset(new_base, 0, new_size);
       memcpy(new_base, _binding_stack_base, old_size);
       _binding_stack_base = new_base;
-      _binding_stack_end = (Value *) (((char *)_binding_stack_base) + new_size);
 
       _binding_stack_capacity = new_capacity;
 

@@ -1,6 +1,6 @@
 // Thread.hpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -91,7 +91,6 @@ private:
   unsigned int _call_depth;
 
   Value * _binding_stack_base;
-  Value * _binding_stack_end;
 
   Tag * _last_tag;
 
