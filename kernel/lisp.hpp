@@ -19,6 +19,7 @@
 #ifndef __LISP_HPP
 #define __LISP_HPP
 
+#include <stdint.h>
 #include <setjmp.h>
 
 #ifdef WIN32
@@ -71,11 +72,6 @@
 #endif
 
 #include "Value.h"
-
-// class LispObject
-class LispObject : public gc
-{
-};
 
 inline long integer(Value value)
 {
@@ -349,12 +345,6 @@ const TYPECODE TYPECODE_SIMPLE_ARRAY_UB8_1        = WIDETAG_SIMPLE_ARRAY_UB8_1;
 
 // REVIEW
 #define NO_THREAD_LOCAL_VALUE (16 | LOWTAG_NULL_VALUE)
-
-inline Value make_value(LispObject * p, long tag)
-{
-  assert((((long)p) & LOWTAG_MASK) == 0);
-  return (Value) (((long)p) | tag);
-}
 
 inline Value make_value(long n, long tag)
 {

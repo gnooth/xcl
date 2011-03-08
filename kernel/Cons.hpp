@@ -1,6 +1,6 @@
 // Cons.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,7 +19,7 @@
 #ifndef __CONS_HPP
 #define __CONS_HPP
 
-class Cons : public LispObject
+class Cons : public gc
 {
   friend Value make_cons(Value car, Value cdr);
   friend Value make_cons(Value car);
@@ -57,7 +57,7 @@ public:
 
 inline Value make_value(Cons * cons)
 {
-  return make_value(cons, LOWTAG_LIST);
+  return (Value) (((long)cons) | LOWTAG_LIST);
 }
 
 inline bool consp(Value value)
@@ -84,12 +84,12 @@ inline Cons * check_cons(Value value)
 
 inline Value make_cons(Value car, Value cdr)
 {
-  return make_value(new Cons(car, cdr), LOWTAG_LIST);
+  return make_value(new Cons(car, cdr));
 }
 
 inline Value make_cons(Value car)
 {
-  return make_value(new Cons(car, NIL), LOWTAG_LIST);
+  return make_value(new Cons(car, NIL));
 }
 
 #endif

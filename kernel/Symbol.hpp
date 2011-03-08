@@ -26,7 +26,7 @@ class TypedObject;
 
 extern Value S_nil;
 
-class Symbol : public LispObject
+class Symbol : public gc
 {
 private:
   enum
@@ -239,6 +239,13 @@ public:
   AbstractString * write_to_string();
 };
 
+inline Value make_value(Symbol * symbol)
+{
+  if (symbol == (Symbol *) (S_nil - LOWTAG_SYMBOL))
+    return NIL;
+  return (Value) (((long)symbol) | LOWTAG_SYMBOL);
+}
+
 inline Symbol * the_symbol(Value value)
 {
   if (value == NIL)
@@ -251,13 +258,6 @@ inline Symbol * the_non_nil_symbol(Value value)
 {
   assert(lowtag_of(value) == LOWTAG_SYMBOL);
   return (Symbol *) (value - LOWTAG_SYMBOL);
-}
-
-inline Value make_value(Symbol * symbol)
-{
-  if (symbol == (Symbol *) (S_nil - LOWTAG_SYMBOL))
-    return NIL;
-  return make_value(symbol, LOWTAG_SYMBOL);
 }
 
 inline bool symbolp(Value value)

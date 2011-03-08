@@ -270,7 +270,7 @@ Value Package::add_nil()
   assert(this == PACKAGE_CL);
   Symbol * symbol = new Symbol("NIL", this);
   _external_symbols->put(symbol);
-  return make_value(symbol, LOWTAG_SYMBOL);
+  return make_value(symbol);
 }
 
 Symbol * Package::find_accessible_symbol(AbstractString * name)
