@@ -21,8 +21,6 @@
 
 #include "call_depth_limit.hpp"
 
-#define EXPERIMENTAL
-
 #ifdef WIN32
 typedef DWORD ThreadId;
 #else
@@ -74,13 +72,8 @@ private:
 
   Value * _thread_local_values;
 
-#ifdef EXPERIMENTAL
   INDEX _binding_stack_index;
   INDEX _binding_stack_capacity;
-#else
-  int _binding_stack_index;
-  int _binding_stack_capacity;
-#endif
 
   int _num_bindings;
   int _max_bindings;
@@ -143,11 +136,7 @@ public:
 
   void set_last_special_binding(void * p)
   {
-#ifdef EXPERIMENTAL
     unbind_to((INDEX)p);
-#else
-    _binding_stack_index = (int) (long) p;
-#endif
   }
 
   Frame * last_control_frame() const
@@ -215,20 +204,9 @@ public:
 
   Value symbol_value(Value name)
   {
-#ifdef EXPERIMENTAL
     Value value = symbol_thread_local_value(the_symbol(name));
     if (value != NO_THREAD_LOCAL_VALUE)
       return value;
-#else
-    int index = _binding_stack_index;
-    while (index > 0)
-      {
-        if (_binding_stack_base[--index] == name)
-          return _binding_stack_base[index - 1];
-        else
-          --index;
-      }
-#endif
     return the_symbol(name)->value();
   }
 
@@ -236,7 +214,6 @@ public:
 
   void bind_special(Value name, Value value)
   {
-#ifdef EXPERIMENTAL
     // the stack grows up from the base
     if (_binding_stack_index < _binding_stack_capacity)
       {
@@ -256,16 +233,6 @@ public:
       }
     else
       slow_bind_special(name, value);
-#else
-    // the stack grows up from the base
-    if (_binding_stack_index < _binding_stack_capacity)
-      {
-        _binding_stack_base[_binding_stack_index++] = value;
-        _binding_stack_base[_binding_stack_index++] = name;
-      }
-    else
-      slow_bind_special(name, value);
-#endif
   }
 
   void slow_bind_special(Value name, Value value);

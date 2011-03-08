@@ -91,28 +91,12 @@ Thread::~Thread()
 Value Thread::set_symbol_value(Value name, Value value)
 {
   assert(symbolp(name));
-#ifdef EXPERIMENTAL
   INDEX i = the_symbol(name)->binding_index();
   if (i != 0 && _thread_local_values[i] != NO_THREAD_LOCAL_VALUE)
     set_symbol_thread_local_value(the_symbol(name), value);
   else
     the_symbol(name)->set_value(value);
   return value;
-#else
-  int index = _binding_stack_index;
-  while (index > 0)
-    {
-      if (_binding_stack_base[--index] == name)
-        {
-          _binding_stack_base[index - 1] = value;
-          return value;
-        }
-      else
-        --index;
-    }
-  the_symbol(name)->set_value(value);
-  return value;
-#endif
 }
 
 void Thread::slow_bind_special(Value name, Value value)
@@ -135,45 +119,17 @@ void Thread::slow_bind_special(Value name, Value value)
 
       printf("resizing binding stack completed _binding_stack_capacity = %lu\n", _binding_stack_capacity);
     }
-#ifdef EXPERIMENTAL
   _binding_stack_base[_binding_stack_index++] = symbol_thread_local_value(the_symbol(name));
   _binding_stack_base[_binding_stack_index++] = name;
   set_symbol_thread_local_value(the_symbol(name), value);
-#else
-  _binding_stack_base[_binding_stack_index++] = value;
-  _binding_stack_base[_binding_stack_index++] = name;
-#endif
-
-//   _num_bindings = _binding_stack_index / 2;
-//   if (_num_bindings > _max_bindings)
-//     {
-//       _max_bindings = _num_bindings;
-//       if (this == primordial_thread)
-//         {
-//           printf("_max_bindings = %d\n", _max_bindings);
-//           fflush(stdout);
-//         }
-//     }
 }
 
 Value Thread::lookup_special(Value name)
 {
-#ifdef EXPERIMENTAL
   Value value = symbol_thread_local_value(the_symbol(name));
   if (value != NO_THREAD_LOCAL_VALUE)
     return value;
   return NULL_VALUE;
-#else
-  int index = _binding_stack_index;
-  while (index > 0)
-    {
-      if (_binding_stack_base[--index] == name)
-        return _binding_stack_base[index - 1];
-      else
-        --index;
-    }
-  return NULL_VALUE;
-#endif
 }
 
 void Thread::unbind_to(INDEX n)
@@ -200,7 +156,6 @@ void Thread::unbind_to(INDEX n)
 
 void Thread::bind_special_to_current_value(Value name)
 {
-#ifdef EXPERIMENTAL
   Symbol * sym = the_symbol(name);
   Value value;
   INDEX i = sym->binding_index();
@@ -226,20 +181,6 @@ void Thread::bind_special_to_current_value(Value name)
     }
   else
     slow_bind_special(name, value);
-#else
-  int index = _binding_stack_index;
-  while (index > 0)
-    {
-      if (_binding_stack_base[--index] == name)
-        {
-          bind_special(name, _binding_stack_base[index - 1]);
-          return;
-        }
-      else
-        --index;
-    }
-  bind_special(name, the_symbol(name)->value());
-#endif
 }
 
 Value * Thread::get_values(Value primary_value, int required)
