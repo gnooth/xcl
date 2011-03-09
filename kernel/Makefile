@@ -102,10 +102,12 @@ LIBOBJS = lisp.o xcl_home.o \
 OBJS = main.o $(LIBOBJS)
 
 ifeq ($(PLATFORM), mingw)
-  LIBS = ../gc/gc.a ../mpfr/.libs/libmpfr.a ../gmp/.libs/libgmp.a /MinGW/lib/libwsock32.a
+#   LIBS = ../gc/gc.a ../mpfr/.libs/libmpfr.a ../gmp/.libs/libgmp.a /MinGW/lib/libwsock32.a
+  LIBS = ../gc/gc.a ../mpfr/.libs/libmpfr.a ../mpir/.libs/libmpir.a /MinGW/lib/libwsock32.a
 else
   # FIXME Fedora x86_64 keeps libpthread.so in /usr/lib64
-  LIBS = ../gc/gc.a ../mpfr/.libs/libmpfr.a ../gmp/.libs/libgmp.a /usr/lib/libpthread.so
+#   LIBS = ../gc/gc.a ../mpfr/.libs/libmpfr.a ../gmp/.libs/libgmp.a /usr/lib/libpthread.so
+  LIBS = ../gc/gc.a ../mpfr/.libs/libmpfr.a ../mpir/.libs/libmpir.a /usr/lib/libpthread.so
 endif
 
 # The default target.

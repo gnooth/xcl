@@ -26,18 +26,21 @@ ifeq ($(PLATFORM), mingw)
 # 	cd x && $(MAKE) all
 # ./x/xcl.dll: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
 # 	cd x && $(MAKE) xcl.dll
-xcl: ./kernel/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+# xcl: ./kernel/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+xcl: ./kernel/xcl_home.h ./gc/gc.a ./mpir/.libs/libmpir.a ./mpfr/.libs/libmpfr.a
 	cd kernel && $(MAKE) all
 else
   ifeq ($(MACHINE_TYPE), x86_64)
-xcl: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+# xcl: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+xcl: ./gc/gc.a ./mpir/.libs/libmpir.a ./mpfr/.libs/libmpfr.a
 	cd kernel && $(MAKE) all
   else
 # ./x/x: ./x/libxcl.so
 # 	cd x && $(MAKE) all
 # ./x/libxcl.so: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
 # 	cd x && $(MAKE) libxcl.so
-xcl: ./kernel/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+# xcl: ./kernel/xcl_home.h ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
+xcl: ./kernel/xcl_home.h ./gc/gc.a ./mpir/.libs/libmpir.a ./mpfr/.libs/libmpfr.a
 	cd kernel && $(MAKE) all
   endif
 endif
@@ -53,18 +56,28 @@ endif
 ./gc/gc.a:
 	cd gc && $(MAKE) gc.a c++
 
+# ./mpfr/.libs/libmpfr.a:
+# 	if [ ! -f mpfr/Makefile ]; then \
+# 	  cd mpfr && ./configure --with-gmp-include=../gmp --with-gmp-lib=../gmp/.libs; \
+# 	fi
+# 	cd mpfr && $(MAKE)
 ./mpfr/.libs/libmpfr.a:
 	if [ ! -f mpfr/Makefile ]; then \
-	  cd mpfr && ./configure --with-gmp-include=../gmp --with-gmp-lib=../gmp/.libs; \
+	  cd mpfr && ./configure; \
 	fi
 	cd mpfr && $(MAKE)
 
-./gmp/.libs/libgmp.a:
-	if [ ! -f gmp/Makefile ]; then \
-	  cd gmp && ./configure; \
+# ./gmp/.libs/libgmp.a:
+# 	if [ ! -f gmp/Makefile ]; then \
+# 	  cd gmp && ./configure; \
+# 	fi
+# # 	test -f gmp/Makefile || ( cd gmp && ./configure )
+# 	cd gmp && $(MAKE)
+./mpir/.libs/libmpir.a:
+	if [ ! -f mpir/Makefile ]; then \
+	  cd mpir && ./configure; \
 	fi
-# 	test -f gmp/Makefile || ( cd gmp && ./configure )
-	cd gmp && $(MAKE)
+	cd mpir && $(MAKE)
 
 clean:
 	-rm -f x x.exe

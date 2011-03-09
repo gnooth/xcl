@@ -38,63 +38,138 @@ gc/libatomic_ops-1.2/tests/Makefile
 gc/libatomic_ops-1.2/tests/list_atomic.i
 gc/libatomic_ops-install/
 
-gmp/.libs/
-gmp/Makefile
-gmp/config.h
-gmp/config.log
-gmp/config.m4
-gmp/config.status
-gmp/cxx/Makefile
-gmp/demos/Makefile
-gmp/demos/calc/Makefile
-gmp/demos/calc/calc-config.h
-gmp/demos/expr/Makefile
-gmp/demos/pexpr-config.h
-gmp/doc/Makefile
-gmp/doc/gmp.info*
-gmp/fib_table.h
-gmp/gen-bases
-gmp/gen-fac_ui
-gmp/gen-fib
-gmp/gen-psqr
-gmp/gmp-mparam.h
-gmp/gmp.h
-gmp/libtool
-gmp/mp.h
-gmp/mp_bases.h
-gmp/mpbsd/Makefile
-gmp/mpf/.libs/
-gmp/mpf/Makefile
+# gmp/.libs/
+# gmp/Makefile
+# gmp/config.h
+# gmp/config.log
+# gmp/config.m4
+# gmp/config.status
+# gmp/cxx/Makefile
+# gmp/demos/Makefile
+# gmp/demos/calc/Makefile
+# gmp/demos/calc/calc-config.h
+# gmp/demos/expr/Makefile
+# gmp/demos/pexpr-config.h
+# gmp/doc/Makefile
+# gmp/doc/gmp.info*
+# gmp/fib_table.h
+# gmp/gen-bases
+# gmp/gen-fac_ui
+# gmp/gen-fib
+# gmp/gen-psqr
+# gmp/gmp-mparam.h
+# gmp/gmp.h
+# gmp/libtool
+# gmp/mp.h
+# gmp/mp_bases.h
+# gmp/mpbsd/Makefile
+# gmp/mpf/.libs/
+# gmp/mpf/Makefile
+
+# # following are all symlinks
+# gmp/mpn/*.c
+# gmp/mpn/*.asm
+
+# gmp/mpn/.libs/
+# gmp/mpn/Makefile
+# gmp/mpn/perfsqr.h
+# gmp/mpq/.libs/
+# gmp/mpq/Makefile
+# gmp/mpz/.libs/
+# gmp/mpz/Makefile
+# gmp/mpz/fac_ui.h
+# gmp/printf/.libs/
+# gmp/printf/Makefile
+# gmp/scanf/.libs/
+# gmp/scanf/Makefile
+# gmp/stamp-h1
+# gmp/tests/Makefile
+# gmp/tests/cxx/Makefile
+# gmp/tests/devel/Makefile
+# gmp/tests/misc/Makefile
+# gmp/tests/mpbsd/Makefile
+# gmp/tests/mpf/Makefile
+# gmp/tests/mpn/Makefile
+# gmp/tests/mpq/Makefile
+# gmp/tests/mpz/Makefile
+# gmp/tests/rand/Makefile
+# gmp/tune/Makefile
+# gmp/tune/sqr_basecase.c
+
+mpir/.libs/
+mpir/Makefile
+mpir/config.h
+mpir/config.m4
+mpir/config.status
+mpir/cxx/Makefile
+mpir/doc/Makefile
+mpir/gmp-mparam.h
+mpir/libtool
+mpir/mpf/.libs/
+mpir/mpf/Makefile
+mpir/mpir.h
+mpir/mpn/.libs/
+mpir/mpn/Makefile
 
 # following are all symlinks
-gmp/mpn/*.c
-gmp/mpn/*.asm
+mpir/mpn/*.c
+mpir/mpn/*.as
+mpir/mpn/*.asm
 
-gmp/mpn/.libs/
-gmp/mpn/Makefile
-gmp/mpn/perfsqr.h
-gmp/mpq/.libs/
-gmp/mpq/Makefile
-gmp/mpz/.libs/
-gmp/mpz/Makefile
-gmp/mpz/fac_ui.h
-gmp/printf/.libs/
-gmp/printf/Makefile
-gmp/scanf/.libs/
-gmp/scanf/Makefile
-gmp/stamp-h1
-gmp/tests/Makefile
-gmp/tests/cxx/Makefile
-gmp/tests/devel/Makefile
-gmp/tests/misc/Makefile
-gmp/tests/mpbsd/Makefile
-gmp/tests/mpf/Makefile
-gmp/tests/mpn/Makefile
-gmp/tests/mpq/Makefile
-gmp/tests/mpz/Makefile
-gmp/tests/rand/Makefile
-gmp/tune/Makefile
-gmp/tune/sqr_basecase.c
+mpir/mpq/.libs/
+mpir/mpq/Makefile
+mpir/mpz/.libs/
+mpir/mpz/Makefile
+mpir/printf/.libs/
+mpir/printf/Makefile
+mpir/scanf/.libs/
+mpir/scanf/Makefile
+mpir/stamp-h1
+mpir/tests/Makefile
+mpir/tests/cxx/Makefile
+mpir/tests/devel/Makefile
+mpir/tests/misc/Makefile
+mpir/tests/mpf/Makefile
+mpir/tests/mpn/Makefile
+mpir/tests/mpq/Makefile
+mpir/tests/mpz/Makefile
+mpir/tests/rand/Makefile
+mpir/tune/Makefile
+mpir/tune/sqr_basecase.c
+mpir/yasm/.deps/
+mpir/yasm/Makefile
+mpir/yasm/config.h
+mpir/yasm/config.status
+mpir/yasm/gas-token.c
+mpir/yasm/genmacro
+mpir/yasm/genmodule
+mpir/yasm/genperf
+mpir/yasm/genstring
+mpir/yasm/genversion
+mpir/yasm/lc3bid.c
+mpir/yasm/libyasm-stdint.h
+mpir/yasm/libyasm.a
+mpir/yasm/license.c
+mpir/yasm/module.c
+mpir/yasm/nasm-macros.c
+mpir/yasm/nasm-token.c
+mpir/yasm/nasm-version.c
+mpir/yasm/po/Makefile
+mpir/yasm/po/Makefile.in
+mpir/yasm/po/POTFILES
+mpir/yasm/re2c
+mpir/yasm/stamp-h1
+mpir/yasm/version.mac
+mpir/yasm/vsyasm
+mpir/yasm/win64-gas.c
+mpir/yasm/win64-nasm.c
+mpir/yasm/x86cpu.c
+mpir/yasm/x86insn_gas.c
+mpir/yasm/x86insn_nasm.c
+mpir/yasm/x86regtmod.c
+mpir/yasm/yasm
+mpir/yasm/ytasm
+mpir/yasm_mac.inc
 
 mpfr/.deps/
 mpfr/.libs/
