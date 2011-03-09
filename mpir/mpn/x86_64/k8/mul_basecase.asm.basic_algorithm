@@ -1,0 +1,455 @@
+dnl  mpn_addmul_1
+
+dnl  Copyright 2011 The Code Cavern
+
+dnl  This file is part of the MPIR Library.
+
+dnl  The MPIR Library is free software; you can redistribute it and/or modify
+dnl  it under the terms of the GNU Lesser General Public License as published
+dnl  by the Free Software Foundation; either version 2.1 of the License, or (at
+dnl  your option) any later version.
+
+dnl  The MPIR Library is distributed in the hope that it will be useful, but
+dnl  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+dnl  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+dnl  License for more details.
+
+dnl  You should have received a copy of the GNU Lesser General Public License
+dnl  along with the MPIR Library; see the file COPYING.LIB.  If not, write
+dnl  to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+dnl  Boston, MA 02110-1301, USA.
+
+
+
+
+include(`../config.m4')
+
+ASM_START()
+PROLOGUE(mpn_mul_basecase)
+
+#// (rdi,rdx+r8)=(rsi,rdx)*(rcx,r8) with rdx >= r8 >= 1  although should
+#// also work with r8 > rdx >= 1
+
+#// (rdi,rdx)=(rsi,rdx)*rcx[0]  
+#// rax=mpn_mul_1(rdi,rsi,rdx,rcx[0])
+#// save mul_basecase params
+push %rdi
+push %rsi
+push %rdx
+push %rcx
+push %r8
+#//set up for mul_1	 rdi=rdi	rsi=rsi	rdx=rdx	rcx=rcx[0]
+mov (%rcx),%rcx
+call mpn_mul_1
+#// restore params
+pop %r8
+pop %rcx
+pop %rdx
+pop %rsi
+pop %rdi
+#//save top limb
+mov %rax,(%rdi,%rdx,8)
+add $8,%rdi
+add $8,%rcx
+dec %r8
+jz fin
+lp:	// rax=mpn_addmul_1(rdi,rsi,rdx,rcx[0])
+	push %rdi
+	push %rsi
+	push %rdx
+	push %rcx
+	push %r8
+	mov (%rcx),%rcx
+	call fake_addmul
+	pop %r8
+	pop %rcx
+	pop %rdx
+	pop %rsi
+	pop %rdi
+	mov %rax,(%rdi,%rdx,8)
+	add $8,%rdi
+	add $8,%rcx
+	dec %r8
+	jnz lp
+fin:
+
+	ret
+
+
+
+#// bp		multiplier
+#// rsi 	src
+#// rdi 	dst
+#// r8,r9,r10,r11,r12,r13  rotating temps
+#// ax,dx	temps
+#// bx		for jumps into case's
+#// cx		size
+#// r14		for jumps into "loop"
+#// r15		zero	# can we make this a load to save a reg ??  ie mov -8(%rsp),%reg
+
+#// lets fake up an addmul_1
+
+
+fake_addmul:
+	push %r15
+	push %r14
+	push %r13
+	push %r12
+	push %rbx
+	push %rbp
+	mov %rcx,%rbp
+	mov %rdx,%rcx
+	mov (%rsi),%rax
+	mul %rbp
+	xor %r15,%r15
+	lea casetable(%rip),%rbx
+	add (%rbx,%rcx,8),%rbx
+	lea intable(%rip),%r14
+	add (%r14,%rcx,8),%r14	
+	lea -112(%rdi,%rcx,8),%rdi
+	lea -112(%rsi,%rcx,8),%rsi
+	jmp *%rbx	
+case8:	mov %rax,%r8
+	mov %rdx,%r9
+	jmp *%r14	#jmp in8,14,20,26	
+case7:	xor %r12,%r12
+	mov %rax,%r9
+	xor %r10,%r10	# and clear carry	note: rdx added in loop
+	jmp *%r14	#jmp in7,13,19,25	
+case6:	xor %r12,%r12
+	mov %rax,%r10
+	mov %rdx,%r11
+	jmp *%r14	#jmp in6,12,18,24	
+case5:	mov %rax,%r11
+	mov %rdx,%r12
+	jmp *%r14	#jmp in5,11,17,23	
+case4:	xor %r9,%r9
+	mov %rax,%r12
+	xor %r13,%r13	# and clear carry	note rdx added in loop
+	jmp *%r14	#jmp in4,10,16,22	
+case3:	xor %r9,%r9
+	mov %rax,%r13
+	mov %rdx,%r8
+	jmp *%r14	#jmp in3,9,15,21,27,	
+#// replace mov with xor to save a few bytes
+.set REP, -4
+in37:	mov 16+48*REP(%rsi),%rax
+	adc %rdx,%r10
+	mov $0,%r11d
+	mul %rbp
+	add %r9,8+48*REP(%rdi)
+	adc %rax,%r10
+	adc %rdx,%r11
+in36:	mov 24+48*REP(%rsi),%rax
+	mul %rbp
+	add %r10,16+48*REP(%rdi)
+	adc %rax,%r11
+	adc %rdx,%r12
+in35:	mov 32+48*REP(%rsi),%rax
+	mul %rbp
+	add %r11,24+48*REP(%rdi)
+	lea (%r15,%r15,2),%r13
+	adc %rax,%r12
+	mov $0,%r9d
+in34:	mov 40+48*REP(%rsi),%rax
+	adc %rdx,%r13
+	mov $0,%r8d
+	mul %rbp
+	add %r12,32+48*REP(%rdi)
+	adc %rax,%r13
+	adc %rdx,%r8
+in33:	mov 48+48*REP(%rsi),%rax
+	mul %rbp
+	add %r13,40+48*REP(%rdi)
+	adc %rax,%r8
+	adc %rdx,%r9
+in32:	mov 56+48*REP(%rsi),%rax
+.set REP, -3
+	mul %rbp
+	add %r8,0+48*REP(%rdi)
+	lea (%r15,%r15,2),%r10
+	adc %rax,%r9
+	mov $0,%r12d
+in31:	mov 16+48*REP(%rsi),%rax
+	adc %rdx,%r10
+	mov $0,%r11d
+	mul %rbp
+	add %r9,8+48*REP(%rdi)
+	adc %rax,%r10
+	adc %rdx,%r11
+in30:	mov 24+48*REP(%rsi),%rax
+	mul %rbp
+	add %r10,16+48*REP(%rdi)
+	adc %rax,%r11
+	adc %rdx,%r12
+in29:	mov 32+48*REP(%rsi),%rax
+	mul %rbp
+	add %r11,24+48*REP(%rdi)
+	lea (%r15,%r15,2),%r13
+	adc %rax,%r12
+	mov $0,%r9d
+in28:	mov 40+48*REP(%rsi),%rax
+	adc %rdx,%r13
+	mov $0,%r8d
+	mul %rbp
+	add %r12,32+48*REP(%rdi)
+	adc %rax,%r13
+	adc %rdx,%r8
+in27:	mov 48+48*REP(%rsi),%rax
+	mul %rbp
+	add %r13,40+48*REP(%rdi)
+	adc %rax,%r8
+	adc %rdx,%r9
+in26:	mov 56+48*REP(%rsi),%rax
+.set REP, -2
+	mul %rbp
+	add %r8,0+48*REP(%rdi)
+	lea (%r15,%r15,2),%r10
+	adc %rax,%r9
+	mov $0,%r12d
+in25:	mov 16+48*REP(%rsi),%rax
+	adc %rdx,%r10
+	mov $0,%r11d
+	mul %rbp
+	add %r9,8+48*REP(%rdi)
+	adc %rax,%r10
+	adc %rdx,%r11
+in24:	mov 24+48*REP(%rsi),%rax
+	mul %rbp
+	add %r10,16+48*REP(%rdi)
+	adc %rax,%r11
+	adc %rdx,%r12
+in23:	mov 32+48*REP(%rsi),%rax
+	mul %rbp
+	add %r11,24+48*REP(%rdi)
+	lea (%r15,%r15,2),%r13
+	adc %rax,%r12
+	mov $0,%r9d
+in22:	mov 40+48*REP(%rsi),%rax
+	adc %rdx,%r13
+	mov $0,%r8d
+	mul %rbp
+	add %r12,32+48*REP(%rdi)
+	adc %rax,%r13
+	adc %rdx,%r8
+in21:	mov 48+48*REP(%rsi),%rax
+	mul %rbp
+	add %r13,40+48*REP(%rdi)
+	adc %rax,%r8
+	adc %rdx,%r9
+in20:	mov 56+48*REP(%rsi),%rax
+.set REP, -1
+	mul %rbp
+	add %r8,0+48*REP(%rdi)
+	lea (%r15,%r15,2),%r10
+	adc %rax,%r9
+	mov $0,%r12d
+in19:	mov 16+48*REP(%rsi),%rax
+	adc %rdx,%r10
+	mov $0,%r11d
+	mul %rbp
+	add %r9,8+48*REP(%rdi)
+	adc %rax,%r10
+	adc %rdx,%r11
+in18:	mov 24+48*REP(%rsi),%rax
+	mul %rbp
+	add %r10,16+48*REP(%rdi)
+	adc %rax,%r11
+	adc %rdx,%r12
+in17:	mov 32+48*REP(%rsi),%rax
+	mul %rbp
+	add %r11,24+48*REP(%rdi)
+	lea (%r15,%r15,2),%r13
+	adc %rax,%r12
+	mov $0,%r9d
+in16:	mov 40+48*REP(%rsi),%rax
+	adc %rdx,%r13
+	mov $0,%r8d
+	mul %rbp
+	add %r12,32+48*REP(%rdi)
+	adc %rax,%r13
+	adc %rdx,%r8
+in15:	mov 48+48*REP(%rsi),%rax
+	mul %rbp
+	add %r13,40+48*REP(%rdi)
+	adc %rax,%r8
+	adc %rdx,%r9
+in14:	mov 56+48*REP(%rsi),%rax
+.set REP, 0
+	mul %rbp
+	add %r8,0+48*REP(%rdi)
+	lea (%r15,%r15,2),%r10
+	adc %rax,%r9
+	mov $0,%r12d
+in13:	mov 16+48*REP(%rsi),%rax
+	adc %rdx,%r10
+	mov $0,%r11d
+	mul %rbp
+	add %r9,8+48*REP(%rdi)
+	adc %rax,%r10
+	adc %rdx,%r11
+in12:	mov 24+48*REP(%rsi),%rax
+	mul %rbp
+	add %r10,16+48*REP(%rdi)
+	adc %rax,%r11
+	adc %rdx,%r12
+in11:	mov 32+48*REP(%rsi),%rax
+	mul %rbp
+	add %r11,24+48*REP(%rdi)
+	lea (%r15,%r15,2),%r13
+	adc %rax,%r12
+	mov $0,%r9d
+in10:	mov 40+48*REP(%rsi),%rax
+	adc %rdx,%r13
+	mov $0,%r8d
+	mul %rbp
+	add %r12,32+48*REP(%rdi)
+	adc %rax,%r13
+	adc %rdx,%r8
+in9:	mov 48+48*REP(%rsi),%rax
+	mul %rbp
+	add %r13,40+48*REP(%rdi)
+	adc %rax,%r8
+	adc %rdx,%r9
+in8:	mov 56+48*REP(%rsi),%rax
+.set REP, 1
+	mul %rbp
+	add %r8,0+48*REP(%rdi)
+	lea (%r15,%r15,2),%r10
+	adc %rax,%r9
+	mov $0,%r12d
+in7:	mov 16+48*REP(%rsi),%rax
+	adc %rdx,%r10
+	mov $0,%r11d
+	mul %rbp
+	add %r9,8+48*REP(%rdi)
+	adc %rax,%r10
+	adc %rdx,%r11
+in6:	mov 24+48*REP(%rsi),%rax
+	mul %rbp
+	add %r10,16+48*REP(%rdi)
+	adc %rax,%r11
+	adc %rdx,%r12
+in5:	mov 32+48*REP(%rsi),%rax
+	mul %rbp
+	add %r11,24+48*REP(%rdi)
+	lea (%r15,%r15,2),%r13
+	adc %rax,%r12
+	mov $0,%r9d
+in4:	mov 40+48*REP(%rsi),%rax
+	adc %rdx,%r13
+	mov $0,%r8d
+	mul %rbp
+	add %r12,32+48*REP(%rdi)
+	adc %rax,%r13
+	adc %rdx,%r8
+in3:	mov 48+48*REP(%rsi),%rax
+	mul %rbp
+	add %r13,40+48*REP(%rdi)
+	adc %rax,%r8
+	adc %rdx,%r9
+in2:	mov 56+48*REP(%rsi),%rax 	#last src read
+.set REP, 2
+#// this is the wind-down code only
+	mul %rbp
+	add %r8,0+48*REP(%rdi)
+	lea (%r15,%r15,2),%r10
+	adc %rax,%r9
+	#mov $0,%r12d
+	#mov 16+48*REP(%rsi),%rax
+in1:	adc %rdx,%r10
+	#mov $0,%r11d
+	#mul %rbp
+	add %r9,8+48*REP(%rdi)		# last dst read       -128 to 127 is biggest before using extra bytes
+	adc $0,%r10
+	#adc $0,%r11
+	#mov 24+48*REP(%rsi),%rax
+	#mul %rbp
+	mov %r10,%rax		#16+48*REP(%rdi)	# store top digit
+in0:	pop %rbp
+	pop %rbx
+	pop %r12
+	pop %r13
+	pop %r14
+	pop %r15
+	ret
+.align 8
+intable:
+.quad	in0-intable	#size=rcx=0
+.quad	in1-intable	#size=rcx=1
+.quad	in2-intable	#size=rcx=2
+.quad	in3-intable	#size=rcx=3
+.quad	in4-intable	#size=rcx=4
+.quad	in5-intable	#size=rcx=5
+.quad	in6-intable
+.quad	in7-intable
+.quad	in8-intable
+.quad	in9-intable
+.quad	in10-intable
+.quad	in11-intable
+.quad	in12-intable
+.quad	in13-intable
+.quad	in14-intable
+.quad	in15-intable
+.quad	in16-intable
+.quad	in17-intable
+.quad	in18-intable
+.quad	in19-intable
+.quad	in20-intable
+.quad	in21-intable
+.quad	in22-intable
+.quad	in23-intable
+.quad	in24-intable
+.quad	in25-intable
+.quad	in26-intable
+.quad	in27-intable
+.quad	in28-intable
+.quad	in29-intable
+.quad	in30-intable
+.quad	in31-intable
+.quad	in32-intable
+.quad	in33-intable
+.quad	in34-intable
+.quad	in35-intable
+.quad	in36-intable
+.quad	in37-intable
+casetable:
+.quad	case6-casetable		# rcx=0
+.quad	case7-casetable		# rcx=1
+.quad	case8-casetable		# rcx=2
+.quad	case3-casetable		# rcx=3
+.quad	case4-casetable		# rcx=4
+.quad	case5-casetable		# rcx=5
+.quad	case6-casetable		# rcx=6
+.quad	case7-casetable		# rcx=7
+.quad	case8-casetable		# rcx=8
+.quad	case3-casetable		# rcx=9
+.quad	case4-casetable		# rcx=10
+.quad	case5-casetable
+.quad	case6-casetable
+.quad	case7-casetable
+.quad	case8-casetable
+.quad	case3-casetable
+.quad	case4-casetable
+.quad	case5-casetable
+.quad	case6-casetable
+.quad	case7-casetable
+.quad	case8-casetable		# rcx=20
+.quad	case3-casetable
+.quad	case4-casetable
+.quad	case5-casetable
+.quad	case6-casetable
+.quad	case7-casetable
+.quad	case8-casetable
+.quad	case3-casetable
+.quad	case4-casetable
+.quad	case5-casetable
+.quad	case6-casetable		# rcx=30
+.quad	case7-casetable
+.quad	case8-casetable
+.quad	case3-casetable
+.quad	case4-casetable
+.quad	case5-casetable
+.quad	case6-casetable
+.quad	case7-casetable		# rcx=37
+EPILOGUE()
