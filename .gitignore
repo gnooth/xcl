@@ -36,65 +36,8 @@ gc/libatomic_ops-1.2/src/stamp-h1
 gc/libatomic_ops-1.2/tests/.deps/
 gc/libatomic_ops-1.2/tests/Makefile
 gc/libatomic_ops-1.2/tests/list_atomic.i
+gc/libatomic_ops-1.2/autom4te.cache/
 gc/libatomic_ops-install/
-
-# gmp/.libs/
-# gmp/Makefile
-# gmp/config.h
-# gmp/config.log
-# gmp/config.m4
-# gmp/config.status
-# gmp/cxx/Makefile
-# gmp/demos/Makefile
-# gmp/demos/calc/Makefile
-# gmp/demos/calc/calc-config.h
-# gmp/demos/expr/Makefile
-# gmp/demos/pexpr-config.h
-# gmp/doc/Makefile
-# gmp/doc/gmp.info*
-# gmp/fib_table.h
-# gmp/gen-bases
-# gmp/gen-fac_ui
-# gmp/gen-fib
-# gmp/gen-psqr
-# gmp/gmp-mparam.h
-# gmp/gmp.h
-# gmp/libtool
-# gmp/mp.h
-# gmp/mp_bases.h
-# gmp/mpbsd/Makefile
-# gmp/mpf/.libs/
-# gmp/mpf/Makefile
-
-# # following are all symlinks
-# gmp/mpn/*.c
-# gmp/mpn/*.asm
-
-# gmp/mpn/.libs/
-# gmp/mpn/Makefile
-# gmp/mpn/perfsqr.h
-# gmp/mpq/.libs/
-# gmp/mpq/Makefile
-# gmp/mpz/.libs/
-# gmp/mpz/Makefile
-# gmp/mpz/fac_ui.h
-# gmp/printf/.libs/
-# gmp/printf/Makefile
-# gmp/scanf/.libs/
-# gmp/scanf/Makefile
-# gmp/stamp-h1
-# gmp/tests/Makefile
-# gmp/tests/cxx/Makefile
-# gmp/tests/devel/Makefile
-# gmp/tests/misc/Makefile
-# gmp/tests/mpbsd/Makefile
-# gmp/tests/mpf/Makefile
-# gmp/tests/mpn/Makefile
-# gmp/tests/mpq/Makefile
-# gmp/tests/mpz/Makefile
-# gmp/tests/rand/Makefile
-# gmp/tune/Makefile
-# gmp/tune/sqr_basecase.c
 
 mpir/.libs/
 mpir/Makefile
@@ -174,8 +117,10 @@ mpir/yasm_mac.inc
 mpfr/.deps/
 mpfr/.libs/
 mpfr/Makefile
+mpfr/autom4te.cache/
 mpfr/config.log
 mpfr/config.status
+mpfr/gmp.h
 mpfr/libtool
 mpfr/mparam.h
 mpfr/tests/.deps/
