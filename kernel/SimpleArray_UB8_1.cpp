@@ -16,6 +16,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+#include <sys/mman.h> // mprotect
+
 #include "lisp.hpp"
 #include "SimpleArray_UB8_1.hpp"
 
@@ -171,7 +173,16 @@ Value SimpleArray_UB8_1::subseq(INDEX start, INDEX end) const
 }
 
 // ### make-code-vector
-Value SYS_make_code_vector(Value size)
+Value SYS_make_code_vector(Value sizearg)
 {
-  return make_value(new_simple_array_ub8_1(check_index(size)));
+  INDEX size = check_index(sizearg);
+  SimpleArray_UB8_1 * array = new_simple_array_ub8_1(size);
+// #ifdef __linux__
+//   long pagesize = sysconf(_SC_PAGE_SIZE);
+//   long start = ((long) array & ~(pagesize - 1));
+//   long end = (long) array + sizeof(SimpleArray_UB8_1) + size;
+//   if (mprotect((void*)start, end - start, PROT_READ | PROT_WRITE | PROT_EXEC))
+//     perror("Couldn't mprotect");
+// #endif
+  return make_value(array);
 }
