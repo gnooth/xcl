@@ -32,7 +32,7 @@ xcl: ./kernel/xcl_home.h ./gc/gc.a ./mpir/.libs/libmpir.a ./mpfr/.libs/libmpfr.a
 else
   ifeq ($(MACHINE_TYPE), x86_64)
 # xcl: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
-xcl: ./gc/gc.a ./mpir/.libs/libmpir.a ./mpfr/.libs/libmpfr.a
+xcl: ./gc/gc.a ./mpir/.libs/libmpir.a ./mpfr/.libs/libgmp.a
 	cd kernel && $(MAKE) all
   else
 # ./x/x: ./x/libxcl.so
@@ -63,7 +63,7 @@ endif
 # 	cd mpfr && $(MAKE)
 ./mpfr/.libs/libmpfr.a:
 	if [ ! -f mpfr/Makefile ]; then \
-	  cd mpfr && ./configure; \
+	  cd mpfr && ./configure --with-gmp-build=../mpir --enable-shared=no; \
 	fi
 	cd mpfr && $(MAKE)
 
@@ -75,15 +75,20 @@ endif
 # 	cd gmp && $(MAKE)
 ./mpir/.libs/libmpir.a:
 	if [ ! -f mpir/Makefile ]; then \
-	  cd mpir && ./configure; \
+	  cd mpir && ./configure --enable-gmpcompat --enable-shared=no; \
 	fi
 	cd mpir && $(MAKE)
+	cp -p mpir/mpir.h mpfr/gmp.h
+# 	cp -p mpir/libmpir.la mpfr/libgmp.la
 
 clean:
 	-rm -f x x.exe
 	cd gc && $(MAKE) clean
-	if [ -f gmp/Makefile ]; then \
-	  cd gmp && $(MAKE) clean; \
+	if [ -f mpir/Makefile ]; then \
+	  cd mpir && $(MAKE) clean; \
+	fi
+	if [ -f mpfr/Makefile); then \
+	  cd mpfr && $(MAKE) clean; \
 	fi
 	cd kernel && $(MAKE) clean
 

@@ -107,7 +107,7 @@ ifeq ($(PLATFORM), mingw)
 else
   # FIXME Fedora x86_64 keeps libpthread.so in /usr/lib64
 #   LIBS = ../gc/gc.a ../mpfr/.libs/libmpfr.a ../gmp/.libs/libgmp.a /usr/lib/libpthread.so
-  LIBS = ../gc/gc.a ../mpfr/.libs/libmpfr.a ../mpir/.libs/libmpir.a /usr/lib/libpthread.so
+  LIBS = ../gc/gc.a ../mpfr/.libs/libmpfr.a ../mpir/.libs/libgmp.a /usr/lib/libpthread.so
 endif
 
 # The default target.
