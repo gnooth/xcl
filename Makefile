@@ -32,7 +32,7 @@ xcl: ./kernel/xcl_home.h ./gc/gc.a ./mpir/.libs/libmpir.a ./mpfr/.libs/libmpfr.a
 else
   ifeq ($(MACHINE_TYPE), x86_64)
 # xcl: ./gc/gc.a ./gmp/.libs/libgmp.a ./mpfr/.libs/libmpfr.a
-xcl: ./gc/gc.a ./mpir/.libs/libmpir.a ./mpfr/.libs/libgmp.a
+xcl: ./kernel/xcl_home.h ./gc/gc.a ./mpir/.libs/libmpir.a ./mpfr/.libs/libmpfr.a
 	cd kernel && $(MAKE) all
   else
 # ./x/x: ./x/libxcl.so
@@ -87,7 +87,7 @@ clean:
 	if [ -f mpir/Makefile ]; then \
 	  cd mpir && $(MAKE) clean; \
 	fi
-	if [ -f mpfr/Makefile); then \
+	if [ -f mpfr/Makefile ]; then \
 	  cd mpfr && $(MAKE) clean; \
 	fi
 	cd kernel && $(MAKE) clean

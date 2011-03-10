@@ -46,6 +46,9 @@ mpir/config.m4
 mpir/config.status
 mpir/cxx/Makefile
 mpir/doc/Makefile
+mpir/doc/mpir.info
+mpir/doc/mpir.info-1
+mpir/doc/mpir.info-2
 mpir/gmp-mparam.h
 mpir/libtool
 mpir/mpf/.libs/
