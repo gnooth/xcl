@@ -16,7 +16,9 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+#ifndef WIN32
 #include <sys/mman.h> // mprotect
+#endif
 
 #include "lisp.hpp"
 #include "SimpleArray_UB8_1.hpp"
