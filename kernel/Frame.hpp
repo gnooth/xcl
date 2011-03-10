@@ -33,7 +33,7 @@ enum FrameType
 class Frame : public gc
 {
 private:
-  const FrameType _type;
+  FrameType _type;
   JMP_BUF _jmp;
   void * _last_special_binding;
   Frame * _last_control_frame;
@@ -43,6 +43,12 @@ private:
   unsigned int _call_depth;
   Frame * _next;
 
+  void init()
+  {
+    init(current_thread());
+  }
+
+public:
   void init(Thread * thread)
   {
     _last_special_binding = thread->last_special_binding();
@@ -53,16 +59,15 @@ private:
     _call_depth = thread->call_depth();
   }
 
-  void init()
-  {
-    init(current_thread());
-  }
-
-public:
   Frame()
     : _type(PRIMORDIAL), _next(NULL)
   {
     init();
+  }
+
+  Frame(FrameType type)
+    : _type(type)
+  {
   }
 
   Frame(FrameType type, Frame * next)
@@ -77,9 +82,14 @@ public:
     init(thread);
   }
 
-  FrameType type() const
+  FrameType type()
   {
     return _type;
+  }
+
+  void set_type(FrameType type)
+  {
+    _type = type;
   }
 
   JMP_BUF * jmp()
@@ -120,6 +130,11 @@ public:
   Frame * next() const
   {
     return _next;
+  }
+
+  void set_next(Frame * frame)
+  {
+    _next = frame;
   }
 };
 
@@ -203,6 +218,11 @@ private:
   Value _name;
 
 public:
+  Block()
+    : Frame(BLOCK)
+  {
+  }
+
   Block(Value name, Frame * next, Thread * thread)
     : Frame(BLOCK, next, thread), _name(name)
   {
@@ -211,6 +231,46 @@ public:
   Value name() const
   {
     return _name;
+  }
+
+  void set_name(Value arg)
+  {
+    _name = arg;
+  }
+
+  void clear()
+  {
+    memset(this, 0, sizeof(*this));
+  }
+};
+
+#define BLOCK_POOL_SIZE 256
+
+class BlockPool : public gc
+{
+private:
+  Block * _pool[BLOCK_POOL_SIZE];
+  unsigned int index;
+
+public:
+  BlockPool()
+    : index(0)
+  {
+    memset(_pool, 0, BLOCK_POOL_SIZE * sizeof(Block *));
+  }
+
+  Block * get_block()
+  {
+    return index > 0 ? _pool[--index] : NULL;
+  }
+
+  void release_block(Block * block)
+  {
+    if (index < BLOCK_POOL_SIZE - 1)
+      {
+        block->clear();
+        _pool[index++] = block;
+      }
   }
 };
 

@@ -1,6 +1,6 @@
 // block.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -22,6 +22,12 @@
 #include "runtime.h"
 #include "primitives.hpp"
 
+inline void leave_block(Thread * thread, Block * block)
+{
+  thread->set_last_control_frame(block->last_control_frame());
+  thread->release_block(block);
+}
+
 // ### block
 Value CL_block(Value args, Environment * env, Thread * thread)
 {
@@ -42,7 +48,7 @@ Value CL_block(Value args, Environment * env, Thread * thread)
           result = eval(car(body), ext, thread);
           body = xcdr(body);
         }
-      thread->set_last_control_frame(block->last_control_frame());
+      leave_block(thread, block);
       assert(thread->stack() == block->stack());
       assert(thread->call_depth() == block->call_depth());
       return result;
@@ -93,7 +99,7 @@ Block * RT_enter_block(Thread * thread, Value block_name)
 
 void RT_leave_block(Thread * thread, Block * block)
 {
-  thread->set_last_control_frame(block->last_control_frame());
+  leave_block(thread, block);
 }
 
 Value RT_block_non_local_return(Thread * thread, Block * block)

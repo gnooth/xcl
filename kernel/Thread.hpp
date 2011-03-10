@@ -95,6 +95,7 @@ private:
   Tag * _last_tag;
 
   class StackFramePool * _stack_frame_pool;
+  class BlockPool * _block_pool;
 
 public:
   Thread(Function * function, Value name);
@@ -152,6 +153,10 @@ public:
   {
     _last_control_frame = frame;
   }
+
+  Block * get_block();
+
+  void release_block(Block * block);
 
   Block * add_block(Value name);
 

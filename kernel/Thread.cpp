@@ -80,6 +80,7 @@ Thread::Thread(Function * function, Value name)
   _num_bindings = _max_bindings = 0;
 
   _stack_frame_pool = new StackFramePool();
+  _block_pool = new BlockPool();
 }
 
 Thread::~Thread()
@@ -199,10 +200,28 @@ Value * Thread::get_values(Value primary_value, int required)
   return _values;
 }
 
+Block * Thread::get_block()
+{
+  Block * block = _block_pool->get_block();
+  if (block)
+    return block;
+  return new Block();
+}
+
+void Thread::release_block(Block * block)
+{
+  _block_pool->release_block(block);
+}
+
 Block * Thread::add_block(Value name)
 {
-  _last_control_frame = new Block(name, _last_control_frame, this);
-  return (Block *) _last_control_frame;
+  Block * block = get_block();
+  block->set_type(BLOCK);
+  block->init(this);
+  block->set_name(name);
+  block->set_next(_last_control_frame);
+  _last_control_frame = block;
+  return block;
 }
 
 Block * Thread::find_block(Value name)
