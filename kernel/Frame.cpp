@@ -43,7 +43,8 @@ inline void restore_frame_context(Frame * frame, Thread * thread)
 void RT_unwind_to(Frame * frame, Thread * thread)
 {
   // save thread's values
-  Values * values = thread->copy_values();
+  Values values;
+  thread->copy_values(&values);
   // run applicable cleanups
   Frame * f = thread->last_control_frame();
   while (f && f != frame)
@@ -70,7 +71,7 @@ void RT_unwind_to(Frame * frame, Thread * thread)
       f = next;
     }
   // restore thread's values
-  thread->set_values(values);
+  thread->set_values(&values);
 
   restore_frame_context(frame, thread);
 }

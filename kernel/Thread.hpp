@@ -43,6 +43,10 @@ private:
   Value _values[MULTIPLE_VALUES_LIMIT];
 
 public:
+  Values()
+  {
+  }
+
   Values(char values_length, Value * values)
     : _values_length(values_length)
   {
@@ -53,6 +57,16 @@ public:
   char values_length() const
   {
     return _values_length;
+  }
+
+  void set_values_length(char values_length)
+  {
+    _values_length = values_length;
+  }
+
+  void set_nth_value(int i, Value value)
+  {
+    _values[i] = value;
   }
 
   Value * values()
@@ -334,9 +348,12 @@ public:
       return NIL;
   }
 
-  Values * copy_values()
+  Values * copy_values(Values * values)
   {
-    return new Values(_values_length, _values);
+    for (int i = 0; i < MULTIPLE_VALUES_LIMIT; i++)
+      values->set_nth_value(i, nth_value(i));
+    values->set_values_length(values_length());
+    return values;
   }
 
   Values * copy_values(Value primary_value)

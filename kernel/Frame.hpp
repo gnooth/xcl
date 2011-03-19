@@ -260,6 +260,8 @@ public:
   {
 //     if (_index && !(_index % 10))
 //       printf("get_frame _index = %d\n", _index);
+//     if (_index == 0)
+//       printf("get_frame pool is empty\n");
     return _index > 0 ? _pool[--_index] : NULL;
   }
 
