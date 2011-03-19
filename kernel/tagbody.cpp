@@ -136,6 +136,7 @@ void RT_leave_tagbody(Thread * thread, Tagbody * tagbody)
 {
   thread->set_last_tag(tagbody->last_tag());
   thread->set_last_control_frame(tagbody->last_control_frame());
+  thread->release_frame(tagbody);
 }
 
 void RT_non_local_go(Thread * thread, Value tag_name)
