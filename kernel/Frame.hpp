@@ -38,7 +38,6 @@ private:
   void * _last_special_binding;
   Frame * _last_control_frame;
   Tag * _last_tag;
-  UnwindProtect * _unwind_protect;
   StackFrame * _stack;
   unsigned int _call_depth;
   Frame * _next;
@@ -58,7 +57,6 @@ public:
     _last_special_binding = thread->last_special_binding();
     _last_control_frame = thread->last_control_frame();
     _last_tag = thread->last_tag();
-    _unwind_protect = thread->unwind_protect();
     _stack = thread->stack();
     _call_depth = thread->call_depth();
   }
@@ -119,11 +117,6 @@ public:
   Tag * last_tag() const
   {
     return _last_tag;
-  }
-
-  UnwindProtect * unwind_protect() const
-  {
-    return _unwind_protect;
   }
 
   StackFrame * stack() const
@@ -213,6 +206,7 @@ public:
   Tagbody(Thread * thread)
     : Frame(TAGBODY, thread->last_control_frame(), thread)
   {
+//     printf("Tagbody constructor called\n");
     thread->set_last_control_frame(this);
   }
 
@@ -233,6 +227,7 @@ public:
   Block()
     : Frame(BLOCK)
   {
+//     printf("Block constructor called\n");
   }
 
   Value name() const
@@ -252,23 +247,25 @@ class FramePool : public gc
 {
 private:
   Frame * _pool[FRAME_POOL_SIZE];
-  unsigned int index;
+  unsigned int _index;
 
 public:
   FramePool()
-    : index(0)
+    : _index(0)
   {
     memset(_pool, 0, FRAME_POOL_SIZE * sizeof(Frame *));
   }
 
   Frame * get_frame()
   {
-    return index > 0 ? _pool[--index] : NULL;
+//     if (_index && !(_index % 10))
+//       printf("get_frame _index = %d\n", _index);
+    return _index > 0 ? _pool[--_index] : NULL;
   }
 
   void release_frame(Frame * frame)
   {
-//     for (unsigned int i = 0; i < index; i++)
+//     for (unsigned int i = 0; i < _index; i++)
 //       {
 //         if (_pool[i] == frame)
 //           {
@@ -277,11 +274,13 @@ public:
 //             SYS_int3();
 //           }
 //       }
-    if (index < FRAME_POOL_SIZE - 1)
+    if (_index < FRAME_POOL_SIZE - 1)
       {
         frame->clear();
-        _pool[index++] = frame;
+        _pool[_index++] = frame;
       }
+//     if (_index && !(_index % 10))
+//       printf("release_frame _index = %d\n", _index);
   }
 };
 

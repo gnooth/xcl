@@ -36,46 +36,42 @@ inline void restore_frame_context(Frame * frame, Thread * thread)
       thread->set_last_control_frame(frame->last_control_frame());
       thread->set_last_tag(frame->last_tag());
     }
-  thread->set_unwind_protect(frame->unwind_protect());
   thread->set_stack(frame->stack());
   thread->set_call_depth(frame->call_depth());
 }
 
 void RT_unwind_to(Frame * frame, Thread * thread)
 {
-//   UnwindProtect * current_uwp = thread->unwind_protect();
-//   if (current_uwp && current_uwp != frame->unwind_protect())
+  // save thread's values
+  Values * values = thread->copy_values();
+  // run applicable cleanups
+  Frame * f = thread->last_control_frame();
+  while (f && f != frame)
     {
-      // save thread's values
-      Values * values = thread->copy_values();
-      // run applicable cleanups
-      Frame * f = thread->last_control_frame();
-      while (f && f != frame)
+      if (f->type() == UNWIND_PROTECT)
         {
-          if (f->type() == UNWIND_PROTECT)
+          UnwindProtect * uwp = reinterpret_cast<UnwindProtect *>(f);
+          if (uwp->code() != NULL)
             {
-              UnwindProtect * uwp = reinterpret_cast<UnwindProtect *>(f);
-              if (uwp->code() != NULL)
-                {
-                  thread->set_uwp_in_cleanup(uwp);
-                  uwp->run_cleanup_code();
-                  thread->set_uwp_in_cleanup(NULL);
-                }
-              else
-                uwp->run_cleanup_forms(thread);
+              thread->set_uwp_in_cleanup(uwp);
+              uwp->run_cleanup_code();
+              thread->set_uwp_in_cleanup(NULL);
             }
-//           f = f->next();
-          Frame * next = f->next();
-          if (f->type() == BLOCK || f->type() == TAGBODY)
-            {
-//               printf("RT_unwind_to calling release_frame\n");
-              thread->release_frame(f);
-            }
-          f = next;
+          else
+            uwp->run_cleanup_forms(thread);
         }
-      // restore thread's values
-      thread->set_values(values);
+//       f = f->next();
+      Frame * next = f->next();
+      if (f->type() == BLOCK || f->type() == TAGBODY)
+        {
+//           printf("RT_unwind_to calling release_frame\n");
+          thread->release_frame(f);
+        }
+      f = next;
     }
+  // restore thread's values
+  thread->set_values(values);
+
   restore_frame_context(frame, thread);
 }
 

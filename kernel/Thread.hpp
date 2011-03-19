@@ -85,7 +85,6 @@ private:
 
   class StackFrame * _stack;
 
-  UnwindProtect * _unwind_protect;
   UnwindProtect * _uwp_in_cleanup;
 
   unsigned int _call_depth;
@@ -396,16 +395,6 @@ public:
   StackFrame * get_stack_frame();
 
   void release_stack_frame(class StackFrame * frame);
-
-  UnwindProtect * unwind_protect() const
-  {
-    return _unwind_protect;
-  }
-
-  void set_unwind_protect(UnwindProtect * uwp)
-  {
-    _unwind_protect = uwp;
-  }
 
   // used by RT_unwind_to() and RT_uwp_in_cleanup_p()
   UnwindProtect * uwp_in_cleanup() const

@@ -32,7 +32,6 @@ Value CL_unwind_protect(Value args, Environment * env, Thread * thread)
   Value cleanup_forms = cdr(args);
 
 #ifndef NDEBUG
-  UnwindProtect * old_uwp = thread->unwind_protect();
   Frame * old_control_frame = thread->last_control_frame();
 #endif
 
@@ -40,7 +39,6 @@ Value CL_unwind_protect(Value args, Environment * env, Thread * thread)
   UnwindProtect * new_uwp = new UnwindProtect(cleanup_forms,
                                               env,
                                               thread->last_control_frame());
-  thread->set_unwind_protect(new_uwp);
   thread->add_frame(new_uwp);
 
   // evaluate protected form
@@ -53,7 +51,6 @@ Value CL_unwind_protect(Value args, Environment * env, Thread * thread)
   // action is taken. The cleanup-forms of UNWIND-PROTECT are not protected by
   // that UNWIND-PROTECT."
   RT_leave_unwind_protect(thread, new_uwp);
-  assert(thread->unwind_protect() == old_uwp);
   assert(thread->last_control_frame() == old_control_frame);
 
   // run cleanup forms
@@ -87,13 +84,11 @@ UnwindProtect * RT_enter_unwind_protect(Thread * thread, void * code, long rbp)
   UnwindProtect * uwp = new UnwindProtect(code,
                                           rbp,
                                           thread->last_control_frame());
-  thread->set_unwind_protect(uwp);
   thread->add_frame(uwp);
   return uwp;
 }
 
 void RT_leave_unwind_protect(Thread * thread, UnwindProtect * uwp)
 {
-  thread->set_unwind_protect(uwp->unwind_protect());
   thread->set_last_control_frame(uwp->last_control_frame());
 }
