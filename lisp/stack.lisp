@@ -480,7 +480,7 @@
                    (setf (stack-entry-annotation frame) nil)
                    (push frame result))))
               ((stringp (stack-entry-name frame))
-               )
+               (push frame result))
               (t
                (push frame result)))))
     (nreverse result)))
