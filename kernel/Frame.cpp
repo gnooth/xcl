@@ -1,6 +1,6 @@
 // Frame.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -43,8 +43,8 @@ inline void restore_frame_context(Frame * frame, Thread * thread)
 
 void RT_unwind_to(Frame * frame, Thread * thread)
 {
-  UnwindProtect * current_uwp = thread->unwind_protect();
-  if (current_uwp && current_uwp != frame->unwind_protect())
+//   UnwindProtect * current_uwp = thread->unwind_protect();
+//   if (current_uwp && current_uwp != frame->unwind_protect())
     {
       // save thread's values
       Values * values = thread->copy_values();
@@ -64,7 +64,14 @@ void RT_unwind_to(Frame * frame, Thread * thread)
               else
                 uwp->run_cleanup_forms(thread);
             }
-          f = f->next();
+//           f = f->next();
+          Frame * next = f->next();
+          if (f->type() == BLOCK || f->type() == TAGBODY)
+            {
+//               printf("RT_unwind_to calling release_frame\n");
+              thread->release_frame(f);
+            }
+          f = next;
         }
       // restore thread's values
       thread->set_values(values);
