@@ -25,7 +25,8 @@
 inline void leave_block(Thread * thread, Block * block)
 {
   thread->set_last_control_frame(block->last_control_frame());
-  thread->release_block(block);
+  assert(thread->last_control_frame() != block);
+  thread->release_frame(block);
 }
 
 // ### block
@@ -48,9 +49,9 @@ Value CL_block(Value args, Environment * env, Thread * thread)
           result = eval(car(body), ext, thread);
           body = xcdr(body);
         }
-      leave_block(thread, block);
       assert(thread->stack() == block->stack());
       assert(thread->call_depth() == block->call_depth());
+      leave_block(thread, block);
       return result;
     }
   else
@@ -109,6 +110,10 @@ Value RT_block_non_local_return(Thread * thread, Block * block)
   assert(thread->call_depth() == block->call_depth());
   assert(thread->last_control_frame() == block->last_control_frame());
   assert(thread->last_tag() == block->last_tag());
+
+//   assert(thread->last_control_frame() != block);
+//   printf("RT_block_non_local_return() calling release_frame()\n");
+//   thread->release_frame(block);
 
   int values_length = thread->values_length();
   assert(values_length >= -1);

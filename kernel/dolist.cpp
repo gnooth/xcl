@@ -1,6 +1,6 @@
 // dolist.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -67,7 +67,7 @@ Value CL_dolist(Value args, Environment * env, Thread * thread)
       // evaluate the list form
       Value list = eval(list_form, ext, thread);
       // tagbody
-      Tagbody * tagbody = new Tagbody(thread);
+      Tagbody * tagbody = thread->get_tagbody();
       // look for tags
       Value body = body_form;
       // The tag index is 1-based so it can be used as the second argument to longjmp().
@@ -136,6 +136,8 @@ Value CL_dolist(Value args, Environment * env, Thread * thread)
             RT_handle_interrupt();
         }
       thread->set_last_tag(tagbody->last_tag());
+      thread->set_last_control_frame(tagbody->last_control_frame());
+      thread->release_frame(tagbody);
       if (binding)
         binding->set_value(NIL);
       else

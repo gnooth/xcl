@@ -1,6 +1,6 @@
 // tagbody.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@ inline void go_to_visible_tag(Tag * tag, Thread * thread)
 Value CL_tagbody(Value args, Environment * env, Thread * thread)
 {
   Environment * ext = new Environment(env);
-  Tagbody * tagbody = new Tagbody(thread);
+  Tagbody * tagbody = thread->get_tagbody();
   Value body = args;
   // The tag index is 1-based so it can be used as the second argument to longjmp().
   int tag_index = 1;
@@ -98,6 +98,8 @@ Value CL_tagbody(Value args, Environment * env, Thread * thread)
       remaining = xcdr(remaining);
     }
   thread->set_last_tag(tagbody->last_tag());
+  thread->set_last_control_frame(tagbody->last_control_frame());
+  thread->release_frame(tagbody);
   thread->clear_values();
   return NIL;
 }
@@ -122,9 +124,7 @@ Value CL_go(Value args, Environment * env, Thread * thread)
 
 Tagbody * RT_add_tagbody(Thread * thread)
 {
-  Tagbody * tagbody = new Tagbody(thread);
-  thread->add_frame(tagbody);
-  return tagbody;
+  return thread->get_tagbody();
 }
 
 void RT_add_tag(Thread * thread, Value tag_name, Tagbody * tagbody, int index)

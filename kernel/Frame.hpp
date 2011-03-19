@@ -1,6 +1,6 @@
 // Frame.hpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -48,6 +48,10 @@ private:
     init(current_thread());
   }
 
+protected:
+  Value _block_name;
+  Value _catch_tag;
+
 public:
   void init(Thread * thread)
   {
@@ -80,6 +84,11 @@ public:
     : _type(type), _next(next)
   {
     init(thread);
+  }
+
+  void clear()
+  {
+    memset(this, 0, sizeof(*this));
   }
 
   FrameType type()
@@ -134,6 +143,12 @@ public:
 
   void set_next(Frame * frame)
   {
+    if (frame == this)
+      {
+        printf("Frame::set_next() frame == this\n");
+        extern Value SYS_int3();
+        SYS_int3();
+      }
     _next = frame;
   }
 };
@@ -214,62 +229,58 @@ public:
 
 class Block : public Frame
 {
-private:
-  Value _name;
-
 public:
   Block()
     : Frame(BLOCK)
   {
   }
 
-  Block(Value name, Frame * next, Thread * thread)
-    : Frame(BLOCK, next, thread), _name(name)
-  {
-  }
-
   Value name() const
   {
-    return _name;
+    return _block_name;
   }
 
   void set_name(Value arg)
   {
-    _name = arg;
-  }
-
-  void clear()
-  {
-    memset(this, 0, sizeof(*this));
+    _block_name = arg;
   }
 };
 
-#define BLOCK_POOL_SIZE 256
+#define FRAME_POOL_SIZE 128
 
-class BlockPool : public gc
+class FramePool : public gc
 {
 private:
-  Block * _pool[BLOCK_POOL_SIZE];
+  Frame * _pool[FRAME_POOL_SIZE];
   unsigned int index;
 
 public:
-  BlockPool()
+  FramePool()
     : index(0)
   {
-    memset(_pool, 0, BLOCK_POOL_SIZE * sizeof(Block *));
+    memset(_pool, 0, FRAME_POOL_SIZE * sizeof(Frame *));
   }
 
-  Block * get_block()
+  Frame * get_frame()
   {
     return index > 0 ? _pool[--index] : NULL;
   }
 
-  void release_block(Block * block)
+  void release_frame(Frame * frame)
   {
-    if (index < BLOCK_POOL_SIZE - 1)
+//     for (unsigned int i = 0; i < index; i++)
+//       {
+//         if (_pool[i] == frame)
+//           {
+//             printf("frame already in pool\n");
+//             extern Value SYS_int3();
+//             SYS_int3();
+//           }
+//       }
+    if (index < FRAME_POOL_SIZE - 1)
       {
-        block->clear();
-        _pool[index++] = block;
+        frame->clear();
+        _pool[index++] = frame;
       }
   }
 };

@@ -80,7 +80,7 @@ Thread::Thread(Function * function, Value name)
   _num_bindings = _max_bindings = 0;
 
   _stack_frame_pool = new StackFramePool();
-  _block_pool = new BlockPool();
+  _frame_pool = new FramePool();
 }
 
 Thread::~Thread()
@@ -200,25 +200,57 @@ Value * Thread::get_values(Value primary_value, int required)
   return _values;
 }
 
-Block * Thread::get_block()
+Frame * Thread::get_frame()
 {
-  Block * block = _block_pool->get_block();
-  if (block)
-    return block;
-  return new Block();
+  Frame * frame = _frame_pool->get_frame();
+  if (frame)
+    {
+      if (frame == _last_control_frame)
+        {
+          printf("Thread::get_frame() frame == _last_control_frame\n");
+          extern Value SYS_int3();
+          SYS_int3();
+        }
+      return frame;
+    }
+  return new Frame();
 }
 
-void Thread::release_block(Block * block)
+void Thread::release_frame(Frame * frame)
 {
-  _block_pool->release_block(block);
+  _frame_pool->release_frame(frame);
+}
+
+Tagbody * Thread::get_tagbody()
+{
+  Frame * frame = _frame_pool->get_frame();
+  if (frame)
+    {
+      frame->set_type(TAGBODY);
+      frame->init(this);
+      if (frame == _last_control_frame)
+        {
+          printf("Thread::get_tagbody() frame == _last_control_frame\n");
+          extern Value SYS_int3();
+        }
+      frame->set_next(_last_control_frame);
+      _last_control_frame = frame;
+      return (Tagbody *) frame;
+    }
+  return new Tagbody(this);
 }
 
 Block * Thread::add_block(Value name)
 {
-  Block * block = get_block();
+  Block * block = (Block *) get_frame();
   block->set_type(BLOCK);
   block->init(this);
   block->set_name(name);
+  if (block == _last_control_frame)
+    {
+      printf("Thread::add_block() block == _last_control_frame\n");
+      extern Value SYS_int3();
+    }
   block->set_next(_last_control_frame);
   _last_control_frame = block;
   return block;
@@ -278,6 +310,12 @@ void Thread::print_control_frames()
         case UNWIND_PROTECT:
           type_string = "UNWIND_PROTECT";
           printf(" %2d: 0x%lx %s\n", count, (unsigned long) frame, type_string);
+          break;
+        }
+      Frame * next_frame = frame->next();
+      if (next_frame == frame)
+        {
+          printf("circularity detected\n");
           break;
         }
       frame = frame->next();
