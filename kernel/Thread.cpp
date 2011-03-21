@@ -248,6 +248,7 @@ void Thread::print_statistics()
   printf("add_block_calls   = %lu\n", _number_add_block_calls);
   printf("get_tagbody_calls = %lu\n", _number_get_tagbody_calls);
   printf("new_tagbody_calls = %lu\n", _number_new_tagbody_calls);
+  fflush(stdout);
 }
 
 // ### thread-statistics
@@ -339,6 +340,7 @@ void Thread::print_control_frames()
       frame = frame->next();
       ++count;
     }
+  fflush(stdout);
 }
 
 Tag * Thread::add_tag(Value name, Tagbody * tagbody, Value continuation, int index)
