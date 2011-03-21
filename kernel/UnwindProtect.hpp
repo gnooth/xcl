@@ -1,6 +1,6 @@
 // UnwindProtect.hpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,31 +21,27 @@
 
 class UnwindProtect : public Frame
 {
-private:
-  Value _cleanup_forms;
-  Environment * _env;
-  void * _code;
-#ifdef __x86_64__
-  long _rbp;
-#else
-  int _ebp;
-#endif
-
 public:
   UnwindProtect(Value cleanup_forms, Environment * env, Frame * next)
-    : Frame(UNWIND_PROTECT, next), _cleanup_forms(cleanup_forms), _env(env)
+    : Frame(UNWIND_PROTECT, next)
   {
+    _cleanup_forms = cleanup_forms;
+    _env = env;
   }
 
 #ifdef __x86_64__
   UnwindProtect(void * code, long rbp, Frame * next)
-    : Frame(UNWIND_PROTECT, next), _code(code), _rbp(rbp)
+    : Frame(UNWIND_PROTECT, next)
   {
+    _code = code;
+    _rbp = rbp;
   }
 #else
   UnwindProtect(void * code, int ebp, Frame * next)
-    : Frame(UNWIND_PROTECT, next), _code(code), _ebp(ebp)
+    : Frame(UNWIND_PROTECT, next)
   {
+    _code = code;
+    _ebp = ebp;
   }
 #endif
 

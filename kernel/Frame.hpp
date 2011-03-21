@@ -48,7 +48,20 @@ private:
   }
 
 protected:
+  // UNWIND_PROTECT frames only
+  Value _cleanup_forms;
+  Environment * _env;
+  void * _code;
+#ifdef __x86_64__
+  long _rbp;
+#else
+  int _ebp;
+#endif
+
+  // BLOCK frames only
   Value _block_name;
+
+  // CATCH frames only
   Value _catch_tag;
 
 public:
