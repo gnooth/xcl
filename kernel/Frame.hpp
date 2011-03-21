@@ -249,11 +249,38 @@ private:
   Frame * _pool[FRAME_POOL_SIZE];
   unsigned int _index;
 
+  unsigned int _max_index;
+  unsigned long _number_released;
+  unsigned long _number_released_block;
+  unsigned long _number_released_tagbody;
+  unsigned long _number_ignored;
+  unsigned long _number_reused;
+  unsigned long _number_new;
+
 public:
   FramePool()
     : _index(0)
   {
     memset(_pool, 0, FRAME_POOL_SIZE * sizeof(Frame *));
+    _max_index = 0;
+    _number_released = 0;
+    _number_released_block = 0;
+    _number_released_tagbody = 0;
+    _number_ignored = 0;
+    _number_reused = 0;
+    _number_new = 0;
+  }
+
+  void print_statistics()
+  {
+    printf("Pool statistics:\n");
+    printf("  released  = %lu (block = %lu, tagbody = %lu)\n",
+           _number_released, _number_released_block, _number_released_tagbody);
+    printf("  ignored   = %lu\n", _number_ignored);
+    printf("  reused    = %lu\n", _number_reused);
+    printf("  new       = %lu\n", _number_new);
+    printf("  index     = %u\n", _index);
+    printf("  max_index = %u\n", _max_index);
   }
 
   Frame * get_frame()
@@ -262,6 +289,15 @@ public:
 //       printf("get_frame _index = %d\n", _index);
 //     if (_index == 0)
 //       printf("get_frame pool is empty\n");
+
+    if (_index > 0)
+      _number_reused++;
+    else
+      _number_new++;
+
+//     if (!((_number_reused + _number_new) % 200))
+//       print_statistics();
+
     return _index > 0 ? _pool[--_index] : NULL;
   }
 
@@ -278,9 +314,18 @@ public:
 //       }
     if (_index < FRAME_POOL_SIZE - 1)
       {
+        _number_released++;
+        if (frame->type() == TAGBODY)
+          _number_released_tagbody++;
+        else if (frame->type() == BLOCK)
+          _number_released_block++;
         frame->clear();
         _pool[_index++] = frame;
+        if (_index > _max_index)
+          _max_index = _index;
       }
+    else
+      _number_ignored++;
 //     if (_index && !(_index % 10))
 //       printf("release_frame _index = %d\n", _index);
   }

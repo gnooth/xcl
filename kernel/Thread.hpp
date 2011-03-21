@@ -110,6 +110,10 @@ private:
   class StackFramePool * _stack_frame_pool;
   class FramePool * _frame_pool;
 
+  unsigned long _number_add_block_calls;
+  unsigned long _number_get_tagbody_calls;
+  unsigned long _number_new_tagbody_calls;
+
 public:
   Thread(Function * function, Value name);
 
@@ -445,6 +449,8 @@ public:
   Value backtrace_internal();
 
   Value special_bindings();
+
+  void print_statistics();
 
   virtual AbstractString * write_to_string();
 };

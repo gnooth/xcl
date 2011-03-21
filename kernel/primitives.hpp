@@ -862,6 +862,7 @@ extern Value SYS_svset(Value arg1, Value arg2, Value arg3);
 extern Value SYS_swap_slots(Value arg1, Value arg2);
 extern Value SYS_symbol_flags(Value arg);
 extern Value SYS_symbol_global_value(Value arg);
+extern Value SYS_thread_statistics();
 extern Value SYS_trace_redefined_update(Value name, Value function);
 extern Value SYS_truly_the(Value args, Environment * env, Thread * thread);
 extern Value SYS_truncate_1(Value number);

@@ -223,6 +223,7 @@ void Thread::release_frame(Frame * frame)
 
 Tagbody * Thread::get_tagbody()
 {
+  _number_get_tagbody_calls++;
   Frame * frame = _frame_pool->get_frame();
   if (frame)
     {
@@ -237,11 +238,28 @@ Tagbody * Thread::get_tagbody()
       _last_control_frame = frame;
       return (Tagbody *) frame;
     }
+  _number_new_tagbody_calls++;
   return new Tagbody(this);
+}
+
+void Thread::print_statistics()
+{
+  _frame_pool->print_statistics();
+  printf("add_block_calls   = %lu\n", _number_add_block_calls);
+  printf("get_tagbody_calls = %lu\n", _number_get_tagbody_calls);
+  printf("new_tagbody_calls = %lu\n", _number_new_tagbody_calls);
+}
+
+// ### thread-statistics
+Value SYS_thread_statistics()
+{
+  current_thread()->print_statistics();
+  return current_thread()->set_values();
 }
 
 Block * Thread::add_block(Value name)
 {
+  _number_add_block_calls++;
   Block * block = (Block *) get_frame();
   block->set_type(BLOCK);
   block->init(this);
