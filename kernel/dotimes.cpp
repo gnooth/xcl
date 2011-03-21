@@ -144,6 +144,7 @@ Value CL_dotimes(Value args, Environment * env, Thread * thread)
             thread->set_symbol_value(var, make_fixnum(i));
           Value result = eval(result_form, ext, thread);
           thread->set_last_control_frame(block->last_control_frame());
+          thread->release_frame(block);
           if (last_special_binding)
             thread->set_last_special_binding(last_special_binding);
           return result;
@@ -189,6 +190,7 @@ Value CL_dotimes(Value args, Environment * env, Thread * thread)
             thread->set_symbol_value(var, index);
           Value result = eval(result_form, ext, thread);
           thread->set_last_control_frame(block->last_control_frame());
+          thread->release_frame(block);
           if (last_special_binding)
             thread->set_last_special_binding(last_special_binding);
           return result;
@@ -201,6 +203,10 @@ Value CL_dotimes(Value args, Environment * env, Thread * thread)
       // caught RETURN
       if (last_special_binding)
         thread->set_last_special_binding(last_special_binding);
-      return RT_block_non_local_return(thread, block);
+      Value result = RT_block_non_local_return(thread, block);
+      thread->set_last_control_frame(block->last_control_frame());
+      assert(thread->last_control_frame() != block);
+      thread->release_frame(block);
+      return result;
     }
 }

@@ -39,10 +39,10 @@ Value CL_block(Value args, Environment * env, Thread * thread)
     signal_type_error(block_name, S_symbol);
   Value body = xcdr(args);
   Block * block = thread->add_block(block_name);
+  Value result = NIL;
   if (SETJMP(*block->jmp()) == 0)
     {
       // implicit PROGN
-      Value result = NIL;
       Environment * ext = new Environment(env);
       while (body != NIL)
         {
@@ -51,14 +51,14 @@ Value CL_block(Value args, Environment * env, Thread * thread)
         }
       assert(thread->stack() == block->stack());
       assert(thread->call_depth() == block->call_depth());
-      leave_block(thread, block);
-      return result;
     }
   else
     {
       // caught RETURN-FROM
-      return RT_block_non_local_return(thread, block);
+      result = RT_block_non_local_return(thread, block);
     }
+  leave_block(thread, block);
+  return result;
 }
 
 // ### return-from

@@ -21,7 +21,7 @@
 #include "primitives.hpp"
 #include "Environment.hpp"
 
-static Value _do(Value args, Environment * env, Thread * thread, bool sequential)
+static Value do_internal(Value args, Environment * env, Thread * thread, bool sequential)
 {
   Value varlist = car(args);
   Value second = CL_cadr(args);
@@ -112,6 +112,7 @@ static Value _do(Value args, Environment * env, Thread * thread, bool sequential
     }
   // "An implicit block named NIL surrounds the entire DO (or DO*) form."
   Block * block = thread->add_block(NIL);
+  Value result;
   if (SETJMP(*block->jmp()) == 0)
     {
       // tagbody
@@ -166,7 +167,6 @@ static Value _do(Value args, Environment * env, Thread * thread, bool sequential
                       Value value = eval(stepform, ext, thread);
                       if (the_symbol(var)->is_special_variable()
                           || ext->is_declared_special(var))
-//                         thread->rebind_special(var, value);
                         thread->set_symbol_value(var, value);
                       else
                         ext->rebind(var, value);
@@ -182,8 +182,7 @@ static Value _do(Value args, Environment * env, Thread * thread, bool sequential
                   Value stepform = stepforms[i];
                   if (stepform != NULL_VALUE)
                     {
-                      Value result = eval(stepform, ext, thread);
-                      results[i] = result;
+                      results[i] = eval(stepform, ext, thread);
                     }
                   else
                     results[i] = NULL_VALUE;
@@ -197,7 +196,6 @@ static Value _do(Value args, Environment * env, Thread * thread, bool sequential
                       Value value = results[i];
                       if (the_symbol(var)->is_special_variable()
                           || ext->is_declared_special(var))
-//                         thread->rebind_special(var, value);
                         thread->set_symbol_value(var, value);
                       else
                         ext->rebind(var, value);
@@ -211,29 +209,29 @@ static Value _do(Value args, Environment * env, Thread * thread, bool sequential
       thread->set_last_control_frame(tagbody->last_control_frame());
       thread->release_frame(tagbody);
       // process result forms
-      Value result = progn(result_forms, ext, thread);
+      result = progn(result_forms, ext, thread);
       thread->set_stack(saved_stack);
       thread->set_call_depth(saved_call_depth);
-      thread->set_last_special_binding(last_special_binding);
-      thread->set_last_control_frame(block->last_control_frame());
-      return result;
     }
   else
     {
       // caught RETURN
-      thread->set_last_special_binding(last_special_binding);
-      return RT_block_non_local_return(thread, block);
+      result = RT_block_non_local_return(thread, block);
     }
+  thread->set_last_special_binding(last_special_binding);
+  thread->set_last_control_frame(block->last_control_frame());
+  thread->release_frame(block);
+  return result;
 }
 
 // ### do
 Value CL_do(Value args, Environment * env, Thread * thread)
 {
-  return _do(args, env, thread, false);
+  return do_internal(args, env, thread, false);
 }
 
 // ### do*
 Value CL_do_star(Value args, Environment * env, Thread * thread)
 {
-  return _do(args, env, thread, true);
+  return do_internal(args, env, thread, true);
 }

@@ -62,6 +62,7 @@ Value CL_dolist(Value args, Environment * env, Thread * thread)
     }
   // "An implicit block named NIL surrounds DOLIST."
   Block * block = thread->add_block(NIL);
+  Value result;
   if (SETJMP(*block->jmp()) == 0)
     {
       // evaluate the list form
@@ -142,17 +143,16 @@ Value CL_dolist(Value args, Environment * env, Thread * thread)
         binding->set_value(NIL);
       else
         thread->set_symbol_value(var, NIL);
-      Value result = eval(result_form, ext, thread);
-      thread->set_last_control_frame(block->last_control_frame());
-      if (last_special_binding)
-        thread->set_last_special_binding(last_special_binding);
-      return result;
+      result = eval(result_form, ext, thread);
     }
   else
     {
       // caught RETURN
-      if (last_special_binding)
-        thread->set_last_special_binding(last_special_binding);
-      return RT_block_non_local_return(thread, block);
+      result = RT_block_non_local_return(thread, block);
     }
+  thread->set_last_control_frame(block->last_control_frame());
+  thread->release_frame(block);
+  if (last_special_binding)
+    thread->set_last_special_binding(last_special_binding);
+  return result;
 }
