@@ -51,9 +51,6 @@
 
 (defun write-build ()
   (let* ((*default-pathname-defaults* *xcl-home*))
-    #+unix
-    (run-shell-command "date > build")
-    #-unix
     (multiple-value-bind (sec min hour date month year day daylight-p zone)
         (get-decoded-time)
       (setq day (case day
@@ -89,10 +86,10 @@
         (t
          (setq zone (format nil "~A~4,'0D"
                             (if (plusp zone) "-" "+")
-                            (* (if daylight-p
-                                   (1- zone)
-                                   zone)
-                               100)))))
+                            (abs (* (if daylight-p
+                                        (1- zone)
+                                        zone)
+                                    100))))))
       (with-open-file (stream "build" :direction :output :if-exists :supersede)
         (format stream "~A ~A ~D ~D:~2,'0D:~2,'0D ~A ~D~%"
                 day
