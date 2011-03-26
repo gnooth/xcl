@@ -182,7 +182,7 @@ bool SimpleString::equal(Value value) const
   // REVIEW optimize
   for (INDEX i = 0; i < _capacity; i++)
     {
-      if (_chars[i] != s->char_at(i))
+      if (_chars[i] != s->fast_char_at(i))
         return false;
     }
   return true;
@@ -206,7 +206,7 @@ bool SimpleString::equal(AbstractString * s) const
     {
       for (INDEX i = _capacity; i-- > 0;)
         {
-          if (_chars[i] != s->char_at(i))
+          if (_chars[i] != s->fast_char_at(i))
             return false;
         }
     }
