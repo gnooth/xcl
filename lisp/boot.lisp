@@ -197,6 +197,7 @@
 
 (load-system-file "lisp/stack") ; needs DEFSTRUCT
 
+(load-system-file "lisp/load-initialization-files")
 (load-system-file "lisp/process-command-line-arguments")
 
 (load-system-file "lisp/read-line")
@@ -230,9 +231,6 @@
 
 (format t "Startup completed in ~,2F seconds.~%" (sys:uptime))
 
-;; REVIEW
-(let ((initialization-file (merge-pathnames ".xclrc" (user-homedir-pathname))))
-  (when (probe-file initialization-file)
-    (load initialization-file)))
+(sys:load-initialization-files)
 
 (sys:process-command-line-arguments)

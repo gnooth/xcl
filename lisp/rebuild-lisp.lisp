@@ -263,6 +263,7 @@
                             "ldiff"
                             "list-length"
                             "load"
+                            "load-initialization-files"
                             "load-logical-pathname-translations"
                             "logical-pathname"
                             "logical-pathname-translations"

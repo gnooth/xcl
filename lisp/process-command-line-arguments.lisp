@@ -1,6 +1,6 @@
 ;;; process-command-line-arguments.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -21,11 +21,9 @@
 (export 'process-command-line-arguments)
 
 (defun process-command-line-arguments ()
-  (when (cdr sys:*argv*)
-    (let ((args (cdr sys:*argv*)))
+  (let ((args (cdr sys:*argv*)))
+    (when args
       (loop
-        (when (null args)
-          (return))
         (let ((arg (car args)))
           (setq args (cdr args))
           (cond ((equal arg "--load")
@@ -36,4 +34,6 @@
                  (setq arg (pop args))
                  (finish-output)
                  (let ((form (read-from-string arg)))
-                   (eval form)))))))))
+                   (eval form))))
+          (when (null args)
+            (return)))))))

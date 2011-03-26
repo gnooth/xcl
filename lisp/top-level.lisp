@@ -510,7 +510,7 @@
 
 (defun top-level-loop ()
   (unless *top-level-initialized-p*
-    (format t "Type \"~Ahelp\" for a list of available commands.~%" *command-char*)
+    (format t "~&Type \"~Ahelp\" for a list of available commands.~%" *command-char*)
     (setq *top-level-initialized-p* t))
   (loop
     (with-simple-restart (top-level "Return to top level.")
