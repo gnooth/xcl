@@ -1,6 +1,6 @@
 ;;; precompiler.lisp
 ;;;
-;;; Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+;;; Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License
@@ -818,7 +818,7 @@
                 (mapcar         mapcar2)
                 (member         memql)
                 (position       position-eql)
-;;                 (sbit           sbit1)
+                (string=        two-arg-string=)
                 (subsetp        subsetp-eql)
                 (typep          %typep)))
   (puthash3 (%car pair) +two-arg-operators+ (%cadr pair)))

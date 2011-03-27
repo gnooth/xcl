@@ -946,6 +946,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_two_arg_plus, SYS_two_arg_plus, 2, 2);
   ADD_PRIMITIVE(S_two_arg_slash, SYS_two_arg_slash, 2, 2);
   ADD_PRIMITIVE(S_two_arg_star, SYS_two_arg_star, 2, 2);
+  ADD_PRIMITIVE(S_two_arg_string_equals, SYS_two_arg_string_equals, 2, 2);
   ADD_PRIMITIVE(S_error_not_type, SYS_error_not_type, 2, 2);
   ADD_PRIMITIVE(S_untraced_function, SYS_untraced_function, 1, 1);
   ADD_PRIMITIVE(S_uptime, SYS_uptime, 0, 0);

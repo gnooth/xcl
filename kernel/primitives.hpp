@@ -884,6 +884,7 @@ extern Value SYS_two_arg_minus(Value v1, Value v2);
 extern Value SYS_two_arg_plus(Value v1, Value v2);
 extern Value SYS_two_arg_slash(Value v1, Value v2);
 extern Value SYS_two_arg_star(Value v1, Value v2);
+extern Value SYS_two_arg_string_equals(Value arg1, Value arg2);
 extern Value SYS_untraced_function(Value name);
 extern Value SYS_upgraded_array_element_type_internal(Value arg);
 extern Value SYS_uptime();

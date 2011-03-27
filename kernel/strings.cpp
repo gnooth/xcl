@@ -1,6 +1,6 @@
 // strings.cpp
 //
-// Copyright (C) 2006-2009 Peter Graves <peter@armedbear.org>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -191,4 +191,20 @@ Value SYS_string_compare(Value first, Value second, Value third,Value fourth,
     }
 
   return current_thread()->set_values(make_fixnum(result), make_fixnum(mismatch_index));
+}
+
+// ### two-arg-string=
+Value SYS_two_arg_string_equals(Value arg1, Value arg2)
+{
+  AbstractString * s1 = string(arg1);
+  AbstractString * s2 = string(arg2);
+  const INDEX len = s1->length();
+  if (s2->length() != len)
+    return NIL;
+  for (INDEX i = len; i-- > 0;)
+    {
+      if (s1->fast_char_at(i) != s2->fast_char_at(i))
+        return NIL;
+    }
+  return T;
 }
