@@ -45,6 +45,24 @@ public:
   }
 #endif
 
+  void init(Thread * thread, Value cleanup_forms, Environment * env)
+  {
+    Frame::init(thread);
+    _cleanup_forms = cleanup_forms;
+    _env = env;
+  }
+
+  void init(Thread * thread, void * code, long bp)
+  {
+    Frame::init(thread);
+    _code = code;
+#ifdef __x86_64__
+    _rbp = bp;
+#else
+    _ebp = bp;
+#endif
+  }
+
   void * code()
   {
     return _code;

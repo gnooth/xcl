@@ -829,4 +829,7 @@ inline unsigned long * __attribute__ ((always_inline)) current_sp()
   return sp;
 }
 
+// debug.cpp
+extern unsigned long debug_level;
+
 #endif // lisp.hpp

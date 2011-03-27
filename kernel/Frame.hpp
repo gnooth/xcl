@@ -266,6 +266,7 @@ private:
   unsigned long _number_released;
   unsigned long _number_released_block;
   unsigned long _number_released_tagbody;
+  unsigned long _number_released_unwind_protect;
   unsigned long _number_ignored;
   unsigned long _number_reused;
   unsigned long _number_new;
@@ -279,6 +280,7 @@ public:
     _number_released = 0;
     _number_released_block = 0;
     _number_released_tagbody = 0;
+    _number_released_unwind_protect = 0;
     _number_ignored = 0;
     _number_reused = 0;
     _number_new = 0;
@@ -287,8 +289,9 @@ public:
   void print_statistics()
   {
     printf("Pool statistics:\n");
-    printf("  released  = %lu (block = %lu, tagbody = %lu)\n",
-           _number_released, _number_released_block, _number_released_tagbody);
+    printf("  released  = %lu (block = %lu, tagbody = %lu, unwind_protect = %lu)\n",
+           _number_released, _number_released_block, _number_released_tagbody,
+           _number_released_unwind_protect);
     printf("  ignored   = %lu\n", _number_ignored);
     printf("  reused    = %lu\n", _number_reused);
     printf("  new       = %lu\n", _number_new);
@@ -328,10 +331,13 @@ public:
     if (_index < FRAME_POOL_SIZE - 1)
       {
         _number_released++;
-        if (frame->type() == TAGBODY)
+        FrameType type = frame->type();
+        if (type == TAGBODY)
           _number_released_tagbody++;
-        else if (frame->type() == BLOCK)
+        else if (type == BLOCK)
           _number_released_block++;
+        else if (type == UNWIND_PROTECT)
+          _number_released_unwind_protect++;
         frame->clear();
         _pool[_index++] = frame;
         if (_index > _max_index)

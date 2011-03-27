@@ -29,6 +29,7 @@
 #include "lisp.hpp"
 #include "primitives.hpp"
 #include "Frame.hpp"
+#include "UnwindProtect.hpp"
 #include "Mutex.hpp"
 #include "Ratio.hpp"
 #include "StackFrame.hpp"
@@ -245,9 +246,10 @@ Tagbody * Thread::get_tagbody()
 void Thread::print_statistics()
 {
   _frame_pool->print_statistics();
-  printf("add_block_calls   = %lu\n", _number_add_block_calls);
-  printf("get_tagbody_calls = %lu\n", _number_get_tagbody_calls);
-  printf("new_tagbody_calls = %lu\n", _number_new_tagbody_calls);
+  printf("add_block_calls          = %lu\n", _number_add_block_calls);
+  printf("get_tagbody_calls        = %lu\n", _number_get_tagbody_calls);
+  printf("new_tagbody_calls        = %lu\n", _number_new_tagbody_calls);
+  printf("add_unwind_protect_calls = %lu\n", _number_add_unwind_protect_calls);
   fflush(stdout);
 }
 
@@ -273,6 +275,28 @@ Block * Thread::add_block(Value name)
   block->set_next(_last_control_frame);
   _last_control_frame = block;
   return block;
+}
+
+UnwindProtect * Thread::add_unwind_protect(Value cleanup_forms, Environment * env)
+{
+  _number_add_unwind_protect_calls++;
+  UnwindProtect * uwp = (UnwindProtect *) get_frame();
+  uwp->set_type(UNWIND_PROTECT);
+  uwp->init(this, cleanup_forms, env);
+  uwp->set_next(_last_control_frame);
+  _last_control_frame = uwp;
+  return uwp;
+}
+
+UnwindProtect * Thread::add_unwind_protect(void * code, long bp)
+{
+  _number_add_unwind_protect_calls++;
+  UnwindProtect * uwp = (UnwindProtect *) get_frame();
+  uwp->set_type(UNWIND_PROTECT);
+  uwp->init(this, code, bp);
+  uwp->set_next(_last_control_frame);
+  _last_control_frame = uwp;
+  return uwp;
 }
 
 Block * Thread::find_block(Value name)

@@ -557,6 +557,7 @@ void initialize_lisp()
   ADD_PRIMITIVE(S_current_sp, SYS_current_sp, 0, 0);
   ADD_PRIMITIVE(S_current_stack_as_list, SYS_current_stack_as_list, 0, 0);
   ADD_PRIMITIVE(S_current_thread, EXT_current_thread, 0, 0);
+  ADD_PRIMITIVE(S_debug_level, SYS_debug_level, 0, 1);
   ADD_PRIMITIVE(S_default_time_zone, SYS_default_time_zone, 0, 0);
   ADD_PRIMITIVE(S_defconstant_internal, SYS_defconstant_internal, 2, 2);
   ADD_PRIMITIVE(S_defpackage_internal, SYS_defpackage_internal, 10, 10);

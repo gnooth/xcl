@@ -186,7 +186,7 @@ void initialize_symbols()
 
   the_symbol(S_debugger_hook)->initialize_special(NIL);
   the_symbol(S_debug_condition)->initialize_special(NIL);
-  the_symbol(S_debug_level)->initialize_special(FIXNUM_ZERO);
+  the_symbol(S__debug_level_)->initialize_special(FIXNUM_ZERO);
   the_symbol(S_saved_backtrace)->initialize_special(NIL);
   the_symbol(S_saved_stack)->initialize_special(NIL);
   the_symbol(S_saved_bp)->initialize_special(NIL);

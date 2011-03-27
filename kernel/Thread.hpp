@@ -113,6 +113,7 @@ private:
   unsigned long _number_add_block_calls;
   unsigned long _number_get_tagbody_calls;
   unsigned long _number_new_tagbody_calls;
+  unsigned long _number_add_unwind_protect_calls;
 
 public:
   Thread(Function * function, Value name);
@@ -178,6 +179,10 @@ public:
   Tagbody * get_tagbody();
 
   Block * add_block(Value name);
+
+  UnwindProtect * add_unwind_protect(Value cleanup_forms, class Environment * env);
+
+  UnwindProtect * add_unwind_protect(void * code, long bp);
 
   Block * find_block(Value name);
 

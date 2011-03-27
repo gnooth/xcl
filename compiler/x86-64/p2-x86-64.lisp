@@ -496,6 +496,7 @@
            (emit-jmp-short t (block-exit block)))
           (t
            ;; non-local return
+           (mumble "p2-return-from non-local return~%")
            (let ((thread-register (compiland-thread-register compiland)))
              (aver thread-register)
              (inst :push :rax) ; result
@@ -1753,7 +1754,7 @@
     (emit-clear-values)
     (p2 protected-form :rsi)
     (inst :mov thread-register :rdi)
-    (emit-call-2 "RT_thread_copy_values" :rax) ; REVIEW stack alignment
+    (emit-call-2 "RT_thread_copy_values" :rax)
     (emit-move-register-to-var :rax uwp-values-var)
     (emit-call CLEANUP)
     (emit-move-var-to-register uwp-values-var :rsi)

@@ -513,6 +513,7 @@ extern Value SYS_create_new_file(Value namestring);
 extern Value SYS_current_bp();
 extern Value SYS_current_sp();
 extern Value SYS_current_stack_as_list();
+extern Value SYS_debug_level(unsigned int numargs, Value args[]);
 extern Value SYS_default_time_zone();
 extern Value SYS_defconstant_internal(Value name, Value initial_value);
 extern Value SYS_defpackage_internal(unsigned int numargs, Value args[]);

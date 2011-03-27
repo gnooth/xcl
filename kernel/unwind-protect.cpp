@@ -36,13 +36,14 @@ Value CL_unwind_protect(Value args, Environment * env, Thread * thread)
 #endif
 
   // establish a new context
-  UnwindProtect * new_uwp = new UnwindProtect(cleanup_forms,
-                                              env,
-                                              thread->last_control_frame());
-  thread->add_frame(new_uwp);
+//   UnwindProtect * new_uwp = new UnwindProtect(cleanup_forms,
+//                                               env,
+//                                               thread->last_control_frame());
+//   thread->add_frame(new_uwp);
+  UnwindProtect * new_uwp = thread->add_unwind_protect(cleanup_forms, env);
 
   // evaluate protected form
-  const Value result = eval(protected_form, env, thread);
+  Value result = eval(protected_form, env, thread);
 
   // save values
   Values * values = RT_thread_copy_values(thread, result);
@@ -51,7 +52,8 @@ Value CL_unwind_protect(Value args, Environment * env, Thread * thread)
   // action is taken. The cleanup-forms of UNWIND-PROTECT are not protected by
   // that UNWIND-PROTECT."
   RT_leave_unwind_protect(thread, new_uwp);
-  assert(thread->last_control_frame() == old_control_frame);
+//   assert(thread->last_control_frame() == old_control_frame);
+//   thread->release_frame(new_uwp);
 
   // run cleanup forms
   while (cleanup_forms != NIL)
@@ -79,16 +81,22 @@ Value RT_thread_set_values(Thread * thread, Values * values)
   return thread->set_values(values);
 }
 
-UnwindProtect * RT_enter_unwind_protect(Thread * thread, void * code, long rbp)
+UnwindProtect * RT_enter_unwind_protect(Thread * thread, void * code, long bp)
 {
-  UnwindProtect * uwp = new UnwindProtect(code,
-                                          rbp,
-                                          thread->last_control_frame());
-  thread->add_frame(uwp);
+//   UnwindProtect * uwp = new UnwindProtect(code,
+//                                           rbp,
+//                                           thread->last_control_frame());
+//   thread->add_frame(uwp);
+  UnwindProtect * uwp = thread->add_unwind_protect(code, bp);
+  if (debug_level)
+    printf("RT_enter_unwind_protect uwp = 0x%lx\n", (unsigned long) uwp);
   return uwp;
 }
 
 void RT_leave_unwind_protect(Thread * thread, UnwindProtect * uwp)
 {
   thread->set_last_control_frame(uwp->last_control_frame());
+  thread->release_frame(uwp);
+  if (debug_level)
+    printf("RT_leave_unwind_protect uwp = 0x%lx\n", (unsigned long) uwp);
 }
