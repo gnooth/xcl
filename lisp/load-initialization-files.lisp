@@ -22,15 +22,15 @@
 
 (defun load-initialization-files ()
   (let ((args (cdr sys:*argv*))
-        (no-sysinit nil)
+        (no-siteinit nil)
         (no-userinit nil))
     (when args
       (dolist (arg args)
-        (cond ((equal arg "--no-sysinit")
-               (setq no-sysinit t))
+        (cond ((equal arg "--no-siteinit")
+               (setq no-siteinit t))
               ((equal arg "--no-userinit")
                (setq no-userinit t)))))
-    (unless no-sysinit
+    (unless no-siteinit
       (let ((sysinit (or (probe-file (merge-pathnames "xclrc" *xcl-home*))
                          #-win32
                          (probe-file "/etc/xclrc"))))
