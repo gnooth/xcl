@@ -118,10 +118,13 @@ static void process_command_line_arguments(int argc, char * argv[])
         {
           printf("Usage: xcl [options]\n");
           printf("Options:\n");
-          printf("  --help                  Print this message and exit.\n");
-          printf("  --version               Print version information and exit.\n");
-          printf("  --load <filename>       Load the specified file.\n");
-          printf("  --eval <expression>     Evaluate the specified expression.\n");
+          printf("  --help                  Display this message and exit\n");
+          printf("  --version               Display version information and exit\n");
+          printf("  --no-siteinit           Do not load site initialization file ($XCL_HOME/xclrc\n");
+          printf("                            or /etc/xclrc)\n");
+          printf("  --no-userinit           Do not load user initialization file (~/.xclrc)\n");
+          printf("  --load <filename>       Load <filename>\n");
+          printf("  --eval <expression>     Evaluate <expression>\n");
           exit(0);
         }
       list = make_cons(make_simple_string(argv[i]), list);
