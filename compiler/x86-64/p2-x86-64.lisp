@@ -496,7 +496,6 @@
            (emit-jmp-short t (block-exit block)))
           (t
            ;; non-local return
-           (mumble "p2-return-from non-local return~%")
            (let ((thread-register (compiland-thread-register compiland)))
              (aver thread-register)
              (inst :push :rax) ; result

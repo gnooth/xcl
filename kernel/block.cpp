@@ -95,16 +95,11 @@ Value CL_return(Value args, Environment * env, Thread * thread)
 
 Block * RT_enter_block(Thread * thread, Value block_name)
 {
-  Block * block = thread->add_block(block_name);
-  if (debug_level)
-    printf("RT_enter_block block = 0x%lx\n", (unsigned long) block);
-  return block;
+  return thread->add_block(block_name);
 }
 
 void RT_leave_block(Thread * thread, Block * block)
 {
-  if (debug_level)
-    printf("RT_leave_block block = 0x%lx\n", (unsigned long) block);
   leave_block(thread, block);
 }
 
@@ -119,9 +114,6 @@ Value RT_block_non_local_return(Thread * thread, Block * block)
 //   assert(thread->last_control_frame() != block);
 //   printf("RT_block_non_local_return() calling release_frame()\n");
 //   thread->release_frame(block);
-
-  if (debug_level)
-    printf("RT_block_non_local_return block = 0x%lx\n", (unsigned long) block);
 
   int values_length = thread->values_length();
   assert(values_length >= -1);
@@ -148,10 +140,6 @@ void RT_return_from(Thread * thread, Value block_name, Value result)
       s->append(" is currently visible.");
       signal_lisp_error(new Error(s));
     }
-
-  if (debug_level)
-    printf("RT_return_from block = 0x%lx\n", (unsigned long) block);
-
   if (thread->values_length() < 0)
     // single return value
     thread->set_values(result);
