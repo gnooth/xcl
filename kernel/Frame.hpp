@@ -212,26 +212,12 @@ public:
 
 class Tagbody : public Frame
 {
-// private:
-//   Tag * _tags;
-
 public:
   Tagbody(Thread * thread)
     : Frame(TAGBODY, thread->last_control_frame(), thread)
   {
-//     printf("Tagbody constructor called\n");
     thread->set_last_control_frame(this);
   }
-
-//   Tag * tags() const
-//   {
-//     return _tags;
-//   }
-
-//   void set_tags(Tag * tag)
-//   {
-//     _tags = tag;
-//   }
 };
 
 class Block : public Frame
@@ -240,7 +226,6 @@ public:
   Block()
     : Frame(BLOCK)
   {
-//     printf("Block constructor called\n");
   }
 
   Value name() const
@@ -267,6 +252,7 @@ private:
   unsigned long _number_released_block;
   unsigned long _number_released_tagbody;
   unsigned long _number_released_unwind_protect;
+  unsigned long _number_released_catch;
   unsigned long _number_ignored;
   unsigned long _number_reused;
   unsigned long _number_new;
@@ -289,9 +275,9 @@ public:
   void print_statistics()
   {
     printf("Pool statistics:\n");
-    printf("  released  = %lu (block = %lu, tagbody = %lu, unwind_protect = %lu)\n",
+    printf("  released  = %lu (block = %lu, tagbody = %lu, unwind_protect = %lu, catch = %lu)\n",
            _number_released, _number_released_block, _number_released_tagbody,
-           _number_released_unwind_protect);
+           _number_released_unwind_protect, _number_released_catch);
     printf("  ignored   = %lu\n", _number_ignored);
     printf("  reused    = %lu\n", _number_reused);
     printf("  new       = %lu\n", _number_new);
@@ -301,19 +287,10 @@ public:
 
   Frame * get_frame()
   {
-//     if (_index && !(_index % 10))
-//       printf("get_frame _index = %d\n", _index);
-//     if (_index == 0)
-//       printf("get_frame pool is empty\n");
-
     if (_index > 0)
       _number_reused++;
     else
       _number_new++;
-
-//     if (!((_number_reused + _number_new) % 200))
-//       print_statistics();
-
     return _index > 0 ? _pool[--_index] : NULL;
   }
 
@@ -338,6 +315,8 @@ public:
           _number_released_block++;
         else if (type == UNWIND_PROTECT)
           _number_released_unwind_protect++;
+        else if (type == CATCH)
+          _number_released_catch++;
         frame->clear();
         _pool[_index++] = frame;
         if (_index > _max_index)
@@ -352,18 +331,21 @@ public:
 
 class Catch : public Frame
 {
-private:
-  Value _tag;
-
 public:
   Catch(Value tag, Frame * next, Thread * thread)
-    : Frame(CATCH, next, thread), _tag(tag)
+    : Frame(CATCH, next, thread)
   {
+    _catch_tag = tag;
   }
 
   Value tag() const
   {
-    return _tag;
+    return _catch_tag;
+  }
+
+  void set_tag(Value tag)
+  {
+    _catch_tag = tag;
   }
 };
 

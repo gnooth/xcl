@@ -250,6 +250,7 @@ void Thread::print_statistics()
   printf("get_tagbody_calls        = %lu\n", _number_get_tagbody_calls);
   printf("new_tagbody_calls        = %lu\n", _number_new_tagbody_calls);
   printf("add_unwind_protect_calls = %lu\n", _number_add_unwind_protect_calls);
+  printf("add_catch_frame_calls    = %lu\n", _number_add_catch_frame_calls);
   fflush(stdout);
 }
 
@@ -409,9 +410,42 @@ Tag * Thread::find_tag(Tagbody * tagbody, int index)
 
 Catch * Thread::add_catch_frame(Value tag)
 {
-  _last_control_frame = new Catch(tag, _last_control_frame, this);
-  return (Catch *) _last_control_frame;
+  _number_add_catch_frame_calls++;
+//   Frame * frame = _frame_pool->get_frame();
+//   if (frame)
+//     {
+//       frame->set_type(TAGBODY);
+//       frame->init(this);
+//       if (frame == _last_control_frame)
+//         {
+//           printf("Thread::get_tagbody() frame == _last_control_frame\n");
+//           extern Value SYS_int3();
+//         }
+//       frame->set_next(_last_control_frame);
+//       _last_control_frame = frame;
+//       return (Tagbody *) frame;
+//     }
+//   _number_new_tagbody_calls++;
+//   return new Tagbody(this);
+  Catch * catch_frame = (Catch *) get_frame();
+  catch_frame->set_type(CATCH);
+  catch_frame->init(this);
+  catch_frame->set_tag(tag);
+  if (catch_frame == _last_control_frame)
+    {
+      printf("Thread::add_catch_frame() catch_frame == _last_control_frame\n");
+      extern Value SYS_int3();
+    }
+  catch_frame->set_next(_last_control_frame);
+  _last_control_frame = catch_frame;
+  return catch_frame;
 }
+
+// Catch * Thread::add_catch_frame(Value tag)
+// {
+//   _last_control_frame = new Catch(tag, _last_control_frame, this);
+//   return (Catch *) _last_control_frame;
+// }
 
 Frame * Thread::find_catch_frame(Value tag)
 {

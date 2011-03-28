@@ -114,6 +114,7 @@ private:
   unsigned long _number_get_tagbody_calls;
   unsigned long _number_new_tagbody_calls;
   unsigned long _number_add_unwind_protect_calls;
+  unsigned long _number_add_catch_frame_calls;
 
 public:
   Thread(Function * function, Value name);

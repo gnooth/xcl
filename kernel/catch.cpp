@@ -1,6 +1,6 @@
 // catch.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -22,6 +22,17 @@
 #include "ControlError.hpp"
 #include "Environment.hpp"
 
+Catch * RT_enter_catch(Thread * thread, Value tag)
+{
+  return thread->add_catch_frame(tag);
+}
+
+void RT_leave_catch(Thread * thread, Catch * catch_frame)
+{
+  thread->set_last_control_frame(catch_frame->last_control_frame());
+  thread->release_frame(catch_frame);
+}
+
 // ### catch
 Value CL_catch(Value args, Environment * env, Thread * thread)
 {
@@ -33,7 +44,8 @@ Value CL_catch(Value args, Environment * env, Thread * thread)
   StackFrame * saved_stack = thread->stack();
   unsigned int saved_call_depth = thread->call_depth();
 #endif
-  Catch * catch_frame = thread->add_catch_frame(tag); // RT_enter_catch
+//   Catch * catch_frame = thread->add_catch_frame(tag); // RT_enter_catch
+  Catch * catch_frame = RT_enter_catch(thread, tag);
   assert(catch_frame->type() == CATCH);
   if (SETJMP(*catch_frame->jmp()) == 0)
     {
@@ -47,7 +59,8 @@ Value CL_catch(Value args, Environment * env, Thread * thread)
         }
       assert(thread->stack() == saved_stack);
       assert(thread->call_depth() == saved_call_depth);
-      thread->set_last_control_frame(catch_frame->last_control_frame()); // RT_leave_catch
+//       thread->set_last_control_frame(catch_frame->last_control_frame()); // RT_leave_catch
+      RT_leave_catch(thread, catch_frame);
       return result;
     }
   else
@@ -69,20 +82,6 @@ Value CL_catch(Value args, Environment * env, Thread * thread)
     }
 }
 
-Catch * RT_enter_catch(Thread * thread, Value tag)
-{
-//   printf("RT_enter_catch called\n");
-//   fflush(stdout);
-  return thread->add_catch_frame(tag);
-}
-
-void RT_leave_catch(Thread * thread, Catch * catch_frame)
-{
-//   printf("RT_leave_catch called\n");
-//   fflush(stdout);
-  thread->set_last_control_frame(catch_frame->last_control_frame());
-}
-
 // ### throw
 Value CL_throw(Value args, Environment * env, Thread * thread)
 {
@@ -101,6 +100,7 @@ Value RT_caught_throw(Thread * thread, Catch * catch_frame)
   thread->set_call_depth(catch_frame->call_depth());
   thread->set_last_control_frame(catch_frame->last_control_frame());
   thread->set_last_tag(catch_frame->last_tag());
+  thread->release_frame(catch_frame);
   int values_length = thread->values_length();
   assert(values_length >= -1);
   assert(values_length < MULTIPLE_VALUES_LIMIT);
