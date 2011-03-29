@@ -66,7 +66,7 @@ void RT_unwind_to(Frame * frame, Thread * thread)
           else
             uwp->run_cleanup_forms(thread);
         }
-      else if (type == BLOCK || type == TAGBODY || type == CATCH)
+      else
         thread->release_frame(f);
       f = next;
     }

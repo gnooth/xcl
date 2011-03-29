@@ -44,7 +44,6 @@ Value CL_catch(Value args, Environment * env, Thread * thread)
   StackFrame * saved_stack = thread->stack();
   unsigned int saved_call_depth = thread->call_depth();
 #endif
-//   Catch * catch_frame = thread->add_catch_frame(tag); // RT_enter_catch
   Catch * catch_frame = RT_enter_catch(thread, tag);
   assert(catch_frame->type() == CATCH);
   if (SETJMP(*catch_frame->jmp()) == 0)
@@ -59,25 +58,12 @@ Value CL_catch(Value args, Environment * env, Thread * thread)
         }
       assert(thread->stack() == saved_stack);
       assert(thread->call_depth() == saved_call_depth);
-//       thread->set_last_control_frame(catch_frame->last_control_frame()); // RT_leave_catch
       RT_leave_catch(thread, catch_frame);
       return result;
     }
   else
     {
       // caught THROW
-//       thread->set_stack(saved_stack);
-//       thread->set_call_depth(saved_call_depth);
-//       thread->set_last_control_frame(catch_frame->last_control_frame()); // added
-//       thread->set_last_tag(catch_frame->last_tag());
-//       int values_length = thread->values_length();
-//       assert(values_length >= 0);
-//       if (values_length == 0)
-//         return NIL;
-//       Value result = thread->nth_value(0);
-//       if (values_length == 1)
-//         thread->clear_values();
-//       return result;
       return RT_caught_throw(thread, catch_frame);
     }
 }

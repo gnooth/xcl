@@ -245,6 +245,7 @@ Tagbody * Thread::get_tagbody()
 
 void Thread::print_statistics()
 {
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
   _frame_pool->print_statistics();
   printf("add_block_calls          = %lu\n", _number_add_block_calls);
   printf("get_tagbody_calls        = %lu\n", _number_get_tagbody_calls);
@@ -252,27 +253,30 @@ void Thread::print_statistics()
   printf("add_unwind_protect_calls = %lu\n", _number_add_unwind_protect_calls);
   printf("add_catch_frame_calls    = %lu\n", _number_add_catch_frame_calls);
   fflush(stdout);
+#endif
 }
 
 // ### thread-statistics
 Value SYS_thread_statistics()
 {
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
   current_thread()->print_statistics();
+#else
+  printf("unsupported\n");
+  fflush(stdout);
+#endif
   return current_thread()->set_values();
 }
 
 Block * Thread::add_block(Value name)
 {
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
   _number_add_block_calls++;
+#endif
   Block * block = (Block *) get_frame();
   block->set_type(BLOCK);
   block->init(this);
   block->set_name(name);
-  if (block == _last_control_frame)
-    {
-      printf("Thread::add_block() block == _last_control_frame\n");
-      extern Value SYS_int3();
-    }
   block->set_next(_last_control_frame);
   _last_control_frame = block;
   return block;
@@ -280,7 +284,9 @@ Block * Thread::add_block(Value name)
 
 UnwindProtect * Thread::add_unwind_protect(Value cleanup_forms, Environment * env)
 {
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
   _number_add_unwind_protect_calls++;
+#endif
   UnwindProtect * uwp = (UnwindProtect *) get_frame();
   uwp->set_type(UNWIND_PROTECT);
   uwp->init(this, cleanup_forms, env);
@@ -291,7 +297,9 @@ UnwindProtect * Thread::add_unwind_protect(Value cleanup_forms, Environment * en
 
 UnwindProtect * Thread::add_unwind_protect(void * code, long bp)
 {
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
   _number_add_unwind_protect_calls++;
+#endif
   UnwindProtect * uwp = (UnwindProtect *) get_frame();
   uwp->set_type(UNWIND_PROTECT);
   uwp->init(this, code, bp);
@@ -410,42 +418,17 @@ Tag * Thread::find_tag(Tagbody * tagbody, int index)
 
 Catch * Thread::add_catch_frame(Value tag)
 {
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
   _number_add_catch_frame_calls++;
-//   Frame * frame = _frame_pool->get_frame();
-//   if (frame)
-//     {
-//       frame->set_type(TAGBODY);
-//       frame->init(this);
-//       if (frame == _last_control_frame)
-//         {
-//           printf("Thread::get_tagbody() frame == _last_control_frame\n");
-//           extern Value SYS_int3();
-//         }
-//       frame->set_next(_last_control_frame);
-//       _last_control_frame = frame;
-//       return (Tagbody *) frame;
-//     }
-//   _number_new_tagbody_calls++;
-//   return new Tagbody(this);
+#endif
   Catch * catch_frame = (Catch *) get_frame();
   catch_frame->set_type(CATCH);
   catch_frame->init(this);
   catch_frame->set_tag(tag);
-  if (catch_frame == _last_control_frame)
-    {
-      printf("Thread::add_catch_frame() catch_frame == _last_control_frame\n");
-      extern Value SYS_int3();
-    }
   catch_frame->set_next(_last_control_frame);
   _last_control_frame = catch_frame;
   return catch_frame;
 }
-
-// Catch * Thread::add_catch_frame(Value tag)
-// {
-//   _last_control_frame = new Catch(tag, _last_control_frame, this);
-//   return (Catch *) _last_control_frame;
-// }
 
 Frame * Thread::find_catch_frame(Value tag)
 {

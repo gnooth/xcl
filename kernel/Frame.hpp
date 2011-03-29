@@ -19,6 +19,8 @@
 #ifndef __FRAME_HPP
 #define __FRAME_HPP
 
+// #define ENABLE_CONTROL_FRAME_STATISTICS
+
 class UnwindProtect;
 
 enum FrameType
@@ -274,6 +276,7 @@ public:
 
   void print_statistics()
   {
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
     printf("Pool statistics:\n");
     printf("  released  = %lu (block = %lu, tagbody = %lu, unwind_protect = %lu, catch = %lu)\n",
            _number_released, _number_released_block, _number_released_tagbody,
@@ -283,30 +286,25 @@ public:
     printf("  new       = %lu\n", _number_new);
     printf("  index     = %u\n", _index);
     printf("  max_index = %u\n", _max_index);
+#endif
   }
 
   Frame * get_frame()
   {
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
     if (_index > 0)
       _number_reused++;
     else
       _number_new++;
+#endif
     return _index > 0 ? _pool[--_index] : NULL;
   }
 
   void release_frame(Frame * frame)
   {
-//     for (unsigned int i = 0; i < _index; i++)
-//       {
-//         if (_pool[i] == frame)
-//           {
-//             printf("frame already in pool\n");
-//             extern Value SYS_int3();
-//             SYS_int3();
-//           }
-//       }
     if (_index < FRAME_POOL_SIZE - 1)
       {
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
         _number_released++;
         FrameType type = frame->type();
         if (type == TAGBODY)
@@ -317,15 +315,16 @@ public:
           _number_released_unwind_protect++;
         else if (type == CATCH)
           _number_released_catch++;
+#endif
         frame->clear();
         _pool[_index++] = frame;
         if (_index > _max_index)
           _max_index = _index;
       }
+#ifdef ENABLE_CONTROL_FRAME_STATISTICS
     else
       _number_ignored++;
-//     if (_index && !(_index % 10))
-//       printf("release_frame _index = %d\n", _index);
+#endif
   }
 };
 
