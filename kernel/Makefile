@@ -177,7 +177,9 @@ static: xcl_home.h $(OBJS) $(LIBS)
 # 	objdump -t -C x | grep " g     F .text" > x.objdump
 
 xcl_home.h:
-ifeq ($(PLATFORM), mingw)
+ifneq ($(XCL_HOME),)
+	echo "#define XCL_HOME \"$(XCL_HOME)\"" > xcl_home.h
+else ifeq ($(PLATFORM), mingw)
 	cd .. && echo "#define XCL_HOME \"`pwd -W`\"" > kernel/xcl_home.h
 else
 	cd .. && echo "#define XCL_HOME \"`pwd`\"" > kernel/xcl_home.h
@@ -185,4 +187,4 @@ endif
 
 .PHONY: clean
 clean:
-	-rm -f ../xcl ../xcl.exe x libxcl.so x.exe xcl.dll $(OBJS)
+	-rm -f ../xcl ../xcl.exe x libxcl.so x.exe xcl.dll xcl_home.h $(OBJS)
