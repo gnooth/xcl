@@ -47,7 +47,9 @@ endif
 
 
 ./kernel/xcl_home.h:
-ifeq ($(PLATFORM), mingw)
+ifneq ($(XCL_HOME),)
+	echo "#define XCL_HOME \"$(XCL_HOME)\"" > ./kernel/xcl_home.h
+else ifeq ($(PLATFORM), mingw)
 	echo "#define XCL_HOME \"`pwd -W`\"" > ./kernel/xcl_home.h
 else
 	echo "#define XCL_HOME \"`pwd`\"" > ./kernel/xcl_home.h
