@@ -18,9 +18,11 @@
 
 #if defined(WIN32)
 #include <malloc.h>
-#elif defined(__NetBSD__) || defined(__FreeBSD__)
+#endif
+
 #include <stdlib.h>
-#else
+
+#if !(defined(__NetBSD__) || defined(__FreeBSD__))
 #include <alloca.h>
 #endif
 
@@ -139,7 +141,7 @@ void Thread::unbind_to(INDEX n)
       printf("unbind_to n = %lu _binding_stack_capacity = %lu\n", n, _binding_stack_capacity);
       fflush(stdout);
       assert(n < _binding_stack_capacity);
-      EXT_quit();
+      exit(EXIT_FAILURE);
     }
   INDEX index = _binding_stack_index;
   while (index > n)

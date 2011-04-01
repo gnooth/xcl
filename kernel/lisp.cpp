@@ -189,18 +189,28 @@ Value SYS_xinspected_parts(Value arg)
     return current_thread()->set_values(NIL, NIL, NIL);
 }
 
-// ### quit
-Value EXT_quit()
+void quit(unsigned int numargs, Value args[])
 {
-  exit(0);
+  long status;
+  if (numargs == 2 && args[0] == K_status && fixnump(args[1]))
+    status = xlong(args[1]);
+  else
+    status = EXIT_SUCCESS;
+  exit(status);
+}
+
+// ### quit &key status
+Value EXT_quit(unsigned int numargs, Value args[])
+{
+  quit(numargs, args);
   // not reached
   return NIL;
 }
 
-// ### exit
-Value EXT_exit()
+// ### exit &key status
+Value EXT_exit(unsigned int numargs, Value args[])
 {
-  exit(0);
+  quit(numargs, args);
   // not reached
   return NIL;
 }
