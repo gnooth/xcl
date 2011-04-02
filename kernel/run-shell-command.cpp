@@ -90,5 +90,5 @@ Value SYS_run_shell_command_internal(Value arg)
 {
   AbstractString * command = check_string(arg);
   int ret = system(command->copy_to_c_string());
-  return make_integer(ret);
+  return make_integer(ret == -1 ? ret : WEXITSTATUS(ret));
 }
