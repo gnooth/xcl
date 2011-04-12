@@ -1,6 +1,6 @@
 // Pathname.cpp
 //
-// Copyright (C) 2006-2010 Peter Graves <gnooth@gmail.com>
+// Copyright (C) 2006-2011 Peter Graves <gnooth@gmail.com>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -513,9 +513,10 @@ Value CL_make_pathname(unsigned int numargs, Value args[])
 
   Pathname * defaults = NULL;
 
-  bool device_supplied_p = false;
-  bool name_supplied_p   = false;
-  bool type_supplied_p   = false;
+  bool device_supplied_p    = false;
+  bool directory_supplied_p = false;
+  bool name_supplied_p      = false;
+  bool type_supplied_p      = false;
 
   for (unsigned int i = 0; i < numargs; i += 2)
     {
@@ -538,6 +539,7 @@ Value CL_make_pathname(unsigned int numargs, Value args[])
           else
             directory = value;
           validate_directory(directory);
+          directory_supplied_p = true;
         }
       else if (key == K_name)
         {
@@ -561,7 +563,8 @@ Value CL_make_pathname(unsigned int numargs, Value args[])
     {
       if (host == NIL)
         host = defaults->host();
-      directory = merge_directories(directory, defaults->directory());
+      if (!directory_supplied_p)
+        directory = merge_directories(directory, defaults->directory());
       if (!device_supplied_p)
         device = defaults->device();
       if (!name_supplied_p)
