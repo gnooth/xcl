@@ -842,13 +842,13 @@
              #C(536870912/4473924275 -2147483648/13421772825)))
 (aver (eql (/ 1.3 #c(3 4)) #c(0.15599999 -0.20799999)))
 
-#-xcl
 (aver (eql (/ 1.3d0 #c(3 4))
              #+abcl    #c(0.15600000000000003d0 -0.20800000000000002d0)
              #+allegro #c(0.15600000000000003d0 -0.20800000000000002d0)
              #+clisp   #c(0.156d0               -0.20800000000000002d0)
+             #+ccl     #c(0.15600000000000003d0 -0.20800000000000002d0)
              #+sbcl    #c(0.15600000000000003d0 -0.20800000000000002d0)
-             #+xcl     #c(0.156d0               -0.208d0)
+             #+xcl     #C(0.15600000000000003d0 -0.20800000000000002d0)
              ))
 
 (aver (equal
@@ -857,6 +857,8 @@
          #+abcl
          '(1405123083739595/9007199254740992 -3746994889972253/18014398509481984)
          #+allegro
+         '(1405123083739595/9007199254740992 -3746994889972253/18014398509481984)
+         #+ccl
          '(1405123083739595/9007199254740992 -3746994889972253/18014398509481984)
          #+clisp
          '(5620492334958379/36028797018963968 -3746994889972253/18014398509481984)
@@ -874,9 +876,10 @@
 (aver (eq (class-of 'car) (find-class 'symbol)))
 (aver (eq (class-of '(1 2)) (find-class 'cons)))
 (aver (eq (class-of 42)
-            #+(or abcl sbcl) (find-class 'fixnum)
-            #-(or abcl sbcl) (find-class 'integer)
+            #+(or abcl ccl sbcl) (find-class 'fixnum)
+            #-(or abcl ccl sbcl) (find-class 'integer)
             ))
+#-ccl
 (aver (eq (class-of #\x) (find-class 'character)))
 
 (aver (eql .5 0.5))
@@ -894,18 +897,23 @@
 (aver (subtypep '(and list symbol) 'null))
 
 (aver (equal (multiple-value-list (subtypep '(function () null) 'function)) '(t t)))
+#-clisp
 (aver (equal (multiple-value-list (subtypep '(function () null) '(function *))) '(t t)))
+#-clisp
 (aver (equal (multiple-value-list (subtypep '(function () null) '(function * *))) '(t t)))
 
 ;; nil vectors
-#-abcl
+#-(or abcl ccl)
 (progn
   (aver (not (array-has-fill-pointer-p (make-array 0 :element-type nil))))
   (aver (array-has-fill-pointer-p (make-array 0 :element-type nil :fill-pointer t)))
   (aver (not (simple-string-p (make-array 0 :element-type nil :fill-pointer t))))
   (aver (simple-string-p (make-array 0 :element-type nil)))
   (aver (equal (type-of (make-array 10 :element-type nil)) '(simple-array nil (10))))
-  (aver (equal (type-of (make-array 10 :element-type nil :fill-pointer t)) '(vector nil 10))))
+  (aver (equal (type-of (make-array 10 :element-type nil :fill-pointer t))
+               #+sbcl '(and (vector nil 10) (not simple-array))
+               #-sbcl '(vector nil 10)
+               )))
 
 ;; bit-vectors
 (aver (equal (type-of #*0011) '(simple-bit-vector 4)))
@@ -914,7 +922,9 @@
 (aver (typep #*0011 'simple-array))
 (aver (bit-vector-p #*0011))
 
-(aver (equal (type-of (make-array 4 :element-type 'bit :fill-pointer 0)) '(bit-vector 4)))
+(aver (equal (type-of (make-array 4 :element-type 'bit :fill-pointer 0))
+             #+sbcl '(and (bit-vector 4) (not simple-array))
+             #-sbcl '(bit-vector 4)))
 (aver (not (simple-bit-vector-p (make-array 4 :element-type 'bit :fill-pointer 0))))
 (aver (not (typep (make-array 4 :element-type 'bit :fill-pointer 0) 'simple-bit-vector)))
 (aver (not (typep (make-array 4 :element-type 'bit :fill-pointer 0) 'simple-array)))
@@ -1030,3 +1040,8 @@
         (+ 3 4)
         (return-from foo 3)))))
 (aver (eql (test16) 0))
+
+(aver (equal (make-pathname :directory nil :defaults "/home/peter/") #p""))
+(aver (equal (make-pathname :defaults "/home/peter/") #p"/home/peter/"))
+(aver (equal (make-pathname :directory nil :defaults "/home/peter") #p"peter"))
+(aver (equal (make-pathname :defaults "/home/peter") #p"/home/peter"))
