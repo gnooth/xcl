@@ -229,7 +229,8 @@
 
 (setq sys:*warn-on-redefinition* t)
 
-(format t "Startup completed in ~,2F seconds.~%" (sys:uptime))
+(unless (member "--noinform" sys:*argv* :test 'equal)
+  (format t "Startup completed in ~,2F seconds.~%" (sys:uptime)))
 
 (sys:load-initialization-files)
 

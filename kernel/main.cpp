@@ -27,6 +27,8 @@
 #include "Pathname.hpp"
 #include "Readtable.hpp"
 
+static bool noinform = false;
+
 #ifdef WIN32
 BOOL WINAPI control_c_handler(DWORD event)
 {
@@ -45,8 +47,11 @@ void initialize_control_c_handler()
 #ifdef WIN32
   if (SetConsoleCtrlHandler(control_c_handler, TRUE))
     {
-      printf("Control-C handler installed\n");
-      fflush(stdout);
+      if (!noinform)
+        {
+          printf("Control-C handler installed\n");
+          fflush(stdout);
+        }
     }
 #endif
 }
@@ -123,10 +128,13 @@ static void process_command_line_arguments(int argc, char * argv[])
           printf("  --no-siteinit           Do not load site initialization file ($XCL_HOME/xclrc\n");
           printf("                            or /etc/xclrc)\n");
           printf("  --no-userinit           Do not load user initialization file (~/.xclrc)\n");
+          printf("  --noinform              Do not print banner\n");
           printf("  --load <filename>       Load <filename>\n");
           printf("  --eval <expression>     Evaluate <expression>\n");
           exit(0);
         }
+      if (!strcmp(argv[i], "--noinform"))
+        noinform = true;
       list = make_cons(make_simple_string(argv[i]), list);
     }
   the_symbol(S_argv)->set_value(list);
@@ -177,8 +185,11 @@ int __main(int argc, char * argv[])
 {
   initialize_lisp();
   process_command_line_arguments(argc, argv);
-  print_version();
-  print_copyright();
+  if (!noinform)
+    {
+      print_version();
+      print_copyright();
+    }
   initialize_control_c_handler();
 
 #ifndef WIN32
