@@ -32,7 +32,7 @@
 
 #include "../mpfr/mpfr.h"
 
-inline long abs(long x)
+inline long long_abs(long x)
 {
   return (x >= 0) ? x : -x;
 }
@@ -2909,8 +2909,8 @@ Value SYS_truncate_2(Value number, Value divisor)
             goto DIVIDE_BY_ZERO;
           long n = xlong(number);
           long d = xlong(divisor);
-          long n_abs = abs(n);
-          long d_abs = abs(d);
+          long n_abs = long_abs(n);
+          long d_abs = long_abs(d);
           long q = n_abs / d_abs;
           long r = n_abs % d_abs;
           if (n < 0)
@@ -2993,8 +2993,8 @@ Value CL_rem(Value number, Value divisor)
         return signal_lisp_error(new DivisionByZero(S_rem, list2(number, divisor)));
       long n = xlong(number);
       long d = xlong(divisor);
-      long n_abs = abs(n);
-      long d_abs = abs(d);
+      long n_abs = long_abs(n);
+      long d_abs = long_abs(d);
       long r = n_abs % d_abs;
       if (n < 0)
         r = -r;
@@ -3018,8 +3018,8 @@ Value CL_mod(Value number, Value divisor)
         return signal_lisp_error(new DivisionByZero(S_mod, list2(number, divisor)));
       long n = xlong(number);
       long d = xlong(divisor);
-      long n_abs = abs(n);
-      long d_abs = abs(d);
+      long n_abs = long_abs(n);
+      long d_abs = long_abs(d);
       long r = n_abs % d_abs;
       if (!same_sign_p(n, d))
         if (r != 0)
@@ -3088,8 +3088,8 @@ Value SYS_floor_2(Value number, Value divisor)
             goto DIVIDE_BY_ZERO;
           long x = xlong(number);
           long y = xlong(divisor);
-          long x_abs = abs(x);
-          long y_abs = abs(y);
+          long x_abs = long_abs(x);
+          long y_abs = long_abs(y);
           long q = x_abs / y_abs;
           long r = x_abs % y_abs;
           if (!same_sign_p(x, y))
@@ -3228,8 +3228,8 @@ Value SYS_ceiling_2(Value number, Value divisor)
             goto DIVIDE_BY_ZERO;
           long n = xlong(number);
           long d = xlong(divisor);
-          long n_abs = abs(n);
-          long d_abs = abs(d);
+          long n_abs = long_abs(n);
+          long d_abs = long_abs(d);
           long q = n_abs / d_abs;
           long r = n_abs % d_abs;
           if (same_sign_p(n, d))
