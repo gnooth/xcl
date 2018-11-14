@@ -562,9 +562,9 @@ Value SYS_two_arg_star(Value v1, Value v2)
         }
       if (ratiop(v2))
         {
-          mpf_t(f1);
+          mpf_t f1;
           mpf_init_set_d(f1, the_single_float(v1)->_f);
-          mpf_t(f2);
+          mpf_t f2;
           mpf_init(f2);
           mpf_set_q(f2, the_ratio(v2)->_q);
           mpf_mul(f2, f2, f1);
@@ -597,9 +597,9 @@ Value SYS_two_arg_star(Value v1, Value v2)
         }
       if (ratiop(v2))
         {
-          mpf_t(f1);
+          mpf_t f1;
           mpf_init_set_d(f1, the_double_float(v1)->_d);
-          mpf_t(f2);
+          mpf_t f2;
           mpf_init(f2);
           mpf_set_q(f2, the_ratio(v2)->_q);
           mpf_mul(f2, f2, f1);

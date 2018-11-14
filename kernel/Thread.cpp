@@ -851,7 +851,7 @@ Value CL_sleep(Value arg)
     }
   if (realp(arg))
     {
-      mpfr_t(x);
+      mpfr_t x;
       mpfr_init2(x, 24); // 24-bit precision
       if (bignump(arg))
           mpfr_set_z(x, the_bignum(arg)->_z, GMP_RNDN);
